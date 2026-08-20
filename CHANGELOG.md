@@ -5,6 +5,20 @@ All notable changes to Nimbus are documented here. The format is based on
 [Semantic Versioning](https://semver.org), and entries below this point are generated
 automatically from [Conventional Commits](https://www.conventionalcommits.org).
 
+## [0.0.4](https://github.com/svviitzerland/nimbus/compare/v0.0.3...v0.0.4) (2026-08-20)
+
+
+### Features
+
+* **request-journey:** answer the cell tower question, and fly the request in 3D ([6a97b4d](https://github.com/svviitzerland/nimbus/commit/6a97b4daac766b6b4bb255a5ab05b711ac8a947c))
+* **request-journey:** fly the request from your hand to the server in 3D ([a8654cf](https://github.com/svviitzerland/nimbus/commit/a8654cff22bf9174f4fcdec9a6bf94a909e3e84e))
+* **request-journey:** show why cell towers exist when data rides cables ([4198fdc](https://github.com/svviitzerland/nimbus/commit/4198fdcfce37c5f9166a268b8082ba16fe27bebc))
+
+
+### Bug Fixes
+
+* **ui:** keep the phone at its natural width inside scaled wrappers ([641c6b0](https://github.com/svviitzerland/nimbus/commit/641c6b059ca7074beb058fef7a1deb631c9bf23e))
+
 ## [0.0.3](https://github.com/svviitzerland/nimbus/compare/v0.0.2...v0.0.3) (2026-07-10)
 
 
