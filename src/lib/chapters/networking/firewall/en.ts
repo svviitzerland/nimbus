@@ -6,6 +6,7 @@ export const en: FirewallText = {
 		'A door that opens to the internet gets visited by everyone, good guests and snoops alike. Someone has to screen them out front.',
 		'The <b>firewall</b> is that security guard. It stands in front of the server holding a guest list, checking every arrival before they may enter.',
 		'You write the rules, and the safest rules start from <b>deny everything</b>, then allow only what is needed. Say, guests coming to view the web page are welcomed, everyone else is turned away.',
+		'[fyi] Firewalls are not only a cloud thing. In the cloud it is a set of rules you manage from a screen (AWS calls it a security group), in an office it lives on the router, like a [[MikroTik firewall filter|netlab/router-firewall]], and even your laptop has one. Same idea every time, a guest list.',
 		'The guard is on duty in front of the server, guest list in hand. Send in a web guest, follow up with a snoop, and see who gets through.'
 	],
 	reactions: {

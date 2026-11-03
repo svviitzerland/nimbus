@@ -6,6 +6,7 @@ export const id: FirewallText = {
 		'Pintu yang terbuka ke internet akan didatangi siapa saja, tamu baik maupun orang iseng. Harus ada yang menyeleksi di depan.',
 		'<b>Firewall</b> itu satpamnya. Dia berdiri di depan server sambil memegang daftar tamu, dan memeriksa setiap orang yang datang sebelum boleh masuk.',
 		'Aturannya dibuat olehmu, dan aturan paling aman dimulai dari <b>tolak semua</b>, lalu izinkan yang perlu saja. Misalnya, tamu yang mau membuka halaman web dipersilakan, selain itu ditolak.',
+		'[fyi] Firewall nggak cuma ada di cloud. Di cloud dia berupa aturan yang kamu atur dari layar (AWS menyebutnya security group), di kantor dia tinggal di router, misalnya [[firewall filter di MikroTik|netlab/router-firewall]], bahkan laptopmu juga punya satu. Konsepnya sama persis, daftar tamu.',
 		'Satpamnya sudah berjaga di depan server, daftar tamu di tangan. Datangkan tamu web, susul dengan orang iseng, dan lihat siapa yang lolos.'
 	],
 	reactions: {

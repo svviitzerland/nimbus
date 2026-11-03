@@ -3,7 +3,10 @@
 	import { cubicOut } from 'svelte/easing';
 	import Nim from './Nim.svelte';
 	import { t, lang } from '$lib/i18n';
-	import { renderTerms, topicName, topicColor } from '$lib/terms';
+	import { renderTerms, resolveTerm, type ResolvedTerm } from '$lib/terms';
+	import { path } from '$lib/path.svelte';
+	import { progress } from '$lib/progress.svelte';
+	import type { LessonRef } from '$lib/tracks';
 	import type { Mood } from '$lib/chapters/types';
 
 	let {
@@ -14,7 +17,8 @@
 		final = false,
 		aside = false,
 		onnext,
-		onback
+		onback,
+		onjump
 	}: {
 		nim: string;
 		mood?: Mood;
@@ -24,6 +28,8 @@
 		aside?: boolean;
 		onnext?: () => void;
 		onback?: () => void;
+		/** Jump to another lesson from a cross link chip. Without it, lesson chips cannot jump. */
+		onjump?: (ref: LessonRef) => void;
 	} = $props();
 
 	// Any line (a beat or a reaction) that starts with `[fyi]` is a "by the way" aside: the
@@ -79,8 +85,11 @@
 
 	// Inline glossary chips: [[term|topic]] becomes a tappable chip (rendered inside {@html} so it
 	// composes with any existing markup), and a tap opens a small "coming soon" card for that module.
-	const html = $derived(renderTerms(body));
-	let activeTerm = $state<{ label: string; topic: string } | null>(null);
+	const html = $derived(renderTerms(body, $lang));
+	let activeTerm = $state<{ label: string; target: string } | null>(null);
+	const term = $derived<ResolvedTerm | null>(
+		activeTerm ? resolveTerm(activeTerm.target, $lang) : null
+	);
 	$effect(() => {
 		void nim; // a new line (beat or reaction) clears any open card
 		activeTerm = null;
@@ -93,7 +102,7 @@
 			e.stopPropagation();
 			activeTerm = {
 				label: btn.dataset.label ?? btn.textContent ?? '',
-				topic: btn.dataset.topic ?? 'general'
+				target: btn.dataset.target ?? 'general'
 			};
 		};
 		node.addEventListener('click', onClick);
@@ -205,10 +214,15 @@
 		{/if}
 	</button>
 
-	<!-- "coming soon" card for a tapped glossary term: no detail, just a nudge that a whole module
-	     will cover it. Reused by any lesson that drops a [[term|topic]] into a line. -->
-	{#if activeTerm}
-		{@const tc = topicColor(activeTerm.topic)}
+	<!-- Cross link card for a tapped [[label|target]] chip. It says where the idea is taught. A
+	     shipped lesson can be jumped to right now (Nim brings the learner back afterwards); a
+	     planned one just says which track will cover it. -->
+	{#if activeTerm && term}
+		{@const tc = term.color}
+		{@const jumpable = term.kind === 'lesson' && !!onjump}
+		{@const isDone =
+			term.kind === 'lesson' && progress.isDone(term.ref.chapterId, term.ref.lessonId)}
+		{@const later = term.kind === 'lesson' && !isDone && path.includes(term.ref)}
 		<div class="term-modal" transition:fade={{ duration: 140 }}>
 			<button class="term-backdrop" aria-label={$t.termClose} onclick={() => (activeTerm = null)}
 			></button>
@@ -218,13 +232,49 @@
 				aria-modal="true"
 				transition:fly={{ y: 14, duration: 220, easing: cubicOut }}
 			>
-				<span class="term-soon" style="--tc:{tc}"><span class="dot"></span>{$t.termSoon}</span>
+				<span class="term-soon" style="--tc:{tc}">
+					<span class="dot" class:still={term.kind === 'lesson'}></span>
+					{term.kind === 'lesson'
+						? term.track
+							? $t.termTrack.replace('{name}', term.track.title[$lang])
+							: $t.termReady
+						: $t.termSoon}
+				</span>
 				<p class="term-word" style="--tc:{tc}">{activeTerm.label}</p>
 				<p class="term-body">
-					{$t.termModule.replace('{name}', topicName(activeTerm.topic, $lang))}
+					{#if term.kind === 'lesson'}
+						{$t.termLesson.replace('{title}', term.title)}
+					{:else if term.kind === 'soon'}
+						{$t.termSoonLesson.replace('{title}', term.title).replace('{name}', term.where)}
+					{:else if term.kind === 'track'}
+						{$t.termModule.replace('{name}', term.track.title[$lang])}
+					{:else}
+						{$t.termModule.replace('{name}', term.name)}
+					{/if}
 				</p>
-				<p class="term-note">{$t.termSub}</p>
-				<button class="term-ok" onclick={() => (activeTerm = null)}>{$t.termClose}</button>
+				<p class="term-note">
+					{term.kind !== 'lesson'
+						? $t.termSub
+						: isDone
+							? $t.termDone
+							: later
+								? $t.termLater
+								: $t.termJumpNote}
+				</p>
+				{#if jumpable && term.kind === 'lesson'}
+					<button
+						class="term-ok"
+						style="background:{tc}"
+						onclick={() => {
+							const ref = term.ref;
+							activeTerm = null;
+							onjump?.(ref);
+						}}>{isDone ? $t.termReview : $t.termJump}</button
+					>
+					<button class="term-later" onclick={() => (activeTerm = null)}>{$t.termStay}</button>
+				{:else}
+					<button class="term-ok" onclick={() => (activeTerm = null)}>{$t.termClose}</button>
+				{/if}
 			</div>
 		</div>
 	{/if}
@@ -253,6 +303,17 @@
 		cursor: pointer;
 		transition: background 0.15s;
 		-webkit-tap-highlight-color: transparent;
+	}
+	/* a chip that leads to a real lesson gets a tiny arrow, so it reads as "you can go there" */
+	:global(.term-live)::after {
+		content: '';
+		display: inline-block;
+		margin-left: 3px;
+		width: 5px;
+		height: 5px;
+		border-top: 1.6px solid var(--tc);
+		border-right: 1.6px solid var(--tc);
+		transform: translateY(-2px) rotate(45deg);
 	}
 	:global(.term:hover) {
 		background: color-mix(in srgb, var(--tc) 22%, transparent);
@@ -333,6 +394,22 @@
 		font-weight: 700;
 		color: #fff;
 		transition: filter 0.15s;
+	}
+	.term-later {
+		margin-top: 6px;
+		width: 100%;
+		border-radius: 12px;
+		padding: 8px;
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--color-muted, #5e6b76);
+		transition: color 0.15s;
+	}
+	.term-later:hover {
+		color: var(--color-ink, #16212b);
+	}
+	.term-soon .dot.still {
+		animation: none;
 	}
 	.term-ok:hover {
 		filter: brightness(1.08);

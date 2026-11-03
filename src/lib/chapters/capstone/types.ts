@@ -14,3 +14,10 @@ export interface CapstoneText extends LessonText {
 	noteIdle: string;
 	notePicked: string;
 }
+
+export interface CrossroadsText extends LessonText {
+	/** Under the branch cards before one is picked. */
+	hint: string;
+	/** The button that enters the picked branch, template with {name}. */
+	enter: string;
+}

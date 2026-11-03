@@ -1,8 +1,11 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { lang, t } from '$lib/i18n';
 	import { getChapter } from '$lib/chapters';
 	import { progress } from '$lib/progress.svelte';
+	import { path } from '$lib/path.svelte';
+	import type { LessonRef } from '$lib/tracks';
 	import SpeechBubble from '$lib/components/SpeechBubble.svelte';
 	import type { PageData } from './$types';
 
@@ -27,13 +30,50 @@
 		reaction = null;
 		reactionToken = null;
 		completed = false;
+		// coming back from a detour lands on the beat the learner left from
+		untrack(() => {
+			const resume = path.takeResumeBeat();
+			if (resume !== null) beat = Math.min(resume, text.intro.length - 1);
+		});
 	});
 
+	const here = $derived<LessonRef>({ chapterId: data.chapterId, lessonId: data.lessonId });
+	// A detour is live while the learner is somewhere other than the lesson they jumped from.
+	const detour = $derived(
+		path.detour &&
+			!(
+				path.detour.from.chapterId === data.chapterId && path.detour.from.lessonId === data.lessonId
+			)
+			? path.detour
+			: null
+	);
+	const detourTitle = $derived.by(() => {
+		if (!detour) return '';
+		const c = getChapter(detour.from.chapterId);
+		return c?.lessons.find((l) => l.id === detour.from.lessonId)?.text[$lang].title ?? '';
+	});
+	// Every track walks its own playlist (Dari Nol included). A lesson outside the chosen track,
+	// reached from the menu of another track, falls back to the classic chapter order.
+	const inTrack = $derived(path.includes(here));
+	const group = $derived(inTrack ? path.groupOf(here) : undefined);
+	const go = (r: LessonRef) => goto(`/${r.chapterId}/${r.lessonId}`);
+
+	function jump(ref: LessonRef) {
+		path.startDetour(here, beat);
+		go(ref);
+	}
+	function returnFromDetour() {
+		const back = path.endDetour();
+		if (back) go(back);
+	}
+
 	const isLastBeat = $derived(beat >= text.intro.length - 1);
-	const isLastLesson = $derived(data.index === data.total - 1);
+	const isLastLesson = $derived(
+		inTrack && !detour ? path.next(here) === 'end' : data.index === data.total - 1
+	);
 	const canNext = $derived(!((isLastBeat && !completed) || locked));
 	const final = $derived(isLastLesson && isLastBeat);
-	const canBack = $derived(beat > 0 || data.index > 0);
+	const canBack = $derived(beat > 0 || (inTrack ? path.prev(here) !== undefined : data.index > 0));
 	const message = $derived(reaction ?? text.intro[Math.min(beat, text.intro.length - 1)]);
 	// "Your turn": on the last beat, before the step is finished, the stage is what matters, so
 	// Nim steps out (on phones, after a brief moderator-style peek). This also covers reactions:
@@ -75,6 +115,14 @@
 		progress.markDone(data.chapterId, data.lessonId);
 		shown = false;
 		locked = false;
+		// finishing a detour lesson brings the learner straight back to where they jumped from
+		if (detour) return returnFromDetour();
+		if (inTrack) {
+			const n = path.next(here);
+			if (n === 'end') goto(`/${chapter.id}/done?track=${path.track.id}`);
+			else if (n) go(n);
+			return;
+		}
 		if (isLastLesson) goto(`/${chapter.id}/done`);
 		else goto(`/${chapter.id}/${chapter.lessons[data.index + 1].id}`);
 	}
@@ -87,6 +135,11 @@
 		}
 		shown = false;
 		locked = false;
+		if (inTrack) {
+			const p = path.prev(here);
+			if (p) go(p);
+			return;
+		}
 		if (data.index > 0) goto(`/${chapter.id}/${chapter.lessons[data.index - 1].id}`);
 	}
 	function onKey(e: KeyboardEvent) {
@@ -117,10 +170,34 @@
 <main class="relative flex min-h-0 flex-1 flex-col">
 	<!-- Title band (in normal flow, never overlaps the stage) -->
 	<div class="shrink-0 px-4 pt-3 pb-1 text-center">
+		{#if detour}
+			<button
+				type="button"
+				onclick={returnFromDetour}
+				class="mb-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1 text-[12px] font-semibold text-ink shadow-sm transition-colors hover:border-brand hover:text-brand"
+			>
+				<svg
+					width="12"
+					height="12"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2.6"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg
+				>
+				<span class="truncate">{$t.backTo.replace('{title}', detourTitle)}</span>
+			</button>
+		{/if}
 		<p class="text-[11px] font-semibold tracking-widest text-faint uppercase">
-			{chapter.unnumbered
-				? chapter.title[$lang]
-				: `${$t.chapter} ${chapter.number}: ${chapter.title[$lang]}`}
+			{group && path.track.id === 'general'
+				? `${$t.chapter} ${group.index + 1}: ${group.group.title[$lang]}`
+				: inTrack
+					? $t.termTrack.replace('{name}', path.track.title[$lang])
+					: chapter.unnumbered
+						? chapter.title[$lang]
+						: `${$t.chapter} ${chapter.number}: ${chapter.title[$lang]}`}
 		</p>
 		<h1 class="mt-1 font-display text-2xl font-medium text-ink md:text-[1.9rem]">{text.title}</h1>
 	</div>
@@ -165,6 +242,7 @@
 			{aside}
 			onnext={next}
 			onback={back}
+			onjump={jump}
 		/>
 	</div>
 </main>

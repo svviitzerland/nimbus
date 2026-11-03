@@ -19,12 +19,37 @@ const ui = {
 		termModule: 'Ini bagian dari modul {name}.',
 		termSub: 'Belum perlu kamu pelajari sekarang, cukup tahu istilahnya ada.',
 		termClose: 'Oke',
+		termTrack: 'Jalur {name}',
+		termReady: 'Ada pelajarannya',
+		termLesson: 'Dibahas di pelajaran {title}.',
+		termSoonLesson: 'Nanti dibahas di pelajaran {title}, bagian {name}.',
+		termDone: 'Kamu sudah pernah belajar ini. Mau ulas lagi sebentar?',
+		termLater:
+			'Santai, di jalurmu kita bakal sampai ke sana juga. Tapi kalau penasaran, loncat aja sekarang.',
+		termJumpNote: 'Loncat aja kalau penasaran, nanti aku antar balik ke sini.',
+		termJump: 'Loncat ke sana',
+		termReview: 'Ulas lagi',
+		termStay: 'Nanti aja, lanjut dulu',
+		backTo: 'Balik ke {title}',
+		tracks: 'Jalur belajar',
+		changeTrack: 'Ganti jalur',
+		recommended: 'Saran Nim',
+		trackReady: '{n} pelajaran siap',
+		trackSoonCount: '{n} lagi segera hadir',
+		trackSoon: 'Segera hadir',
+		trackCurrent: 'Jalurmu',
+		trackContinue: 'Lanjutkan',
+		trackStart: 'Mulai jalur ini',
+		basecampNote: 'Bekal dasar dulu, biar nggak bingung',
+		trackDoneTitle: 'Jalur {name} selesai',
+		trackDoneSub:
+			'Keren, kamu sudah menamatkan semua pelajaran yang siap di jalur ini. Pelajaran lain yang segera hadir akan muncul di sini. Sambil nunggu, mau coba jalur lain?',
 		welcomeMobile:
-			'Oh iya, satu hal kecil. Kamu lagi pakai HP ya? Ini bakal jauh lebih enak di layar gede, laptop atau komputer, bahkan TV juga boleh sekalian ngajak sekeluarga nonton kamu belajar cloud haha. Tapi tenang, di HP tetap jalan kok.',
+			'Oh iya, satu hal kecil. Kamu lagi pakai HP ya? Ini bakal jauh lebih enak di layar gede, laptop atau komputer, bahkan TV juga boleh sekalian ngajak sekeluarga nonton kamu belajar teknologi haha. Tapi tenang, di HP tetap jalan kok.',
 		welcome: [
-			'Hi, kenalin aku <b>Nim</b>. Aku yang bakal nemenin kamu belajar <b>cloud</b> dari nol banget, jadi santai aja ya.',
+			'Hi, kenalin aku <b>Nim</b>. Aku yang bakal nemenin kamu belajar <b>teknologi di balik internet</b> dari nol banget, jadi santai aja ya.',
 			'Di sini kamu nggak cuma baca teori. Tiap konsep langsung kamu coba sendiri, dan aku akan jelaskan pelan-pelan sambil kita jalan.',
-			'Kita mulai dari yang paling dasar, yaitu <b>apa itu client dan server</b>, lalu pelan-pelan naik ke cloud, region, dan seterusnya. Yuk, kita mulai!'
+			'Kamu bisa belajar <b>jaringan</b>, <b>web</b>, <b>cloud</b>, <b>keamanan</b>, atau <b>AI</b>. Sudah punya tujuan? Langsung pilih jalurnya. Belum tahu mau mulai dari mana? Ikut jalur <b>Dari Nol</b>, aku antar dari dasar banget.'
 		]
 	},
 	en: {
@@ -42,12 +67,36 @@ const ui = {
 		termModule: 'This is part of the {name} module.',
 		termSub: 'No need to learn it now, just good to know it exists.',
 		termClose: 'Got it',
+		termTrack: '{name} track',
+		termReady: 'There is a lesson',
+		termLesson: 'Covered in the lesson {title}.',
+		termSoonLesson: 'It will be covered in {title}, part of {name}.',
+		termDone: 'You already learned this one. Fancy a quick review?',
+		termLater: 'No rush, your track gets there too. But if you are curious, jump in now.',
+		termJumpNote: 'Jump in if you are curious, and I will bring you right back here.',
+		termJump: 'Take me there',
+		termReview: 'Review it',
+		termStay: 'Later, keep going',
+		backTo: 'Back to {title}',
+		tracks: 'Learning tracks',
+		changeTrack: 'Change track',
+		recommended: "Nim's pick",
+		trackReady: '{n} lessons ready',
+		trackSoonCount: '{n} more coming soon',
+		trackSoon: 'Coming soon',
+		trackCurrent: 'Your track',
+		trackContinue: 'Continue',
+		trackStart: 'Start this track',
+		basecampNote: 'The basics first, so nothing feels confusing',
+		trackDoneTitle: '{name} track complete',
+		trackDoneSub:
+			'Nice, you finished every lesson that is ready in this track. New ones will show up here as they land. While you wait, want to try another track?',
 		welcomeMobile:
-			'Oh, one small thing. You are on a phone, right? This feels so much better on a big screen, a laptop or a computer, even a TV if you fancy, so the whole family can watch you learn cloud haha. No worries though, it runs fine on a phone too.',
+			'Oh, one small thing. You are on a phone, right? This feels so much better on a big screen, a laptop or a computer, even a TV if you fancy, so the whole family can watch you learn tech haha. No worries though, it runs fine on a phone too.',
 		welcome: [
-			"Hi, I'm <b>Nim</b>. I'll keep you company while you learn <b>cloud</b> from the very start, so take it easy.",
+			"Hi, I'm <b>Nim</b>. I'll keep you company while you learn <b>the tech behind the internet</b> from the very start, so take it easy.",
 			"Here you don't just read theory. You try each concept yourself, and I'll explain everything slowly as we go.",
-			"We start from the very basics, <b>what a client and a server are</b>, then work our way up to the cloud, regions, and beyond. Let's get going!"
+			'You can learn <b>networking</b>, the <b>web</b>, <b>cloud</b>, <b>security</b>, or <b>AI</b>. Already have a goal? Pick its track. Not sure where to start? Take the <b>From Zero</b> track and I will walk you through from the very basics.'
 		]
 	}
 };

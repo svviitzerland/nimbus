@@ -1,37 +1,38 @@
 import type { Chapter } from '../types';
 import { build } from './build';
+import { crossroads } from './crossroads';
 
 export const capstone: Chapter = {
 	id: 'capstone',
 	number: 8,
 	unnumbered: true,
-	title: { id: 'Jalur Provider', en: 'Provider Tracks' },
-	lessons: [build],
+	title: { id: 'Persimpangan', en: 'Crossroads' },
+	lessons: [crossroads, build],
 	summary: {
 		id: {
-			title: 'Bagian 1 selesai',
-			sub: 'Kamu sudah punya fondasi cloud yang utuh:',
+			title: 'Dari Nol selesai',
+			sub: 'Kamu sudah mencicipi semua dasar teknologi yang dibutuhkan',
 			items: [
-				'Dari <b>satu server</b> sampai banyak server yang tersebar dan tahan gangguan',
-				'Cara <b>melayani trafik</b>: reverse proxy, load balancer, scaling, auto scaling, dan CDN',
-				'Cara <b>menjalankan</b> dan <b>menyimpan</b>: VM, container, serverless, storage, dan database',
-				'Cara <b>mengamankan</b> dan <b>mengawasi</b>: jaringan, IAM, enkripsi, monitoring, dan biaya'
+				'Cara <b>komputer</b> dan <b>kode</b> bekerja, sampai client dan server',
+				'Cara <b>web</b> dibangun dan cara <b>jaringan</b> mengantar datanya',
+				'Cara <b>cloud</b> melayani banyak orang, tahan gangguan, dan tetap hemat',
+				'Cara <b>mengamankan</b> sistem, dan dasar <b>AI</b> serta machine learning'
 			],
 			nextNote:
-				'Berikutnya, Bagian 2: jalur per penyedia (AWS, GCP, Azure). Di sana tiap konsep ini berubah jadi layanan nyata dengan nama aslinya.',
+				'Berikutnya, pilih <b>cabang</b> yang mau kamu dalami. Jaringan, Web, Cloud & DevOps, Keamanan, atau AI & ML.',
 			restart: 'Ulangi dari awal'
 		},
 		en: {
-			title: 'Part 1 complete',
-			sub: 'You now have a complete cloud foundation:',
+			title: 'From Zero complete',
+			sub: 'You have tasted every tech basic you need',
 			items: [
-				'From <b>one server</b> to many spread out servers that survive trouble',
-				'How to <b>serve traffic</b>: reverse proxy, load balancer, scaling, auto scaling, and a CDN',
-				'How to <b>run</b> and <b>store</b>: VMs, containers, serverless, storage, and databases',
-				'How to <b>secure</b> and <b>watch</b>: networking, IAM, encryption, monitoring, and cost'
+				'How <b>computers</b> and <b>code</b> work, up to clients and servers',
+				'How the <b>web</b> is built and how the <b>network</b> carries its data',
+				'How the <b>cloud</b> serves many people, survives trouble, and stays on budget',
+				'How to <b>secure</b> a system, and the basics of <b>AI</b> and machine learning'
 			],
 			nextNote:
-				'Next up, Part 2: the per provider tracks (AWS, GCP, Azure). There each concept becomes a real service with its actual name.',
+				'Next up, pick the <b>branch</b> you want to go deeper in. Network, Web, Cloud & DevOps, Security, or AI & ML.',
 			restart: 'Start over'
 		}
 	}

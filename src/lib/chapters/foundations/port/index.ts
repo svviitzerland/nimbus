@@ -6,7 +6,7 @@ import { en } from './en';
 export const port: Lesson = {
 	id: 'port',
 	mood: 'thinking',
-	moods: ['thinking', 'calm', 'happy'],
+	moods: ['thinking', 'calm', 'idea', 'happy'],
 	reactionMood: {
 		'22': 'idea',
 		'80': 'happy',

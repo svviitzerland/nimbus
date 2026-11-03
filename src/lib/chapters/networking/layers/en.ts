@@ -4,7 +4,7 @@ export const en: LayersText = {
 	title: 'Layers and packets',
 	intro: [
 		'You want to see the nimbus products page. But that page lives on a nimbus computer far away, which we call the server. So your phone writes a little note asking for the page, and that note is what we carry to the server.',
-		'Before it leaves, the note gets locked. The words you could read turn into scrambled code, so nobody on the same WiFi can peek, or [[sniffing|security]] as it is called. This is what the padlock on a safe site means.',
+		'Before it leaves, the note gets [[locked|networking/encryption]]. The words you could read turn into scrambled code, so nobody on the same WiFi can peek, or [[sniffing|security/sniffing]] as it is called. This is what the padlock on a safe site means.',
 		'Now your phone reaches that server first and sets up a connection, and it keeps that connection alive the whole time you are on the page.',
 		'The note is cut into a few small packets, each given a number so they can be put back in order. Each one also gets a door number for where it is headed, one door per service, and secure web uses door 443. You will try this part yourself soon.',
 		'Each packet is labeled with the server address, for example 76.76.21.21, like a house address. Then it is sent toward that address, passed from one point to the next across the internet.',

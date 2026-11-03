@@ -7,6 +7,15 @@ import { traffic } from './traffic';
 import { networking } from './networking';
 import { compute } from './compute';
 import { capstone } from './capstone';
+import { providersChapter } from './providers';
+import { devopsChapter } from './devops';
+import { linuxChapter } from './linux';
+import { networkChapter } from './network';
+import { basicsChapter } from './basics';
+import { webChapter } from './web';
+import { securityChapter } from './security';
+import { aiChapter } from './ai';
+import { netlabChapter } from './netlab';
 
 /** All chapters, in order. Add a new chapter by importing it and appending here. */
 export const chapters: Chapter[] = [
@@ -17,7 +26,16 @@ export const chapters: Chapter[] = [
 	traffic,
 	networking,
 	compute,
-	capstone
+	capstone,
+	webChapter,
+	securityChapter,
+	aiChapter,
+	netlabChapter,
+	basicsChapter,
+	networkChapter,
+	linuxChapter,
+	devopsChapter,
+	providersChapter
 ];
 
 export function getChapter(id?: string): Chapter | undefined {

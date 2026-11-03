@@ -5,6 +5,7 @@ export const en: PortText = {
 	intro: [
 		'A server has just one address, but behind that address are many numbered doors. Each door is a <b>port</b>, and each service waits at its own one.',
 		'Picture the server as a building with one address but many doors. So when you connect, you name not just the address but which door you are heading to.',
+		'[fyi] Quick heads up so they never get mixed up. These ports are <b>logical</b> doors, just numbers inside a server. A router or switch, like [[MikroTik|netlab/router-intro]] or Cisco, also has <b>physical</b> ports, the holes you plug a LAN cable into, named ether1, ether2, and so on. Both are called ports, but they live in different worlds.',
 		'Tap each door to see which service is waiting behind it.'
 	],
 	reactions: {

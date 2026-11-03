@@ -4,7 +4,7 @@ export const id: LayersText = {
 	title: 'Lapisan dan paket',
 	intro: [
 		'Kamu mau lihat halaman produk nimbus. Tapi halamannya tersimpan di komputer nimbus yang jauh di sana, kita sebut server. Jadi HP-mu menulis pesan kecil, minta halaman itu, dan pesan inilah yang kita antar ke server.',
-		'Sebelum berangkat, pesannya dikunci dulu. Tulisan yang tadinya kebaca diubah jadi kode acak, biar orang lain di WiFi yang sama tidak bisa mengintip, atau istilahnya [[sniffing|security]]. Ini yang bikin ada gembok di situs yang aman.',
+		'Sebelum berangkat, pesannya [[dikunci|networking/encryption]] dulu. Tulisan yang tadinya kebaca diubah jadi kode acak, biar orang lain di WiFi yang sama tidak bisa mengintip, atau istilahnya [[sniffing|security/sniffing]]. Ini yang bikin ada gembok di situs yang aman.',
 		'Sekarang HP-mu menghubungi server itu dulu dan bikin sambungan. Sambungannya dijaga tetap nyala selama kamu masih buka halamannya.',
 		'Pesannya dipotong jadi beberapa paket kecil yang dikasih nomor urut. Tiap paket juga dikasih nomor pintu tujuan, tiap layanan punya pintunya sendiri, dan buat web yang aman pintunya 443. Bagian ini nanti kamu coba sendiri.',
 		'Tiap paket ditulisi alamat servernya, contohnya 76.76.21.21, mirip alamat rumah. Lalu paketnya dikirim menuju alamat itu, dioper dari satu titik ke titik berikutnya melintasi internet.',

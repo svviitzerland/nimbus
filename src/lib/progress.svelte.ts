@@ -10,8 +10,12 @@ export type FlatLesson = {
 	global: number;
 };
 
-/** Every lesson across every chapter, flattened into curriculum order. */
-export const flatLessons: FlatLesson[] = (() => {
+/** Every lesson across every chapter, flattened into curriculum order. Built on first use, because
+ *  stages import this file and the chapter registry imports the stages, so `chapters` may not be
+ *  ready yet while this module loads. */
+let flatCache: FlatLesson[] | null = null;
+export function flatLessons(): FlatLesson[] {
+	if (flatCache) return flatCache;
 	const out: FlatLesson[] = [];
 	let g = 0;
 	chapters.forEach((c, ci) =>
@@ -19,11 +23,11 @@ export const flatLessons: FlatLesson[] = (() => {
 			out.push({ chapterId: c.id, lessonId: l.id, chapterIndex: ci, lessonIndex: li, global: g++ })
 		)
 	);
-	return out;
-})();
+	return (flatCache = out);
+}
 
 export function globalIndexOf(chapterId: string, lessonId: string): number {
-	return flatLessons.findIndex((f) => f.chapterId === chapterId && f.lessonId === lessonId);
+	return flatLessons().findIndex((f) => f.chapterId === chapterId && f.lessonId === lessonId);
 }
 
 const KEY = 'nimbus:progress:v1';
@@ -65,7 +69,7 @@ export const progress = {
 	/** Reachable only when every earlier lesson in the curriculum is finished. */
 	isUnlocked(global: number): boolean {
 		for (let i = 0; i < global; i++) {
-			const f = flatLessons[i];
+			const f = flatLessons()[i];
 			if (!done.has(lessonKey(f.chapterId, f.lessonId))) return false;
 		}
 		return true;
@@ -74,7 +78,7 @@ export const progress = {
 		return done.size;
 	},
 	get total(): number {
-		return flatLessons.length;
+		return flatLessons().length;
 	},
 	reset() {
 		done = new Set();

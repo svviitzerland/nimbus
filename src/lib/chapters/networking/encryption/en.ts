@@ -5,7 +5,7 @@ export const en: EncryptionText = {
 	intro: [
 		'Data traveling the internet passes through many hands, your home router, the ISP, cables between countries. Anywhere along that road someone could be listening.',
 		'<b>Encryption</b> scrambles your message into random letters that only a <b>key</b> holder can read. An eavesdropper still sees the traffic, but the content is meaningless noise.',
-		'The little padlock in your browser means exactly this, your connection uses <b>HTTPS</b> and everything passing through is encrypted. Data sitting on disks can be scrambled too, that is encryption at rest.',
+		'The little padlock in your browser means exactly this, your connection uses [[HTTPS|security/tls]] and everything passing through is encrypted. Data sitting on disks can be scrambled too, that is encryption at rest.',
 		'An eavesdropper is waiting along this line. Send your card PIN twice, once without a key and once locked, then compare what he manages to read.'
 	],
 	reactions: {

@@ -1,6 +1,7 @@
 # Nimbus: agent & contributor guide
 
-Nimbus is an open-source, game-like website for learning cloud computing from zero,
+Nimbus is an open-source, game-like website for learning technology from zero (networks, the web,
+cloud and DevOps, security, and AI),
 interactively. A cloud mascot named **Nim** guides the learner (Clash-of-Clans vibe).
 Every game metaphor is tied to reality through Nim's reactions.
 
@@ -94,6 +95,44 @@ Any beat or reaction string may start with the marker **`[fyi]`** to render as a
 aside: the bubble looks the same but leads with a small amber **FYI** tag (handled in
 `SpeechBubble.svelte`, the marker is stripped from the shown text). Use it for optional, fun
 side facts that are not required to follow the lesson.
+
+## Modules, tracks (jalur), and cross links
+
+Two layers sit on top of the chapters, and CURRICULUM.md describes every lesson in them.
+
+- **Modules** (`src/lib/modules.ts`) are topics, each an ordered list of lessons. An item is a
+  shipped lesson as `'<chapter>/<lesson>'` or a planned one as `soon('<id>', '<id text>', '<en
+text>')`. Soon ids are unique across all modules. `basecamp` modules are shared foundations
+  (How a Computer Works, How a Computer Understands Code, Client and Server, Developer Tools,
+  Network Essentials).
+- **Tracks** (`src/lib/tracks.ts`) line modules up for one goal, Basecamp first. Today there are
+  General (`Dari Nol`), Network, Web, Cloud & DevOps, Security, and AI & ML. A lesson is written
+  once and can sit in many modules and tracks. Progress is keyed by `chapter/lesson`, so finishing
+  it anywhere counts everywhere.
+- **Dari Nol** (`general`) blends every lesson of every track into one path of chapters (Bab),
+  listed by key in `GENERAL` in `tracks.ts`, and ends at the **Crossroads** (`capstone/crossroads`)
+  where the learner branches into one track. Every module item must appear there exactly once,
+  except `branch` modules (the cloud providers, which only close the Cloud & DevOps track);
+  keep shipped lessons in their original relative order. A track with `soon: true` shows in the
+  picker but cannot be started yet.
+- **Same word, different world.** If a concept also exists elsewhere (logical versus physical
+  ports, cloud VPC versus an on premise network), add an `[fyi]` beat with a cross link.
+- The landing page ends with the **track picker**. The chosen track and any detour live in
+  `src/lib/path.svelte.ts`. In every track, Next and Back walk the track's playlist, and the last
+  lesson leads to `/<chapter>/done?track=<id>`.
+
+**Cross links.** In any beat or reaction, write `[[label|target]]` to render a tappable chip:
+
+- `[[locked|networking/encryption]]` points at a shipped lesson. The card names the track that owns
+  it and offers **jump there** or **later**. Jumping starts a detour: a "back to ..." pill appears,
+  and finishing the detour lesson returns the learner to the exact beat they left.
+- `[[HTTPS|security:tls]]` points at a planned lesson by its `soon` id (the part before the colon
+  is the track to credit, a hint only), shown as coming soon.
+- `[[sniffing|security]]` points at a whole track.
+
+To ship a planned lesson, build it in a chapter as usual, then replace its `soon(...)` item in
+`modules.ts` with `'<chapter>/<lesson>'`. Every `[[...|track:soonId]]` link to it can then be updated to
+the real lesson path.
 
 ## Stage component contract
 

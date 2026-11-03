@@ -10,7 +10,9 @@
   <img alt="Bun" src="https://img.shields.io/badge/Bun-000000?style=flat&logo=bun&logoColor=white" />
 </p>
 
-**Learn cloud computing by playing.**
+**Learn the technology behind the internet by playing.**
+
+Networks, the web, cloud and DevOps, security, and AI, from absolute zero.
 
 Nimbus starts you from absolute zero, like a game. Nim, a friendly little mascot, will be right
 there with you, explaining every idea in plain words and cheering you on. You will not just read
@@ -29,10 +31,17 @@ It is bilingual (Indonesian and English), needs no sign up, and runs on your pho
 
 ## How it works
 
+Right after Nim says hi, you pick a track. **Dari Nol** (From Zero) walks every topic in one
+blended path and ends at a crossroads where you branch into the one you want to go deeper in. Or
+jump straight into **Network** (all the way to a MikroTik router lab), **Web**, **Cloud & DevOps**,
+**Security**, or **AI & ML**. When a lesson touches another subject, Nim drops a link you can jump
+to, and brings you right back afterwards.
+
 Every lesson opens with a few short lines from Nim, then hands you an interactive stage you
 actually play with. You place a server on a spinnable globe and watch the latency change, ride a
 data packet along real undersea cables, knock out a data center and see the site survive or fall,
-trim a cloud bill, and more. Your progress is saved in your browser as you go.
+trim a cloud bill, build a web page, crack a tiny RSA key, tune a neural network, configure a
+router in a terminal, and more. Your progress is saved in your browser as you go.
 
 See the full lesson roadmap in [CURRICULUM.md](./CURRICULUM.md).
 
