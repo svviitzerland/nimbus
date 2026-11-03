@@ -274,6 +274,42 @@ export interface ApiStyleText extends LessonText {
 	replayBtn: string; // replays the style's animation on the last beat
 }
 
+export interface VersionControlText extends LessonText {
+	docLabel: string; // caption over the document
+	commitBtn: string; // the button that snapshots the document
+	historyLabel: string; // heading over the snapshot list
+	snapshotLabel: string; // template with {n}, e.g. "Snapshot {n}"
+	/** The commit message shown for each snapshot, in order. Length caps how many commits fit. */
+	commitMsgs: string[];
+	latestChip: string; // marks the newest snapshot
+	viewingChip: string; // template with {n}, shown while browsing an old snapshot
+	backLatest: string; // returns from an old snapshot to the newest
+}
+
+export interface GitRemoteText extends LessonText {
+	laptopLabel: string; // "your laptop"
+	gitChip: string; // the small "Git" tag on the laptop
+	remoteLabel: string; // the host name, e.g. "GitHub"
+	remoteSub: string; // small caption under it, "an online place"
+	mateLabel: string; // the teammate's laptop
+	commitBtn: string; // snapshot locally
+	pushBtn: string; // send commits to the remote
+	cloneBtn: string; // teammate copies the remote down
+	again: string; // reset the demo
+	localChip: string; // "only on your laptop"
+	onlineChip: string; // "online, shareable"
+}
+
+export interface GitHostsText extends LessonText {
+	sameGitChip: string; // "they all speak the same Git"
+	exploreHint: string; // nudge to tap each host
+	/** Each hosting service, its one line pitch, and a few traits. */
+	hosts: { id: string; name: string; tagline: string; traits: string[] }[];
+	whyBtn: string; // reveals the "why GitHub" panel
+	whyLabel: string; // heading of that panel
+	whyPoints: string[]; // the reasons most people land on GitHub
+}
+
 export type Lesson = {
 	id: string;
 	mood: Mood;
