@@ -275,7 +275,7 @@
 			{/each}
 		</div>
 		<div class="octlabels">
-			<span class="fixed">{tx.fixedLabel}</span>
+			<span class="keep">{tx.fixedLabel}</span>
 			<span class="freel">{tx.freeLabel}</span>
 		</div>
 		<p class="same">255.255.255.0 <small>{tx.sameLabel}</small> <b>/24</b></p>
@@ -609,7 +609,7 @@
 		display: grid;
 		width: 100%;
 		max-width: 300px;
-		grid-template-columns: 3fr 3fr 3fr 3fr;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 6px;
 	}
 	.oct {
@@ -637,13 +637,15 @@
 		display: grid;
 		width: 100%;
 		max-width: 300px;
-		grid-template-columns: 3fr 1fr;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 6px;
-		font-size: 11px;
+		font-size: 10.5px;
+		line-height: 1.2;
 		font-weight: 700;
 		text-align: center;
 	}
-	.octlabels .fixed {
+	.octlabels .keep {
+		grid-column: span 3;
 		color: var(--color-brand);
 	}
 	.octlabels .freel {
