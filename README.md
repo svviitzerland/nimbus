@@ -33,7 +33,7 @@ It is bilingual (Indonesian and English), needs no sign up, and runs on your pho
 
 Right after Nim says hi, you pick a track. **Dari Nol** (From Zero) walks every topic in one
 blended path and ends at a crossroads where you branch into the one you want to go deeper in. Or
-jump straight into **Network** (all the way to a MikroTik router lab), **Web**, **Cloud & DevOps**,
+jump straight into **Network** (all the way to a router lab on MikroTik or Cisco), **Web**, **Cloud & DevOps**,
 **Security**, or **AI & ML**. When a lesson touches another subject, Nim drops a link you can jump
 to, and brings you right back afterwards.
 
@@ -41,7 +41,7 @@ Every lesson opens with a few short lines from Nim, then hands you an interactiv
 actually play with. You place a server on a spinnable globe and watch the latency change, ride a
 data packet along real undersea cables, knock out a data center and see the site survive or fall,
 trim a cloud bill, build a web page, crack a tiny RSA key, tune a neural network, configure a
-router in a terminal, and more. Your progress is saved in your browser as you go.
+MikroTik or Cisco router in a terminal, and more. Your progress is saved in your browser as you go.
 
 See the full lesson roadmap in [CURRICULUM.md](./CURRICULUM.md).
 

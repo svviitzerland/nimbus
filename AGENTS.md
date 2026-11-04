@@ -113,8 +113,20 @@ text>')`. Soon ids are unique across all modules. `basecamp` modules are shared 
   listed by key in `GENERAL` in `tracks.ts`, and ends at the **Crossroads** (`capstone/crossroads`)
   where the learner branches into one track. Every module item must appear there exactly once,
   except `branch` modules (the cloud providers, which only close the Cloud & DevOps track);
-  keep shipped lessons in their original relative order. A track with `soon: true` shows in the
-  picker but cannot be started yet.
+  the order must read like a story from zero (nothing used before it is taught), and a lesson
+  that refers back to another stays after it. A track with `soon: true` shows in the picker but
+  cannot be started yet.
+- **Guided lessons.** Lessons are watch first, play optional. The stage follows Nim's `beat`, is
+  shown from the first beat (`onshow(true)`), never locks Next (`oncomplete()` on mount), and uses
+  `src/lib/components/Guide.svelte` (a visual that moves by itself plus a side panel). At most one
+  simple optional interaction; typed labs keep their terminal but demo the commands first.
+- **Memory tricks.** Every lesson has at least one beat starting with `[ingat]`, an easy way to
+  remember the idea, shown with a green "Cara ingat" tag (`SpeechBubble.svelte`).
+- **Real photos.** Public domain photos live in `static/images/people/` with `CREDITS.md`.
+- **Choices.** A module can be one option of a learner choice (`variant: { choice, option }`, e.g.
+  the network lab on MikroTik or Cisco). Tracks play only the picked option (the first one until
+  the learner picks), the menu marks the others as the other option, and opening one of their
+  lessons switches to it (`path.choices`, `path.choose`, `path.adoptVariant`).
 - **Same word, different world.** If a concept also exists elsewhere (logical versus physical
   ports, cloud VPC versus an on premise network), add an `[fyi]` beat with a cross link.
 - The landing page ends with the **track picker**. The chosen track and any detour live in

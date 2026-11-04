@@ -1,7 +1,6 @@
 import type { Chapter } from '../types';
 import { http } from './http';
 import { browser } from './browser';
-import { domainHosting } from './domain-hosting';
 import { html } from './html';
 import { css } from './css';
 import { js } from './js';
@@ -10,19 +9,20 @@ import { responsive } from './responsive';
 import { a11y } from './a11y';
 import { uiUx } from './ui-ux';
 import { designToCode } from './design-to-code';
+import { whyFramework } from './why-framework';
+import { components } from './components';
+import { rendering } from './rendering';
+import { buildTools } from './build-tools';
 import { backendWhat } from './backend-what';
+import { auth } from './auth';
+import { backendFrameworks } from './backend-frameworks';
+import { jobs } from './jobs';
 import { sql } from './sql';
 import { relations } from './relations';
 import { dbIndex } from './db-index';
 import { transaction } from './transaction';
 import { cache } from './cache';
-import { whyFramework } from './why-framework';
-import { components } from './components';
-import { rendering } from './rendering';
-import { buildTools } from './build-tools';
-import { backendFrameworks } from './backend-frameworks';
-import { auth } from './auth';
-import { jobs } from './jobs';
+import { domainHosting } from './domain-hosting';
 import { deploySite } from './deploy-site';
 import { mobileApps } from './mobile-apps';
 import { pwa } from './pwa';
@@ -38,7 +38,6 @@ export const webChapter: Chapter = {
 	lessons: [
 		http,
 		browser,
-		domainHosting,
 		html,
 		css,
 		js,
@@ -47,19 +46,20 @@ export const webChapter: Chapter = {
 		a11y,
 		uiUx,
 		designToCode,
+		whyFramework,
+		components,
+		rendering,
+		buildTools,
 		backendWhat,
+		auth,
+		backendFrameworks,
+		jobs,
 		sql,
 		relations,
 		dbIndex,
 		transaction,
 		cache,
-		whyFramework,
-		components,
-		rendering,
-		buildTools,
-		backendFrameworks,
-		auth,
-		jobs,
+		domainHosting,
 		deploySite,
 		mobileApps,
 		pwa
@@ -71,7 +71,6 @@ export const webChapter: Chapter = {
 			items: [
 				'<b>Apa itu HTTP</b>',
 				'<b>Cara kerja browser</b>',
-				'<b>Domain dan hosting</b>',
 				'<b>Apa itu HTML</b>',
 				'<b>Apa itu CSS</b>',
 				'<b>Apa itu JavaScript</b>',
@@ -80,19 +79,20 @@ export const webChapter: Chapter = {
 				'<b>Aksesibilitas</b>',
 				'<b>UI dan UX</b>',
 				'<b>Desain ke kode</b>',
-				'<b>Apa itu backend</b>',
-				'<b>Apa itu SQL</b>',
-				'<b>Relasi dan JOIN</b>',
-				'<b>Index database</b>',
-				'<b>Transaksi database</b>',
-				'<b>Cache dan Redis</b>',
 				'<b>Apa itu framework</b>',
 				'<b>Komponen</b>',
 				'<b>CSR, SSR, dan SSG</b>',
 				'<b>Build tools</b>',
-				'<b>Framework backend</b>',
+				'<b>Apa itu backend</b>',
 				'<b>Session, cookie, dan token</b>',
+				'<b>Framework backend</b>',
 				'<b>Queue dan background job</b>',
+				'<b>Apa itu SQL</b>',
+				'<b>Relasi dan JOIN</b>',
+				'<b>Index database</b>',
+				'<b>Transaksi database</b>',
+				'<b>Caching dan Redis</b>',
+				'<b>Domain dan hosting</b>',
 				'<b>Deploy situs</b>',
 				'<b>Native dan cross platform</b>',
 				'<b>Apa itu PWA</b>'
@@ -106,7 +106,6 @@ export const webChapter: Chapter = {
 			items: [
 				'<b>What is HTTP</b>',
 				'<b>How a browser works</b>',
-				'<b>Domains and hosting</b>',
 				'<b>What is HTML</b>',
 				'<b>What is CSS</b>',
 				'<b>What is JavaScript</b>',
@@ -115,19 +114,20 @@ export const webChapter: Chapter = {
 				'<b>Accessibility</b>',
 				'<b>UI and UX</b>',
 				'<b>Design to code</b>',
+				'<b>What is a framework</b>',
+				'<b>Components</b>',
+				'<b>CSR, SSR, and SSG</b>',
+				'<b>Build tools</b>',
 				'<b>What is a backend</b>',
+				'<b>Sessions, cookies, and tokens</b>',
+				'<b>Backend frameworks</b>',
+				'<b>Queues and background jobs</b>',
 				'<b>What is SQL</b>',
 				'<b>Relations and JOIN</b>',
 				'<b>Database indexes</b>',
 				'<b>Database transactions</b>',
 				'<b>Caching and Redis</b>',
-				'<b>What is a framework</b>',
-				'<b>Components</b>',
-				'<b>CSR, SSR, and SSG</b>',
-				'<b>Build tools</b>',
-				'<b>Backend frameworks</b>',
-				'<b>Sessions, cookies, and tokens</b>',
-				'<b>Queues and background jobs</b>',
+				'<b>Domains and hosting</b>',
 				'<b>Deploying a site</b>',
 				'<b>Native and cross platform</b>',
 				'<b>What is a PWA</b>'

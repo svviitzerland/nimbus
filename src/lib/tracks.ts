@@ -23,6 +23,8 @@ export interface TrackGroup {
 	basecamp?: boolean;
 	/** Chapter number to show in the menu badge (General only). */
 	number?: number;
+	/** Set when the group is one option of a learner choice (see Module.variant). */
+	variant?: { choice: string; option: string };
 	items: TrackItem[];
 }
 
@@ -45,7 +47,7 @@ function fromModules(def: TrackDef): Track {
 	const groups = def.modules.map((id) => {
 		const mod = getModule(id);
 		if (!mod) throw new Error(`Track ${def.id} lists unknown module ${id}`);
-		return { title: mod.title, basecamp: mod.basecamp, items: mod.items };
+		return { title: mod.title, basecamp: mod.basecamp, variant: mod.variant, items: mod.items };
 	});
 	return { ...def, groups };
 }
@@ -53,25 +55,30 @@ function fromModules(def: TrackDef): Track {
 // Dari Nol covers every lesson of every track in one blended path, grouped into chapters (Bab)
 // by what is easiest to learn next, not by subject. A key is a lesson path (`chapter/lesson`) or
 // the id of a planned lesson. Branch only modules (the cloud providers) stay out, and Dari Nol ends at
-// the crossroads, where the learner branches into one track. Shipped lessons keep their original relative order, because their
-// text builds on the lessons before them; planned ones slot in between where they fit.
+// the crossroads, where the learner branches into one track. The order reads like a story, each
+// chapter using only what came before (computer, code, internet, web, apps, Git, going online,
+// servers, cloud, networks, the lab, security, DevOps, AI). Some lessons refer back to earlier
+// ones ("remember latency in the Cloud chapter"), so keep those after the lesson they mention.
 const GENERAL: { id: string; en: string; keys: string[] }[] = [
 	{
-		id: 'Komputer dan Kode',
-		en: 'Computers and Code',
+		id: 'Komputer',
+		en: 'Computers',
+		keys: ['basics/history', 'basics/hardware', 'basics/binary', 'basics/os']
+	},
+	{
+		id: 'Kode',
+		en: 'Code',
 		keys: [
-			'basics/hardware',
-			'basics/binary',
-			'basics/os',
 			'basics/program',
 			'basics/languages',
 			'basics/compiler',
-			'basics/runtime'
+			'basics/runtime',
+			'foundations/cli-gui'
 		]
 	},
 	{
-		id: 'Client dan Server',
-		en: 'Client and Server',
+		id: 'Internet',
+		en: 'The Internet',
 		keys: [
 			'foundations/server',
 			'foundations/request-journey',
@@ -79,16 +86,33 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'network/devices',
 			'network/cabling',
 			'network/wifi',
-			'network/ip-address'
+			'cloud/cable',
+			'network/ip-address',
+			'networking/dns',
+			'foundations/port'
 		]
 	},
 	{
-		id: 'Web Pertamamu',
-		en: 'Your First Web Page',
+		id: 'Cara Data Berjalan',
+		en: 'How Data Travels',
+		keys: [
+			'networking/layers',
+			'network/protocols',
+			'network/mac',
+			'network/subnet',
+			'network/dhcp',
+			'network/nat',
+			'network/ipv6',
+			'network/routing',
+			'network/dynamic-routing'
+		]
+	},
+	{
+		id: 'Web',
+		en: 'The Web',
 		keys: [
 			'web/http',
 			'web/browser',
-			'web/domain-hosting',
 			'web/html',
 			'web/css',
 			'web/js',
@@ -100,28 +124,59 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		]
 	},
 	{
-		id: 'API dan Backend',
-		en: 'APIs and Backends',
+		id: 'Aplikasi dan Backend',
+		en: 'Apps and Backends',
 		keys: [
+			'web/why-framework',
+			'web/components',
+			'web/rendering',
+			'web/build-tools',
 			'web/backend-what',
 			'foundations/api',
 			'foundations/apiRest',
 			'foundations/apiGraphql',
 			'foundations/apiGrpc',
 			'foundations/apiWebsocket',
-			'foundations/apiWebhook'
+			'foundations/apiWebhook',
+			'web/auth',
+			'web/backend-frameworks',
+			'web/jobs'
 		]
 	},
 	{
-		id: 'Server Sendiri',
-		en: 'Your Own Server',
+		id: 'Data',
+		en: 'Data',
 		keys: [
-			'foundations/port',
-			'network/protocols',
-			'foundations/virtual-machine',
+			'resilience/database',
+			'web/sql',
+			'web/relations',
+			'web/db-index',
+			'web/transaction',
+			'web/cache'
+		]
+	},
+	{
+		id: 'Git dan Kerja Bareng',
+		en: 'Git and Teamwork',
+		keys: ['compute/version-control', 'compute/git-vs-github', 'compute/git-hosts']
+	},
+	{
+		id: 'Online kan Situsmu',
+		en: 'Put Your Site Online',
+		keys: [
 			'foundations/laptop-server',
 			'foundations/tunneling',
-			'foundations/cli-gui',
+			'web/domain-hosting',
+			'web/deploy-site',
+			'web/mobile-apps',
+			'web/pwa'
+		]
+	},
+	{
+		id: 'Server dan Linux',
+		en: 'Servers and Linux',
+		keys: [
+			'foundations/virtual-machine',
 			'linux/linux-files',
 			'linux/permissions',
 			'linux/packages',
@@ -132,75 +187,60 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 	{
 		id: 'Cloud',
 		en: 'Cloud',
-		keys: ['cloud/cloud', 'cloud/remote-access', 'cloud/services', 'cloud/cable', 'cloud/region']
-	},
-	{
-		id: 'Ketahanan dan Data',
-		en: 'Resilience and Data',
 		keys: [
+			'cloud/cloud',
+			'cloud/remote-access',
+			'cloud/services',
+			'cloud/region',
 			'resilience/availability-zone',
 			'resilience/failover',
 			'devops/backup',
-			'resilience/storage-types',
-			'resilience/database',
-			'web/sql',
-			'web/relations',
-			'web/db-index',
-			'web/transaction'
-		]
-	},
-	{
-		id: 'Aliran Data',
-		en: 'Data Flow',
-		keys: [
-			'trafficflow/ingress-egress',
-			'trafficflow/bandwidth-throughput',
-			'trafficflow/bottleneck',
-			'network/qos'
+			'resilience/storage-types'
 		]
 	},
 	{
 		id: 'Lalu Lintas',
 		en: 'Traffic',
 		keys: [
+			'trafficflow/ingress-egress',
+			'trafficflow/bandwidth-throughput',
+			'trafficflow/bottleneck',
+			'network/qos',
 			'traffic/reverse-proxy',
 			'traffic/load-balancer',
 			'traffic/scaling',
 			'traffic/auto-scaling',
-			'traffic/cdn',
-			'web/cache'
+			'traffic/cdn'
 		]
 	},
 	{
-		id: 'Jaringan',
-		en: 'Networking',
+		id: 'Jaringan Pribadi',
+		en: 'Private Networks',
 		keys: [
-			'networking/dns',
-			'networking/layers',
-			'network/mac',
-			'network/subnet',
-			'network/dhcp',
-			'network/nat',
-			'network/ipv6',
-			'network/routing',
-			'network/dynamic-routing',
-			'network/vlan',
 			'networking/vpc',
 			'networking/firewall',
+			'network/vlan',
 			'network/vpn',
 			'network/wifi-security'
 		]
 	},
 	{
-		id: 'Lab MikroTik',
-		en: 'MikroTik Lab',
+		id: 'Lab Jaringan',
+		en: 'Network Lab',
 		keys: [
+			'netlab/lab-pick',
 			'netlab/router-intro',
 			'netlab/router-ip',
 			'netlab/router-nat',
 			'netlab/router-firewall',
 			'netlab/router-queue',
 			'netlab/router-hotspot',
+			'netlab/cisco-intro',
+			'netlab/cisco-ip',
+			'netlab/cisco-nat',
+			'netlab/cisco-acl',
+			'netlab/cisco-vlan',
+			'netlab/cisco-ssh',
 			'network/ping',
 			'network/wireshark',
 			'network/troubleshoot'
@@ -217,12 +257,18 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'security/hashing',
 			'security/mfa',
 			'security/sso',
+			'networking/shared-responsibility'
+		]
+	},
+	{
+		id: 'Kriptografi',
+		en: 'Cryptography',
+		keys: [
 			'networking/encryption',
 			'security/keys',
 			'security/tls',
 			'security/signature',
-			'security/blockchain',
-			'networking/shared-responsibility'
+			'security/blockchain'
 		]
 	},
 	{
@@ -244,41 +290,22 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		]
 	},
 	{
-		id: 'Komputasi dan Operasi',
-		en: 'Compute and Operations',
+		id: 'Komputasi dan DevOps',
+		en: 'Compute and DevOps',
 		keys: [
 			'compute/container',
 			'compute/microservices',
 			'compute/serverless',
-			'compute/monitoring',
-			'devops/logs',
-			'devops/on-call',
-			'compute/cost',
-			'compute/version-control',
-			'compute/git-vs-github',
-			'compute/git-hosts',
 			'devops/what-devops',
 			'compute/cicd',
 			'devops/iac',
 			'devops/config-mgmt',
 			'devops/kubernetes',
-			'devops/release'
-		]
-	},
-	{
-		id: 'Membangun Aplikasi',
-		en: 'Building Apps',
-		keys: [
-			'web/why-framework',
-			'web/components',
-			'web/rendering',
-			'web/build-tools',
-			'web/backend-frameworks',
-			'web/auth',
-			'web/jobs',
-			'web/deploy-site',
-			'web/mobile-apps',
-			'web/pwa'
+			'devops/release',
+			'compute/monitoring',
+			'devops/logs',
+			'devops/on-call',
+			'compute/cost'
 		]
 	},
 	{
@@ -316,7 +343,11 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'ai/ai-ethics'
 		]
 	},
-	{ id: 'Persimpangan', en: 'Crossroads', keys: ['capstone/crossroads'] }
+	{
+		id: 'Persimpangan',
+		en: 'Crossroads',
+		keys: ['capstone/crossroads']
+	}
 ];
 
 /** Every item by key: lesson paths map to themselves, planned ids to their soon item. */
@@ -356,14 +387,15 @@ const topicTracks: TrackDef[] = [
 			en: 'How data travels from your phone to a server across the world, up to running your own router.'
 		},
 		modules: [
-			'computer',
 			'internet',
 			'net-basics',
 			'addressing',
 			'delivery',
 			'capacity',
 			'net-guard',
-			'router-lab',
+			'lab',
+			'lab-mikrotik',
+			'lab-cisco',
 			'net-tools'
 		]
 	},
@@ -376,16 +408,15 @@ const topicTracks: TrackDef[] = [
 			en: 'From the page you see to the server and database behind it.'
 		},
 		modules: [
-			'computer',
 			'code',
 			'internet',
-			'devtools',
 			'web-how',
 			'frontend',
 			'design',
 			'frameworks',
 			'backend',
 			'database',
+			'git',
 			'go-live',
 			'mobile'
 		]
@@ -399,19 +430,17 @@ const topicTracks: TrackDef[] = [
 			en: 'Rent servers, spread them worldwide, automate every release, and stay on budget.'
 		},
 		modules: [
-			'computer',
-			'code',
 			'internet',
-			'devtools',
 			'net-essentials',
 			'cloud-basics',
+			'linux',
 			'resilience',
 			'storage',
 			'capacity',
 			'scale',
 			'cloud-net',
 			'run-code',
-			'linux',
+			'git',
 			'devops',
 			'operations',
 			'providers'
@@ -426,7 +455,6 @@ const topicTracks: TrackDef[] = [
 			en: 'How attackers think, how data gets locked, and how to keep a system safe.'
 		},
 		modules: [
-			'computer',
 			'internet',
 			'net-essentials',
 			'sec-mindset',
@@ -445,7 +473,7 @@ const topicTracks: TrackDef[] = [
 			id: 'Dari machine learning sampai chatbot, cara mesin belajar dari contoh.',
 			en: 'From machine learning to chatbots, how a machine learns from examples.'
 		},
-		modules: ['computer', 'code', 'internet', 'ai-intro', 'ml', 'deep-learning', 'genai', 'ai-real']
+		modules: ['internet', 'ai-intro', 'ml', 'deep-learning', 'genai', 'ai-real']
 	}
 ];
 
@@ -465,13 +493,38 @@ export function parseRef(item: string): LessonRef | undefined {
 	return { chapterId, lessonId };
 }
 
-/** The playable lessons of a track, in order (planned items and repeats are skipped). */
-export function trackSequence(track: Track): LessonRef[] {
+/** Learner choices, e.g. `{ lab: 'cisco' }`. Missing choices fall back to the first option. */
+export type Choices = Record<string, string>;
+
+/** Which choice option each item belongs to, for items inside a variant module. */
+const VARIANT_OF = new Map<string, { choice: string; option: string }>();
+const FIRST_OPTION = new Map<string, string>();
+for (const mod of modules)
+	if (mod.variant) {
+		if (!FIRST_OPTION.has(mod.variant.choice))
+			FIRST_OPTION.set(mod.variant.choice, mod.variant.option);
+		for (const it of mod.items) VARIANT_OF.set(typeof it === 'string' ? it : it.soon, mod.variant);
+	}
+
+export function variantOf(item: TrackItem): { choice: string; option: string } | undefined {
+	return VARIANT_OF.get(typeof item === 'string' ? item : item.soon);
+}
+
+/** The option a learner is on for a choice, their pick or the first option. */
+export function optionFor(choice: string, choices: Choices = {}): string | undefined {
+	return choices[choice] ?? FIRST_OPTION.get(choice);
+}
+
+/** The playable lessons of a track, in order (planned items, repeats, and the options of a choice
+ *  the learner did not pick are skipped). */
+export function trackSequence(track: Track, choices: Choices = {}): LessonRef[] {
 	const out: LessonRef[] = [];
 	const seen = new Set<string>();
 	for (const g of track.groups)
 		for (const it of g.items) {
 			if (typeof it !== 'string' || seen.has(it)) continue;
+			const v = variantOf(it);
+			if (v && optionFor(v.choice, choices) !== v.option) continue;
 			const r = parseRef(it);
 			if (r) {
 				seen.add(it);
@@ -481,11 +534,11 @@ export function trackSequence(track: Track): LessonRef[] {
 	return out;
 }
 
-export function trackCounts(track: Track): { ready: number; soon: number } {
+export function trackCounts(track: Track, choices: Choices = {}): { ready: number; soon: number } {
 	const soonIds = new Set<string>();
 	for (const g of track.groups)
 		for (const it of g.items) if (typeof it !== 'string') soonIds.add(it.soon);
-	return { ready: trackSequence(track).length, soon: soonIds.size };
+	return { ready: trackSequence(track, choices).length, soon: soonIds.size };
 }
 
 // Which topic track "owns" a lesson, for cross links ("this is covered in the Security track").

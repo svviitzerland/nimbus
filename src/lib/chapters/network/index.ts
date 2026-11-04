@@ -5,7 +5,6 @@ import { cabling } from './cabling';
 import { wifi } from './wifi';
 import { ipAddress } from './ip-address';
 import { protocols } from './protocols';
-import { qos } from './qos';
 import { mac } from './mac';
 import { subnet } from './subnet';
 import { dhcp } from './dhcp';
@@ -13,6 +12,7 @@ import { nat } from './nat';
 import { ipv6 } from './ipv6';
 import { routing } from './routing';
 import { dynamicRouting } from './dynamic-routing';
+import { qos } from './qos';
 import { vlan } from './vlan';
 import { vpn } from './vpn';
 import { wifiSecurity } from './wifi-security';
@@ -35,7 +35,6 @@ export const networkChapter: Chapter = {
 		wifi,
 		ipAddress,
 		protocols,
-		qos,
 		mac,
 		subnet,
 		dhcp,
@@ -43,6 +42,7 @@ export const networkChapter: Chapter = {
 		ipv6,
 		routing,
 		dynamicRouting,
+		qos,
 		vlan,
 		vpn,
 		wifiSecurity,
@@ -61,14 +61,14 @@ export const networkChapter: Chapter = {
 				'<b>Apa itu WiFi</b>',
 				'<b>Alamat IP</b>',
 				'<b>Protokol jaringan</b>',
-				'<b>Apa itu QoS</b>',
 				'<b>MAC address dan ARP</b>',
-				'<b>Subnet dan CIDR</b>',
+				'<b>Subnet</b>',
 				'<b>Apa itu DHCP</b>',
 				'<b>Apa itu NAT</b>',
 				'<b>IPv4 dan IPv6</b>',
 				'<b>Router dan routing</b>',
 				'<b>Routing dinamis</b>',
+				'<b>Apa itu QoS</b>',
 				'<b>Apa itu VLAN</b>',
 				'<b>Apa itu VPN</b>',
 				'<b>Keamanan WiFi</b>',
@@ -89,14 +89,14 @@ export const networkChapter: Chapter = {
 				'<b>What is WiFi</b>',
 				'<b>IP addresses</b>',
 				'<b>Network protocols</b>',
-				'<b>What is QoS</b>',
 				'<b>MAC addresses and ARP</b>',
-				'<b>Subnets and CIDR</b>',
+				'<b>Subnets</b>',
 				'<b>What is DHCP</b>',
 				'<b>What is NAT</b>',
 				'<b>IPv4 and IPv6</b>',
 				'<b>Routers and routing</b>',
 				'<b>Dynamic routing</b>',
+				'<b>What is QoS</b>',
 				'<b>What is a VLAN</b>',
 				'<b>What is a VPN</b>',
 				'<b>WiFi security</b>',

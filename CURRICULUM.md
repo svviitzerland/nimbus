@@ -21,9 +21,10 @@ Two layers, both in code.
 
 Four rules hold everything together.
 
-1. **Basecamp first, and only what is needed.** A track opens with the few shared foundation
-   modules its subject depends on. Security borrows How a Computer Works, Client and Server, and
-   Network Essentials, never all of Chapter 1.
+1. **Only Dari Nol starts at the computer itself.** A topic track goes straight to its subject
+   and opens with only the few foundations it truly needs (Client and Server for everyone, the
+   Code module for Web, Network Essentials for Cloud and Security). The story of computers and
+   what is inside one live in Dari Nol.
 2. **Done once, done everywhere.** Progress is keyed by lesson, so Firewall finished in the Network
    track is already ticked in Security and Cloud.
 3. **Cross links instead of forced detours.** When a lesson touches another subject, Nim drops a
@@ -43,7 +44,7 @@ Four rules hold everything together.
 | DevOps                                                     | Inside **Cloud & DevOps**                                                     | Containers, CI/CD, and monitoring are already half of the cloud chapters     |
 | Cyber Security                                             | **Security** track                                                            | A core subject on its own, and it builds on network and web                  |
 | AI and Machine Learning                                    | **AI & ML** track, ML is a module inside it                                   | ML is one way to build AI, see the nesting below                             |
-| Networking (inside the Cyber Security and DevOps roadmaps) | **Network** track, including a MikroTik router lab                            | The base of everything, and very practical (offices, ISPs, RT RW net)        |
+| Networking (inside the Cyber Security and DevOps roadmaps) | **Network** track, including a router lab on MikroTik or Cisco                | The base of everything, and very practical (offices, ISPs, RT RW net)        |
 | Design                                                     | One module inside Web                                                         | Enough UI and UX to build something people enjoy using                       |
 | Mobile                                                     | One module at the end of Web                                                  | Native versus web versus cross platform, a full track later                  |
 | Game Development, Blockchain                               | Parked. Blockchain gets one lesson in Cryptography                            | Niche for now and hard to make playable without heavy tooling                |
@@ -69,40 +70,44 @@ learning. The AI & ML track teaches them as nested modules, from the outside in.
 
 # Tracks
 
-| Track                   | For someone who                                 | Basecamp                                                         | Then                                                                                                                             |
-| ----------------------- | ----------------------------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **Dari Nol** (General)  | Does not know where to start                    | Everything                                                       | Every subject once, in order                                                                                                     |
-| **Jaringan** (Network)  | Wants to know how data moves, or runs a network | Computer, Client and Server                                      | Network basics, addressing, routing and protocols, capacity, network security, MikroTik lab, troubleshooting                     |
-| **Web**                 | Wants to build websites and apps                | Computer, Code, Client and Server, Dev Tools                     | How the web works, frontend, design, frameworks, backend, database, deploy, mobile                                               |
-| **Cloud & DevOps**      | Wants to run apps on rented servers             | Computer, Code, Client and Server, Dev Tools, Network Essentials | Cloud, resilience, storage, capacity, scaling, cloud networking, containers and serverless, Linux, DevOps, operations, providers |
-| **Keamanan** (Security) | Wants to protect systems and data               | Computer, Client and Server, Network Essentials                  | Security basics, identity, cryptography, attacks, defense, ethical hacking                                                       |
-| **AI & ML**             | Wants to know how machines learn                | Computer, Code, Client and Server                                | AI basics, machine learning, deep learning, generative AI, AI in practice                                                        |
+| Track                   | For someone who                                 | Basecamp                              | Then                                                                                                                             |
+| ----------------------- | ----------------------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Dari Nol** (General)  | Does not know where to start                    | Everything                            | Every subject once, in order                                                                                                     |
+| **Jaringan** (Network)  | Wants to know how data moves, or runs a network | Client and Server                     | Network basics, addressing, routing and protocols, capacity, network security, network lab (MikroTik or Cisco), troubleshooting  |
+| **Web**                 | Wants to build websites and apps                | Code, Client and Server               | How the web works, frontend, design, frameworks, backend, database, deploy, mobile                                               |
+| **Cloud & DevOps**      | Wants to run apps on rented servers             | Client and Server, Network Essentials | Cloud, resilience, storage, capacity, scaling, cloud networking, containers and serverless, Linux, DevOps, operations, providers |
+| **Keamanan** (Security) | Wants to protect systems and data               | Client and Server, Network Essentials | Security basics, identity, cryptography, attacks, defense, ethical hacking                                                       |
+| **AI & ML**             | Wants to know how machines learn                | Client and Server                     | AI basics, machine learning, deep learning, generative AI, AI in practice                                                        |
 
 **Dari Nol covers everything.** It is not a sixth subject, it is every lesson of every track in
 one blended path, grouped into chapters (Bab) by what is easiest to learn next rather than by
 subject. A learner who follows it never has to choose, and meets HTML right after learning what a
-server is, MikroTik right after networking, and AI once data and the cloud are familiar. The order
-lives in `GENERAL` in `src/lib/tracks.ts`. Shipped lessons keep their original relative order
-(their text builds on the lessons before them), and new lessons slot in between.
+server is, the router lab right after networking, and AI once data and the cloud are familiar. The order
+lives in `GENERAL` in `src/lib/tracks.ts` and reads like a story, each chapter using only what came
+before. A few lessons refer back to earlier ones (CDN remembers latency from the Cloud chapter), so
+those stay after the lesson they mention.
 
-1. Komputer dan Kode
-2. Client dan Server
-3. Web Pertamamu
-4. API dan Backend
-5. Server Sendiri
-6. Cloud
-7. Ketahanan dan Data
-8. Aliran Data
-9. Lalu Lintas
-10. Jaringan
-11. Lab MikroTik
-12. Dasar Keamanan
-13. Serangan dan Pertahanan
-14. Komputasi dan Operasi
-15. Membangun Aplikasi
-16. Dasar AI
-17. Deep Learning dan AI Generatif
-18. Persimpangan (Crossroads), where the learner branches into one track
+1. Komputer (the story of computers, then what is inside one)
+2. Kode (programs and algorithms, languages, compilers, the command line)
+3. Internet (client and server, the road a request takes, addresses, DNS, ports)
+4. Cara Data Berjalan (layers, protocols, subnets, DHCP, NAT, routing)
+5. Web (HTTP, the browser, HTML, CSS, JavaScript)
+6. Aplikasi dan Backend (frameworks, APIs, logins, background jobs)
+7. Data (databases, SQL, indexes, caching)
+8. Git dan Kerja Bareng (now that there is code worth saving)
+9. Online kan Situsmu (laptop server, domains, deploying, mobile)
+10. Server dan Linux
+11. Cloud
+12. Lalu Lintas
+13. Jaringan Pribadi (VPC, firewalls, VLAN, VPN)
+14. Lab Jaringan (pick MikroTik or Cisco)
+15. Dasar Keamanan
+16. Kriptografi
+17. Serangan dan Pertahanan
+18. Komputasi dan DevOps
+19. Dasar AI
+20. Deep Learning dan AI Generatif
+21. Persimpangan (Crossroads), where the learner branches into one track
 
 **Same word, different world.** When a concept exists in more than one place, the lesson says so
 with an `[fyi]` beat and a cross link, so the learner is ready for both. Port explains logical
@@ -236,10 +241,21 @@ of the roadmap.sh Cyber Security and DevOps roadmaps, plus a hands on router lab
       WiFi is risky. Stage: set up a home router, compare an open, a WPA2, and a WPA3 network from a
       snooper's laptop.
 
-## MikroTik Lab (Lab MikroTik)
+## Network Lab (Lab Jaringan)
 
-A simulated RouterOS, so the learner configures a real looking router without owning one. Every
-lab ends with a working office network, and each step maps to a concept learned earlier.
+A simulated router, so the learner configures a real looking device without owning one. The lab
+opens with a choice of gear, because the ideas are the same everywhere and only the commands
+differ. Every lab ends with a working office network, and each step maps to a concept learned
+earlier. A track plays the lab the learner picked; the other one stays in the menu (marked as the
+other option), and opening any of its lessons switches to it. The choice is stored as `lab` in
+`path.choices`, and lab modules are marked with `variant: { choice: 'lab', option }` in
+`src/lib/modules.ts`.
+
+- [x] **Pick your lab gear**. MikroTik (RouterOS, the favourite of ISPs and neighbourhood networks)
+      or Cisco (IOS, the king of office networks and the footing for CCNA). Stage: two devices,
+      tap one to pick.
+
+### MikroTik Lab (Lab MikroTik)
 
 - [x] **What is MikroTik**. What RouterOS is, why ISPs, offices, and RT RW net love it, and the two
       ways in (Winbox clicks versus the terminal, tying back to CLI vs GUI). Stage: log into the
@@ -257,6 +273,24 @@ lab ends with a working office network, and each step maps to a concept learned 
       everyone's bar evens out.
 - [x] **Hotspot**. A cafe style hotspot with vouchers and a login page. Stage:
       a phone joins, lands on the login page, enters a voucher, and gets online for one hour.
+
+### Cisco Lab (Lab Cisco)
+
+A simulated Cisco IOS with its real modes (user EXEC, enable, configure, interface), abbreviations,
+and error messages, on the same nimbus office.
+
+- [ ] **What is Cisco**. Cisco and IOS, the modes, physical interfaces versus logical ports.
+      Stage: set the hostname, `show ip interface brief`, save the config.
+- [ ] **Interfaces and DHCP pools**. Address the LAN interface, `no shutdown`, and a DHCP pool so
+      the office laptops get addresses.
+- [ ] **NAT overload**. Inside and outside interfaces and one rule that lets the whole office share
+      one public address.
+- [ ] **Access control lists**. Standard versus extended ACLs, first match wins, the implicit deny,
+      and locking remote admin to the admin laptop.
+- [ ] **VLANs and trunks**. On a Cisco switch, VLANs per team, access ports, and a trunk to the
+      router.
+- [ ] **SSH and enable secret**. Lock the device down with an enable secret, RSA keys, local users,
+      and SSH only on the vty lines, and why Telnet is unsafe.
 
 ## Troubleshooting
 

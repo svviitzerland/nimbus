@@ -20,6 +20,9 @@ export interface Module {
 	basecamp?: boolean;
 	/** A branch only module (like the cloud providers), left out of Dari Nol on purpose. */
 	branch?: boolean;
+	/** One option of a learner choice, e.g. the lab gear. A track only plays the option the learner
+	 *  picked (or the first option until they pick), the others stay visible in the menu. */
+	variant?: { choice: string; option: string };
 	items: TrackItem[];
 }
 
@@ -43,14 +46,20 @@ export const modules: Module[] = [
 		'computer',
 		'Cara Komputer Bekerja',
 		'How a Computer Works',
-		['basics/hardware', 'basics/binary', 'basics/os'],
+		['basics/history', 'basics/hardware', 'basics/binary', 'basics/os'],
 		true
 	),
 	m(
 		'code',
 		'Cara Komputer Memahami Kode',
 		'How a Computer Understands Code',
-		['basics/program', 'basics/languages', 'basics/compiler', 'basics/runtime'],
+		[
+			'basics/program',
+			'basics/languages',
+			'basics/compiler',
+			'basics/runtime',
+			'foundations/cli-gui'
+		],
 		true
 	),
 	m(
@@ -60,18 +69,11 @@ export const modules: Module[] = [
 		['foundations/server', 'foundations/request-journey', 'foundations/port'],
 		true
 	),
-	m(
-		'devtools',
-		'Alat Developer',
-		'Developer Tools',
-		[
-			'foundations/cli-gui',
-			'compute/version-control',
-			'compute/git-vs-github',
-			'compute/git-hosts'
-		],
-		true
-	),
+	m('git', 'Git dan GitHub', 'Git and GitHub', [
+		'compute/version-control',
+		'compute/git-vs-github',
+		'compute/git-hosts'
+	]),
 	m(
 		'net-essentials',
 		'Bekal Jaringan',
@@ -115,14 +117,31 @@ export const modules: Module[] = [
 		'network/vpn',
 		'network/wifi-security'
 	]),
-	m('router-lab', 'Lab MikroTik', 'MikroTik Lab', [
-		'netlab/router-intro',
-		'netlab/router-ip',
-		'netlab/router-nat',
-		'netlab/router-firewall',
-		'netlab/router-queue',
-		'netlab/router-hotspot'
-	]),
+	m('lab', 'Lab Jaringan', 'Network Lab', ['netlab/lab-pick']),
+	{
+		...m('lab-mikrotik', 'Lab MikroTik', 'MikroTik Lab', []),
+		variant: { choice: 'lab', option: 'mikrotik' },
+		items: [
+			'netlab/router-intro',
+			'netlab/router-ip',
+			'netlab/router-nat',
+			'netlab/router-firewall',
+			'netlab/router-queue',
+			'netlab/router-hotspot'
+		]
+	},
+	{
+		...m('lab-cisco', 'Lab Cisco', 'Cisco Lab', []),
+		variant: { choice: 'lab', option: 'cisco' },
+		items: [
+			'netlab/cisco-intro',
+			'netlab/cisco-ip',
+			'netlab/cisco-nat',
+			'netlab/cisco-acl',
+			'netlab/cisco-vlan',
+			'netlab/cisco-ssh'
+		]
+	},
 	m('net-tools', 'Troubleshooting', 'Troubleshooting', [
 		'network/ping',
 		'network/wireshark',
@@ -180,6 +199,7 @@ export const modules: Module[] = [
 
 	// Cloud & DevOps
 	m('cloud-basics', 'Cloud', 'Cloud', [
+		'foundations/cli-gui',
 		'foundations/virtual-machine',
 		'cloud/cloud',
 		'cloud/remote-access',
