@@ -70,6 +70,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		en: 'Code',
 		keys: [
 			'basics/program',
+			'basics/code-basics',
 			'basics/languages',
 			'basics/compiler',
 			'basics/runtime',

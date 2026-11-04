@@ -55,6 +55,7 @@ export const modules: Module[] = [
 		'How a Computer Understands Code',
 		[
 			'basics/program',
+			'basics/code-basics',
 			'basics/languages',
 			'basics/compiler',
 			'basics/runtime',
