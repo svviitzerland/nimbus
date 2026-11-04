@@ -1,408 +1,515 @@
 <script lang="ts">
-	import type { LessonText } from '$lib/chapters/types';
-	import type { LanWanText } from '$lib/chapters/network/lan-wan/types';
-	import DeviceIcon, { type DeviceKind } from './netbasics/DeviceIcon.svelte';
+	// Guided: one map with a camera. The room (LAN) sits inside the head office, the head office
+	// sits in the city (WAN), and the city sits among the world's networks (the internet). Each
+	// beat moves the camera out one level; on the last beat the learner may fly around.
+	import { untrack } from 'svelte';
+	import type { StageProps } from '$lib/chapters/types';
+	import type { LanWanLevel, LanWanText } from '$lib/chapters/network/lan-wan/types';
+	import Guide from '$lib/components/Guide.svelte';
+	import Thing from './netguide/Thing.svelte';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as LanWanText);
 
-	type Level = 'lan' | 'wan' | 'net';
-	const LEVELS: Level[] = ['lan', 'wan', 'net'];
-	const TOKEN: Record<Level, string> = { lan: 'lan', wan: 'wan', net: 'internet' };
-
-	type Node = { x: number; y: number; kind: DeviceKind; label: string };
-	type Scene = { hub: Node | null; nodes: Node[] };
-
-	// Every level is the one before it, zoomed out. The room becomes the head office, and the
-	// whole company becomes one network among many.
-	const scenes = $derived<Record<Level, Scene>>({
-		lan: {
-			hub: { x: 160, y: 132, kind: 'switch', label: tx.switchLabel },
-			nodes: [
-				{ x: 58, y: 62, kind: 'laptop', label: tx.laptopLabel },
-				{ x: 262, y: 62, kind: 'laptop', label: tx.laptopLabel },
-				{ x: 62, y: 196, kind: 'pc', label: tx.pcLabel },
-				{ x: 258, y: 196, kind: 'pc', label: tx.pcLabel }
-			]
-		},
-		wan: {
-			hub: { x: 160, y: 128, kind: 'building', label: tx.hqLabel },
-			nodes: [
-				{ x: 52, y: 52, kind: 'building', label: tx.branchLabel.replace('{n}', '1') },
-				{ x: 268, y: 52, kind: 'building', label: tx.branchLabel.replace('{n}', '2') },
-				{ x: 160, y: 206, kind: 'building', label: tx.branchLabel.replace('{n}', '3') }
-			]
-		},
-		net: {
-			hub: null,
-			nodes: [
-				{ x: 66, y: 76, kind: 'building', label: tx.nets[0] },
-				{ x: 166, y: 40, kind: 'router', label: tx.nets[1] },
-				{ x: 266, y: 80, kind: 'phone', label: tx.nets[2] },
-				{ x: 254, y: 186, kind: 'server', label: tx.nets[3] },
-				{ x: 156, y: 206, kind: 'laptop', label: tx.nets[4] },
-				{ x: 56, y: 186, kind: 'globe', label: tx.nets[5] }
-			]
-		}
+	$effect(() => {
+		untrack(() => {
+			onshow?.(true);
+			oncomplete?.();
+		});
 	});
 
-	let level = $state<Level>('lan');
-	// Which nodes are wired at the current level. On the world level, your company starts joined.
-	let wired = $state<boolean[]>([false, false, false, false]);
-	// World level links, as pairs of node indices.
-	let links = $state<[number, number][]>([]);
-	let finished = $state(false);
-	let completed = false;
+	const last = $derived(tx.intro.length - 1);
+	let peek = $state<number | null>(null);
+	let picked = $state<LanWanLevel | null>(null);
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
+	const active = $derived(peek ?? Math.min(beat, tx.steps.length - 1));
+	const isLast = $derived(beat >= last);
 
-	const scene = $derived(scenes[level]);
-	const levelDone = $derived(wired.length > 0 && wired.every(Boolean));
-	const levelIndex = $derived(LEVELS.indexOf(level));
+	const STEP_LEVEL: LanWanLevel[] = ['lan', 'lan', 'wan', 'net', 'net', 'net', 'net'];
+	const levelOf = (s: number): LanWanLevel =>
+		s === STEP_LEVEL.length - 1 && picked ? picked : (STEP_LEVEL[s] ?? 'net');
+	const ZOOM: Record<LanWanLevel, number> = { lan: 12, wan: 3, net: 1 };
+	const LEVELS: LanWanLevel[] = ['lan', 'wan', 'net'];
 
-	function go(l: Level) {
-		level = l;
-		const count = scenes[l].nodes.length;
-		wired = Array.from({ length: count }, (_, i) => l === 'net' && i === 0);
-		links = [];
+	function fly(l: LanWanLevel) {
+		picked = l;
+		peek = null;
+		onstate?.(l === 'net' ? 'internet' : l);
 	}
 
-	function tap(i: number) {
-		if (wired[i]) return;
-		if (level === 'net') {
-			// Join the two nearest networks that are already in, there is no center to plug into.
-			const nodes = scene.nodes;
-			const joined = nodes
-				.map((n, j) => ({ j, d: Math.hypot(n.x - nodes[i].x, n.y - nodes[i].y) }))
-				.filter((o) => wired[o.j])
-				.sort((a, b) => a.d - b.d)
-				.slice(0, 2);
-			links = [...links, ...joined.map((o): [number, number] => [o.j, i])];
-		}
-		wired[i] = true;
-		if (wired.every(Boolean)) {
-			onstate?.(TOKEN[level]);
-			if (level === 'net') {
-				finished = true;
-				if (!completed) {
-					completed = true;
-					oncomplete?.();
-				}
-			}
-		}
-	}
-
-	function zoomOut() {
-		if (level === 'lan') go('wan');
-		else if (level === 'wan') go('net');
-	}
-	function restart() {
-		finished = false;
-		go('lan');
-	}
-
-	function onKey(e: KeyboardEvent, i: number) {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			tap(i);
-		}
-	}
-
-	const caption = $derived(levelDone ? tx.levels[level].done : tx.levels[level].hint);
+	// the city, drawn in its own 400 by 300 space
+	const BRANCHES = [
+		{ x: 62, y: 58 },
+		{ x: 338, y: 58 },
+		{ x: 62, y: 242 },
+		{ x: 338, y: 242 }
+	];
+	// the world's networks, the first (centre) one is your company
+	const NETS = [
+		{ x: 200, y: 150, rx: 84, ry: 64 },
+		{ x: 66, y: 44, rx: 58, ry: 26 },
+		{ x: 334, y: 44, rx: 58, ry: 26 },
+		{ x: 200, y: 26, rx: 50, ry: 18 },
+		{ x: 62, y: 256, rx: 58, ry: 26 },
+		{ x: 338, y: 256, rx: 58, ry: 26 }
+	];
+	const LINKS: [number, number][] = [
+		[0, 1],
+		[0, 2],
+		[0, 4],
+		[0, 5],
+		[1, 3],
+		[3, 2],
+		[1, 4],
+		[2, 5],
+		[4, 5]
+	];
 </script>
 
-<div class="flex h-full w-full flex-col items-center gap-3">
-	<!-- the three scales, then the action -->
-	<div class="steps">
-		{#each LEVELS as l, i (l)}
-			<span class="step" class:on={l === level} class:past={i < levelIndex}>
-				<b>{tx.levels[l].tab}</b>
-				<span>{tx.levels[l].scope}</span>
-			</span>
-		{/each}
-	</div>
-
-	<div class="actions">
-		{#if levelDone && level !== 'net'}
-			<button type="button" class="cta" onclick={zoomOut}>{tx.zoomBtn}</button>
-		{:else if finished}
-			<button type="button" class="line" onclick={restart}>{tx.againBtn}</button>
-		{/if}
-	</div>
-
-	{#key level}
-		<svg class="board" viewBox="0 0 320 250" role="group" aria-label={tx.levels[level].tab}>
-			<!-- the boundary of this level -->
-			{#if level === 'lan'}
-				<rect x="10" y="14" width="300" height="226" rx="18" class="room" />
-			{:else if level === 'wan'}
-				<rect x="10" y="14" width="300" height="226" rx="40" class="city" />
-			{:else}
-				<ellipse cx="160" cy="127" rx="152" ry="114" class="world" />
-			{/if}
-
-			<!-- the cables -->
-			{#if scene.hub}
-				{#each scene.nodes as n, i (i)}
-					{#if wired[i]}
-						<line
-							x1={scene.hub.x}
-							y1={scene.hub.y}
-							x2={n.x}
-							y2={n.y}
-							class="wire"
-							class:long={level === 'wan'}
-						/>
-					{/if}
-				{/each}
-			{:else}
-				{#each links as [a, b] (a + '-' + b)}
-					<line
-						x1={scene.nodes[a].x}
-						y1={scene.nodes[a].y}
-						x2={scene.nodes[b].x}
-						y2={scene.nodes[b].y}
-						class="wire long"
-					/>
-				{/each}
-			{/if}
-
-			<!-- the hub in the middle -->
-			{#if scene.hub}
-				<g class="node hub">
-					<circle cx={scene.hub.x} cy={scene.hub.y} r="22" class="disc" />
-					<g transform="translate({scene.hub.x - 13} {scene.hub.y - 13})" class="ic on">
-						<DeviceIcon kind={scene.hub.kind} size={26} />
-					</g>
-					<text x={scene.hub.x} y={scene.hub.y + 36} class="lbl strong">{scene.hub.label}</text>
-				</g>
-			{/if}
-
-			<!-- the things to wire -->
-			{#each scene.nodes as n, i (i)}
-				<g
-					class="node tap"
-					class:wired={wired[i]}
-					role="button"
-					tabindex={wired[i] ? -1 : 0}
-					aria-label={n.label}
-					aria-pressed={wired[i]}
-					onclick={() => tap(i)}
-					onkeydown={(e) => onKey(e, i)}
+<div class="wrap">
+	<div class="tryrow" class:show={isLast} aria-hidden={!isLast}>
+		<span class="trylabel">{tx.zoomLabel}</span>
+		<div class="trybtns">
+			{#each LEVELS as l (l)}
+				<button
+					type="button"
+					class="try"
+					class:on={isLast && levelOf(active) === l}
+					disabled={!isLast}
+					onclick={() => fly(l)}>{tx.levels[l]}</button
 				>
-					<circle cx={n.x} cy={n.y} r="22" class="disc" />
-					<g transform="translate({n.x - 12} {n.y - 12})" class="ic" class:on={wired[i]}>
-						<DeviceIcon kind={n.kind} size={24} />
-					</g>
-					<text x={n.x} y={n.y + 35} class="lbl">{n.label}</text>
-				</g>
 			{/each}
-		</svg>
-	{/key}
+		</div>
+	</div>
 
-	<p class="note">{caption}</p>
+	<Guide steps={tx.steps} {active} onselect={(k) => (peek = k)}>
+		{#snippet visual(s)}
+			{@const lvl = levelOf(s)}
+			{@const z = ZOOM[lvl]}
+			<svg viewBox="0 0 400 300" class="art lvl-{lvl}" role="img" aria-label={tx.title}>
+				<defs>
+					<clipPath id="lanwan-frame"><rect width="400" height="300" rx="18" /></clipPath>
+				</defs>
+				<g clip-path="url(#lanwan-frame)">
+					<rect class="sky" width="400" height="300" />
+					<g
+						class="cam"
+						style="transform: translate(200px, 150px) scale({z}) translate(-200px, -150px)"
+					>
+						<!-- the world: networks joined to each other -->
+						<g class="world layer">
+							{#each LINKS as [a, b] (`${a}-${b}`)}
+								<line class="link" x1={NETS[a].x} y1={NETS[a].y} x2={NETS[b].x} y2={NETS[b].y} />
+							{/each}
+							{#each NETS as nt, k (k)}
+								<ellipse
+									class="net"
+									class:mine={k === 0}
+									cx={nt.x}
+									cy={nt.y}
+									rx={nt.rx}
+									ry={nt.ry}
+								/>
+								{#if k > 0}
+									<text class="wlbl" x={nt.x} y={nt.y + 4}>{tx.nets[k]}</text>
+								{/if}
+							{/each}
+							<text class="wlbl mine" x="200" y="230">{tx.nets[0]}</text>
+							<circle class="pkt w1" r="4" />
+							<circle class="pkt w2" r="4" />
+						</g>
+
+						<!-- the city: offices linked by long rented lines -->
+						<g class="city layer" transform="translate(133.333 100) scale(0.333333)">
+							{#each BRANCHES as b, k (k)}
+								<path class="line" d="M200 150 Q {(200 + b.x) / 2} {b.y + 30} {b.x} {b.y}" />
+							{/each}
+							{#each BRANCHES as b, k (k)}
+								<g transform="translate({b.x} {b.y})">
+									<rect class="bld" x="-34" y="-26" width="68" height="52" rx="4" />
+									{#each [-18, 0, 18] as wx (wx)}
+										<rect class="win" x={wx - 5} y="-14" width="10" height="9" rx="1.5" />
+										<rect class="win" x={wx - 5} y="2" width="10" height="9" rx="1.5" />
+									{/each}
+									<text class="clbl" y="44">{tx.branchLabel.replace('{n}', String(k + 1))}</text>
+								</g>
+							{/each}
+							<rect class="bld hq" x="150" y="112.5" width="100" height="75" rx="4" />
+							<text class="clbl" x="200" y="206">{tx.hqLabel}</text>
+							<circle class="pkt c1" r="5" />
+							<circle class="pkt c2" r="5" />
+
+							<!-- the room: one LAN, inside the head office -->
+							<g class="room" transform="translate(150 112.5) scale(0.25)">
+								<rect class="floor" x="8" y="8" width="384" height="284" rx="14" />
+								{#each [[80, 72], [320, 72], [80, 228], [320, 228]] as [dx, dy] (`${dx}${dy}`)}
+									<line class="cable" x1={dx} y1={dy} x2="200" y2="150" />
+								{/each}
+								<Thing kind="switch" x={200} y={150} s={1.6} hi={s <= 1} />
+								<Thing kind="laptop" x={80} y={72} s={1.4} />
+								<Thing kind="pc" x={320} y={72} s={1.4} dim={s === 0} />
+								<Thing kind="laptop" x={80} y={228} s={1.4} dim={s === 0} />
+								<Thing kind="pc" x={320} y={228} s={1.4} />
+								<text class="rlbl" x="200" y="186">{tx.switchLabel}</text>
+								<circle class="pkt r1" r="6" />
+								<circle class="pkt r2" r="6" />
+							</g>
+						</g>
+					</g>
+
+					<!-- which level is which, shown when it is time to remember -->
+					<g class="tags" class:show={s === 4}>
+						<g class="tag">
+							<rect x="176" y="118" width="48" height="20" rx="10" />
+							<text x="200" y="132">{tx.levels.lan}</text>
+						</g>
+						<g class="tag">
+							<rect x="176" y="68" width="48" height="20" rx="10" />
+							<text x="200" y="82">{tx.levels.wan}</text>
+						</g>
+						<g class="tag big">
+							<rect x="160" y="270" width="80" height="22" rx="11" />
+							<text x="200" y="285">{tx.levels.net}</text>
+						</g>
+					</g>
+				</g>
+				<rect class="frame" width="400" height="300" rx="18" />
+			</svg>
+		{/snippet}
+	</Guide>
 </div>
 
 <style>
-	.steps {
+	.wrap {
 		display: flex;
-		gap: 6px;
-	}
-	.step {
-		display: flex;
+		width: 100%;
 		flex-direction: column;
 		align-items: center;
-		min-width: 84px;
-		border-radius: 12px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 5px 10px;
-		line-height: 1.2;
-		color: var(--color-faint);
-		transition:
-			border-color 0.25s ease,
-			color 0.25s ease;
+		gap: 12px;
+		padding-bottom: 7rem;
 	}
-	.step b {
-		font-size: 12px;
-		font-weight: 800;
+	@media (min-width: 768px) {
+		.wrap {
+			padding-bottom: 1rem;
+		}
 	}
-	.step span {
-		font-size: 9.5px;
-		font-weight: 600;
-	}
-	.step.on {
-		border-color: var(--color-brand);
-		color: var(--color-brand);
-	}
-	.step.past {
-		color: var(--color-grass);
-	}
-	.actions {
+	.tryrow {
 		display: flex;
-		min-height: 40px;
+		flex-wrap: wrap;
 		align-items: center;
+		justify-content: center;
+		gap: 8px 12px;
+		min-height: 40px;
+		visibility: hidden;
+		opacity: 0;
+		transition: opacity 0.3s ease;
 	}
-	.cta {
-		border-radius: 12px;
-		background: var(--btn-primary);
-		color: #fff;
-		padding: 10px 20px;
-		font-size: 13px;
-		font-weight: 600;
-		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.16);
-		animation: pop 0.3s ease;
+	.tryrow.show {
+		visibility: visible;
+		opacity: 1;
 	}
-	.line {
-		border-radius: 12px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		color: var(--color-ink);
-		padding: 9px 16px;
-		font-size: 13px;
-		font-weight: 600;
-	}
-	.line:hover {
-		border-color: var(--color-ink);
-	}
-
-	.board {
-		width: min(94vw, 360px);
-		height: auto;
-		overflow: visible;
-		animation: zoom 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-	}
-	@keyframes zoom {
-		from {
-			transform: scale(1.7);
-			opacity: 0;
-		}
-		to {
-			transform: none;
-			opacity: 1;
-		}
-	}
-	.room,
-	.city,
-	.world {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 2;
-	}
-	.city {
-		fill: color-mix(in srgb, var(--color-amber) 7%, var(--color-card));
-	}
-	.world {
-		fill: var(--color-brand-soft);
-		stroke: none;
-	}
-	.wire {
-		stroke: var(--color-grass);
-		stroke-width: 2.5;
-		stroke-linecap: round;
-		animation: fadein 0.35s ease;
-	}
-	.wire.long {
-		stroke: var(--color-brand);
-		stroke-width: 2;
-	}
-	@keyframes fadein {
-		from {
-			opacity: 0;
-		}
-	}
-	.disc {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-		transition: stroke 0.2s ease;
-	}
-	.hub .disc {
-		stroke: var(--color-brand);
-	}
-	.node.tap {
-		cursor: pointer;
-		outline: none;
-	}
-	.node.tap:not(.wired):hover .disc,
-	.node.tap:focus-visible .disc {
-		stroke: var(--color-ink);
-	}
-	.node.tap:not(.wired) .disc {
-		animation: breathe 1.8s ease-in-out infinite;
-	}
-	@keyframes breathe {
-		50% {
-			stroke: var(--color-amber);
-		}
-	}
-	.node.wired .disc {
-		stroke: var(--color-grass);
-	}
-	.ic {
-		color: var(--color-faint);
-		transition: color 0.2s ease;
-	}
-	.ic.on {
-		color: var(--color-ink);
-	}
-	.lbl {
-		fill: var(--color-muted);
-		font-size: 10px;
-		font-weight: 700;
-		text-anchor: middle;
-		paint-order: stroke;
-		stroke: var(--color-card);
-		stroke-width: 3px;
-		stroke-linejoin: round;
-	}
-	.lbl.strong {
-		fill: var(--color-brand);
-	}
-
-	.note {
-		min-height: 1.4em;
-		max-width: 340px;
-		text-align: center;
+	.trylabel {
 		font-size: 12px;
 		font-weight: 600;
 		color: var(--color-muted);
 	}
-	@keyframes pop {
-		from {
+	.trybtns {
+		display: flex;
+		gap: 8px;
+	}
+	.try {
+		border: 1px solid var(--color-line);
+		border-radius: 999px;
+		background: var(--color-card);
+		padding: 8px 16px;
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--color-ink);
+		transition:
+			border-color 0.2s,
+			background 0.2s;
+	}
+	.try:hover,
+	.try.on {
+		border-color: var(--color-brand);
+		background: var(--color-brand-soft);
+	}
+	.art {
+		width: 100%;
+		max-width: 460px;
+		height: auto;
+	}
+	.sky {
+		fill: var(--color-paper);
+	}
+	.frame {
+		fill: none;
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+	}
+	.cam {
+		transform-origin: 0 0;
+		transition: transform 1.6s cubic-bezier(0.45, 0, 0.2, 1);
+	}
+	.cam :global(*) {
+		vector-effect: non-scaling-stroke;
+	}
+	.layer,
+	.city > *,
+	.wlbl,
+	.clbl,
+	.rlbl,
+	.pkt {
+		transition: opacity 0.8s ease;
+	}
+
+	/* the world */
+	.link {
+		stroke: var(--color-line);
+		stroke-width: 2;
+	}
+	.net {
+		fill: var(--color-card);
+		stroke: var(--color-muted);
+		stroke-width: 1.4;
+	}
+	.net.mine {
+		fill: var(--color-brand-soft);
+		stroke: var(--color-brand);
+	}
+	.wlbl {
+		fill: var(--color-muted);
+		font-size: 11.5px;
+		font-weight: 600;
+		text-anchor: middle;
+	}
+	.wlbl.mine {
+		fill: var(--color-brand);
+	}
+
+	/* the city */
+	.line {
+		fill: none;
+		stroke: var(--color-amber);
+		stroke-width: 2;
+	}
+	.bld {
+		fill: var(--color-card);
+		stroke: var(--color-muted);
+		stroke-width: 1.4;
+	}
+	.bld.hq {
+		fill: var(--color-paper);
+		stroke: var(--color-brand);
+	}
+	.win {
+		fill: var(--color-brand-soft);
+	}
+	.clbl {
+		fill: var(--color-muted);
+		font-size: 14px;
+		font-weight: 600;
+		text-anchor: middle;
+	}
+
+	/* the room */
+	.floor {
+		fill: var(--color-paper);
+		stroke: var(--color-line);
+		stroke-width: 1.4;
+	}
+	.cable {
+		stroke: var(--color-brand);
+		stroke-width: 2;
+		opacity: 0.55;
+	}
+	.rlbl {
+		fill: var(--color-muted);
+		font-size: 15px;
+		font-weight: 600;
+		text-anchor: middle;
+	}
+
+	/* which layer shows at which zoom */
+	.lvl-lan .world,
+	.lvl-lan .city > .line,
+	.lvl-lan .city > g:not(.room),
+	.lvl-lan .city > .bld,
+	.lvl-lan .clbl {
+		opacity: 0;
+	}
+	.lvl-wan .world,
+	.lvl-wan .rlbl,
+	.lvl-net .rlbl,
+	.lvl-net .clbl {
+		opacity: 0;
+	}
+
+	/* data moving at the level in view */
+	.pkt {
+		fill: var(--color-amber);
+		opacity: 0;
+	}
+	.lvl-lan .r1 {
+		animation: room-a 2.8s ease-in-out infinite;
+	}
+	.lvl-lan .r2 {
+		animation: room-b 2.8s ease-in-out 1.4s infinite;
+	}
+	.lvl-wan .c1 {
+		animation: city-a 3.6s ease-in-out infinite;
+	}
+	.lvl-wan .c2 {
+		animation: city-b 3.6s ease-in-out 1.8s infinite;
+	}
+	.lvl-net .w1 {
+		animation: world-a 6s linear infinite;
+	}
+	.lvl-net .w2 {
+		animation: world-b 4.4s ease-in-out 1s infinite;
+	}
+	@keyframes room-a {
+		0% {
+			transform: translate(80px, 72px);
 			opacity: 0;
-			transform: scale(0.85);
+		}
+		10%,
+		90% {
+			opacity: 1;
+		}
+		50% {
+			transform: translate(200px, 150px);
+		}
+		100% {
+			transform: translate(320px, 228px);
+			opacity: 0;
+		}
+	}
+	@keyframes room-b {
+		0% {
+			transform: translate(320px, 72px);
+			opacity: 0;
+		}
+		10%,
+		90% {
+			opacity: 1;
+		}
+		50% {
+			transform: translate(200px, 150px);
+		}
+		100% {
+			transform: translate(80px, 228px);
+			opacity: 0;
+		}
+	}
+	@keyframes city-a {
+		0% {
+			transform: translate(62px, 58px);
+			opacity: 0;
+		}
+		10%,
+		90% {
+			opacity: 1;
+		}
+		50% {
+			transform: translate(200px, 150px);
+		}
+		100% {
+			transform: translate(338px, 242px);
+			opacity: 0;
+		}
+	}
+	@keyframes city-b {
+		0% {
+			transform: translate(338px, 58px);
+			opacity: 0;
+		}
+		10%,
+		90% {
+			opacity: 1;
+		}
+		50% {
+			transform: translate(200px, 150px);
+		}
+		100% {
+			transform: translate(62px, 242px);
+			opacity: 0;
+		}
+	}
+	@keyframes world-a {
+		0% {
+			transform: translate(62px, 256px);
+			opacity: 0;
+		}
+		5%,
+		95% {
+			opacity: 1;
+		}
+		25% {
+			transform: translate(66px, 44px);
+		}
+		50% {
+			transform: translate(200px, 26px);
+		}
+		75% {
+			transform: translate(334px, 44px);
+		}
+		100% {
+			transform: translate(338px, 256px);
+			opacity: 0;
+		}
+	}
+	@keyframes world-b {
+		0% {
+			transform: translate(338px, 256px);
+			opacity: 0;
+		}
+		10%,
+		90% {
+			opacity: 1;
+		}
+		50% {
+			transform: translate(200px, 150px);
+		}
+		100% {
+			transform: translate(66px, 44px);
+			opacity: 0;
 		}
 	}
 
-	@media (prefers-reduced-motion: reduce) {
-		.board,
-		.wire,
-		.cta {
-			animation: none;
-		}
-		.node.tap:not(.wired) .disc {
-			animation: none;
-		}
+	/* the remember tags */
+	.tags {
+		opacity: 0;
+		transition: opacity 0.5s ease;
 	}
-	@media (min-width: 768px) {
-		.board {
-			width: 460px;
+	.tags.show {
+		opacity: 1;
+	}
+	.tag rect {
+		fill: var(--color-grass);
+	}
+	.tag text {
+		fill: #fff;
+		font-size: 11.5px;
+		font-weight: 700;
+		text-anchor: middle;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.cam,
+		.layer,
+		.wlbl,
+		.clbl,
+		.rlbl,
+		.tags,
+		.tryrow {
+			transition: none;
 		}
-		.step {
-			min-width: 104px;
-		}
-		.step b {
-			font-size: 13px;
-		}
-		.step span {
-			font-size: 10.5px;
-		}
-		.note {
-			font-size: 14px;
-			max-width: 460px;
+		.pkt {
+			animation: none !important;
+			opacity: 0 !important;
 		}
 	}
 </style>

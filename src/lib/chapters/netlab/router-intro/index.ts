@@ -6,17 +6,12 @@ import { en } from './en';
 export const routerIntro: Lesson = {
 	id: 'router-intro',
 	mood: 'thinking',
-	moods: ['calm', 'happy', 'idea', 'thinking', 'thinking', 'wink', 'happy'],
+	moods: ['calm', 'happy', 'wink', 'idea', 'thinking', 'idea', 'wink', 'happy'],
 	reactionMood: {
-		identity: 'happy',
-		otherName: 'wink',
-		interfaces: 'idea',
-		address: 'happy',
-		wrongPort: 'thinking',
-		badAddress: 'thinking',
 		addrPrint: 'happy',
-		error: 'surprised',
-		done: 'excited'
+		interfaces: 'idea',
+		identity: 'wink',
+		error: 'thinking'
 	},
 	stage: RouterIntroStage,
 	text: { id, en }

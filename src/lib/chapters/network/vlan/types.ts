@@ -1,21 +1,15 @@
 import type { LessonText } from '../../types';
 
 export interface VlanText extends LessonText {
-	switchLabel: string; // the physical switch in the middle
-	goalTitle: string; // heading of the goal card
-	goal: string; // what the learner should achieve
-	portHint: string; // tap a port to change its VLAN
-	pingHint: string; // tap two devices to test
-	pickTarget: string; // template with {name}, shown after picking the first device
-	/** VLAN names, in order: default (1), finance (10), guest (20). */
-	vlans: string[];
-	portAria: string; // template with {n} and {vlan}
-	/** The six devices, first three are finance, last three are guests. */
-	devices: string[];
-	financeTag: string; // small group label over the finance row
-	guestTag: string; // small group label over the guest row
-	reachOk: string; // template with {a} and {b}
-	reachNo: string; // template with {a} and {b}
-	resetBtn: string;
-	solvedNote: string; // shown once the goal is met
+	/** One side panel step per beat, in the same order as `intro`. */
+	steps: { title: string; body: string; tag?: string }[];
+	switchLabel: string; // the physical switch
+	routerLabel: string; // the router that joins two VLANs, shown on one beat
+	payrollLabel: string; // the payroll server
+	financeTag: string; // name of the finance group (VLAN 10)
+	guestTag: string; // name of the guest group (VLAN 20)
+	blockedTag: string; // badge where the switch stops a packet
+	checkedTag: string; // badge on the router while it checks a packet
+	paintBtn: string; // optional play, moves the first guest into finance
+	unpaintBtn: string; // moves it back
 }

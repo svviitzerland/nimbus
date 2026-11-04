@@ -6,18 +6,8 @@ import { en } from './en';
 export const ctf: Lesson = {
 	id: 'ctf',
 	mood: 'excited',
-	moods: ['thinking', 'happy', 'idea', 'wink', 'surprised', 'excited'],
-	reactionMood: {
-		decoded: 'idea',
-		caesar: 'happy',
-		peek: 'wink',
-		source: 'excited',
-		tryFail: 'thinking',
-		cracked: 'surprised',
-		password: 'happy',
-		wrongFlag: 'thinking',
-		allFlags: 'excited'
-	},
+	moods: ['thinking', 'happy', 'wink', 'idea', 'thinking', 'excited', 'calm', 'idea', 'wink'],
+	reactionMood: { solved: 'excited' },
 	stage: CtfStage,
 	text: { id, en }
 };

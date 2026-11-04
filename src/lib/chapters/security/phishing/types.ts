@@ -1,7 +1,8 @@
 import type { LessonText } from '../../types';
+import type { GuideStep } from '$lib/components/stages/attacks2/types';
 
-/** The five emails in the pretend inbox, in the order they are shown. */
-export type PhishingEmailId = 'invoice' | 'lookalike' | 'reset' | 'boss' | 'signin';
+/** The two emails the stage can show, the bait and the genuine one. */
+export type PhishingKind = 'fake' | 'real';
 
 export interface PhishingEmail {
 	fromName: string;
@@ -11,26 +12,20 @@ export interface PhishingEmail {
 	body: string;
 	urgent: string; // the pressure sentence, empty when there is none
 	cta: string; // the button inside the email
-	url: string; // where that button really goes, revealed on peek
+	url: string; // where that button really goes
 }
 
 export interface PhishingText extends LessonText {
+	/** The side panel, one entry per beat. */
+	steps: GuideStep[];
 	inboxLabel: string;
-	counter: string; // template with {n} and {total}
-	peek: string; // reveals where the button really goes
-	peekLabel: string; // caption before the real address
-	noLink: string; // shown on peek when the email has no link at all
-	markReal: string;
-	markFake: string;
-	nextEmail: string;
-	again: string; // restart the inbox after the last email
-	verdictRight: string;
-	verdictWrong: string;
-	realTag: string;
-	fakeTag: string;
-	/** Names for the three kinds of clue. */
-	clues: { sender: string; link: string; urgency: string; none: string };
-	scoreLabel: string; // template with {n} and {total}
-	safeNote: string; // a calm reminder that nothing here is real
-	emails: Record<PhishingEmailId, PhishingEmail>;
+	/** Two calm older rows under the new email in the inbox. */
+	olderRows: { from: string; subject: string }[];
+	goesTo: string; // caption before the real address of the button
+	/** The little tags that pop up next to each clue, for the fake and for the real email. */
+	clues: Record<PhishingKind, { sender: string; urgency: string; link: string }>;
+	rule: string; // the rule of thumb line
+	pickLabel: string;
+	modes: Record<PhishingKind, string>;
+	emails: Record<PhishingKind, PhishingEmail>;
 }

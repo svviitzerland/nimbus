@@ -1,365 +1,415 @@
 <script lang="ts">
-	import type { LessonText } from '$lib/chapters/types';
+	// A guided terminal lab. A file card shows nine permission switches (owner, group, others
+	// times read, write, run). Nim narrates while the terminal types ls -l, a failing ./backup.sh,
+	// chmod u+x, chmod 755 and a sudo cat, and the switches flip by themselves as each command
+	// runs. On the last beat the learner types one command, chmod 700 backup.sh.
+	import { untrack } from 'svelte';
+	import { fade } from 'svelte/transition';
+	import type { StageProps } from '$lib/chapters/types';
 	import type { PermissionsText } from '$lib/chapters/linux/permissions/types';
-	import LinuxTerminal from './linux/LinuxTerminal.svelte';
-	import Missions from './linux/Missions.svelte';
+	import GuidedLab from './linux/GuidedLab.svelte';
 	import { LinuxShell, type ShellEvent } from './linux/shell.svelte';
-	import { basename, dir, file, lookup, mine, myDir, octal, type FNode } from './linux/fs';
+	import { dir, file, lookup, mine, modeStr, myDir, octal, type FNode } from './linux/fs';
 
-	let {
-		text,
-		beat = 0,
-		oncomplete,
-		onstate,
-		onshow
-	}: {
-		text: LessonText;
-		beat?: number;
-		oncomplete?: () => void;
-		onstate?: (s: string) => void;
-		onshow?: (v: boolean) => void;
-	} = $props();
+	let { text, oncomplete, onstate, onshow, beat = 0 }: StageProps = $props();
 	const tx = $derived(text as PermissionsText);
 
-	// The card shows from the beat about r, w, and x; the beat about owner, group, and others
-	// lights up its rows.
-	const LETTERS_BEAT = 1;
-	const PEOPLE_BEAT = 2;
-	const live = $derived(beat >= tx.intro.length - 1);
-	$effect(() => {
-		onshow?.(beat >= LETTERS_BEAT);
-	});
+	const SCRIPT: string[][] = [
+		[],
+		['ls -l backup.sh'],
+		[],
+		['./backup.sh'],
+		['chmod u+x backup.sh', './backup.sh'],
+		['chmod 755 backup.sh', 'ls -l backup.sh'],
+		[],
+		['cat /etc/nimbus.conf', 'sudo cat /etc/nimbus.conf'],
+		[],
+		[]
+	];
+	const LAST = SCRIPT.length - 1;
+	const TRY = 'chmod 700 backup.sh';
+	const SCRIPT_PATH = '/home/nim/backup.sh';
+	const CONF_PATH = '/etc/nimbus.conf';
 
-	const SCRIPT = '/home/nim/backup.sh';
-	const CONF = '/etc/nimbus/app.conf';
+	let peek = $state<number | null>(null);
+	const scene = $derived(peek ?? Math.min(beat, LAST));
+	const live = $derived(scene === LAST);
+
 	function makeFs(): FNode {
 		return dir({
-			etc: dir({
-				nimbus: dir({
-					'app.conf': file(
-						['# nimbus.com settings', 'port = 80', 'db_user = nimbus', 'db_password = Cl0udy!Sky'],
-						{ mode: 0o640 }
-					)
-				}),
-				shadow: file(['root:*:20000:0:99999:7:::'], { mode: 0o640, group: 'shadow' })
-			}),
+			etc: dir({ 'nimbus.conf': file(['db_password=n1mbus-s3cret'], { mode: 0o600 }) }),
 			home: dir({
 				nim: myDir({
-					'backup.sh': mine([
-						'#!/bin/bash',
-						'echo "Packing up /var/www/nimbus ..."',
-						'echo "Backup saved, 3 files"'
-					]),
-					'notes.txt': mine(['Remember to back up nimbus.com every night'])
+					'backup.sh': mine(['#!/bin/bash', 'echo "Backup done, nimbus.com is safe"']),
+					'notes.txt': mine(['remember to back up tonight'])
 				})
 			}),
-			root: dir({}, { mode: 0o700 }),
-			tmp: dir({}, { mode: 0o777 }),
-			var: dir({ www: dir({ nimbus: dir({ 'index.html': file(['<h1>nimbus.com</h1>']) }) }) })
+			tmp: dir({}, { mode: 0o777 })
 		});
 	}
 
-	// ---- Missions ----
-	type MId = 'listed' | 'ran' | 'sudo' | 'undo';
-	const ORDER: MId[] = ['listed', 'ran', 'sudo', 'undo'];
-	let done = $state<Record<MId, boolean>>({ listed: false, ran: false, sudo: false, undo: false });
-	let finished = false;
-	function complete(m: MId) {
-		if (done[m]) return false;
-		done[m] = true;
-		if (ORDER.every((x) => done[x])) {
-			if (!finished) {
-				finished = true;
-				onstate?.('done');
-				oncomplete?.();
-			}
-		} else onstate?.(m);
-		return true;
-	}
-
-	// The file shown in the card follows whatever you last touched.
-	let focus = $state(SCRIPT);
-	let riskyPath = $state('');
+	// What the card shows, driven by what the commands did.
+	let focus = $state(SCRIPT_PATH);
+	let result = $state<'denied' | 'ran' | null>(null);
+	let boss = $state(false);
+	let quiet = false;
 	const say = (t: string) => {
-		onstate?.(t);
-		return true;
+		if (!quiet && live) onstate?.(t);
 	};
-	const isFile = (p: string) => lookup(shell.fs, p)?.kind === 'file';
 
 	function onevent(e: ShellEvent) {
-		if ('path' in e && isFile(e.path)) focus = e.path;
-		switch (e.type) {
-			case 'ls':
-				if (e.long && (e.path === '/home/nim' || e.path === SCRIPT)) return complete('listed');
-				return false;
-			case 'denied':
-				if (e.path === SCRIPT) return say('runDenied');
-				if (e.path === CONF) return say('confDenied');
-				return false;
-			case 'exec':
-				if (e.path !== SCRIPT) return false;
-				if (e.direct) return complete('ran');
-				return say('bashTrick');
-			case 'read':
-				if (e.path === CONF && e.sudo) return complete('sudo');
-				return false;
-			case 'notOwner':
-				return say('notOwner');
-			case 'rmroot':
-				return say('rmrf');
-			case 'chmod': {
-				const open = (e.mode & 0o002) !== 0;
-				if (e.mode === 0o777) {
-					riskyPath = e.path;
-					return say('risky');
-				}
-				if (riskyPath === e.path && !open) return complete('undo');
-				if (open) return say('othersWrite');
-				if (e.path === SCRIPT && e.mode & 0o100 && !(e.prev & 0o100)) return say('chmodX');
-				return say('chmod');
-			}
+		if (e.type === 'chmod') {
+			focus = e.path;
+			result = null;
+			boss = false;
+			if (e.mode === 0o700) say('locked');
+			else if (e.mode & 0o002) say('risky');
+			else say('chmod');
+			return true;
+		}
+		if (e.type === 'exec') {
+			focus = e.path;
+			result = 'ran';
+			boss = false;
+			say('ran');
+			return true;
+		}
+		if (e.type === 'denied') {
+			if (lookup(shell.fs, e.path)) focus = e.path;
+			result = 'denied';
+			boss = false;
+			return false;
+		}
+		if (e.type === 'read') {
+			focus = e.path;
+			result = null;
+			boss = e.sudo;
+			if (e.sudo) say('sudo');
+			return e.sudo;
 		}
 		return false;
 	}
 
-	const shell = new LinuxShell({
-		fs: makeFs(),
-		text: () => tx,
-		react: (t) => onstate?.(t),
-		onevent
+	const shell = new LinuxShell({ fs: makeFs(), text: () => tx, react: say, onevent });
+	shell.speed = 55;
+
+	function direct(sc: number) {
+		shell.reset(makeFs());
+		quiet = true;
+		shell.quick(SCRIPT.slice(0, sc).flat());
+		quiet = false;
+		focus = sc === 7 || sc === 8 ? CONF_PATH : SCRIPT_PATH;
+		if (sc >= LAST || SCRIPT[sc].length) {
+			result = null;
+			boss = false;
+		}
+		shell.typeSeq(SCRIPT[sc]);
+	}
+
+	$effect(() => {
+		onshow?.(true);
+		oncomplete?.();
+		return () => shell.destroy();
 	});
-	$effect(() => () => shell.destroy());
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
+	$effect(() => {
+		const sc = scene;
+		untrack(() => direct(sc));
+	});
 
-	const script = $derived(lookup(shell.fs, SCRIPT));
-	const help: Record<MId, () => string> = {
-		listed: () => (shell.cwd === '/home/nim' ? 'ls -l' : 'ls -l ~'),
-		ran: () => {
-			const ready = script && script.mode & 0o100;
-			if (shell.cwd !== '/home/nim') return ready ? '~/backup.sh' : 'chmod u+x ~/backup.sh';
-			return ready ? './backup.sh' : 'chmod u+x backup.sh';
-		},
-		sudo: () => `sudo cat ${CONF}`,
-		undo: () => (riskyPath ? `chmod 755 ${tidy(riskyPath)}` : 'chmod 777 backup.sh')
-	};
-	const items = $derived(
-		ORDER.map((m, i) => ({
-			label: tx.missions[i],
-			done: done[m],
-			help: () => shell.typeFor(help[m]())
-		}))
-	);
-	/** A path as short as it can be from where you stand. */
-	function tidy(p: string) {
-		if (p.startsWith(shell.cwd + '/')) return p.slice(shell.cwd.length + 1);
-		if (p.startsWith('/home/nim/')) return '~/' + p.slice('/home/nim/'.length);
-		return p;
-	}
+	// On the "three times three" beat a soft highlight walks over the columns, then the rows.
+	let walk = $state(-1);
+	$effect(() => {
+		if (scene !== 2) {
+			walk = -1;
+			return;
+		}
+		if (typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches)
+			return;
+		walk = 0;
+		const t = setInterval(() => (walk = (walk + 1) % 7), 1300);
+		return () => clearInterval(t);
+	});
 
-	// ---- The permission card ----
 	const node = $derived(lookup(shell.fs, focus));
-	const WHO = ['u', 'g', 'o'] as const;
-	const WHAT = ['r', 'w', 'x'] as const;
-	const ROWS = [0, 1, 2];
-	const bit = (row: number, col: number) => 1 << (8 - (row * 3 + col));
-	const on = (row: number, col: number) => !!node && (node.mode & bit(row, col)) !== 0;
-	function flip(row: number, col: number) {
-		if (!live || !node || shell.typing || shell.busy) return;
-		const sign = on(row, col) ? '-' : '+';
-		const pre = node.owner === 'nim' ? '' : 'sudo ';
-		shell.typeFor(`${pre}chmod ${WHO[row]}${sign}${WHAT[col]} ${tidy(focus)}`);
-	}
-	const digits = $derived(node ? octal(node.mode) : '000');
-	const who = $derived([
-		`${tx.ownerLabel} (${node?.owner ?? ''})`,
-		`${tx.groupLabel} (${node?.group ?? ''})`,
-		tx.othersLabel
-	]);
+	const name = $derived(focus.slice(focus.lastIndexOf('/') + 1));
+	const mode = $derived(node?.mode ?? 0);
+	const letters = $derived(node ? modeStr(node).slice(1) : '---------');
+	const SHIFT = [6, 3, 0];
+	const BIT = [4, 2, 1];
+	const on = (row: number, col: number) => ((mode >> SHIFT[row]) & BIT[col]) !== 0;
+	const digit = (row: number) => (mode >> SHIFT[row]) & 7;
+	const showDigits = $derived(scene >= 5);
+	const colLit = (c: number) => walk === c;
+	const rowLit = (r: number) => walk === r + 3;
 </script>
 
-<div class="wrap">
-	<Missions
-		label={tx.missionsLabel}
-		{items}
-		hintBtn={tx.hintBtn}
-		doneNote={tx.doneNote}
-		disabled={!live || shell.typing || shell.busy}
-	/>
-
-	{#if node}
-		<div class="card" class:danger={(node.mode & 0o002) !== 0}>
-			<div class="chead">
-				<span class="fname">{basename(focus)}</span>
-				<span class="mode"
-					><span class="kind">-</span>{#each ROWS as r (r)}<span class="triad t{r}"
-							>{#each WHAT as l, c (c)}{on(r, c) ? l : '-'}{/each}</span
-						>{/each}</span
-				>
-				<span class="oct">{digits}</span>
+{#snippet card(i: number)}
+	<div class="card" class:shake={result === 'denied' && i !== LAST}>
+		<div class="head">
+			<svg viewBox="0 0 24 28" class="icon" aria-hidden="true">
+				<path d="M2 2 H15 L22 9 V26 H2 Z" />
+				<path d="M15 2 V9 H22" class="fold" />
+			</svg>
+			<div class="meta">
+				<strong>{name}</strong>
+				<span>{tx.ownedBy.replace('{owner}', node?.owner ?? 'root')}</span>
 			</div>
-			<div class="grid" role="group" aria-label={tx.cardLabel}>
-				<span></span>
-				{#each tx.permLabels as p (p)}<span class="colh">{p}</span>{/each}
-				{#each ROWS as r (r)}
-					<span class="rowh" class:lit={beat === PEOPLE_BEAT}>{who[r]}</span>
-					{#each WHAT as l, c (c)}
-						<button
-							type="button"
-							class="cell"
-							class:on={on(r, c)}
-							class:bad={r === 2 && c === 1 && on(r, c)}
-							disabled={!live}
-							aria-pressed={on(r, c)}
-							aria-label="{who[r]} {tx.permLabels[c]}"
-							onclick={() => flip(r, c)}>{on(r, c) ? l : '-'}</button
-						>
-					{/each}
-				{/each}
-			</div>
-			<p class="cap">{(node.mode & 0o002) !== 0 ? tx.dangerNote : tx.cardNote}</p>
+			{#if boss}
+				<span class="chip boss" in:fade={{ duration: 250 }}>{tx.bossChip}</span>
+			{:else if result === 'denied'}
+				<span class="chip bad" in:fade={{ duration: 250 }}>{tx.deniedChip}</span>
+			{:else if result === 'ran'}
+				<span class="chip good" in:fade={{ duration: 250 }}>{tx.ranChip}</span>
+			{/if}
 		</div>
-	{/if}
 
-	<LinuxTerminal {shell} {live} inputLabel={tx.inputLabel} short />
-</div>
+		<p class="letters" class:glow={i === 1} aria-label={letters}>
+			{#each letters.split('') as l, k (k)}
+				<span class="g{Math.floor(k / 3)}" class:off={l === '-'}>{l}</span>
+			{/each}
+		</p>
+
+		<div class="grid" role="img" aria-label={`${name} ${letters}`}>
+			<span></span>
+			{#each tx.permLabels as p, c (c)}
+				<span class="col" class:lit={colLit(c)}>{p}</span>
+			{/each}
+			<span class="col">{showDigits ? tx.sumLabel : ''}</span>
+			{#each tx.rowLabels as r, row (row)}
+				<span class="row g{row}" class:lit={rowLit(row)}>{r}</span>
+				{#each BIT as b, c (b)}
+					<span class="cell" class:lit={colLit(c) || rowLit(row)}>
+						<i class="switch" class:on={on(row, c)}><b></b></i>
+					</span>
+				{/each}
+				<span class="digit">
+					{#if showDigits}<em in:fade={{ duration: 300 }}>{digit(row)}</em>{/if}
+				</span>
+			{/each}
+		</div>
+
+		{#if i === 6}
+			<p class="rule" in:fade={{ duration: 300 }}>{tx.rule}</p>
+		{:else if i === 8}
+			<p class="rule" in:fade={{ duration: 300 }}>{tx.sudoRule}</p>
+		{:else if showDigits}
+			<p class="octal">chmod <b>{octal(mode)}</b> {name}</p>
+		{/if}
+	</div>
+{/snippet}
+
+<GuidedLab
+	{tx}
+	{shell}
+	active={scene}
+	{live}
+	tryCmd={TRY}
+	onselect={(i) => (peek = i)}
+	art={card}
+/>
 
 <style>
-	.wrap {
+	.card {
 		display: flex;
 		flex-direction: column;
-		align-items: center;
 		gap: 10px;
-		width: min(94vw, 420px);
-		max-height: 100%;
-		overflow-y: auto;
-		padding-bottom: 4px;
+		padding: 4px 6px 2px;
 	}
-	.card {
-		width: 100%;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		border-radius: 12px;
-		padding: 10px 12px 8px;
-		transition: border-color 0.3s ease;
+	.card.shake {
+		animation: shake 0.45s ease 0.2s;
 	}
-	.card.danger {
-		border-color: var(--color-danger);
+	@keyframes shake {
+		25% {
+			transform: translateX(-5px);
+		}
+		75% {
+			transform: translateX(5px);
+		}
 	}
-	.chead {
+	.head {
 		display: flex;
-		align-items: baseline;
-		gap: 10px;
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-		margin-bottom: 8px;
-	}
-	.fname {
-		font-size: 13px;
-		font-weight: 800;
-		color: var(--color-ink);
-		min-width: 0;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.mode {
-		margin-left: auto;
-		font-size: 13px;
-		font-weight: 700;
-		letter-spacing: 0.04em;
-	}
-	.kind {
-		color: var(--color-faint);
-	}
-	.t0 {
-		color: var(--color-brand);
-	}
-	.t1 {
-		color: var(--color-amber);
-	}
-	.t2 {
-		color: var(--color-grass);
-	}
-	.oct {
-		font-size: 12px;
-		font-weight: 700;
-		color: var(--color-muted);
-		border: 1px solid var(--color-line);
-		border-radius: 6px;
-		padding: 0 6px;
-	}
-	.grid {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) repeat(3, 52px);
-		gap: 5px;
 		align-items: center;
+		gap: 10px;
 	}
-	.colh {
-		font-size: 10.5px;
-		font-weight: 800;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: var(--color-faint);
-		text-align: center;
-	}
-	.rowh {
-		font-size: 12px;
-		font-weight: 700;
-		color: var(--color-ink);
-		border-radius: 6px;
-		padding: 2px 4px;
-		transition: background 0.3s ease;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.rowh.lit {
-		background: var(--color-amber-soft);
-	}
-	.cell {
+	.icon {
 		height: 30px;
-		border-radius: 8px;
-		border: 1.5px solid var(--color-line);
-		background: var(--color-paper);
-		color: var(--color-faint);
+		width: 26px;
+		flex: none;
+	}
+	.icon path {
+		fill: var(--color-paper);
+		stroke: var(--color-muted);
+		stroke-width: 1.5;
+		stroke-linejoin: round;
+	}
+	.icon .fold {
+		fill: none;
+	}
+	.meta {
+		display: flex;
+		min-width: 0;
+		flex: 1;
+		flex-direction: column;
+	}
+	.meta strong {
 		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 		font-size: 14px;
-		font-weight: 800;
-		transition:
-			background 0.2s ease,
-			border-color 0.2s ease,
-			color 0.2s ease;
+		color: var(--color-ink);
 	}
-	.cell.on {
-		border-color: var(--color-grass);
-		background: var(--color-grass-soft);
-		color: var(--color-grass);
+	.meta span {
+		font-size: 12px;
+		color: var(--color-muted);
 	}
-	.cell.bad {
-		border-color: var(--color-danger);
+	.chip {
+		flex: none;
+		border-radius: 999px;
+		padding: 3px 10px;
+		font-size: 11.5px;
+		font-weight: 700;
+	}
+	.chip.bad {
 		background: var(--color-danger-soft);
 		color: var(--color-danger);
 	}
-	.cell:hover:not(:disabled) {
-		border-color: var(--color-brand);
+	.chip.good {
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
 	}
-	.cell:disabled {
-		cursor: default;
+	.chip.boss {
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
 	}
-	.cap {
-		margin: 8px 0 0;
+	.letters {
+		margin: 0;
+		text-align: center;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 22px;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+	}
+	.letters span {
+		transition: opacity 0.4s;
+	}
+	.letters .off {
+		opacity: 0.35;
+	}
+	.letters.glow {
+		animation: pulse 1.6s ease-in-out 2;
+	}
+	@keyframes pulse {
+		50% {
+			transform: scale(1.06);
+		}
+	}
+	.g0 {
+		color: var(--color-brand);
+	}
+	.g1 {
+		color: var(--color-grass);
+	}
+	.g2 {
+		color: var(--color-amber);
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: auto repeat(3, minmax(0, 1fr)) 44px;
+		align-items: center;
+		gap: 6px 4px;
+	}
+	.col {
+		text-align: center;
 		font-size: 11.5px;
-		font-weight: 600;
+		font-weight: 700;
 		color: var(--color-muted);
+		border-radius: 8px;
+		padding: 2px 0;
+		transition: background 0.4s;
+	}
+	.row {
+		padding: 4px 8px 4px 0;
+		font-size: 12.5px;
+		font-weight: 700;
+		border-radius: 8px;
+		transition: background 0.4s;
+	}
+	.cell {
+		display: flex;
+		justify-content: center;
+		border-radius: 10px;
+		padding: 5px 0;
+		transition: background 0.4s;
+	}
+	.lit {
+		background: var(--color-brand-soft);
+	}
+	.switch {
+		position: relative;
+		display: block;
+		height: 20px;
+		width: 36px;
+		border-radius: 999px;
+		background: var(--color-line);
+		transition: background 0.35s;
+	}
+	.switch b {
+		position: absolute;
+		top: 3px;
+		left: 3px;
+		height: 14px;
+		width: 14px;
+		border-radius: 999px;
+		background: var(--color-card);
+		box-shadow: 0 1px 3px rgba(15, 32, 48, 0.25);
+		transition: transform 0.35s cubic-bezier(0.3, 0.7, 0.3, 1);
+	}
+	.switch.on {
+		background: var(--color-grass);
+	}
+	.switch.on b {
+		transform: translateX(16px);
+	}
+	.digit {
 		text-align: center;
 	}
-	.danger .cap {
-		color: var(--color-danger);
+	.digit em {
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 18px;
+		font-style: normal;
+		font-weight: 800;
+		color: var(--color-ink);
 	}
-	@media (min-width: 768px) {
-		.wrap {
-			width: 460px;
+	.rule,
+	.octal {
+		margin: 0;
+		text-align: center;
+		font-size: 12.5px;
+		font-weight: 600;
+	}
+	.rule {
+		color: var(--color-grass);
+	}
+	.octal {
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		color: var(--color-muted);
+	}
+	.octal b {
+		color: var(--color-ink);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.card.shake,
+		.letters.glow {
+			animation: none;
 		}
-		.grid {
-			grid-template-columns: minmax(0, 1fr) repeat(3, 64px);
+		.switch,
+		.switch b,
+		.cell,
+		.row,
+		.col {
+			transition: none;
 		}
 	}
 </style>

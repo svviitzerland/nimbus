@@ -1,13 +1,19 @@
 import type { LessonText } from '$lib/chapters/types';
 import type { ShellText } from './shell.svelte';
 
-/** Text every Linux lesson shares (missions card, terminal helper lines). */
-export interface LinuxLabText extends LessonText, ShellText {
-	missionsLabel: string; // heading of the mission checklist
-	missions: string[]; // mission labels, in the order the stage lists them
-	hintBtn: string; // chip that types the mission command for you
-	doneNote: string; // shown once every mission is done
-	inputLabel: string; // aria label of the command field
+/** One panel of the guided side card, may hold simple HTML like <b>. */
+export interface GuidePanel {
+	tag?: string;
+	title: string;
+	body: string;
 }
 
-export type Mission = { label: string; done: boolean; help?: () => void };
+/** Text every guided Linux lesson shares (side panels, terminal labels, helper lines). */
+export interface LinuxGuideText extends LessonText, ShellText {
+	/** One panel per beat of the guided part, the last one is the learner's turn. */
+	panels: GuidePanel[];
+	watchLabel: string; // over the terminal while Nim types the commands
+	tryLabel: string; // over the terminal on the learner's turn, followed by the command
+	tryTip: string; // title of the command chip, which types it if tapped
+	inputLabel: string; // aria label of the command field
+}

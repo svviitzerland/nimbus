@@ -3,47 +3,74 @@ import type { Ipv6Text } from './types';
 export const en: Ipv6Text = {
 	title: 'IPv4 and IPv6',
 	intro: [
-		'In the [[IP address lesson|network/ip-address]] you met addresses like 192.168.1.20, four numbers from 0 to 255. That format is <b>IPv4</b>, version 4 of the Internet Protocol, written down in 1981 when the whole internet was a few hundred big computers.',
-		'Each IPv4 address is 32 <b>bits</b>, 32 tiny switches that are either on or off. Count every possible pattern and you get about 4.3 billion addresses. Back then that sounded like far more than anyone would ever need.',
-		'Then came home computers, then phones, then watches, TVs, cameras, and even fridges. Today there are billions more devices online than there are IPv4 addresses.',
-		'In 2011 the central pool of IPv4 addresses officially ran dry. The fix is <b>IPv6</b>, with addresses 128 bits long. They are written in hexadecimal (the digits 0 to 9 plus the letters a to f), in eight groups.',
-		'[fyi] Why not IPv5? The number 5 was already used in the 1980s by an experimental protocol for streaming voice and video, so the next version became 6.',
-		'Moving the whole world to IPv6 takes decades, so in the meantime a trick called [[NAT|network/nat]] lets a whole house share one IPv4 address. That is why IPv4 still works today.',
-		'Hand out IPv4 addresses to the world as it grows, five years at a time, and watch what happens when the pool runs dry.'
+		'In the [[IP address lesson|network/ip-address]] you met addresses like 192.168.1.20, four numbers from 0 to 255 with dots between them. That style is <b>IPv4</b>, version 4 of the Internet Protocol, written down in 1981.',
+		'Four numbers like that can make about 4.3 billion different addresses. Back then the whole internet was a few hundred big computers, so it felt like room forever.',
+		'Then came home computers, then phones, then watches, TVs, cameras, and even fridges. Watch the pool fill up, year after year.',
+		'In 2011 the central pool ran dry. New devices kept arriving, and there were simply no fresh IPv4 addresses left to hand out.',
+		'The fix is <b>IPv6</b>. Its addresses are four times as long, written in eight groups of letters and numbers (the digits 0 to 9 plus a to f), with colons between the groups.',
+		'How much bigger is that? So big that every IPv4 address in the world fits inside one tiny dot of it. IPv6 has about 340 undecillion addresses, a number 39 digits long.',
+		'[ingat] An easy way to tell them apart. IPv4 has dots and four short numbers. IPv6 has colons, letters, and eight groups. If you see letters in an address, it is IPv6.',
+		'[fyi] Why not IPv5? The number 5 was already taken in the 1980s by an experimental protocol for streaming voice, so the next version became 6.',
+		'Moving the whole world takes decades, so today most devices carry both kinds, and a trick called [[NAT|network/nat]] stretches the old IPv4 addresses. If you like, give every grain of sand on Earth an address and see how much room is left.'
 	],
 	reactions: {
-		grow: 'Plenty of room. Each square in the pool stands for about 67 million addresses, and only a few are taken so far.',
-		tight:
-			'Look how full it is. Around this time, people running the internet started counting every leftover address. In 2011 the last big blocks were handed out.',
-		full: 'The pool is empty, and devices keep coming. They are left standing outside with no address of their own. Time to switch to IPv6.',
-		ipv6: 'Every single device from before now fits inside one tiny dot. IPv6 has about 340 undecillion addresses, a number 39 digits long. Try something silly next.',
-		sand: 'Even after giving every grain of sand on Earth its own address, the pool barely notices. You could hand each grain billions of addresses and still have plenty left.'
+		sand: 'Every grain of sand on Earth now has its own IPv6 address, and the space barely noticed. You could give each grain billions of addresses and still have plenty left.'
 	},
-	growBtn: 'Hand out addresses for {year}',
-	switchBtn: 'Switch the world to IPv6',
-	sandBtn: 'Give every grain of sand an address',
+	steps: [
+		{
+			title: 'An IPv4 address',
+			body: 'Four numbers, each from <b>0 to 255</b>, with dots between. Every device online needs one to be reached.'
+		},
+		{
+			title: 'The IPv4 pool',
+			body: 'All possible IPv4 addresses together make about <b>4.3 billion</b>. That sounds like a lot, until everyone wants one.'
+		},
+		{
+			title: 'Filling up',
+			body: 'Each new phone, laptop, or camera takes an address from the same pool.'
+		},
+		{
+			title: 'Empty',
+			body: 'In 2011 the last big blocks were handed out. Devices still arrive, with nothing left to give them.'
+		},
+		{
+			title: 'An IPv6 address',
+			body: 'Eight groups of letters and numbers, with colons between. Long, but you rarely type it yourself.'
+		},
+		{
+			title: 'Room for everything',
+			body: 'The whole IPv4 pool is a speck inside IPv6. There is no realistic way to run out.'
+		},
+		{
+			title: 'Dots or colons',
+			tag: 'remember',
+			body: 'Dots and 4 numbers means <b>IPv4</b>. Colons, letters, and 8 groups means <b>IPv6</b>.'
+		},
+		{
+			title: 'Where did 5 go',
+			tag: 'by the way',
+			body: 'Version 5 was an experiment that never became the internet, so the count jumped from 4 to 6.'
+		},
+		{
+			title: 'Both at once',
+			tag: 'your turn',
+			body: 'Most phones today hold an IPv4 and an IPv6 address side by side. Optional, try the sand button.'
+		}
+	],
+	v4Label: 'IPv4',
+	v6Label: 'IPv6',
+	partHint: '0 to 255',
+	poolLabel: 'Every IPv4 address',
+	poolCount: 'about 4.3 billion',
 	yearLabel: 'Year {year}',
-	devicesLabel: '{n} devices want an address',
-	billion: '{n} billion',
-	poolV4: 'The IPv4 pool',
-	poolV6: 'The IPv6 pool',
-	seatHint: 'one square is about 67 million addresses',
-	outside: '{n} devices with no address',
-	dotLabel: 'every device fits in here',
-	sandLabel: 'plus every grain of sand',
-	sampleLabel: 'An address looks like',
-	totalLabel: 'Addresses in total',
-	bits: '{n} bits',
-	scale:
-		'If all of IPv6 were spread over the surface of the Earth, the whole of IPv4 would be a dot smaller than a single bacterium.',
-	decimal: '.',
-	thousands: ',',
-	notes: {
-		idle: 'The internet is young, and the pool is wide open',
-		growing: 'More devices, more squares taken',
-		tight: 'Almost every square is taken',
-		full: 'The pool is empty, the rest wait outside',
-		v6: 'Same devices, an unimaginably bigger pool',
-		sand: 'Sand included, still basically empty'
-	}
+	outsideLabel: 'no address left',
+	fieldLabel: 'Every IPv6 address',
+	fieldCount: 'about 340 undecillion',
+	dotLabel: 'all of IPv4',
+	ruleV4: 'dots, 4 numbers',
+	ruleV6: 'colons, letters, 8 groups',
+	skipped: 'never shipped',
+	bothLabel: 'Your phone today',
+	sandBtn: 'Give every grain of sand an address',
+	sandLabel: 'every grain of sand on Earth'
 };

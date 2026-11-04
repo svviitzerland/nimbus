@@ -1,29 +1,45 @@
 import type { LessonText } from '../../types';
 
-/** The three calls the learner can make about a message. */
-export type AiEthicsChoice = 'send' | 'clean' | 'keep';
+export interface AiEthicsPanel {
+	tag?: string;
+	title: string;
+	/** May hold simple HTML like <b>. */
+	body: string;
+}
 
-/** The six messages. Which call is right for each lives in the stage. */
-export type AiEthicsCase = 'news' | 'cv' | 'key' | 'friend' | 'art' | 'bank';
+/** The three messages the billboard test runs on. */
+export type AiEthicsMsgId = 'news' | 'cv' | 'friend';
+
+/** A piece of a message line. `secret` pieces are private and get flagged. */
+export interface AiEthicsSeg {
+	t: string;
+	secret?: boolean;
+}
+
+export interface AiEthicsMsg {
+	id: AiEthicsMsgId;
+	/** Short button label for the optional replay. */
+	label: string;
+	/** The message as it would be typed, one array of pieces per line. */
+	lines: AiEthicsSeg[][];
+}
 
 export interface AiEthicsText extends LessonText {
-	choices: Record<AiEthicsChoice, string>;
-	/** The messages, in the order they come up. */
-	cases: {
-		id: AiEthicsCase;
-		context: string; // a short label of who is sending what
-		draft: string; // the message as written
-		secrets: string[]; // parts of the draft that are risky, highlighted after answering
-		cleaned: string; // the safer version, used when cleaning is the right call
-	}[];
-	composerLabel: string; // caption over the message box
-	progress: string; // template with {n} and {total}
-	nextBtn: string;
-	finishBtn: string; // on the last message, wraps up the lesson
-	sentTag: string;
-	cleanedTag: string;
-	keptTag: string;
-	doneNote: string;
-	/** Where a sent message goes, as a short row of steps. */
-	journey: string[];
+	/** One panel per scene of the guided picture (eight scenes). */
+	panels: AiEthicsPanel[];
+	/** Spoken description of the whole picture. */
+	picture: string;
+	youLabel: string;
+	providerLabel: string;
+	/** What may happen to a message at the provider, kept, read, used for training. */
+	fates: [string, string, string];
+	/** The question written on the billboard. */
+	billboardAsk: string;
+	messages: AiEthicsMsg[];
+	/** Shown in place of a private piece once the message is cleaned. */
+	removed: string;
+	/** The three stamps. */
+	verdicts: { send: string; clean: string; keep: string };
+	/** The rule of thumb line under the picture. */
+	rule: string;
 }

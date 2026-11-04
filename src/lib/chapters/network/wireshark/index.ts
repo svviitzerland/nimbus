@@ -6,9 +6,8 @@ import { en } from './en';
 export const wireshark: Lesson = {
 	id: 'wireshark',
 	mood: 'thinking',
-	moods: ['calm', 'idea', 'thinking', 'wink', 'happy'],
+	moods: ['calm', 'surprised', 'idea', 'happy', 'wink', 'thinking', 'happy'],
 	reactionMood: {
-		capture: 'surprised',
 		dns: 'thinking',
 		tcp: 'idea',
 		hello: 'thinking',

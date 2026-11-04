@@ -1,22 +1,63 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import type { LessonText } from '$lib/chapters/types';
+	// A guided "watch" stage. An image generator app, a prompt bar on top and a 16 by 16 canvas
+	// of coloured dots underneath. The beats play the story by themselves, a prompt is typed and a
+	// picture appears, the canvas turns to static, a training photo gets noise sprinkled on, then
+	// the noise cleans itself step by step (rough shapes first, details last) while the prompt
+	// steers. The only optional play is picking another prompt on the last beat.
+	import Guide from '$lib/components/Guide.svelte';
+	import type { StageProps } from '$lib/chapters/types';
 	import type { ImageGenText } from '$lib/chapters/ai/image-gen/types';
-	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
+	import { sceneClock } from './webship/clock.svelte';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: {
-		text: LessonText;
-		oncomplete?: () => void;
-		onstate?: (s: string) => void;
-	} = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as ImageGenText);
 
-	const N = 16; // the canvas is N by N pixels
+	type Scene =
+		| 'magic'
+		| 'noise'
+		| 'train'
+		| 'shapes'
+		| 'details'
+		| 'prompt'
+		| 'remember'
+		| 'seed'
+		| 'try';
+	const SCENES: Scene[] = [
+		'magic',
+		'noise',
+		'train',
+		'shapes',
+		'details',
+		'prompt',
+		'remember',
+		'seed',
+		'try'
+	];
+
+	let peek = $state<number | null>(null);
+	let tryPrompt = $state(0);
+
+	const fromBeat = $derived(Math.min(beat, SCENES.length - 1));
+	const active = $derived(peek ?? fromBeat);
+	const scene = $derived(SCENES[active]);
+	const clock = sceneClock(() => [scene, tryPrompt]);
+	const t = $derived(clock.t);
+	const live = $derived(t < 1e8);
+
+	$effect(() => {
+		onshow?.(true);
+		oncomplete?.();
+	});
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
+
+	const N = 16; // the canvas is N by N dots
 	const TOTAL = 10; // cleaning steps
+	const CELL = 15;
+	const X0 = 60;
+	const Y0 = 66;
 
 	// ---- the finished pictures, one per prompt, drawn as pixel maps ----
 	// Each letter is a colour role; the palette below turns roles into theme tokens.
@@ -110,52 +151,31 @@
 		let a = seed >>> 0;
 		return () => {
 			a = (a + 0x6d2b79f5) >>> 0;
-			let t = a;
-			t = Math.imul(t ^ (t >>> 15), t | 1);
-			t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-			return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+			let r = a;
+			r = Math.imul(r ^ (r >>> 15), r | 1);
+			r ^= r + Math.imul(r ^ (r >>> 7), r | 61);
+			return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
 		};
 	}
-
-	let prompt = $state<number | null>(null);
-	let seed = $state(7);
-	let step = $state(0);
-	let auto = $state(false);
-
-	const look = $derived(LOOKS[seed % LOOKS.length]);
-	const noise = $derived.by(() => {
+	function noiseOf(seed: number): string[] {
 		const r = rng(seed * 9973 + 11);
 		return Array.from({ length: N * N }, () => {
 			const tok = NOISE_TOKENS[Math.floor(r() * NOISE_TOKENS.length)];
 			const p = 25 + Math.floor(r() * 70);
 			return `color-mix(in srgb, var(--color-${tok}) ${p}%, var(--color-paper))`;
 		});
-	});
-
-	// the role of every pixel in the finished picture
-	const roles = $derived.by(() => {
-		if (prompt === null) return null;
+	}
+	// Early steps only know the rough layout, so each dot takes the most common role of its block.
+	function targetOf(prompt: number, step: number): string[] {
 		const rows = PICTURES[prompt];
-		return Array.from({ length: N * N }, (_, i) => {
-			const row = rows[Math.floor(i / N)] ?? '';
-			return row[i % N] ?? '.';
-		});
-	});
-	const tokenOf = (role: string) => look[role] ?? BASE[role] ?? 'paper';
-
-	// Early steps only know the rough layout, so each pixel takes the most common role of its block.
-	const block = $derived(step <= 2 ? 8 : step <= 4 ? 4 : step <= 6 ? 2 : 1);
-	const target = $derived.by(() => {
-		const r = roles;
-		if (!r) return null;
-		const b = block;
+		const b = step <= 2 ? 8 : step <= 4 ? 4 : step <= 6 ? 2 : 1;
 		const out: string[] = new Array(N * N);
 		for (let by = 0; by < N; by += b) {
 			for (let bx = 0; bx < N; bx += b) {
 				const tally = new Map<string, number>();
 				for (let y = by; y < by + b; y++)
 					for (let x = bx; x < bx + b; x++) {
-						const k = r[y * N + x];
+						const k = rows[y][x];
 						tally.set(k, (tally.get(k) ?? 0) + 1);
 					}
 				let best = '.';
@@ -169,195 +189,248 @@
 			}
 		}
 		return out;
-	});
-
-	// how much of the picture shows through the noise, it rises quickly and then settles
-	const clarity = $derived(
-		prompt === null ? 0 : Math.round(100 * (1 - Math.pow(1 - step / TOTAL, 1.5)))
-	);
-	const cells = $derived(
-		noise.map((n, i) =>
-			target && clarity > 0
-				? `color-mix(in srgb, var(--color-${tokenOf(target[i])}) ${clarity}%, ${n})`
-				: n
-		)
-	);
-	const phase = $derived(
-		step >= TOTAL
-			? tx.phase.done
-			: step >= 7
-				? tx.phase.details
-				: step >= 3
-					? tx.phase.shapes
-					: tx.phase.noise
-	);
-
-	// ---- what the learner does ----
-	let said = new Set<string>();
-	let completed = false;
-	function sayOnce(token: string) {
-		if (said.has(token)) return;
-		said.add(token);
-		onstate?.(token);
+	}
+	function pixels(prompt: number, seed: number, step: number): string[] {
+		const noise = noiseOf(seed);
+		if (step <= 0) return noise;
+		const look = LOOKS[seed % LOOKS.length];
+		const target = targetOf(prompt, step);
+		const clarity = Math.round(100 * (1 - Math.pow(1 - step / TOTAL, 1.5)));
+		return noise.map(
+			(n, i) =>
+				`color-mix(in srgb, var(--color-${look[target[i]] ?? BASE[target[i]] ?? 'paper'}) ${clarity}%, ${n})`
+		);
 	}
 
-	function pickPrompt(i: number) {
-		if (prompt === i) return;
-		const had = prompt !== null && step > 0;
-		prompt = i;
-		if (had) onstate?.('reprompt');
-		else sayOnce('prompt');
+	/** Counts steps from `a` to `b`, one every `ms`, then holds for `hold`, looping unless reduced. */
+	function ramp(time: number, a: number, b: number, ms: number, hold: number, loop = true): number {
+		const n = Math.abs(b - a);
+		const x = loop && time < 1e8 ? time % (n * ms + hold) : time;
+		const k = Math.max(0, Math.min(n, Math.floor(x / ms)));
+		return a < b ? a + k : a - k;
 	}
 
-	function reached() {
-		if (step >= TOTAL) {
-			sayOnce('clean');
-			if (!completed) {
-				completed = true;
-				oncomplete?.();
+	const SEED = 9;
+	const promptIdx = $derived(scene === 'train' ? 2 : scene === 'try' ? tryPrompt : 0);
+	const seedCycle = $derived(live ? Math.floor(t / 4200) % 3 : 0);
+	const seed = $derived(
+		scene === 'noise' && live
+			? SEED + Math.floor(t / 260)
+			: scene === 'seed'
+				? SEED + seedCycle
+				: SEED
+	);
+
+	// how far the prompt is typed in the first scene, and when the picture starts
+	const typed = $derived(scene === 'magic' ? Math.max(0, Math.floor((t - 200) / 45)) : 1e9);
+	const pressed = $derived(scene === 'magic' && live && t > 1700 && t < 2000);
+	const blank = $derived(scene === 'magic' && t < 2000);
+
+	const step = $derived.by(() => {
+		switch (scene) {
+			case 'magic':
+				return ramp(t - 2000, 0, TOTAL, 160, 0, false);
+			case 'noise':
+				return 0;
+			case 'train': {
+				if (!live) return 3;
+				const x = t % 6200;
+				return x < 1200 ? TOTAL : ramp(x - 1200, TOTAL, 0, 350, 1500, false);
 			}
-		} else if (step >= 7) sayOnce('details');
-		else if (step >= 4) sayOnce('shapes');
-		else if (step >= 1) sayOnce('step');
-	}
+			case 'shapes':
+				return ramp(t, 0, 6, 700, 2600);
+			case 'details':
+				return ramp(t, 6, TOTAL, 900, 2600);
+			case 'prompt':
+				return ramp(t, 0, TOTAL, 450, 2200);
+			case 'seed':
+				return live ? ramp(t % 4200, 0, TOTAL, 250, 0, false) : TOTAL;
+			case 'try':
+				return ramp(t, 0, TOTAL, 380, 0, false);
+			default:
+				return TOTAL;
+		}
+	});
+	const cells = $derived(blank ? null : pixels(promptIdx, seed, step));
 
-	function cleanStep() {
-		if (prompt === null || step >= TOTAL) return;
-		step++;
-		reached();
-	}
-	function scrub(v: number) {
-		if (prompt === null) return;
-		stopAuto();
-		step = v;
-		reached();
-	}
+	const caption = $derived(
+		scene === 'remember'
+			? tx.memo
+			: scene === 'train'
+				? tx.trainCaption
+				: scene === 'seed'
+					? tx.seedLabel.replace('{n}', String(seed))
+					: blank
+						? ''
+						: step === 0
+							? tx.noiseCaption
+							: step <= 6
+								? tx.shapesCaption
+								: tx.detailsCaption
+	);
+	const stepText = $derived(
+		tx.stepLabel.replace('{n}', String(step)).replace('{total}', String(TOTAL))
+	);
+	const promptText = $derived(scene === 'train' ? '' : tx.prompts[promptIdx].slice(0, typed));
+	const caret = $derived(scene === 'magic' && live && typed < tx.prompts[0].length);
+	const steering = $derived(scene === 'prompt' && live && step < TOTAL);
 
-	let timer: ReturnType<typeof setInterval> | undefined;
-	function runAll() {
-		if (prompt === null || auto) return;
-		if (step >= TOTAL) step = 0;
-		auto = true;
-		timer = setInterval(() => {
-			cleanStep();
-			if (step >= TOTAL) stopAuto();
-		}, 380);
-	}
-	function stopAuto() {
-		clearInterval(timer);
-		timer = undefined;
-		auto = false;
-	}
+	const LIT: Record<Scene, string[]> = {
+		magic: ['prompt', 'canvas'],
+		noise: ['canvas'],
+		train: ['canvas'],
+		shapes: ['canvas'],
+		details: ['canvas'],
+		prompt: ['prompt', 'canvas'],
+		remember: ['canvas'],
+		seed: ['canvas'],
+		try: ['prompt', 'canvas']
+	};
+	const lit = (k: string) => LIT[scene].includes(k);
 
-	function freshNoise() {
-		seed = seed + 1 + Math.floor(Math.random() * 5);
-		if (prompt !== null && step > 0) onstate?.('seed');
+	function pick(i: number) {
+		if (i === tryPrompt) return;
+		tryPrompt = i;
+		onstate?.('reprompt');
 	}
-
-	onDestroy(() => clearInterval(timer));
 </script>
 
+{#snippet picture(_i: number)}
+	<div class="visual">
+		{#if scene === 'try'}
+			<div class="chips" role="group" aria-label={tx.tryLabel}>
+				{#each tx.prompts as p, k (k)}
+					<button type="button" class="chip" class:on={k === tryPrompt} onclick={() => pick(k)}
+						>{p}</button
+					>
+				{/each}
+			</div>
+		{/if}
+		<svg viewBox="0 0 360 362" class="pic" role="img" aria-label={tx.picture}>
+			<rect x="16" y="4" width="328" height="354" rx="16" class="app" />
+
+			<!-- the prompt bar -->
+			<g class="part" class:dim={!lit('prompt')}>
+				<rect x="30" y="18" width="300" height="34" rx="17" class="bar" class:glow={steering} />
+				<text x="46" y="39" class="ptext">{promptText}</text>
+				{#if caret}
+					<rect x={47 + promptText.length * 5.3} y="29" width="1.6" height="13" class="caret" />
+				{/if}
+				<rect x="250" y="23" width="74" height="24" rx="12" class="go" class:pressed />
+				<text x="287" y="39" text-anchor="middle" class="gotext">{tx.generate}</text>
+			</g>
+
+			<!-- words steering into the canvas -->
+			{#if steering}
+				{#each [0, 1, 2, 3] as k (k)}
+					<circle r="3" class="word">
+						<animateMotion
+							dur="1.2s"
+							begin="{k * 0.3}s"
+							repeatCount="indefinite"
+							path="M{120 + k * 40} 52 V{140 + (k % 2) * 60}"
+						/>
+					</circle>
+				{/each}
+			{/if}
+
+			<!-- the canvas -->
+			<g class="part" class:dim={!lit('canvas')}>
+				<rect
+					x={X0 - 6}
+					y={Y0 - 6}
+					width={N * CELL + 12}
+					height={N * CELL + 12}
+					rx="8"
+					class="frame"
+				/>
+				{#if cells}
+					{#each cells as fill, i (i)}
+						<rect
+							x={X0 + (i % N) * CELL}
+							y={Y0 + Math.floor(i / N) * CELL}
+							width={CELL}
+							height={CELL}
+							style="fill:{fill}"
+							class="px"
+						/>
+					{/each}
+				{:else}
+					<rect x={X0} y={Y0} width={N * CELL} height={N * CELL} class="empty" />
+				{/if}
+
+				{#if scene === 'remember'}
+					<!-- the sculptor's chisel tapping at the corner -->
+					<g transform="translate(300 70)">
+						<g class="chisel" class:tap={!clock.reduced}>
+							<rect x="-3" y="-40" width="7" height="26" rx="2.5" class="handle" />
+							<path d="M-2.5 -14 H3.5 V-4 L0.5 2 L-2.5 -4 Z" class="blade" />
+						</g>
+						{#if !clock.reduced}
+							{#each [0, 1, 2] as k (k)}
+								<rect
+									x="-3"
+									y="0"
+									width="5"
+									height="5"
+									class="bit"
+									style="--dx:{14 + k * 8}px; --dy:{-10 + k * 12}px; animation-delay:{k * 0.25}s"
+								/>
+							{/each}
+						{/if}
+					</g>
+				{/if}
+
+				<text x={X0} y="332" class="caption" class:memo={scene === 'remember'}>{caption}</text>
+				{#if !blank && scene !== 'train'}
+					<text x={X0 + N * CELL} y="332" text-anchor="end" class="steps">{stepText}</text>
+				{/if}
+				<rect x={X0} y="340" width={N * CELL} height="5" rx="2.5" class="track" />
+				<rect
+					x={X0}
+					y="340"
+					width={(N * CELL * (blank ? 0 : step)) / TOTAL}
+					height="5"
+					rx="2.5"
+					class="progress"
+					class:noisy={scene === 'train'}
+				/>
+			</g>
+		</svg>
+		{#if scene === 'remember'}
+			<p class="rule">{tx.rule}</p>
+		{/if}
+	</div>
+{/snippet}
+
 <div class="stage">
-	<!-- the prompt box and the actions, up top -->
-	<div class="promptbox" class:empty={prompt === null}>
-		<span class="plabel">{tx.promptLabel}</span>
-		<span class="ptext">{prompt === null ? tx.pickPrompt : tx.prompts[prompt]}</span>
-	</div>
-	<div class="chips">
-		{#each tx.prompts as p, i (i)}
-			<button
-				type="button"
-				class="chip"
-				class:on={prompt === i}
-				aria-pressed={prompt === i}
-				onclick={() => pickPrompt(i)}>{p}</button
-			>
-		{/each}
-	</div>
-
-	<div class="acts">
-		<CallToActionButton onclick={cleanStep} disabled={prompt === null || step >= TOTAL || auto}>
-			{tx.stepBtn}
-		</CallToActionButton>
-		<button type="button" class="ghost" onclick={runAll} disabled={prompt === null || auto}>
-			{tx.autoBtn}
-		</button>
-		<button type="button" class="ghost" onclick={freshNoise} disabled={auto}>{tx.seedBtn}</button>
-	</div>
-
-	<!-- the canvas -->
-	<div class="frame">
-		<div class="canvas" role="img" aria-label={`${tx.canvasLabel}, ${phase}`} style="--n:{N}">
-			{#each cells as c, i (i)}
-				<span style="background:{c}"></span>
-			{/each}
-		</div>
-	</div>
-
-	<p class="phase" class:done={step >= TOTAL}>{phase}</p>
-
-	<!-- the step slider and the noise meter -->
-	<div class="meter">
-		<div class="mrow">
-			<span>{tx.stepLabel.replace('{n}', String(step)).replace('{total}', String(TOTAL))}</span>
-			<span class="nleft">{tx.noiseLabel.replace('{n}', String(100 - clarity))}</span>
-		</div>
-		<input
-			type="range"
-			min="0"
-			max={TOTAL}
-			step="1"
-			value={step}
-			disabled={prompt === null || auto}
-			aria-label={tx.sliderLabel}
-			oninput={(e) => scrub(Number((e.currentTarget as HTMLInputElement).value))}
-		/>
-		<div class="bar" aria-hidden="true">
-			<span style="width:{100 - clarity}%"></span>
-		</div>
-	</div>
+	<Guide steps={tx.panels} {active} onselect={(i) => (peek = i)} visual={picture} />
 </div>
 
 <style>
 	.stage {
+		display: flex;
+		height: 100%;
+		width: 100%;
+		justify-content: center;
+		align-items: flex-start;
+		overflow-y: auto;
+		overflow-x: hidden;
+		padding-bottom: 16px;
+	}
+	.visual {
 		display: flex;
 		width: 100%;
 		max-width: 420px;
 		flex-direction: column;
 		align-items: center;
 		gap: 10px;
-		margin: 0 auto;
 	}
-	.promptbox {
-		display: flex;
+	.pic {
+		display: block;
 		width: 100%;
-		align-items: center;
-		gap: 8px;
-		border-radius: 14px;
-		border: 1.5px solid var(--color-brand);
-		background: var(--color-card);
-		padding: 8px 12px;
-	}
-	.promptbox.empty {
-		border-color: var(--color-line);
-	}
-	.plabel {
-		flex: none;
-		border-radius: 7px;
-		background: var(--color-brand-soft);
-		padding: 2px 7px;
-		font-size: 10.5px;
-		font-weight: 700;
-		color: var(--color-brand);
-	}
-	.ptext {
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--color-ink);
-	}
-	.promptbox.empty .ptext {
-		color: var(--color-faint);
-		font-weight: 500;
+		height: auto;
+		max-height: 60vh;
 	}
 	.chips {
 		display: flex;
@@ -366,123 +439,149 @@
 		gap: 6px;
 	}
 	.chip {
+		border: 1.5px solid var(--color-line);
 		border-radius: 999px;
-		border: 1.5px solid var(--color-line);
 		background: var(--color-card);
-		padding: 6px 12px;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-ink);
-		transition:
-			border-color 0.2s ease,
-			background 0.2s ease;
-	}
-	.chip:hover {
-		border-color: color-mix(in srgb, var(--color-brand) 40%, var(--color-line));
-	}
-	.chip.on {
-		border-color: var(--color-brand);
-		background: var(--color-brand-soft);
-	}
-	.acts {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
-		gap: 8px;
-	}
-	.acts :global(.cta) {
-		padding: 10px 16px;
-		font-size: 13px;
-	}
-	.ghost {
-		border-radius: 12px;
-		border: 1.5px solid var(--color-line);
-		background: var(--color-card);
-		padding: 9px 12px;
-		font-size: 12.5px;
-		font-weight: 600;
-		color: var(--color-ink);
-	}
-	.ghost:disabled {
-		opacity: 0.5;
-	}
-
-	/* the pixel canvas */
-	.frame {
-		border-radius: 16px;
-		border: 1.5px solid var(--color-line);
-		background: var(--color-card);
-		padding: 8px;
-		box-shadow: 0 8px 22px rgba(22, 40, 60, 0.08);
-	}
-	.canvas {
-		display: grid;
-		width: min(68vw, 240px);
-		aspect-ratio: 1;
-		grid-template-columns: repeat(var(--n), 1fr);
-		overflow: hidden;
-		border-radius: 9px;
-	}
-	.canvas span {
-		display: block;
-		transition: background 0.35s ease;
-	}
-	.phase {
+		padding: 6px 13px;
 		font-size: 12.5px;
 		font-weight: 700;
 		color: var(--color-muted);
 	}
-	.phase.done {
+	.chip.on {
+		border-color: var(--color-brand);
+		background: var(--color-brand-soft);
+		color: var(--color-brand);
+	}
+	.rule {
+		margin: 0;
+		text-align: center;
+		font-size: 14px;
+		font-weight: 700;
 		color: var(--color-grass);
 	}
-
-	/* meter */
-	.meter {
-		display: flex;
-		width: min(80vw, 280px);
-		flex-direction: column;
-		gap: 4px;
+	.part {
+		transition: opacity 0.4s;
 	}
-	.mrow {
-		display: flex;
-		justify-content: space-between;
-		font-size: 11px;
-		font-weight: 600;
-		color: var(--color-muted);
-		font-variant-numeric: tabular-nums;
+	.part.dim {
+		opacity: 0.4;
 	}
-	.nleft {
-		color: var(--color-faint);
-	}
-	.meter input {
-		width: 100%;
-		accent-color: var(--color-brand);
+	.app {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
 	}
 	.bar {
-		height: 5px;
-		border-radius: 99px;
-		background: var(--color-line);
-		overflow: hidden;
+		fill: var(--color-paper);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+		transition: stroke 0.3s;
 	}
-	.bar span {
-		display: block;
-		height: 100%;
-		border-radius: 99px;
-		background: var(--color-amber);
-		transition: width 0.35s ease;
+	.bar.glow {
+		stroke: var(--color-brand);
 	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.canvas span,
-		.bar span,
-		.chip {
-			transition: none;
+	.ptext {
+		fill: var(--color-ink);
+		font-size: 10.5px;
+		font-weight: 700;
+	}
+	.caret {
+		fill: var(--color-brand);
+	}
+	.go {
+		fill: var(--color-brand);
+		transition: fill 0.2s;
+	}
+	.go.pressed {
+		fill: var(--color-grass);
+	}
+	.gotext {
+		fill: var(--color-card);
+		font-size: 10px;
+		font-weight: 800;
+	}
+	.word {
+		fill: var(--color-brand);
+		opacity: 0.8;
+	}
+	.frame {
+		fill: var(--color-paper);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+	}
+	.px {
+		transition: fill 0.35s;
+	}
+	.empty {
+		fill: var(--color-paper);
+	}
+	.chisel.tap {
+		animation: tap 0.75s ease-in-out infinite;
+	}
+	@keyframes tap {
+		50% {
+			transform: translate(-3px, 4px);
 		}
 	}
-	@media (min-width: 768px) {
-		.canvas {
-			width: 280px;
+	.handle {
+		fill: var(--color-amber);
+	}
+	.blade {
+		fill: var(--color-muted);
+	}
+	.bit {
+		fill: var(--color-faint);
+		animation: chip 0.75s ease-out infinite;
+	}
+	@keyframes chip {
+		from {
+			transform: none;
+			opacity: 1;
+		}
+		to {
+			transform: translate(var(--dx), var(--dy));
+			opacity: 0;
+		}
+	}
+	.caption {
+		fill: var(--color-ink);
+		font-size: 10.5px;
+		font-weight: 700;
+	}
+	.caption.memo {
+		fill: var(--color-grass);
+		font-weight: 800;
+	}
+	.steps {
+		fill: var(--color-muted);
+		font-size: 9.5px;
+		font-weight: 700;
+	}
+	.track {
+		fill: var(--color-line);
+	}
+	.progress {
+		fill: var(--color-grass);
+		transition: width 0.3s;
+	}
+	.progress.noisy {
+		fill: var(--color-amber);
+	}
+	@media (max-width: 767px) {
+		.stage {
+			padding-bottom: 7rem;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.part,
+		.bar,
+		.go,
+		.px,
+		.progress {
+			transition: none;
+		}
+		.chisel.tap,
+		.bit {
+			animation: none;
 		}
 	}
 </style>

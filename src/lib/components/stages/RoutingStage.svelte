@@ -1,478 +1,319 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import type { LessonText } from '$lib/chapters/types';
+	// Guided routing lesson. A packet travels by itself from your laptop, through a chain of
+	// routers, to the nimbus.com server, while Nim tells the story beat by beat. Signposts stand
+	// in for routing tables. The only (optional) play is knocking one signpost over on the last
+	// beat to watch a packet get dropped.
+	import { onMount } from 'svelte';
+	import Guide from '$lib/components/Guide.svelte';
+	import NgRouter from './netguide/NgRouter.svelte';
+	import NgLaptop from './netguide/NgLaptop.svelte';
+	import NgServer from './netguide/NgServer.svelte';
+	import { Traveller } from './netguide/traveller.svelte';
+	import type { StageProps } from '$lib/chapters/types';
 	import type { RoutingText } from '$lib/chapters/network/routing/types';
-	import RouterBox from './delivery/RouterBox.svelte';
-	import MiniLaptop from './delivery/MiniLaptop.svelte';
-	import MiniServer from './delivery/MiniServer.svelte';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as RoutingText);
 
-	type NodeId = 'lap' | 'A' | 'B' | 'C' | 'srv' | 'files';
-	// Node centres in percent of the scene, laid out top to bottom so it fits a phone.
+	onMount(() => {
+		// Watch first, play optional, so the stage is visible from the start and Next never locks.
+		onshow?.(true);
+		oncomplete?.();
+	});
+
+	type NodeId = 'lap' | 'R1' | 'R2' | 'R3' | 'srv';
 	const POS: Record<NodeId, { x: number; y: number }> = {
-		lap: { x: 50, y: 11 },
-		A: { x: 50, y: 39 },
-		B: { x: 22, y: 64 },
-		C: { x: 78, y: 64 },
-		srv: { x: 22, y: 89 },
-		files: { x: 78, y: 89 }
+		lap: { x: 50, y: 50 },
+		R1: { x: 50, y: 152 },
+		R2: { x: 172, y: 152 },
+		R3: { x: 292, y: 152 },
+		srv: { x: 292, y: 258 }
 	};
-	const LINKS: [NodeId, NodeId][] = [
-		['lap', 'A'],
-		['A', 'B'],
-		['A', 'C'],
-		['B', 'srv'],
-		['C', 'files']
+	const OTHER = { x: 292, y: 56 };
+	const FULL: NodeId[] = ['lap', 'R1', 'R2', 'R3', 'srv'];
+	const TO_ISP: NodeId[] = ['lap', 'R1', 'R2'];
+
+	let peek = $state<number | null>(null);
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
+	const last = $derived(tx.steps.length - 1);
+	const shown = $derived(Math.max(0, Math.min(peek ?? beat, last)));
+
+	let knocked = $state(false);
+	function toggleSign() {
+		knocked = !knocked;
+		onstate?.(knocked ? 'knocked' : 'fixed');
+	}
+
+	// What the packet does on each step, a path to follow, whether it loops, and whether it is
+	// dropped at the end of the path.
+	const plan = $derived.by(() => {
+		const s = shown;
+		if (s === 0) return { seq: ['lap'] as NodeId[], loop: false, drop: false };
+		if (s === 1) return { seq: ['lap', 'R1'] as NodeId[], loop: true, drop: false };
+		if (s === 2 || s === 3) return { seq: TO_ISP, loop: false, drop: false };
+		if (s === 6) return { seq: TO_ISP, loop: true, drop: false };
+		if (s === last && knocked) return { seq: TO_ISP, loop: true, drop: true };
+		return { seq: FULL, loop: true, drop: false };
+	});
+
+	const tr = new Traveller();
+	$effect(() => {
+		const { seq, loop } = plan;
+		tr.play(seq.length, { loop });
+		return () => tr.stop();
+	});
+	const at = $derived(tr.at);
+	const dropped = $derived(plan.drop && tr.ended);
+
+	const here = $derived(plan.seq[Math.min(at, plan.seq.length - 1)]);
+	const pkt = $derived(POS[here]);
+	const travelled = (a: NodeId, b: NodeId) => {
+		const i = plan.seq.indexOf(a);
+		return i >= 0 && plan.seq[i + 1] === b && i < at;
+	};
+	const ROADS: [NodeId, NodeId][] = [
+		['lap', 'R1'],
+		['R1', 'R2'],
+		['R2', 'R3'],
+		['R3', 'srv']
 	];
 
-	let route = $state<'' | 'B' | 'C'>('');
-	let sending = $state(false);
-	let at = $state<NodeId | ''>('');
-	let trail = $state<NodeId[]>([]);
-	let outcome = $state<'' | 'ok' | 'drop'>('');
-	let dropAt = $state<NodeId | ''>('');
-	let delivered = false;
-	let done = false;
-	let timers: ReturnType<typeof setTimeout>[] = [];
-
-	const reduce = () =>
-		typeof window !== 'undefined' &&
-		window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-	function clear() {
-		timers.forEach(clearTimeout);
-		timers = [];
-	}
-
-	function send() {
-		if (sending) return;
-		clear();
-		sending = true;
-		outcome = '';
-		dropAt = '';
-		// Work out the whole hop by hop path first, the routers consult their tables in turn.
-		const path: NodeId[] = ['lap', 'A'];
-		let stop: NodeId = 'A';
-		let ok = false;
-		if (route === 'B') {
-			path.push('B', 'srv');
-			ok = true;
-		} else if (route === 'C') {
-			path.push('C');
-			stop = 'C';
-		}
-		const step = reduce() ? 60 : 650;
-		trail = [];
-		at = 'lap';
-		path.forEach((n, i) => {
-			timers.push(
-				setTimeout(() => {
-					at = n;
-					trail = path.slice(0, i + 1);
-				}, i * step)
-			);
-		});
-		timers.push(
-			setTimeout(
-				() => {
-					sending = false;
-					if (ok) {
-						outcome = 'ok';
-						delivered = true;
-						onstate?.('delivered');
-					} else {
-						outcome = 'drop';
-						dropAt = stop;
-						if (route === 'C') onstate?.('wrongWay');
-						else if (delivered) {
-							onstate?.('lost');
-							if (!done) {
-								done = true;
-								oncomplete?.();
-							}
-						} else onstate?.('noRoute');
-					}
-				},
-				path.length * step + 120
-			)
-		);
-	}
-
-	function setRoute(r: 'B' | 'C') {
-		if (sending) return;
-		route = r;
-		reset();
-		onstate?.('added');
-	}
-	function del() {
-		if (sending) return;
-		route = '';
-		reset();
-		if (delivered) onstate?.('deleted');
-	}
-	function reset() {
-		at = '';
-		trail = [];
-		outcome = '';
-		dropAt = '';
-	}
-
-	const nameOf = (n: NodeId | '') =>
-		n === 'A' ? tx.routerA : n === 'B' ? tx.routerB : n === 'C' ? tx.routerC : '';
-	const note = $derived(
-		sending
-			? ' '
-			: outcome === 'ok'
-				? tx.noteDelivered
-				: outcome === 'drop'
-					? (dropAt === 'C' ? tx.noteWrong : tx.noteNoRoute).replace('{name}', nameOf(dropAt))
-					: tx.noteIdle
-	);
-	const lit = (a: NodeId, b: NodeId) => {
-		const i = trail.indexOf(a);
-		return i >= 0 && trail[i + 1] === b;
-	};
-	const tone = (n: NodeId) =>
-		dropAt === n ? 'down' : at === n || trail.includes(n) ? 'active' : 'idle';
-
-	onDestroy(clear);
+	const signR2Lit = $derived(shown === 3 || shown === 4 || shown === 5);
+	const signR1Lit = $derived(shown === 6);
 </script>
 
-<div class="flex h-full w-full flex-col items-center justify-center gap-3">
-	<div class="acts">
-		<button type="button" class="cta" onclick={send} disabled={sending}>{tx.sendBtn}</button>
-	</div>
-
-	<!-- Router A's routing table, the thing the learner edits -->
-	<div class="table">
-		<b class="ttl">{tx.tableTitle.replace('{name}', tx.routerA)}</b>
-		<div class="row head">
-			<span>{tx.destCol}</span>
-			<span>{tx.hopCol}</span>
-		</div>
-		{#if route}
-			<div class="row entry">
-				<code>{tx.destValue}</code>
-				<code class="hop">{route === 'B' ? tx.viaB : tx.viaC}</code>
-				<button type="button" class="del" onclick={del} disabled={sending}>{tx.deleteBtn}</button>
-			</div>
-		{:else}
-			<div class="row empty"><span>{tx.emptyRow}</span></div>
+<div class="stage">
+	<div class="actions">
+		{#if shown === last}
+			<button type="button" class="play" class:on={knocked} onclick={toggleSign}>
+				{knocked ? tx.fixBtn : tx.knockBtn}
+			</button>
 		{/if}
-		<div class="pick">
-			<span>{tx.pickHop}</span>
-			<div class="chips">
-				<button
-					type="button"
-					class="chip"
-					class:on={route === 'B'}
-					onclick={() => setRoute('B')}
-					disabled={sending}>{tx.viaB}</button
-				>
-				<button
-					type="button"
-					class="chip"
-					class:on={route === 'C'}
-					onclick={() => setRoute('C')}
-					disabled={sending}>{tx.viaC}</button
-				>
-			</div>
-		</div>
 	</div>
 
-	<div class="scene">
-		<svg class="wires" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-			{#each LINKS as [a, b] (a + b)}
+	<Guide steps={tx.steps} active={shown} onselect={(k) => (peek = k)}>
+		{#snippet visual()}
+			<svg viewBox="0 0 340 320" class="scene" role="img" aria-label={tx.title}>
+				<!-- roads -->
 				<line
-					x1={POS[a].x}
-					y1={POS[a].y}
-					x2={POS[b].x}
-					y2={POS[b].y}
-					class:lit={lit(a, b)}
-					vector-effect="non-scaling-stroke"
+					x1={POS.R2.x}
+					y1={POS.R2.y}
+					x2={OTHER.x}
+					y2={OTHER.y}
+					class="road"
+					class:lit={shown === 3 && !knocked}
 				/>
-			{/each}
-		</svg>
+				{#each ROADS as [a, b] (a + b)}
+					<line
+						x1={POS[a].x}
+						y1={POS[a].y}
+						x2={POS[b].x}
+						y2={POS[b].y}
+						class="road"
+						class:lit={travelled(a, b)}
+					/>
+				{/each}
 
-		<div class="node" style="left:{POS.lap.x}%;top:{POS.lap.y}%">
-			<MiniLaptop label={tx.laptopLabel} led={outcome === 'ok' ? 'ok' : 'off'} />
-		</div>
-		<div class="node" style="left:{POS.A.x}%;top:{POS.A.y}%">
-			<RouterBox label={tx.routerA} tone={tone('A')} />
-		</div>
-		<div class="node" style="left:{POS.B.x}%;top:{POS.B.y}%">
-			<RouterBox label={tx.routerB} sub={tx.knowsB} tone={tone('B')} small />
-		</div>
-		<div class="node" style="left:{POS.C.x}%;top:{POS.C.y}%">
-			<RouterBox label={tx.routerC} sub={tx.knowsC} tone={tone('C')} small />
-		</div>
-		<div class="node" style="left:{POS.srv.x}%;top:{POS.srv.y}%">
-			<MiniServer label={tx.serverLabel} sub={tx.serverSub} active={outcome === 'ok'} />
-		</div>
-		<div class="node" style="left:{POS.files.x}%;top:{POS.files.y}%">
-			<MiniServer label={tx.filesLabel} />
-		</div>
+				<!-- other networks, a soft cloud -->
+				<g transform="translate({OTHER.x} {OTHER.y})">
+					<path
+						d="M-26 10 a12 12 0 0 1 2 -23 a16 16 0 0 1 29 -6 a12 12 0 0 1 21 13 a10 10 0 0 1 0 16 Z"
+						fill="var(--color-card)"
+						stroke="var(--color-line)"
+						stroke-width="1.6"
+					/>
+					<text y="30" text-anchor="middle" class="lbl">{tx.otherLabel}</text>
+				</g>
 
-		{#if at}
-			<div
-				class="packet"
-				class:gone={outcome === 'drop'}
-				style="left:{POS[at].x}%;top:{POS[at].y}%"
-			>
-				{tx.packetChip}
-			</div>
-		{/if}
-		{#if outcome === 'drop' && dropAt}
-			<span class="tag no" style="left:{POS[dropAt].x}%;top:{POS[dropAt].y}%">{tx.lostTag}</span>
-		{/if}
-		{#if outcome === 'ok'}
-			<span class="tag" style="left:{POS.srv.x}%;top:{POS.srv.y}%">{tx.okTag}</span>
-		{/if}
-	</div>
+				<NgLaptop x={POS.lap.x} y={POS.lap.y} label={tx.laptopLabel} lit={here === 'lap'} />
+				<NgRouter x={POS.R1.x} y={POS.R1.y} label={tx.homeRouter} lit={here === 'R1'} />
+				<NgRouter x={POS.R2.x} y={POS.R2.y} label={tx.ispRouter} lit={here === 'R2'} />
+				<NgRouter x={POS.R3.x} y={POS.R3.y} label={tx.nextRouter} lit={here === 'R3'} />
+				<NgServer
+					x={POS.srv.x}
+					y={POS.srv.y}
+					label={tx.serverLabel}
+					sub={tx.serverSub}
+					lit={here === 'srv'}
+				/>
 
-	<p class="note">{note}</p>
+				<!-- the home router's signpost, one arm, the default route -->
+				<g class="sign" class:focus={signR1Lit} transform="translate(34 200)">
+					<rect x="-2" y="0" width="4" height="62" rx="2" fill="var(--color-faint)" />
+					<path d="M0 8 H82 L92 18 L82 28 H0 Z" class="plank" class:hot={signR1Lit} />
+					<text x="42" y="22" text-anchor="middle" class="plank-t">{tx.signDefault}</text>
+				</g>
+
+				<!-- the provider router's signpost, two arms -->
+				<g transform="translate(156 200)">
+					<g class="sign" class:fallen={knocked} class:focus={signR2Lit}>
+						<rect x="-2" y="0" width="4" height="62" rx="2" fill="var(--color-faint)" />
+						<path d="M0 6 H74 L84 16 L74 26 H0 Z" class="plank" class:hot={signR2Lit} />
+						<text x="38" y="20" text-anchor="middle" class="plank-t">{tx.signNimbus}</text>
+						<g transform="rotate(-24 0 40)">
+							<path d="M0 32 H58 L67 41 L58 50 H0 Z" class="plank" />
+							<text x="30" y="45" text-anchor="middle" class="plank-t">{tx.signOther}</text>
+						</g>
+					</g>
+				</g>
+
+				<!-- the packet, an envelope with its address -->
+				<g
+					class="packet"
+					class:jump={tr.jump}
+					class:gone={tr.hidden}
+					class:dead={dropped}
+					style="transform: translate({pkt.x}px, {pkt.y - 34}px)"
+				>
+					<rect x="-14" y="-9" width="28" height="18" rx="3" class="env" />
+					<path d="M-14 -8 L0 2 L14 -8" fill="none" class="flap" />
+					{#if shown === 2}
+						<g class="callout">
+							<rect x="18" y="-12" width="96" height="22" rx="11" />
+							<text x="66" y="3" text-anchor="middle">{tx.packetTo}</text>
+						</g>
+					{/if}
+					{#if dropped}
+						<g class="drop-tag">
+							<rect x="-30" y="-32" width="60" height="18" rx="9" />
+							<text x="0" y="-19" text-anchor="middle">{tx.droppedTag}</text>
+						</g>
+					{/if}
+				</g>
+			</svg>
+		{/snippet}
+	</Guide>
 </div>
 
 <style>
-	.acts {
+	.stage {
 		display: flex;
-		justify-content: center;
-	}
-	.cta {
-		border-radius: 12px;
-		background: var(--btn-primary);
-		color: #fff;
-		padding: 10px 20px;
-		font-size: 13px;
-		font-weight: 600;
-		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.16);
-		transition: filter 0.2s ease;
-	}
-	.cta:enabled:hover {
-		filter: brightness(1.18);
-	}
-	.cta:disabled {
-		opacity: 0.55;
-	}
-
-	.table {
-		width: min(94vw, 340px);
-		border-radius: 13px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 9px 12px;
-		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.06);
-		display: flex;
-		flex-direction: column;
-		gap: 5px;
-	}
-	.ttl {
-		font-size: 9.5px;
-		font-weight: 800;
-		color: var(--color-faint);
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-	}
-	.row {
-		display: grid;
-		grid-template-columns: 1fr 1fr auto;
-		align-items: center;
-		gap: 6px;
-		font-size: 11px;
-	}
-	.row.head {
-		font-size: 9.5px;
-		font-weight: 700;
-		color: var(--color-muted);
-		border-bottom: 1px solid var(--color-line);
-		padding-bottom: 3px;
-	}
-	.row.entry code {
-		font-size: 11px;
-		font-weight: 700;
-		color: var(--color-ink);
-		animation: popin 0.25s ease;
-	}
-	.row.entry .hop {
-		color: var(--color-brand);
-	}
-	.row.empty span {
-		grid-column: 1 / -1;
-		font-size: 11px;
-		font-style: italic;
-		color: var(--color-faint);
-	}
-	.del {
-		border-radius: 8px;
-		border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
-		color: var(--color-danger);
-		background: transparent;
-		padding: 3px 8px;
-		font-size: 10px;
-		font-weight: 700;
-	}
-	.del:enabled:hover {
-		background: var(--color-danger-soft);
-	}
-	.pick {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 6px;
-		border-top: 1px solid var(--color-line);
-		padding-top: 6px;
-		font-size: 10.5px;
-		color: var(--color-muted);
-	}
-	.chips {
-		display: flex;
-		gap: 6px;
-	}
-	.chip {
-		border-radius: 999px;
-		border: 1px solid var(--color-line);
-		background: var(--color-paper);
-		color: var(--color-ink);
-		padding: 4px 10px;
-		font-size: 10.5px;
-		font-weight: 700;
-		transition: border-color 0.2s ease;
-	}
-	.chip:enabled:hover {
-		border-color: var(--color-ink);
-	}
-	.chip.on {
-		border-color: var(--color-brand);
-		background: var(--color-brand-soft);
-		color: var(--color-brand);
-	}
-	.chip:disabled,
-	.del:disabled {
-		opacity: 0.55;
-	}
-
-	.scene {
-		position: relative;
-		width: min(94vw, 340px);
-		height: 250px;
-	}
-	.wires {
-		position: absolute;
-		inset: 0;
 		width: 100%;
-		height: 100%;
-		overflow: visible;
-	}
-	.wires line {
-		stroke: var(--color-line);
-		stroke-width: 2.5;
-		stroke-linecap: round;
-		transition: stroke 0.3s ease;
-	}
-	.wires line.lit {
-		stroke: var(--color-brand);
-	}
-	.node {
-		position: absolute;
-		transform: translate(-50%, -50%);
-		z-index: 1;
-		/* a soft backdrop so wires do not cross the captions */
-		background: radial-gradient(closest-side, var(--color-paper) 70%, transparent);
-		padding: 2px 4px;
-	}
-	.packet {
-		position: absolute;
-		z-index: 3;
-		transform: translate(-50%, -150%);
-		border-radius: 999px;
-		background: var(--color-brand);
-		color: #fff;
-		font-size: 9.5px;
-		font-weight: 800;
-		padding: 3px 8px;
-		white-space: nowrap;
-		box-shadow: 0 4px 10px rgba(22, 40, 60, 0.2);
-		transition:
-			left 0.55s ease-in-out,
-			top 0.55s ease-in-out,
-			opacity 0.4s ease;
-	}
-	.packet.gone {
-		background: var(--color-danger);
-		opacity: 0.35;
-	}
-	.tag {
-		position: absolute;
-		z-index: 4;
-		transform: translate(-50%, 90%);
-		border-radius: 999px;
-		background: var(--color-grass);
-		color: #fff;
-		font-size: 9.5px;
-		font-weight: 800;
-		padding: 2px 9px;
-		animation: popin 0.25s ease;
-	}
-	.tag.no {
-		background: var(--color-danger);
-	}
-	@keyframes popin {
-		from {
-			opacity: 0;
-			scale: 0.5;
-		}
-		to {
-			opacity: 1;
-			scale: 1;
-		}
-	}
-	.note {
-		min-height: 1.4em;
-		max-width: 340px;
-		text-align: center;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-muted);
-	}
-	:global(.dark) .cta,
-	:global(.dark) .table {
-		box-shadow: none;
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.packet {
-			transition: none;
-		}
-		.tag,
-		.row.entry code {
-			animation: none;
-		}
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+		padding-bottom: 7rem;
 	}
 	@media (min-width: 768px) {
-		.table,
-		.scene {
-			width: 460px;
+		.stage {
+			padding-bottom: 1.5rem;
 		}
-		.scene {
-			height: 290px;
-		}
-		.row,
-		.row.entry code {
-			font-size: 12.5px;
-		}
-		.note {
-			font-size: 14px;
-			max-width: 460px;
-		}
-		.cta {
-			font-size: 14px;
-			padding: 12px 22px;
+	}
+	.actions {
+		display: flex;
+		min-height: 38px;
+		justify-content: center;
+	}
+	.play {
+		border: 1px solid var(--color-line);
+		border-radius: 999px;
+		background: var(--color-card);
+		padding: 8px 16px;
+		font-size: 13px;
+		font-weight: 700;
+		color: var(--color-ink);
+		box-shadow: 0 6px 16px rgba(22, 40, 60, 0.08);
+	}
+	.play.on {
+		border-color: var(--color-danger);
+		color: var(--color-danger);
+	}
+	.scene {
+		width: 100%;
+		max-width: 400px;
+		overflow: visible;
+	}
+	.road {
+		stroke: var(--color-line);
+		stroke-width: 4;
+		stroke-linecap: round;
+		transition: stroke 0.4s;
+	}
+	.road.lit {
+		stroke: var(--color-brand);
+	}
+	.lbl {
+		fill: var(--color-muted);
+		font-size: 10.5px;
+		font-weight: 700;
+	}
+	.sign {
+		transform-box: fill-box;
+		transform-origin: 0 100%;
+		transition:
+			transform 0.6s cubic-bezier(0.3, 1.4, 0.5, 1),
+			opacity 0.4s;
+		opacity: 0.75;
+	}
+	.sign.focus {
+		opacity: 1;
+	}
+	.sign.fallen {
+		transform: rotate(78deg);
+		opacity: 0.45;
+	}
+	.plank {
+		fill: var(--color-card);
+		stroke: var(--color-amber);
+		stroke-width: 1.6;
+		transition: fill 0.3s;
+	}
+	.plank.hot {
+		fill: var(--color-amber-soft);
+	}
+	.plank-t {
+		fill: var(--color-ink);
+		font-size: 9.5px;
+		font-weight: 700;
+	}
+	.packet {
+		transition:
+			transform 0.85s cubic-bezier(0.45, 0, 0.25, 1),
+			opacity 0.25s;
+	}
+	.packet.jump {
+		transition: opacity 0.25s;
+	}
+	.packet.gone {
+		opacity: 0;
+	}
+	.env {
+		fill: var(--color-brand);
+		transition: fill 0.3s;
+	}
+	.flap {
+		stroke: var(--color-card);
+		stroke-width: 1.6;
+	}
+	.packet.dead .env {
+		fill: var(--color-danger);
+	}
+	.callout rect {
+		fill: var(--color-brand-soft);
+		stroke: var(--color-brand);
+		stroke-width: 1.2;
+	}
+	.callout text {
+		fill: var(--color-brand);
+		font-size: 10px;
+		font-weight: 800;
+	}
+	.drop-tag rect {
+		fill: var(--color-danger-soft);
+	}
+	.drop-tag text {
+		fill: var(--color-danger);
+		font-size: 9.5px;
+		font-weight: 800;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.packet,
+		.sign,
+		.road {
+			transition: none;
 		}
 	}
 </style>

@@ -6,20 +6,8 @@ import { en } from './en';
 export const backendFrameworks: Lesson = {
 	id: 'backend-frameworks',
 	mood: 'calm',
-	moods: ['calm', 'thinking', 'idea', 'happy', 'wink', 'excited'],
-	reactionMood: {
-		route: 'calm',
-		read: 'thinking',
-		validate: 'thinking',
-		security: 'worried',
-		db: 'thinking',
-		respond: 'happy',
-		byhand: 'surprised',
-		laravel: 'happy',
-		express: 'wink',
-		django: 'happy',
-		spring: 'idea'
-	},
+	moods: ['calm', 'thinking', 'worried', 'idea', 'happy', 'wink', 'calm', 'excited'],
+	reactionMood: { byhand: 'surprised', framework: 'happy' },
 	stage: BackendFrameworksStage,
 	text: { id, en }
 };

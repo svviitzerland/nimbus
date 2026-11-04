@@ -1,34 +1,36 @@
 import type { LessonText } from '../../types';
 
+export interface InferencePanel {
+	tag?: string;
+	title: string;
+	/** May hold simple HTML like <b>. */
+	body: string;
+}
+
 export interface InferenceText extends LessonText {
+	/** One panel per scene of the guided visual (seven scenes). */
+	panels: InferencePanel[];
 	examples: { text: string; spam: boolean }[]; // the labelled emails the filter trains on
-	questions: string[]; // ready made emails to ask about
-	trainTitle: string; // card caption, the training phase
-	trainBtn: string;
+	questions: string[]; // emails the finished model gets asked about
+	trainTitle: string; // caption over the training half
+	inferTitle: string; // caption over the inference half
 	reading: string; // template with {n} and {total}, which example it is reading
-	days: string; // meter caption, how long the computers are busy
-	daysValue: string; // template with {n}
-	cost: string; // meter caption, the bill
-	costValue: string; // template with {n}, the bill in millions of dollars
-	decimal: string; // decimal mark for {n} in costValue
-	scaleNote: string; // the meters show a big model at real scale
-	trainedOnce: string; // template with {days} and {cost}, summary after training
+	day: string; // template with {n}, how many days of computer time so far
 	modelFile: string; // name of the model file
-	modelInfo: string; // template with {n}, words it learned
 	frozen: string; // the model does not learn while answering
-	you: string; // caption over the phone
+	you: string; // caption under the phone
 	server: string; // caption under the server
-	inferTitle: string; // card caption, the inference phase
-	askHint: string; // tap a message or type your own
-	placeholder: string; // input placeholder
-	askBtn: string;
-	spam: string;
-	ham: string; // not spam
-	fast: string; // answer time under a millisecond
-	ms: string; // template with {n}, answer time in milliseconds
-	answered: string; // template with {n}, how many questions answered
-	rushBtn: string; // send a thousand questions at once
-	rushDone: string; // template with {time}
-	spamTag: string; // the training example is spam
-	hamTag: string; // the training example is not spam
+	spam: string; // answer, spam
+	ham: string; // answer, not spam
+	spamTag: string; // label on a training example that is spam
+	hamTag: string; // label on a training example that is normal mail
+	fast: string; // how long one answer takes
+	answered: string; // template with {n}, questions answered so far
+	sep: string; // thousands separator for {n} in answered
+	longBar: string; // comparison bar, training
+	shortBar: string; // comparison bar, one answer
+	longTime: string; // how long training takes
+	shortTime: string; // how long one answer takes
+	rule: string; // rule of thumb line on the memory beat
+	askHint: string; // the optional play, tap an email to ask
 }

@@ -6,14 +6,8 @@ import { en } from './en';
 export const jobs: Lesson = {
 	id: 'jobs',
 	mood: 'calm',
-	moods: ['calm', 'worried', 'idea', 'happy', 'wink', 'excited'],
-	reactionMood: {
-		slow: 'worried',
-		fast: 'excited',
-		rush: 'surprised',
-		workers: 'happy',
-		drained: 'happy'
-	},
+	moods: ['calm', 'worried', 'idea', 'happy', 'wink', 'thinking', 'calm', 'excited'],
+	reactionMood: { w1: 'calm', w2: 'happy', w3: 'excited' },
 	stage: JobsStage,
 	text: { id, en }
 };

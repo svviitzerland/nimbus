@@ -1,420 +1,423 @@
 <script lang="ts">
-	import Server from '$lib/components/Server.svelte';
-	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
+	// A guided blockchain lesson. Four blocks appear and link up by their fingerprints, then an old
+	// amount gets changed by itself and the chain snaps right after it. Later beats show the other
+	// copies outvoting the edited one, and a miner hunting for a fingerprint that starts with
+	// zeros. The only optional play is changing block 2 yourself on the last beat.
+	import { untrack } from 'svelte';
+	import { fade } from 'svelte/transition';
+	import Guide from '$lib/components/Guide.svelte';
+	import NgLaptop from './netguide/NgLaptop.svelte';
 	import { fingerprint } from './crypto/hash';
-	import type { LessonText } from '$lib/chapters/types';
+	import { prefersReducedMotion, runSeq, type SeqStep } from './webguide/seq';
+	import type { StageProps } from '$lib/chapters/types';
 	import type { BlockchainText } from '$lib/chapters/security/blockchain/types';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as BlockchainText);
 
-	const N = 4;
-	const ZERO = '00000000';
-	const OTHERS = 4;
-
-	// What the learner typed per block (null means untouched), and the words each block's links were
-	// last computed from (null means the original chain, a snapshot after "recompute").
-	const edits = $state<(string | null)[]>(Array(N).fill(null));
-	let snapshot = $state<(string | null)[] | null>(null);
-	let completed = false;
-
-	const blockHash = (i: number, data: string, prev: string) => fingerprint(`${i}|${data}|${prev}`);
-
-	// Builds the stored "previous" fingerprints from a set of words.
-	function chainFrom(words: string[]) {
-		const prevs: string[] = [];
-		let prev = ZERO;
-		for (let i = 0; i < N; i++) {
-			prevs.push(prev);
-			prev = blockHash(i, words[i], prev);
-		}
-		return { prevs, tip: prev };
-	}
-
-	const current = $derived(tx.records.map((r, i) => edits[i] ?? r));
-	const base = $derived(tx.records.map((r, i) => snapshot?.[i] ?? r));
-	const stored = $derived(chainFrom(base).prevs);
-	const hashes = $derived(current.map((d, i) => blockHash(i, d, stored[i])));
-	// The first block whose stored link no longer fits, or N when the chain is whole.
-	const brokenFrom = $derived.by(() => {
-		for (let i = 1; i < N; i++) if (stored[i] !== hashes[i - 1]) return i;
-		return N;
-	});
-	const networkTip = $derived(chainFrom(tx.records).tip);
-	const yourTip = $derived(hashes[N - 1]);
-	const agrees = $derived(yourTip === networkTip);
-	const changed = $derived(current.map((d, i) => d !== base[i]));
-
-	function onEdit(i: number, value: string) {
-		const wasBroken = brokenFrom < N;
-		const wasAgreeing = agrees;
-		edits[i] = value === tx.records[i] ? null : value;
-		if (brokenFrom < N && !wasBroken) onstate?.('broken');
-		else if (brokenFrom === N && agrees && !wasAgreeing) onstate?.('restored');
-		else if (brokenFrom === N && !agrees && wasAgreeing) onstate?.('tip');
-	}
-	function rehash() {
-		snapshot = [...current];
-		onstate?.('rehash');
-		if (!completed) {
-			completed = true;
+	// Watch first, play optional, so the stage is visible from the start and Next never locks.
+	$effect(() => {
+		untrack(() => {
+			onshow?.(true);
 			oncomplete?.();
+		});
+	});
+
+	let reduce = $state(false);
+	$effect(() => {
+		reduce = prefersReducedMotion();
+	});
+
+	let peek = $state<number | null>(null);
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
+	const last = $derived(tx.steps.length - 1);
+	const step = $derived(Math.max(0, Math.min(peek ?? beat, last)));
+
+	let userEdited = $state(false);
+	function toggle() {
+		userEdited = !userEdited;
+		onstate?.(userEdited ? 'broken' : 'restored');
+	}
+
+	// the honest chain, every block storing the fingerprint of the one before it
+	const GENESIS = '00000000';
+	const honest = $derived.by(() => {
+		const out: string[] = [];
+		let prev = GENESIS;
+		for (const r of tx.records) {
+			prev = fingerprint(`${prev}|${r}`);
+			out.push(prev);
 		}
+		return out;
+	});
+	const storedPrev = (k: number) => (k === 0 ? GENESIS : honest[k - 1]);
+
+	let shown = $state(4);
+	let links = $state(3);
+	let edited = $state(false);
+	let marks = $state(0);
+	let frame = $state(16);
+
+	const isEdited = $derived(step === last ? userEdited : edited);
+	const record = (k: number) => (k === 1 && isEdited ? tx.edited : tx.records[k]);
+	const own = $derived(tx.records.map((_, k) => fingerprint(`${storedPrev(k)}|${record(k)}`)));
+	const brokenAfter = (k: number) => k < 3 && own[k] !== storedPrev(k + 1);
+	const redo = (k: number) => isEdited && k > 1;
+
+	// the miner's search for block 4, a nonce that makes the fingerprint start with two zeros
+	const target = $derived.by(() => {
+		const base = `${storedPrev(3)}|${tx.records[3]}`;
+		let n = 0;
+		while (n < 5000 && !fingerprint(`${base}|${n}`).startsWith('00')) n++;
+		return n;
+	});
+	const nonce = $derived(Math.round((target * frame) / 16));
+	const nonceFp = $derived(fingerprint(`${storedPrev(3)}|${tx.records[3]}|${nonce}`));
+
+	function play(s: number, still: boolean): (() => void) | undefined {
+		shown = 4;
+		links = 3;
+		edited = s === 4 || s === 5;
+		marks = 4;
+		frame = 16;
+		if (still) {
+			if (s === 3) edited = true;
+			return;
+		}
+		if (s === 0)
+			return runSeq(
+				[
+					[700, () => (shown = 1)],
+					[700, () => (shown = 2)],
+					[700, () => (shown = 3)],
+					[3400, () => (shown = 4)]
+				],
+				true
+			);
+		if (s === 2)
+			return runSeq(
+				[
+					[900, () => (links = 0)],
+					[900, () => (links = 1)],
+					[900, () => (links = 2)],
+					[2600, () => (links = 3)]
+				],
+				true
+			);
+		if (s === 3)
+			return runSeq(
+				[
+					[2000, () => (edited = false)],
+					[4200, () => (edited = true)]
+				],
+				true
+			);
+		if (s === 5)
+			return runSeq(
+				[
+					[700, () => (marks = 0)],
+					[600, () => (marks = 1)],
+					[600, () => (marks = 2)],
+					[600, () => (marks = 3)],
+					[3200, () => (marks = 4)]
+				],
+				true
+			);
+		if (s === 6)
+			return runSeq(
+				Array.from({ length: 17 }, (_, f): SeqStep => [f === 16 ? 3200 : 240, () => (frame = f)]),
+				true
+			);
+		return;
 	}
-	function sync() {
-		edits.fill(null);
-		snapshot = null;
-		onstate?.('synced');
-	}
+
+	$effect(() => {
+		const s = step;
+		const st = reduce;
+		return untrack(() => play(s, st));
+	});
+
+	const BX = (k: number) => 10 + k * 108;
+	const BY = 22;
+	const label = (k: number) =>
+		(step === 7 ? tx.commitLabel : tx.blockLabel).replace('{n}', String(k + 1));
 </script>
 
-<div class="wrap">
-	<div class="btns">
-		{#if brokenFrom < N}
-			<CallToActionButton onclick={rehash}>
-				{#snippet children()}{tx.rehashBtn}{/snippet}
-			</CallToActionButton>
-		{:else if !agrees}
-			<CallToActionButton onclick={sync}>
-				{#snippet children()}{tx.syncBtn}{/snippet}
-			</CallToActionButton>
-		{:else}
-			<p class="hint">{tx.editHint}</p>
+{#snippet visual(i: number)}
+	<div class="vis">
+		{#if i === last}
+			<button type="button" class="chip" class:on={userEdited} onclick={toggle}>
+				{userEdited ? tx.restoreBtn : tx.editBtn}
+			</button>
 		{/if}
-	</div>
 
-	<ol class="chain">
-		{#each current as data, i (i)}
-			{@const red = i >= brokenFrom}
-			{#if i > 0}
-				<li class="link" class:snap={i === brokenFrom} class:red aria-hidden="true">
-					<svg width="18" height="22" viewBox="0 0 18 22" fill="none">
-						{#if i === brokenFrom}
-							<path d="M9 1v6M9 15v6" stroke-width="2.4" stroke-linecap="round" />
-							<path d="M4 9.5 14 12.5" stroke-width="2.4" stroke-linecap="round" />
-						{:else}
-							<path d="M9 1v20" stroke-width="2.4" stroke-linecap="round" />
+		<svg viewBox="0 0 440 232" class="art" role="img" aria-label={tx.records.join(', ')}>
+			{#each tx.records as _, k (k)}
+				{@const x = BX(k)}
+				{#if k < shown}
+					<g in:fade={{ duration: reduce ? 0 : 300 }}>
+						<!-- the link to the next block -->
+						{#if k < 3 && k + 1 < shown}
+							{@const lit = i !== 2 || k < links}
+							{@const snapped = brokenAfter(k)}
+							<g class="link" class:on={lit} class:bad={snapped}>
+								<rect x={x + 88} y={BY + 44} width="16" height="10" rx="5" class:apart={snapped} />
+								<rect x={x + 96} y={BY + 44} width="16" height="10" rx="5" class:apart2={snapped} />
+							</g>
+							{#if snapped}
+								<text x={x + 100} y={BY + 108} class="tag bad" in:fade={{ duration: 200 }}
+									>{tx.brokenTag}</text
+								>
+							{/if}
 						{/if}
-					</svg>
-				</li>
-			{/if}
-			<li class="block" class:red class:edited={changed[i] && !red}>
-				<div class="bhead">
-					<span class="bname">{tx.blockLabel.replace('{n}', String(i + 1))}</span>
-					{#if i === brokenFrom}
-						<span class="tag bad">{tx.brokenTag}</span>
-					{:else if changed[i]}
-						<span class="tag warn">{tx.changedTag}</span>
-					{/if}
-				</div>
-				<input
-					class="data"
-					value={data}
-					maxlength="40"
-					spellcheck="false"
-					aria-label={tx.blockLabel.replace('{n}', String(i + 1))}
-					oninput={(e) => onEdit(i, e.currentTarget.value)}
-				/>
-				<div class="hrow">
-					<span class="hk">{tx.prevLabel}</span>
-					<code class="hex" class:bad={i === brokenFrom}>{stored[i]}</code>
-				</div>
-				<div class="hrow">
-					<span class="hk">{tx.hashLabel}</span>
-					{#key hashes[i]}<code class="hex own" class:bad={red} class:warn={changed[i] && !red}
-							>{hashes[i]}</code
-						>{/key}
-				</div>
-			</li>
-		{/each}
-	</ol>
 
-	<div class="net">
-		<p class="nhead">{tx.networkLabel}</p>
-		<div class="nodes">
-			<div class="node you" class:bad={!agrees}>
-				<span class="nname">{tx.yourCopy}</span>
-				<code class="hex">{yourTip}</code>
-				<span class="verdict">{agrees ? tx.agree : tx.disagree}</span>
-			</div>
-			{#each Array(OTHERS) as _, k (k)}
-				<div class="node">
-					<div class="mini"><Server slots={2} active /></div>
-					<span class="nname">{tx.computer.replace('{n}', String(k + 1))}</span>
-					<code class="hex">{networkTip}</code>
-				</div>
+						<rect {x} y={BY} width="92" height="88" rx="8" class="block" class:redo={redo(k)} />
+						<path
+							d="M{x} {BY + 8} a8 8 0 0 1 8 -8 H{x + 84} a8 8 0 0 1 8 8 V{BY + 18} H{x} Z"
+							class="head"
+						/>
+						<text x={x + 8} y={BY + 13} class="h-text">{label(k)}</text>
+						<text x={x + 8} y={BY + 34} class="rec" class:changed={k === 1 && isEdited}
+							>{record(k)}</text
+						>
+						<line x1={x + 6} y1={BY + 42} x2={x + 86} y2={BY + 42} class="div" />
+						<g class="row" class:lit={i === 2 && k > 0 && k <= links}>
+							<text x={x + 8} y={BY + 60} class="r-lbl">{tx.prevLabel}</text>
+							<text x={x + 84} y={BY + 60} class="r-val">{storedPrev(k).slice(0, 4)}</text>
+						</g>
+						<g class="row own" class:lit={i === 1}>
+							<text x={x + 8} y={BY + 78} class="r-lbl">{tx.hashLabel}</text>
+							<text x={x + 84} y={BY + 78} class="r-val" class:changed={k === 1 && isEdited}
+								>{own[k].slice(0, 4)}</text
+							>
+						</g>
+						{#if redo(k)}
+							<text x={x + 46} y={BY + 108} class="tag warn" in:fade={{ duration: 200 }}
+								>{tx.redoTag}</text
+							>
+						{/if}
+					</g>
+				{/if}
 			{/each}
-		</div>
-		<p class="short">{tx.shortNote}</p>
+
+			{#if i === 4}
+				<text x="220" y="212" class="rule" in:fade={{ duration: 250 }}>{tx.rule}</text>
+			{/if}
+
+			{#if i === 5}
+				<g in:fade={{ duration: 250 }}>
+					{#each [0, 1, 2, 3] as c (c)}
+						{@const cx = 64 + c * 104}
+						{@const mine = c === 0}
+						<NgLaptop
+							x={cx}
+							y={186}
+							label={mine ? tx.yourCopy : tx.computer.replace('{n}', String(c + 1))}
+							tone={mine ? 'var(--color-danger)' : 'var(--color-grass)'}
+							lit={c < marks}
+						/>
+						{#if c < marks}
+							<text x={cx} y="160" class="mark" class:bad={mine} in:fade={{ duration: 150 }}
+								>{mine ? '✗' : '✓'}</text
+							>
+						{/if}
+					{/each}
+				</g>
+			{/if}
+
+			{#if i === 6}
+				<g in:fade={{ duration: 250 }}>
+					<rect x={BX(3) - 4} y="140" width="100" height="56" rx="8" class="miner" />
+					<text x={BX(3) + 6} y="160" class="r-lbl">{tx.nonceLabel}</text>
+					<text x={BX(3) + 86} y="160" class="r-val">{nonce}</text>
+					<text x={BX(3) + 46} y="184" class="m-fp" class:good={frame === 16}>{nonceFp}</text>
+					<path d="M{BX(3) + 46} 134 V{BY + 94}" class="arrow" />
+				</g>
+			{/if}
+		</svg>
 	</div>
+{/snippet}
+
+<div class="stage">
+	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
 </div>
 
 <style>
-	.wrap {
+	.stage {
+		display: flex;
+		width: 100%;
+		max-height: 100%;
+		justify-content: center;
+		overflow-x: hidden;
+		overflow-y: auto;
+		padding-bottom: 8px;
+	}
+	@media (max-width: 767px) {
+		.stage {
+			padding-bottom: 7rem;
+		}
+	}
+	.vis {
 		display: flex;
 		width: 100%;
 		flex-direction: column;
 		align-items: center;
 		gap: 10px;
 	}
-	.btns {
-		display: flex;
-		min-height: 44px;
-		align-items: center;
-		justify-content: center;
-	}
-	.btns :global(.cta) {
-		padding: 10px 16px;
-		font-size: 13px;
-	}
-	.hint {
-		text-align: center;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-muted);
-	}
-
-	.chain {
-		display: flex;
-		width: min(94vw, 340px);
-		flex-direction: column;
-		align-items: center;
-	}
-	.block {
-		display: flex;
+	.art {
 		width: 100%;
-		flex-direction: column;
-		gap: 3px;
-		border-radius: 12px;
-		border: 1.5px solid var(--color-grass);
-		background: var(--color-card);
-		padding: 7px 10px;
-		transition:
-			border-color 0.25s,
-			background 0.25s;
+		max-width: 470px;
+		height: auto;
+		overflow: visible;
 	}
-	.block.edited {
-		border-color: var(--color-amber);
-	}
-	.block.red {
-		border-color: var(--color-danger);
-		background: var(--color-danger-soft);
-	}
-	.bhead {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-	.bname {
-		font-size: 10.5px;
-		font-weight: 800;
-		color: var(--color-muted);
-	}
-	.tag {
-		border-radius: 999px;
-		padding: 1px 7px;
-		font-size: 9px;
-		font-weight: 800;
-		color: #fff;
-	}
-	.tag.bad {
-		background: var(--color-danger);
-	}
-	.tag.warn {
-		background: var(--color-amber);
-	}
-	.data {
-		width: 100%;
-		border-radius: 7px;
+	.chip {
 		border: 1px solid var(--color-line);
-		background: var(--color-paper);
-		padding: 3px 7px;
+		border-radius: 999px;
+		background: var(--color-card);
+		padding: 6px 14px;
 		font-size: 12.5px;
 		font-weight: 600;
 		color: var(--color-ink);
+		transition:
+			border-color 0.2s,
+			background 0.2s;
 	}
-	.data:focus {
+	.chip:hover {
 		border-color: var(--color-brand);
-		outline: none;
-		box-shadow: 0 0 0 2px var(--color-brand-soft);
 	}
-	.hrow {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 8px;
-	}
-	.hk {
-		font-size: 10px;
-		font-weight: 600;
-		color: var(--color-faint);
-	}
-	.hex {
-		border-radius: 5px;
-		background: var(--color-paper);
-		padding: 0 5px;
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 11px;
-		font-weight: 700;
-		letter-spacing: 0.04em;
-		color: var(--color-ink);
-	}
-	.hex.own {
-		animation: flash 0.35s ease;
-	}
-	.hex.warn {
-		color: var(--color-amber);
-	}
-	.hex.bad {
+	.chip.on {
+		border-color: var(--color-danger);
+		background: var(--color-danger-soft);
 		color: var(--color-danger);
 	}
-	@keyframes flash {
-		from {
-			background: var(--color-amber-soft);
-		}
+
+	.block {
+		fill: var(--color-card);
+		stroke: var(--color-muted);
+		stroke-width: 1.8;
+		transition: stroke 0.3s;
 	}
-	.link {
-		display: grid;
-		place-items: center;
-		height: 22px;
+	.block.redo {
+		stroke: var(--color-amber);
+	}
+	.head {
+		fill: var(--color-brand-soft);
+	}
+	.h-text {
+		font-size: 10px;
+		font-weight: 800;
+		fill: var(--color-brand);
+	}
+	.rec {
+		font-size: 8.5px;
+		font-weight: 600;
+		fill: var(--color-ink);
+	}
+	.rec.changed,
+	.r-val.changed {
+		fill: var(--color-danger);
+	}
+	.div {
+		stroke: var(--color-line);
+		stroke-width: 1.2;
+	}
+	.r-lbl {
+		font-size: 8.5px;
+		font-weight: 700;
+		fill: var(--color-faint);
+	}
+	.r-val {
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 10px;
+		font-weight: 700;
+		fill: var(--color-ink);
+		text-anchor: end;
+		transition: fill 0.3s;
+	}
+	.row.lit .r-val {
+		fill: var(--color-amber);
+	}
+	.row.own.lit .r-val {
+		fill: var(--color-brand);
+	}
+	.link rect {
+		fill: none;
+		stroke: var(--color-line);
+		stroke-width: 2.4;
+		transition:
+			stroke 0.3s,
+			transform 0.4s;
+	}
+	.link.on rect {
 		stroke: var(--color-grass);
 	}
-	.link.red {
+	.link.bad rect {
 		stroke: var(--color-danger);
 	}
-	.link.snap svg {
-		animation: shake 0.35s ease;
+	.link rect.apart {
+		transform: translate(-4px, 5px) rotate(-14deg);
+		transform-box: fill-box;
+		transform-origin: center;
 	}
-	@keyframes shake {
-		25% {
-			transform: translateX(-3px);
-		}
-		75% {
-			transform: translateX(3px);
-		}
+	.link rect.apart2 {
+		transform: translate(4px, -5px) rotate(14deg);
+		transform-box: fill-box;
+		transform-origin: center;
 	}
-
-	.net {
-		display: flex;
-		width: min(94vw, 340px);
-		flex-direction: column;
-		gap: 6px;
-		border-radius: 14px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 9px 10px;
-	}
-	.nhead {
-		font-size: 10.5px;
-		font-weight: 800;
-		color: var(--color-muted);
-	}
-	.nodes {
-		display: grid;
-		grid-template-columns: repeat(5, minmax(0, 1fr));
-		gap: 4px;
-	}
-	.node {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: flex-end;
-		gap: 2px;
-		min-width: 0;
-	}
-	.node .hex {
-		max-width: 100%;
-		overflow: hidden;
-		font-size: 8.5px;
-		padding: 0 3px;
-	}
-	.node.you {
-		border-radius: 8px;
-		background: var(--color-grass-soft);
-		padding: 4px 2px;
-	}
-	.node.you.bad {
-		background: var(--color-danger-soft);
-	}
-	.node.you.bad .hex,
-	.node.you.bad .verdict {
-		color: var(--color-danger);
-	}
-	.mini {
-		display: flex;
-		height: 34px;
-		align-items: flex-end;
-	}
-	.mini > :global(.server) {
-		width: 40px;
-		gap: 4px;
-		padding: 5px;
-		border-radius: 7px;
-	}
-	.mini > :global(.server .slot) {
-		height: 8px;
-	}
-	.mini > :global(.server .dot) {
-		width: 4px;
-		height: 4px;
-	}
-	.nname {
-		max-width: 100%;
-		text-align: center;
-		font-size: 8.5px;
-		font-weight: 700;
-		line-height: 1.15;
-		color: var(--color-muted);
-	}
-	.verdict {
-		font-size: 8.5px;
-		font-weight: 800;
-		color: var(--color-grass);
-	}
-	.short {
+	.tag {
 		font-size: 9.5px;
-		color: var(--color-faint);
+		font-weight: 800;
+		text-anchor: middle;
 	}
-
+	.tag.bad {
+		fill: var(--color-danger);
+	}
+	.tag.warn {
+		fill: var(--color-amber);
+	}
+	.rule {
+		font-size: 13px;
+		font-weight: 700;
+		fill: var(--color-grass);
+		text-anchor: middle;
+	}
+	.mark {
+		font-size: 16px;
+		font-weight: 800;
+		fill: var(--color-grass);
+		text-anchor: middle;
+	}
+	.mark.bad {
+		fill: var(--color-danger);
+	}
+	.miner {
+		fill: var(--color-amber-soft);
+		stroke: var(--color-amber);
+		stroke-width: 1.5;
+	}
+	.m-fp {
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 12px;
+		font-weight: 700;
+		fill: var(--color-muted);
+		text-anchor: middle;
+	}
+	.m-fp.good {
+		fill: var(--color-grass);
+	}
+	.arrow {
+		stroke: var(--color-amber);
+		stroke-width: 2;
+		stroke-linecap: round;
+	}
 	@media (prefers-reduced-motion: reduce) {
-		.hex.own,
-		.link.snap svg {
-			animation: none;
-		}
-		.block {
+		.block,
+		.r-val,
+		.link rect {
 			transition: none;
-		}
-	}
-	@media (min-width: 768px) {
-		.wrap {
-			gap: 14px;
-		}
-		.btns :global(.cta) {
-			padding: 12px 22px;
-			font-size: 14px;
-		}
-		.chain,
-		.net {
-			width: 440px;
-		}
-		.data {
-			font-size: 13.5px;
-		}
-		.hk,
-		.bname {
-			font-size: 11.5px;
-		}
-		.hex {
-			font-size: 12px;
-		}
-		.node .hex,
-		.nname,
-		.verdict {
-			font-size: 10px;
 		}
 	}
 </style>

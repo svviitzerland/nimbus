@@ -1,17 +1,13 @@
 import type { LessonText } from '../../types';
 
 export interface BrowserText extends LessonText {
-	/** The step button, one label per step (ask for the page, then each file), then replay. */
-	steps: [string, string, string, string];
-	again: string;
-	/** Caption for the file list, and a line while a file is downloading ({file}). */
-	networkLabel: string;
-	downloading: string;
-	/** What each file is for, shown next to it. */
-	fileRoles: { html: string; css: string; img: string; js: string };
-	/** What the browser is doing after each step, from the empty tab to the running page. */
-	work: [string, string, string, string, string];
-	/** The empty tab before anything arrived. */
+	/** The side panel, one entry per beat (a small tag, a title, a short plain explanation). */
+	steps: { tag: string; title: string; body: string }[];
+	/** Caption over the row of files arriving. */
+	filesLabel: string;
+	/** Caption over the DOM tree drawing. */
+	domLabel: string;
+	/** The empty tab before anything was painted. */
 	blank: string;
 	/** The nimbus.com page itself. */
 	page: {
@@ -22,9 +18,8 @@ export interface BrowserText extends LessonText {
 		like: string;
 		tips: string[];
 	};
-	/** Switches shown once the page is fully loaded. */
+	/** The optional CSS switch on the last beat. */
 	cssToggle: string;
-	jsToggle: string;
 	on: string;
 	off: string;
 }

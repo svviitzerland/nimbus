@@ -1,30 +1,32 @@
 import type { LessonText } from '../../types';
 
-export type BackendStepId = 'login' | 'stock' | 'save' | 'email';
+/** One part of the side panel (title, one or two short sentences, an optional tag). */
+export type GuideStep = { title: string; body: string; tag?: string };
+
+export type BackendStationId = 'who' | 'stock' | 'save' | 'mail';
 
 export interface BackendWhatText extends LessonText {
-	/** Caption under the phone. */
+	/** Side panel parts, one per beat. */
+	steps: GuideStep[];
+	/** Captions over the two halves of the picture. */
 	frontLabel: string;
-	/** Caption over the backend box. */
+	frontSub: string;
 	backLabel: string;
-	/** Small line under the backend caption. */
 	backSub: string;
-	/** The product sitting in the cart. */
+	/** The same two captions on the memory trick beat. */
+	roomFront: string;
+	roomBack: string;
+	/** The four drawers of the backend, in the order the order visits them. */
+	stations: Record<BackendStationId, string>;
+	/** What the phone shows. */
 	product: string;
 	price: string;
-	/** Switch between a logged in and a logged out shopper. */
-	loggedIn: string;
-	loggedOut: string;
-	placeOrder: string;
-	nextStep: string;
-	again: string;
-	/** What each backend station does, a short title and a line of detail. */
-	steps: Record<BackendStepId, { title: string; detail: string }>;
-	/** What the station says when the shopper is not logged in. */
-	loginFail: string;
-	/** Labels for the side actors. */
+	buy: string;
+	phone: { idle: string; waiting: string; done: string; rejected: string };
 	dbLabel: string;
 	mailLabel: string;
-	/** The phone screen in each state. */
-	phone: { idle: string; waiting: string; done: string; rejected: string; inbox: string };
+	apiLabel: string;
+	/** The optional toggle on the last beat. */
+	logoutBtn: string;
+	loginBtn: string;
 }

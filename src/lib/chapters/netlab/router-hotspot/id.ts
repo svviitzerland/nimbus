@@ -3,83 +3,93 @@ import type { RouterHotspotText } from './types';
 export const id: RouterHotspotText = {
 	title: 'Hotspot',
 	intro: [
-		'Kantor buka pojok kafe kecil buat tamu. Tamu pengen WiFi, tapi kamu nggak mau orang asing masuk ke jaringan kantor, dan nggak mau ada satu tamu yang nongkrong di WiFi seharian.',
-		'Masuklah <b>hotspot</b>. Begitu HP nyambung, halaman pertama yang dia buka dibelokkan ke <b>halaman login</b> (orang nyebutnya captive portal). Internet baru kebuka setelah login.',
-		'Loginnya pakai <b>voucher</b>, username dan password di kertas kecil, biasanya ada batas waktunya. Beli kopi, dapat WiFi satu jam. Banyak RT RW net jualan persis kayak gini.',
-		'Access point buat tamu dicolok ke <b>ether3</b>, port sendiri, jadi tamu dapat jaringan sendiri (10.5.50.x), jauh dari laptop kantor di ether2.',
-		'[fyi] Hotspot diam diam pakai lagi yang udah kamu bangun di lab sebelumnya. Dia punya [[DHCP server|netlab/router-ip]] sendiri buat alamat tamu dan aturan [[masquerade|netlab/router-nat]] buat bawa mereka online. Wizardnya cuma nyiapin semuanya sekaligus.',
-		'Giliran kamu. Jalankan <b>/ip hotspot setup</b> di ether3, bikin voucher satu jam, lalu ambil HP tamu dan login.'
+		'Kantornya buka pojok kafe kecil buat tamu. Tamu pengin WiFi, tapi kamu nggak mau orang asing masuk jaringan kantor, dan nggak mau ada satu tamu yang nongkrong seharian.',
+		'Access point tamu (kotak yang mancarin WiFi) dicolok ke <b>ether3</b>, port tersendiri. Jadi tamu dapat jaringan sendiri, 10.5.50.x, jauh dari laptop kantor di ether2.',
+		'Sekarang <b>hotspot</b>nya. Begitu HP nyambung, halaman pertama yang dia buka diganti jadi <b>halaman login</b> (orang nyebutnya captive portal). Internet baru kebuka setelah login.',
+		'Satu perintah nyiapin semuanya. <b>/ip hotspot setup</b> itu wizard yang nanya beberapa hal lalu bikin semuanya. Lihat dia jawab pertanyaannya, dan lihat HP tamunya.',
+		'Login pakai <b>voucher</b>, username dan password di secarik kertas, biasanya ada batas waktunya. Beli kopi, dapat WiFi satu jam. Di sini terminalnya nyetak satu voucher dengan <b>limit-uptime=1h</b>.',
+		'Tamu ngetik voucher di halaman login, dan internet kebuka. Router mulai ngitung mundur satu jam itu sendiri, dan nyatat tamunya sebagai <b>active</b>.',
+		'Sejam kemudian (udah kita percepat), waktunya habis. Router balikin HP ke halaman login dengan sendirinya. Nggak ada staf yang perlu jalan ke sana buat matiin apa apa.',
+		'[ingat] Voucher itu kayak tiket bioskop. Nggak punya tiket, nggak dapat kursi, dan begitu filmnya selesai kamu keluar, senyaman apa pun kursinya.',
+		'[fyi] Hotspot diam diam make ulang yang udah kamu bangun sebelumnya. Dia jalanin [[DHCP server|netlab/router-ip]] sendiri buat alamat tamu dan aturan [[masquerade|netlab/router-nat]] biar tamu bisa online. Wizardnya cuma ngerjain semuanya sekaligus.',
+		'Giliran kamu. Lihat daftar voucher dan berapa jam yang udah kepakai pakai <b>/ip hotspot user print</b>.'
 	],
 	reactions: {
-		setup:
-			'Hotspot udah jalan di ether3. Di balik layar wizardnya bikin pool alamat, DHCP server, aturan masquerade, dan halaman login. Satu lab penuh dalam satu perintah.',
-		wizardBad:
-			'Wizardnya nggak terima jawaban itu. Baca baris petunjuknya, access point tamu ada di <b>ether3</b>.',
-		noHotspot:
-			'HPnya nyambung ke WiFi, tapi belum ada yang jawab di ether3, jadi nggak dapat alamat dan nggak ada internet. Pasang hotspotnya dulu.',
-		portal:
-			'HPnya nyoba buka halaman dan malah nyampe di halaman login. Itu captive portal, nggak ada yang lewat tanpa voucher.',
-		badLogin:
-			'Username atau passwordnya salah. Cek voucher yang kamu bikin, terminal nampilin itu tepat setelah kamu nambahinnya.',
-		usedUp: 'Voucher itu udah habis jamnya. Bikin yang baru, kayak jual kopi lagi.',
-		voucher:
-			'Voucher kecetak. WiFi satu jam buat siapa aja yang pegang username dan password ini. Sekarang ambil HPnya dan sambungin ke WiFi kafe.',
-		otherLimit:
-			'Voucher dengan batas waktu lain, itu juga bisa. Kafe sering jual beberapa ukuran. Sekarang ambil HPnya dan sambungin ke WiFi kafe.',
-		noLimit:
-			'User itu nggak punya limit-uptime, jadi nggak bakal pernah habis. Oke buat karyawan, tapi nggak buat tamu. Tambahin <b>limit-uptime=1h</b>.',
-		online:
-			'Udah login, jamnya jalan. nimbus.com kebuka, dan router ngitung mundur satu jam vouchernya sendiri.',
-		onlineNoLimit:
-			'Udah login, tapi pakai voucher yang nggak pernah habis. Jalan sih, cuma tamunya bisa betah selamanya. Bikin juga yang pakai limit-uptime=1h.',
-		neverEnds: 'Sejam lewat dan sesinya masih jalan. Begitulah voucher tanpa batas.',
-		expired:
-			'Waktunya habis! Router nendang HPnya balik ke halaman login sendiri. Nggak perlu ada karyawan yang nyamperin buat matiin.',
-		active: 'Ini daftar tamu yang lagi online, lengkap dengan udah berapa lama dan sisa waktunya.',
-		noActive: 'Belum ada yang login. Login pakai HPnya dulu.',
+		users:
+			'Itu kopi42, limit-uptime 1h, dan uptime 1h. Jatah sejamnya udah habis, jadi kopi berikutnya berarti voucher baru. Begini cara banyak RT RW net jualan WiFi.',
+		active:
+			'Sekarang nggak ada yang online, jatah satu satunya tamu udah habis. Intip vouchernya pakai <b>/ip hotspot user print</b>.',
 		error:
-			'Yang itu RouterOS nggak ngerti. Cek lagi ejaannya, atau ketik <b>?</b> buat lihat yang ada. Tombol Bantu juga bisa ngetikin buat kamu.',
-		done: 'WiFi kafe jalan, lengkap dengan vouchernya. Sepanjang lab ini kamu udah ngatur alamat, NAT, firewall, queue yang adil, dan hotspot, jaringan kantor kecil beneran dari nol.'
+			'Yang itu RouterOS nggak ngerti. Cek lagi ejaannya, atau tekan sarannya dan lihat diketikin.'
 	},
-	missionsLabel: 'Misi',
-	missions: [
-		'Pasang hotspot di ether3',
-		'Bikin voucher satu jam',
-		'Login pakai HP tamu',
-		'Lihat siapa yang online'
+	steps: [
+		{
+			title: 'WiFi buat tamu',
+			body: 'Tamu butuh internet, tapi bukan jaringan kantor, dan bukan selamanya.'
+		},
+		{
+			tag: 'ether3',
+			title: 'Pintu terpisah',
+			body: 'Access point tamu punya port sendiri dan jaringan sendiri, <b>10.5.50.x</b>, pisah dari kantor.'
+		},
+		{
+			tag: 'captive portal',
+			title: 'Halaman login',
+			body: 'Tiap HP di WiFi tamu mendarat di halaman login dulu. Nggak login, nggak ada internet.'
+		},
+		{
+			tag: 'hotspot setup',
+			title: 'Satu wizard',
+			body: 'Wizardnya milih port, alamat buat tamu, dan nama halaman login, lalu bikin semuanya.'
+		},
+		{
+			tag: 'user',
+			title: 'Voucher',
+			body: '<b>User</b> hotspot itu voucher. <b>limit-uptime=1h</b> artinya berlaku buat satu jam online.'
+		},
+		{
+			tag: 'active',
+			title: 'Online',
+			body: 'Setelah login, tamu muncul di daftar <b>active</b> lengkap dengan sisa waktu vouchernya.'
+		},
+		{
+			title: 'Waktu habis',
+			body: 'Begitu jamnya habis, router ngeluarin tamu dan halaman login muncul lagi.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Tiket bioskop',
+			body: 'Nggak ada voucher, nggak ada WiFi. Waktu habis, balik ke halaman login.'
+		},
+		{
+			title: 'Dari kepingan lama',
+			body: 'Pool, DHCP server, dan aturan masquerade, kepingan yang sama dengan lab sebelumnya.'
+		},
+		{
+			title: 'Giliran kamu',
+			body: '<b>uptime</b> itu berapa lama voucher udah dipakai, <b>limit-uptime</b> itu berapa lama boleh dipakai.'
+		}
 	],
-	hintBtn: 'Bantu',
-	doneNote: 'WiFi kafe siap melayani',
 	ispLabel: 'ISP',
-	inputLabel: 'perintah',
-	termHint: '# ketik perintah RouterOS lalu tekan Enter',
-	hintUnknown: '# perintah itu nggak ada, ketik ? buat lihat menunya',
-	didYouMean: '# mungkin maksudnya {word}',
 	apLabel: 'WiFi tamu',
-	wifiName: 'Nimbus Cafe',
+	wifiName: 'nimbus cafe',
 	phone: {
-		joinBtn: 'Sambung ke WiFi {wifi}',
-		joining: 'Lagi nyambung',
-		noNet: 'Tersambung, tapi nggak ada internet',
-		retry: 'Coba lagi',
-		loginTitle: 'WiFi Nimbus Cafe',
-		loginSub: 'Ketik voucher dari struk kamu',
+		searching: 'Lagi nyari WiFi',
+		loginTitle: 'WiFi nimbus cafe',
+		loginSub: 'Ketik kode dari vouchermu',
 		user: 'Username',
 		pass: 'Password',
 		loginBtn: 'Masuk',
-		bad: 'Username atau password salah',
-		used: 'Waktu voucher ini udah habis',
-		welcome: 'Kamu online, {user}',
+		welcome: 'Hai {user}, kamu udah online',
 		left: 'Sisa waktu',
-		siteOk: 'nimbus.com kebuka lancar',
-		skip: 'Lompat satu jam',
-		expired: 'Waktumu habis. Mau kopi lagi?'
+		siteOk: 'nimbus.com kebuka',
+		expired: 'Jatah sejammu habis, ambil voucher baru ya'
 	},
-	hintIface: '# ether1 itu ISP dan ether2 kantor, access point tamu ada di ether3',
-	hintWizard: '# satu pertanyaan per baris, tekan Enter buat pakai nilai yang tampil',
-	hintNeeds: '# perintah ini masih butuh {keys}',
-	hintUptime: '# kasih tamu batas waktu, misalnya limit-uptime=1h',
-	hintNoActive: '# belum ada yang login',
-	hintNoHotspot: '# belum ada hotspot, jalankan /ip hotspot setup',
-	hintVoucher: '# voucher siap, username {user}, password {pass}'
+	inputLabel: 'perintah',
+	tryLabel: 'Coba ini',
+	termHint: '# giliran kamu, ketik perintahnya lalu tekan Enter',
+	hintTry: '# coba {cmd}',
+	didYouMean: '# mungkin maksudnya {word}',
+	hintSetup: '# wizardnya juga bikin pool, DHCP server, dan aturan masquerade',
+	hintVoucher: '# slip voucher, user kopi42, password 1234, satu jam'
 };

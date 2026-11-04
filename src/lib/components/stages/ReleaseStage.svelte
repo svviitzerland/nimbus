@@ -1,483 +1,585 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import Server from '$lib/components/Server.svelte';
-	import type { LessonText } from '$lib/chapters/types';
+	// A guided release lesson. Ten phones (the users) sit at the top, a load balancer in the
+	// middle, and two server racks at the bottom (v1 on the left, the new v2 on the right). Following
+	// Nim, v2 goes to everyone at once and every phone turns red, then a canary release sends v2 to
+	// one phone only, catches the bug, sends that user back, and grows the fixed v2.1 step by step.
+	// On the last beat the learner may release the buggy v2 either way and compare.
+	import { untrack } from 'svelte';
+	import Guide from '$lib/components/Guide.svelte';
+	import type { StageProps } from '$lib/chapters/types';
 	import type { ReleaseText } from '$lib/chapters/devops/release/types';
+	import { prefersReducedMotion, runSeq, type SeqStep } from './webguide/seq';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as ReleaseText);
 
-	const USERS = 20;
-	// canary users are picked spread out over the crowd, not the first row
-	const ORDER = [7, 14, 2, 18, 11, 4, 16, 0, 9, 19, 5, 12, 1, 17, 8, 3, 15, 10, 6, 13];
-	const STEPS = [0, 5, 25, 50, 100];
-
-	let mode = $state(0);
-	let timers: ReturnType<typeof setTimeout>[] = [];
-	const at = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
-
-	// all at once: three servers that each run v1 or v2
-	let fleet = $state<number[]>([1, 1, 1]);
-	let busy = $state(false);
-	// blue green: which environment takes the traffic
-	let onGreen = $state(false);
-	// canary: index into STEPS
-	let step = $state(0);
-
-	let flipBackDone = false;
-	let canaryBackDone = false;
-	let done = false;
-
-	const onV2 = $derived.by(() => {
-		const v2 = new Array(USERS).fill(false);
-		let k: number;
-		if (mode === 0) k = Math.round((USERS * fleet.filter((v) => v === 2).length) / fleet.length);
-		else if (mode === 1) k = onGreen ? USERS : 0;
-		else k = Math.round((USERS * STEPS[step]) / 100);
-		for (let i = 0; i < k; i++) v2[ORDER[i]] = true;
-		return v2;
+	$effect(() => {
+		untrack(() => {
+			onshow?.(true);
+			oncomplete?.();
+		});
 	});
-	const hurt = $derived(onV2.filter(Boolean).length);
 
-	function pick(i: number) {
-		if (busy) return;
-		mode = i;
+	let peek = $state<number | null>(null);
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
+	const last = $derived(tx.steps.length - 1);
+	const step = $derived(Math.max(0, Math.min(peek ?? beat, last)));
+
+	let reduce = $state(false);
+	$effect(() => {
+		reduce = prefersReducedMotion();
+	});
+
+	type Pick = 'bigbang' | 'canary';
+	const PHONES = Array.from({ length: 10 }, (_, k) => k);
+	const CANARY = 6;
+	const ORDER = [6, 2, 8, 0, 4, 9, 1, 5, 3, 7];
+
+	let onV2 = $state<boolean[]>(Array(10).fill(false));
+	let err = $state<boolean[]>(Array(10).fill(false));
+	let v2 = $state<'idle' | 'bad' | 'fixed'>('idle');
+	let bird = $state(false);
+	let pick = $state<Pick | null>(null);
+	let pickRun = $state(0);
+
+	const none = () => Array<boolean>(10).fill(false);
+	const allOn = () => Array<boolean>(10).fill(true);
+	const only = (k: number) => PHONES.map((j) => j === k);
+	const slice = (n: number) => PHONES.map((j) => ORDER.slice(0, n).includes(j));
+
+	function reset() {
+		onV2 = none();
+		err = none();
+		v2 = 'idle';
+		bird = false;
 	}
 
-	function deployAll() {
-		if (busy) return;
-		busy = true;
-		fleet.forEach((_, i) => at(250 * (i + 1), () => (fleet[i] = 2)));
-		at(900, () => {
-			busy = false;
-			onstate?.('bigbang');
-		});
+	function bigbang(loop: boolean): SeqStep[] {
+		const seq: SeqStep[] = [
+			[1400, reset],
+			[
+				1100,
+				() => {
+					onV2 = allOn();
+				}
+			],
+			[
+				2600,
+				() => {
+					err = allOn();
+					v2 = 'bad';
+				}
+			]
+		];
+		ORDER.forEach((k) =>
+			seq.push([
+				420,
+				() => {
+					onV2 = onV2.map((v, j) => (j === k ? false : v));
+					err = err.map((v, j) => (j === k ? false : v));
+				}
+			])
+		);
+		seq.push([loop ? 1600 : 0, () => (v2 = 'idle')]);
+		return seq;
 	}
-	function rollbackAll() {
-		if (busy) return;
-		busy = true;
-		// redeploying is slow, server by server, and users suffer the whole time
-		fleet.forEach((_, i) => at(1100 * (i + 1), () => (fleet[i] = 1)));
-		at(1100 * fleet.length + 200, () => {
-			busy = false;
-			onstate?.('slowBack');
-		});
+	function canary(): SeqStep[] {
+		return [
+			[1400, reset],
+			[
+				1700,
+				() => {
+					bird = true;
+					onV2 = only(CANARY);
+				}
+			],
+			[
+				2400,
+				() => {
+					err = only(CANARY);
+					v2 = 'bad';
+				}
+			],
+			[
+				1800,
+				() => {
+					onV2 = none();
+					err = none();
+				}
+			],
+			[0, () => (v2 = 'fixed')]
+		];
 	}
-	function flip() {
-		onGreen = !onGreen;
-		if (onGreen) onstate?.('flipped');
-		else {
-			flipBackDone = true;
-			finish('flipBack');
+
+	function play(s: number, still: boolean, p: Pick | null): (() => void) | undefined {
+		reset();
+		if (s === last && p) {
+			if (still) {
+				if (p === 'canary') {
+					bird = true;
+					v2 = 'fixed';
+				}
+				return;
+			}
+			return runSeq(p === 'bigbang' ? bigbang(false) : canary());
+		}
+		if (s === 1) {
+			if (still) {
+				onV2 = allOn();
+				err = allOn();
+				v2 = 'bad';
+				return;
+			}
+			return runSeq(bigbang(true), true);
+		}
+		if (s >= 2 && s <= 6) bird = true;
+		if (s === 2) {
+			onV2 = only(CANARY);
+			return;
+		}
+		if (s === 3) {
+			onV2 = only(CANARY);
+			if (still) {
+				err = only(CANARY);
+				v2 = 'bad';
+				return;
+			}
+			return runSeq(
+				[
+					[
+						1600,
+						() => {
+							onV2 = only(CANARY);
+							err = none();
+							v2 = 'idle';
+						}
+					],
+					[
+						3200,
+						() => {
+							err = only(CANARY);
+							v2 = 'bad';
+						}
+					]
+				],
+				true
+			);
+		}
+		if (s === 4) {
+			v2 = 'fixed';
+			if (still) return;
+			return runSeq(
+				[
+					[
+						1600,
+						() => {
+							onV2 = only(CANARY);
+							err = only(CANARY);
+							v2 = 'bad';
+						}
+					],
+					[
+						1600,
+						() => {
+							onV2 = none();
+							err = none();
+						}
+					],
+					[3200, () => (v2 = 'fixed')]
+				],
+				true
+			);
+		}
+		if (s === 5) {
+			v2 = 'fixed';
+			if (still) {
+				onV2 = slice(5);
+				return;
+			}
+			return runSeq(
+				[1, 3, 5, 10].map((n) => [n === 10 ? 3600 : 2000, () => (onV2 = slice(n))] as SeqStep),
+				true
+			);
+		}
+		if (s === 6) {
+			v2 = 'fixed';
+			onV2 = only(CANARY);
+			return;
+		}
+		if (s === 7) {
+			v2 = 'fixed';
+			onV2 = allOn();
 		}
 	}
-	function slide(v: number) {
-		const before = step;
-		step = v;
-		if (v === 0 && before > 0) {
-			canaryBackDone = true;
-			finish('canaryBack');
-		} else if (v > 0 && v !== before) onstate?.(STEPS[v] <= 5 ? 'canary' : 'canaryBig');
-	}
-	function finish(token: string) {
-		if (flipBackDone && canaryBackDone) {
-			onstate?.('both');
-			if (!done) {
-				done = true;
-				oncomplete?.();
-			}
-		} else onstate?.(token);
+
+	$effect(() => {
+		const s = step;
+		const still = reduce;
+		const p = pick;
+		void pickRun;
+		return untrack(() => play(s, still, p));
+	});
+
+	function choose(p: Pick) {
+		pick = p;
+		pickRun += 1;
+		onstate?.(p);
 	}
 
-	onDestroy(() => timers.forEach(clearTimeout));
+	const px = (k: number) => 22 + k * 42;
+	const hurt = $derived(err.filter(Boolean).length);
+	const anyV2 = $derived(onV2.some(Boolean));
+	const v2Name = $derived(v2 === 'fixed' ? 'v2.1' : 'v2');
 </script>
 
-{#snippet phone(bad: boolean, v2: boolean)}
-	<span class="user" class:bad class:v2>
-		<svg width="14" height="22" viewBox="0 0 14 22" aria-hidden="true">
-			<rect x="1" y="1" width="12" height="20" rx="3" class="case" />
-			{#if bad}
-				<path d="M4.5 8.5l5 5M9.5 8.5l-5 5" class="mark" />
-			{:else}
-				<path d="M4 11.5l2 2 4-4.5" class="mark" />
-			{/if}
-		</svg>
-	</span>
+{#snippet rack(x: number, name: string, cls: string, lit: boolean)}
+	<g class="rack {cls}" class:lit>
+		<text x={x + 50} y="194" text-anchor="middle" class="ver">{name}</text>
+		<rect {x} y="200" width="100" height="74" rx="9" class="shell" />
+		{#each [210, 232, 254] as y, n (y)}
+			<rect x={x + 8} {y} width="84" height="16" rx="3" class="unit" />
+			<circle
+				cx={x + 18}
+				cy={y + 8}
+				r="3"
+				class="led"
+				class:blink={cls === 'bad' && !reduce}
+				style="animation-delay:{n * 0.12}s"
+			/>
+			<line x1={x + 30} y1={y + 8} x2={x + 82} y2={y + 8} class="vent" />
+		{/each}
+	</g>
 {/snippet}
 
-<div class="wrap">
-	<div class="tabs" role="tablist">
-		{#each tx.modes as m, i (i)}
-			<button
-				type="button"
-				role="tab"
-				aria-selected={mode === i}
-				class:on={mode === i}
-				disabled={busy}
-				onclick={() => pick(i)}>{m}</button
-			>
-		{/each}
-	</div>
-
-	<!-- the controls for the chosen strategy -->
-	<div class="ctrl">
-		{#if mode === 0}
-			{#if fleet.every((v) => v === 1)}
-				<button type="button" class="cta" disabled={busy} onclick={deployAll}
-					>{tx.deployAllBtn}</button
-				>
-			{:else}
-				<button type="button" class="line" disabled={busy} onclick={rollbackAll}
-					>{busy ? tx.rollingBack : tx.rollbackBtn}</button
-				>
-			{/if}
-		{:else if mode === 1}
-			<button type="button" class={onGreen ? 'line' : 'cta'} onclick={flip}
-				>{onGreen ? tx.switchToBlue : tx.switchToGreen}</button
-			>
-		{:else}
-			<div class="canary">
-				<b>{tx.canaryLabel.replace('{n}', String(STEPS[step]))}</b>
-				<input
-					type="range"
-					min="0"
-					max={STEPS.length - 1}
-					step="1"
-					value={step}
-					aria-label={tx.canaryLabel.replace('{n}', String(STEPS[step]))}
-					oninput={(e) => slide(+(e.currentTarget as HTMLInputElement).value)}
-				/>
-				<div class="ticks" aria-hidden="true">
-					{#each STEPS as s (s)}<span class:on={STEPS[step] === s}>{s}%</span>{/each}
+{#snippet visual(i: number)}
+	<div class="vis">
+		{#if i === last}
+			<div class="pick" role="group" aria-label={tx.pickLabel}>
+				<span class="cap">{tx.pickLabel}</span>
+				<div class="chips">
+					<button
+						type="button"
+						class="chip"
+						class:on={pick === 'bigbang'}
+						onclick={() => choose('bigbang')}>{tx.bigbangBtn}</button
+					>
+					<button
+						type="button"
+						class="chip"
+						class:on={pick === 'canary'}
+						onclick={() => choose('canary')}>{tx.canaryBtn}</button
+					>
 				</div>
-				{#if step > 0}
-					<button type="button" class="line small" onclick={() => slide(0)}>{tx.canaryBack}</button>
-				{/if}
 			</div>
 		{/if}
-	</div>
 
-	<!-- the crowd of users -->
-	<div class="crowd">
-		{#each onV2 as v2, i (i)}
-			{@render phone(v2, v2)}
-		{/each}
-	</div>
-	<p class="status" class:bad={hurt > 0}>
-		{hurt > 0 ? tx.usersLabel.replace('{n}', String(hurt)) : tx.allOk}
-	</p>
-
-	<div class="lb">{tx.lbLabel}</div>
-
-	<!-- the servers behind it -->
-	{#if mode === 0}
-		<div class="fleet">
-			{#each fleet as v, i (i)}
-				<div class="srv" class:v2={v === 2}>
-					<Server active slots={2} />
-					<span class="ver">v{v}</span>
-				</div>
+		<svg viewBox="0 0 460 316" class="scene" role="img" aria-label="{tx.usersLabel}, {tx.lbLabel}">
+			<!-- wires, phone to load balancer, load balancer to each version -->
+			{#each PHONES as k (k)}
+				<line x1={px(k) + 13} y1="58" x2="230" y2="128" class="wire" class:v2={onV2[k]} />
 			{/each}
-		</div>
-	{:else if mode === 1}
-		<div class="envs">
-			<div class="env blue" class:live={!onGreen}>
-				<span class="ename">{tx.blueLabel}</span>
-				<div class="pair"><Server active slots={2} /><Server active slots={2} /></div>
-				{#if !onGreen}<span class="ltag">{tx.liveTag}</span>{/if}
-			</div>
-			<div class="env green" class:live={onGreen}>
-				<span class="ename">{tx.greenLabel}</span>
-				<div class="pair"><Server active slots={2} /><Server active slots={2} /></div>
-				{#if onGreen}<span class="ltag">{tx.liveTag}</span>{/if}
-			</div>
-		</div>
-	{:else}
-		<div class="envs">
-			<div class="env blue live">
-				<span class="ename">v1</span>
-				<div class="pair"><Server active slots={2} /><Server active slots={2} /></div>
-				<span class="share">{100 - STEPS[step]}%</span>
-			</div>
-			<div class="env canaryenv" class:live={step > 0}>
-				<span class="ename">v2</span>
-				<div class="pair"><Server active={step > 0} slots={2} /></div>
-				<span class="share">{STEPS[step]}%</span>
-			</div>
-		</div>
-	{/if}
+			<line x1="210" y1="158" x2="120" y2="198" class="wire" class:v1on={onV2.some((v) => !v)} />
+			<line x1="250" y1="158" x2="340" y2="198" class="wire" class:v2={anyV2} />
 
-	<p class="bug">{tx.bugNote}</p>
+			<!-- the phones -->
+			<g role="group" aria-label={tx.usersLabel}>
+				{#each PHONES as k (k)}
+					{@const x = px(k)}
+					<g class="phone" class:v2={onV2[k]} class:err={err[k]} class:fixed={v2 === 'fixed'}>
+						<rect {x} y="12" width="26" height="46" rx="5" class="body" />
+						<rect x={x + 3} y="17" width="20" height="33" rx="2" class="screen" />
+						{#if err[k]}
+							<text x={x + 13} y="38" text-anchor="middle" class="mark">!</text>
+						{:else}
+							<path d="M{x + 8} 33.5l3.5 3.5l7 -7" class="check" />
+						{/if}
+					</g>
+				{/each}
+			</g>
+
+			<!-- the load balancer -->
+			<rect x="170" y="128" width="120" height="30" rx="8" class="lb" />
+			<text x="230" y="147" text-anchor="middle" class="lb-t">{tx.lbLabel}</text>
+
+			<!-- the two versions -->
+			{@render rack(
+				70,
+				'v1',
+				'old',
+				onV2.some((v) => !v)
+			)}
+			{@render rack(290, v2Name, v2, anyV2)}
+
+			<!-- the canary, perched on v2 -->
+			{#if bird}
+				<g class="bird" class:still={reduce}>
+					<path d="M360 192l-9 3l8 2Z" class="tail" />
+					<ellipse cx="370" cy="191" rx="10" ry="7" class="b" />
+					<circle cx="380" cy="183" r="5.5" class="b" />
+					<path d="M385 182l5 1.5l-5 1.5Z" class="beak" />
+					<circle cx="381.5" cy="181.5" r="1.1" class="eye" />
+				</g>
+			{/if}
+
+			<!-- how many users are hurting -->
+			<text x="230" y="296" text-anchor="middle" class="count" class:bad={hurt > 0}>
+				{hurt > 0 ? tx.errors.replace('{n}', String(hurt)) : tx.allOk}
+			</text>
+			{#if i === 6}
+				<text x="230" y="313" text-anchor="middle" class="rule">{tx.rule}</text>
+			{/if}
+		</svg>
+	</div>
+{/snippet}
+
+<div class="stage">
+	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
 </div>
 
 <style>
-	.wrap {
+	.stage {
 		display: flex;
-		width: min(94vw, 400px);
+		width: 100%;
+		max-height: 100%;
+		justify-content: center;
+		overflow-x: hidden;
+		overflow-y: auto;
+		padding-bottom: 8px;
+	}
+	@media (max-width: 767px) {
+		.stage {
+			padding-bottom: 7rem;
+		}
+	}
+	.vis {
+		display: flex;
+		width: 100%;
 		flex-direction: column;
 		align-items: center;
 		gap: 10px;
 	}
-	.tabs {
-		display: flex;
-		gap: 3px;
-		border-radius: 12px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 3px;
-	}
-	.tabs button {
-		border-radius: 9px;
-		padding: 6px 12px;
-		font-size: 12px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	.tabs button.on {
-		background: var(--color-ink);
-		color: var(--color-paper);
-	}
-	.tabs button:disabled:not(.on) {
-		opacity: 0.45;
-	}
-	.ctrl {
-		display: flex;
-		min-height: 40px;
+	.scene {
 		width: 100%;
-		justify-content: center;
+		max-width: 460px;
+		height: auto;
+		overflow: visible;
 	}
-	.cta {
-		border-radius: 11px;
-		background: var(--color-ink);
-		color: var(--color-paper);
-		padding: 9px 18px;
-		font-size: 12.5px;
-		font-weight: 700;
-	}
-	.line {
-		border-radius: 11px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		color: var(--color-ink);
-		padding: 8px 16px;
-		font-size: 12.5px;
-		font-weight: 700;
-	}
-	.line.small {
-		padding: 5px 12px;
-		font-size: 11.5px;
-	}
-	.cta:disabled,
-	.line:disabled {
-		opacity: 0.6;
-	}
-	.canary {
+	.pick {
 		display: flex;
-		width: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 4px;
+		gap: 6px;
 	}
-	.canary b {
-		font-size: 13px;
-		color: var(--color-ink);
-	}
-	.canary input {
-		width: 100%;
-		accent-color: var(--color-amber);
-	}
-	.ticks {
-		display: flex;
-		width: 100%;
-		justify-content: space-between;
-		font-size: 9.5px;
+	.cap {
+		font-size: 11px;
 		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
 		color: var(--color-faint);
 	}
-	.ticks .on {
-		color: var(--color-amber);
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 6px;
+	}
+	.chip {
+		border: 1px solid var(--color-line);
+		border-radius: 999px;
+		background: var(--color-card);
+		padding: 6px 14px;
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--color-brand);
+		transition:
+			border-color 0.2s,
+			background 0.2s;
+	}
+	.chip:hover,
+	.chip.on {
+		border-color: var(--color-brand);
+		background: var(--color-brand-soft);
 	}
 
-	.crowd {
-		display: grid;
-		grid-template-columns: repeat(10, 1fr);
-		gap: 5px 6px;
+	.wire {
+		stroke: var(--color-line);
+		stroke-width: 1.6;
+		transition: stroke 0.4s;
 	}
-	.user {
-		display: flex;
-		justify-content: center;
+	.wire.v1on {
+		stroke: color-mix(in srgb, var(--color-grass) 55%, var(--color-line));
 	}
-	.case {
+	.wire.v2 {
+		stroke: var(--color-amber);
+		stroke-width: 2;
+	}
+
+	.body {
 		fill: var(--color-card);
-		stroke: var(--color-grass);
-		stroke-width: 1.5;
-		transition: stroke 0.3s ease;
+		stroke: var(--color-ink);
+		stroke-opacity: 0.35;
+		stroke-width: 1.4;
 	}
-	.mark {
+	.screen {
+		fill: var(--color-grass-soft);
+		transition: fill 0.4s;
+	}
+	.check {
 		fill: none;
 		stroke: var(--color-grass);
-		stroke-width: 1.6;
+		stroke-width: 2;
 		stroke-linecap: round;
 		stroke-linejoin: round;
 	}
-	.user.bad .case {
+	.phone.v2 .screen {
+		fill: var(--color-amber-soft);
+	}
+	.phone.v2 .check {
+		stroke: var(--color-amber);
+	}
+	.phone.v2.fixed .screen {
+		fill: var(--color-brand-soft);
+	}
+	.phone.v2.fixed .check {
+		stroke: var(--color-brand);
+	}
+	.phone.err .screen {
 		fill: var(--color-danger-soft);
+	}
+	.phone.err .body {
 		stroke: var(--color-danger);
+		stroke-opacity: 1;
 	}
-	.user.bad .mark {
-		stroke: var(--color-danger);
-	}
-	.user.bad {
-		animation: shake 0.4s ease;
-	}
-	@keyframes shake {
-		25% {
-			transform: translateX(-2px);
-		}
-		75% {
-			transform: translateX(2px);
-		}
-	}
-	.status {
-		margin: 0;
-		font-size: 12px;
+	.mark {
+		font-size: 17px;
 		font-weight: 800;
-		color: var(--color-grass);
-	}
-	.status.bad {
-		color: var(--color-danger);
-	}
-	.lb {
-		border-radius: 10px;
-		border: 1.5px solid var(--color-brand);
-		background: var(--color-brand-soft);
-		padding: 5px 14px;
-		font-size: 11.5px;
-		font-weight: 800;
-		color: var(--color-brand);
+		fill: var(--color-danger);
 	}
 
-	.fleet {
-		display: flex;
-		gap: 12px;
+	.lb {
+		fill: var(--color-card);
+		stroke: var(--color-brand);
+		stroke-width: 1.6;
 	}
-	.srv {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 3px;
+	.lb-t {
+		font-size: 11px;
+		font-weight: 700;
+		fill: var(--color-brand);
 	}
-	.srv :global(.server),
-	.pair :global(.server) {
-		width: 46px;
-		gap: 4px;
-		padding: 5px;
-		border-radius: 8px;
-		transition: border-color 0.3s ease;
+
+	.shell {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+		transition:
+			stroke 0.4s,
+			fill 0.4s;
 	}
-	.srv :global(.server .slot),
-	.pair :global(.server .slot) {
-		height: 8px;
+	.unit {
+		fill: var(--color-paper);
+		stroke: var(--color-line);
+	}
+	.vent {
+		stroke: var(--color-line);
+		stroke-width: 2;
+		stroke-linecap: round;
+	}
+	.led {
+		fill: var(--color-faint);
+		transition: fill 0.4s;
+	}
+	.rack.lit .led {
+		fill: var(--color-grass);
 	}
 	.ver {
-		border-radius: 6px;
-		background: var(--color-paper);
-		padding: 0 7px;
-		font-size: 10px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 14px;
 		font-weight: 800;
-		color: var(--color-muted);
+		fill: var(--color-muted);
 	}
-	.srv.v2 :global(.server) {
-		border-color: var(--color-danger);
+	.rack.old.lit .shell {
+		stroke: var(--color-grass);
 	}
-	.srv.v2 .ver {
-		background: var(--color-danger);
-		color: #fff;
+	.rack.idle.lit .shell {
+		stroke: var(--color-amber);
 	}
-	.envs {
-		display: flex;
-		gap: 10px;
+	.rack.fixed .ver {
+		fill: var(--color-brand);
 	}
-	.env {
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 5px;
-		border-radius: 13px;
-		border: 1.5px solid var(--color-line);
-		background: var(--color-card);
-		padding: 7px 10px 8px;
-		opacity: 0.55;
-		transition:
-			opacity 0.3s ease,
-			border-color 0.3s ease;
+	.rack.fixed.lit .shell {
+		stroke: var(--color-brand);
 	}
-	.env.live {
-		opacity: 1;
+	.rack.bad .shell {
+		stroke: var(--color-danger);
+		fill: var(--color-danger-soft);
 	}
-	.env.blue.live {
-		border-color: var(--color-brand);
+	.rack.bad .led {
+		fill: var(--color-danger);
 	}
-	.env.green.live {
-		border-color: var(--color-grass);
+	.rack.bad .ver {
+		fill: var(--color-danger);
 	}
-	.env.canaryenv.live {
-		border-color: var(--color-amber);
+	.led.blink {
+		animation: blink 0.5s ease-in-out infinite alternate;
 	}
-	.ename {
+	@keyframes blink {
+		to {
+			opacity: 0.3;
+		}
+	}
+
+	.bird {
+		transform-box: fill-box;
+		transform-origin: center bottom;
+		animation: bob 2.4s ease-in-out infinite;
+	}
+	.bird.still {
+		animation: none;
+	}
+	@keyframes bob {
+		50% {
+			transform: translateY(-2px) rotate(-4deg);
+		}
+	}
+	.b,
+	.tail {
+		fill: var(--color-amber);
+	}
+	.beak {
+		fill: var(--color-danger);
+	}
+	.eye {
+		fill: var(--color-ink);
+	}
+
+	.count {
+		font-size: 12.5px;
+		font-weight: 800;
+		fill: var(--color-grass);
+	}
+	.count.bad {
+		fill: var(--color-danger);
+	}
+	.rule {
 		font-size: 11px;
-		font-weight: 800;
-		color: var(--color-ink);
-	}
-	.env.blue .ename {
-		color: var(--color-brand);
-	}
-	.env.green .ename {
-		color: var(--color-grass);
-	}
-	.pair {
-		display: flex;
-		gap: 5px;
-	}
-	.ltag,
-	.share {
-		position: absolute;
-		top: -9px;
-		right: -6px;
-		border-radius: 999px;
-		background: var(--color-ink);
-		padding: 1px 7px;
-		font-size: 9.5px;
-		font-weight: 800;
-		color: var(--color-paper);
-	}
-	.bug {
-		margin: 0;
-		font-size: 11px;
-		font-weight: 600;
-		color: var(--color-faint);
+		font-weight: 700;
+		fill: var(--color-brand);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.user.bad {
+		.chip,
+		.wire,
+		.screen,
+		.shell,
+		.led {
+			transition: none;
+		}
+		.led.blink,
+		.bird {
 			animation: none;
-		}
-	}
-	@media (min-width: 768px) {
-		.wrap {
-			width: 460px;
-			gap: 12px;
-		}
-		.crowd {
-			gap: 7px 10px;
-		}
-		.status {
-			font-size: 13px;
 		}
 	}
 </style>

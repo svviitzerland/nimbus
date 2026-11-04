@@ -1,33 +1,54 @@
 import type { LessonText } from '../../types';
 
-/** The ingredients a prompt can gain. Each one fixes exactly one wish. */
-export type Ingredient = 'task' | 'audience' | 'format' | 'example';
+/** The four ingredients of a good prompt, in the order the story adds them. */
+export type PromptKey = 'task' | 'context' | 'format' | 'example';
+
+export interface PromptingPanel {
+	tag?: string;
+	title: string;
+	/** May hold simple HTML like <b>. */
+	body: string;
+}
+
+export interface PromptIngredient {
+	/** Small tag shown next to the line in the prompt. */
+	chip: string;
+	/** The sentence this ingredient adds to the prompt. */
+	line: string;
+	/** The question the AI is left wondering about while this ingredient is missing. */
+	question: string;
+}
 
 export interface PromptingText extends LessonText {
-	goalTitle: string; // heading of the card with what you really want
-	goal: string; // the wish in your head that the AI cannot see
-	/** Short checklist label for each wish, one per ingredient. */
-	wishes: Record<Ingredient, string>;
-	/** The tappable chip and the line it adds to the prompt. */
-	ingredients: Record<Ingredient, { chip: string; line: string }>;
-	basePrompt: string; // the vague first prompt, replaced by the task line once added
-	promptLabel: string; // caption over the prompt box
-	addHint: string; // nudge under the chips
-	sendBtn: string;
-	you: string; // label on your chat bubble
-	ai: string; // label on the AI's chat bubble
-	score: string; // template with {n}, how many of the 4 wishes the answer met
-	/** Pieces the pretend AI glues into its answer, depending on what the prompt said. */
+	/** One panel per scene of the guided visual (eight scenes). */
+	panels: PromptingPanel[];
+	/** Alt text for the whole picture. */
+	picture: string;
+	appTitle: string;
+	you: string;
+	ai: string;
+	/** The first, vague prompt. */
+	basePrompt: string;
+	ingredients: Record<PromptKey, PromptIngredient>;
+	/** Pieces the AI's caption is built from, depending on which ingredients are in the prompt. */
 	answer: {
 		openVague: string;
 		openTask: string;
-		openAudience: string;
+		openContext: string;
+		openStyle: string;
 		bodyVague: string;
 		bodyTask: string;
-		ramble: string; // the long extra sentence it adds when nobody asked for short
-		signoff: string; // the house style, only learned from the example
+		bodyContext: string;
+		ramble: string;
+		signoff: string;
 		tagsVague: string;
 		tagsMany: string;
 		tagsOne: string;
 	};
+	/** Stamp on the answer, from worst to best. */
+	grades: [vague: string, better: string, spotOn: string];
+	/** The rule of thumb shown on the remember scene. */
+	rule: string;
+	/** Hint over the prompt on the optional last scene. */
+	tryHint: string;
 }

@@ -6,16 +6,20 @@ import { en } from './en';
 export const onCall: Lesson = {
 	id: 'on-call',
 	mood: 'thinking',
-	moods: ['calm', 'worried', 'idea', 'thinking', 'wink', 'surprised'],
+	moods: [
+		'calm',
+		'worried',
+		'thinking',
+		'idea',
+		'thinking',
+		'happy',
+		'wink',
+		'idea',
+		'calm',
+		'wink'
+	],
 	reactionMood: {
-		ack: 'happy',
-		panic: 'worried',
-		dash: 'thinking',
-		change: 'idea',
-		rollback: 'excited',
-		resolved: 'happy',
-		blame: 'sad',
-		postmortem: 'excited'
+		panic: 'worried'
 	},
 	stage: OnCallStage,
 	text: { id, en }

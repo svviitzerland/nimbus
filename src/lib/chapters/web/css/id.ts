@@ -3,37 +3,62 @@ import type { CssText } from './types';
 export const id: CssText = {
 	title: 'Apa itu CSS',
 	intro: [
-		'Masih ingat halaman nimbus.com yang kamu bangun pakai [[HTML|web/html]]? Ada judul, paragraf, tombol, dan Nim. Halamannya jalan, tapi tampilannya kayak formulir sekolah tahun 1995, huruf hitam di atas putih polos.',
-		'Soalnya HTML cuma bilang tiap bagian itu apa. Soal tampilannya itu urusan lain, dan itu tugasnya <b>CSS</b> (singkatan dari Cascading Style Sheets). Kalau HTML itu kerangka, CSS itu bajunya.',
-		'CSS itu daftar aturan kecil. Tiap aturan pertama milih sesuatu di halaman pakai <b>selector</b>, misalnya <b>h1</b> buat semua judul, lalu nulis apa yang mau diubah di dalam kurung kurawal.',
-		'Tiap baris di dalam aturan itu pasangan <b>property</b> dan <b>value</b>. Di <b>color tomato</b>, color itu property dan tomato itu value. Warna, huruf, jarak, dan tata letak semuanya bekerja dengan cara yang sama, satu baris demi satu baris.',
-		'[fyi] Kata cascading artinya aturan bisa bertumpuk. Kalau dua aturan nggak sepakat, yang lebih spesifik menang, dan kalau sama spesifiknya, yang ditulis belakangan yang menang. Makanya satu baris tambahan bisa mengubah satu halaman penuh.',
-		'Giliran kamu! Stylesheet nimbus.com sudah punya beberapa value yang polos. Ganti satu baris tiap kali, dengan mengetik atau memencet value, dan lihat halamannya mulai dandan.'
+		'Masih ingat halaman nimbus.com yang kamu bangun pakai [[HTML|web/html]]? Ada judul, paragraf, tombol, dan Nim. Halamannya jalan, tapi polos banget, huruf hitam di atas putih, kayak formulir sekolah tahun 1995.',
+		'Soalnya HTML cuma bilang tiap bagian itu apa. Soal tampilannya itu tugas lain, punyanya <b>CSS</b> (singkatan dari Cascading Style Sheets). Kalau HTML itu kerangka, CSS itu bajunya. Lihat, Nim mulai nulis satu aturan.',
+		'Di dalam kurung kurawal ada perintah kecil, masing masing pasangan <b>property</b> dan <b>value</b>. Di sini propertynya background dan valuenya biru muda. Satu baris, dan seluruh halaman berubah.',
+		'Sekarang aturan yang cuma milih <b>h1</b>, si judul. Warnanya jadi merah tomat, dan bagian lain nggak bergeser sedikit pun. Bagian sebelum kurung, namanya <b>selector</b>, yang menentukan siapa yang kena.',
+		'Balik ke body, satu baris lagi mengganti huruf. Semua teks ikut ganti sekaligus, karena tag di dalam body meminjam hurufnya dari body. Pinjam meminjam ini namanya <b>inheritance</b> (pewarisan).',
+		'Tombolnya dapat aturan sendiri, warna, tanpa garis tepi, sudut bulat, dan sedikit padding (ruang di dalam kotak). Semua tombol yang pernah kamu pencet di aplikasi dibentuk pakai baris kayak gini.',
+		'[fyi] Kata cascading artinya aturan bisa bertumpuk. Nim menambah aturan h1 kedua di bawah, dan judulnya jadi biru. Kalau dua aturan sama spesifiknya, yang ditulis belakangan yang menang.',
+		'[ingat] Baca tiap aturan kayak kalimat pendek. Selector itu <b>siapa</b>, property itu <b>apa</b>, value itu <b>gimana</b>. Jadi h1, color, tomato artinya si judul, warnanya, merah tomat. Siapa, apa, gimana.',
+		'HTML nya sama terus dari tadi, cuma bajunya yang ganti. Kalau mau, pencet salah satu warna di bawah kode dan lihat judulnya ikut. Berikutnya, tombol itu belajar ngapa ngapain pakai [[JavaScript|web/js]].'
 	],
 	reactions: {
-		background:
-			'Satu halaman ganti warna cuma dengan satu baris. Aturannya milih <b>body</b>, tag yang membungkus semua yang kamu lihat, jadi warna latarnya menyebar ke seluruh halaman.',
 		color:
-			'Sekarang judulnya punya warna sendiri. Cuma <b>h1</b> yang berubah, karena selectornya cuma milih tag itu. Paragrafnya tetap sama persis.',
-		font: 'Huruf baru, dan semua teks ikut ganti sekaligus. Tag di dalam <b>body</b> meminjam hurufnya dari body (namanya pewarisan atau inheritance), jadi kamu cukup nulis sekali.',
-		button:
-			'Sudutnya jadi lembut! <b>border-radius</b> membulatkan ujung sebuah kotak. Tombol, kartu, dan foto profil di semua aplikasi yang kamu pakai dibentuk pakai baris kayak gini.',
-		typo: 'Hmm, ada satu baris yang dilewati browser. CSS nggak pernah protes kalau ada salah ketik, dia diam diam mengabaikan baris itu. Jadi kalau halamannya nggak mau berubah, cari typo dulu.',
-		center:
-			'[fyi] <b>text-align</b> menaruh teks di tengah kotaknya. Mengatur kotak kotak ini bagian terbesar dari CSS, dan nanti kamu bakal lihat halaman menyusun ulang dirinya buat HP di [[desain responsif|web/responsive]].',
-		done: 'HTML yang sama, tampilan yang beda total. Begitulah pembagiannya, HTML bilang sesuatu itu apa dan CSS bilang tampilannya gimana. Berikutnya, yuk bikin tombol itu beneran ngapa ngapain pakai [[JavaScript|web/js]].'
+			'Lihat, cuma aturan h1 terakhir yang berubah, dan judulnya langsung ikut. Itu cascade lagi kerja, aturan yang belakangan tetap menang.'
 	},
-	missionsLabel: 'Dandani nimbus.com',
-	missions: {
-		background: 'Warnai latar halaman',
-		color: 'Kasih warna ke judul',
-		font: 'Pilih huruf baru',
-		button: 'Bulatkan sudut tombol'
-	},
-	tryLabel: 'Pencet value buat mencobanya',
-	extraLabel: 'Sedikit tambahan',
+	steps: [
+		{
+			tag: 'index.html',
+			title: 'Cuma HTML',
+			body: 'Halamannya punya struktur tapi belum punya gaya, jadi browser pakai tampilan bawaannya yang polos.'
+		},
+		{
+			title: 'Aturan dimulai',
+			body: '<b>body</b> memilih tag yang membungkus semua yang kamu lihat. Kurung kurawal nanti berisi apa yang mau diubah.'
+		},
+		{
+			title: 'Property dan value',
+			body: '<b>background</b> itu propertynya, biru muda itu valuenya. Tiap baris ditutup titik koma.'
+		},
+		{
+			title: 'Selector',
+			body: 'Aturan cuma menyentuh apa yang dipilih selectornya. <b>h1</b> artinya judul utama, nggak lebih.'
+		},
+		{
+			title: 'Inheritance',
+			body: 'Gaya teks mengalir dari induk ke semua isinya, jadi satu baris huruf di body sudah mencakup seluruh halaman.'
+		},
+		{
+			title: 'Membentuk kotak',
+			body: 'Tiap elemen itu kotak. <b>padding</b> itu ruang di dalamnya dan <b>border-radius</b> membulatkan sudutnya.'
+		},
+		{
+			title: 'Cascade',
+			body: 'Dua aturan h1 beda pendapat soal warna. Sama spesifiknya, jadi yang posisinya lebih bawah yang menang.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Siapa, apa, gimana',
+			body: '<b>h1</b> itu siapa, <b>color</b> itu apa, <b>tomato</b> itu gimana. Semua baris CSS yang bakal kamu baca ikut pola ini.'
+		},
+		{
+			title: 'Stylesheet kamu',
+			body: 'Pencet satu warna buat menulis ulang aturan h1 terakhir. Halamannya berubah begitu barisnya selesai ditulis.'
+		}
+	],
+	comment: 'gaya buat nimbus.com',
 	cssLabel: 'style.css',
-	htmlLabel: 'index.html',
 	previewLabel: 'nimbus.com',
 	page: {
 		heading: 'Selamat datang di Nimbus',
@@ -41,8 +66,5 @@ export const id: CssText = {
 		button: 'Mulai sekarang',
 		alt: 'Nim si awan'
 	},
-	starterComment: 'Ganti satu value, lalu lihat halamannya',
-	typoHint: 'Browser melewati "{line}" karena dia nggak mengenalnya',
-	allDone: 'Empat misi beres, nimbus.com jadi keren',
-	reset: 'Ulang dari awal'
+	tryLabel: 'Pilih warna judul'
 };

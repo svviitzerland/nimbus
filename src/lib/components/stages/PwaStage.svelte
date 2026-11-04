@@ -1,542 +1,657 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
-	import ActSteps from './shipit/ActSteps.svelte';
-	import type { LessonText } from '$lib/chapters/types';
+	// A guided "watch" stage. One phone, the nimbus.com server, and the internet line between
+	// them. The beats play the story by themselves, a plain site loads, the internet drops and it
+	// fails, a manifest appears and the phone offers to install, a service worker fills the cache,
+	// the icon lands on the home screen, and the app opens with no internet. The only optional
+	// play is an internet switch on the last beat.
+	import Guide from '$lib/components/Guide.svelte';
+	import type { StageProps } from '$lib/chapters/types';
 	import type { PwaText } from '$lib/chapters/web/pwa/types';
+	import { sceneClock, wrap } from './webship/clock.svelte';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as PwaText);
 
-	// step 0 plain site, 1 add the PWA pieces, 2 install, 3 offline test, 4 done
-	let step = $state(0);
+	type Scene =
+		| 'plain'
+		| 'offline'
+		| 'pwa'
+		| 'manifest'
+		| 'worker'
+		| 'install'
+		| 'offlineApp'
+		| 'remember'
+		| 'try';
+	const SCENES: Scene[] = [
+		'plain',
+		'offline',
+		'pwa',
+		'manifest',
+		'worker',
+		'install',
+		'offlineApp',
+		'remember',
+		'try'
+	];
+	const SCENE_OF_BEAT = [0, 1, 2, 3, 4, 5, 6, 7, 7, 8];
+	type Screen = 'site' | 'noNet' | 'home' | 'app';
+
+	let peek = $state<number | null>(null);
 	let online = $state(true);
-	let manifest = $state(false);
-	let worker = $state(false);
-	let view = $state<'browser' | 'home' | 'app'>('browser');
-	let cached = $state(0); // how many files the service worker has saved so far
-	let completed = false;
-	let timers: ReturnType<typeof setTimeout>[] = [];
 
-	const files = ['index.html', 'style.css', 'app.js', 'logo.svg'];
-	const doneSteps = $derived([step > 0, step > 1, step > 2, step > 3]);
+	const fromBeat = $derived(SCENE_OF_BEAT[Math.min(beat, SCENE_OF_BEAT.length - 1)]);
+	const active = $derived(peek ?? fromBeat);
+	const scene = $derived(SCENES[active]);
+	const clock = sceneClock(() => [scene, online]);
+	const t = $derived(clock.t);
 
-	function reduced() {
-		return (
-			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
-		);
-	}
-
-	function plainOff() {
-		online = false;
-		onstate?.('plainOffline');
-	}
-	function plainOn() {
-		online = true;
-		step = 1;
-	}
-	function addManifest() {
-		manifest = true;
-		onstate?.('manifest');
-		if (worker) step = 2;
-	}
-	function addWorker() {
-		worker = true;
-		onstate?.('worker');
-		const gap = reduced() ? 60 : 380;
-		files.forEach((_, i) => timers.push(setTimeout(() => (cached = i + 1), gap * (i + 1))));
-		if (manifest) step = 2;
-	}
-	function install() {
-		view = 'home';
-		step = 3;
-		onstate?.('installed');
-	}
-	function cutAgain() {
-		online = false;
-	}
-	function openApp() {
-		view = 'app';
-		step = 4;
-		onstate?.('offlineApp');
-		if (!completed) {
-			completed = true;
-			oncomplete?.();
-		}
-	}
-
-	const note = $derived.by(() => {
-		if (step === 0) return online ? tx.notes.plain : tx.notes.plainOffline;
-		if (step === 1) return tx.notes.addPieces;
-		if (step === 2) return tx.notes.install;
-		if (step === 3) return online ? tx.notes.goOffline : tx.notes.openApp;
-		return tx.notes.done;
+	$effect(() => {
+		onshow?.(true);
+		oncomplete?.();
 	});
-	const plainBroken = $derived(step === 0 && !online);
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
 
-	onDestroy(() => timers.forEach(clearTimeout));
+	const net = $derived(
+		scene === 'offline'
+			? t < 1800
+			: scene === 'offlineApp' || scene === 'remember'
+				? false
+				: scene === 'try'
+					? online
+					: true
+	);
+	const screen = $derived<Screen>(
+		scene === 'plain' || scene === 'manifest' || scene === 'worker'
+			? 'site'
+			: scene === 'offline'
+				? net
+					? 'site'
+					: 'noNet'
+				: scene === 'pwa'
+					? 'home'
+					: scene === 'install'
+						? t < 1600
+							? 'site'
+							: 'home'
+						: scene === 'offlineApp'
+							? t < 1500
+								? 'home'
+								: 'app'
+							: 'app'
+	);
+	const banner = $derived((scene === 'manifest' && t > 2200) || (scene === 'install' && t < 1600));
+	const pressed = $derived(scene === 'install' && t > 800 && t < 1600);
+	const iconOn = $derived(active >= 5 || scene === 'pwa');
+	const tapIcon = $derived(scene === 'offlineApp' && screen === 'home' && t > 700);
+
+	// pieces appear once the story has introduced them
+	const hasManifest = $derived(active >= 3 && scene !== 'try');
+	const hasWorker = $derived(active >= 4);
+	const manifestLines = $derived(
+		scene === 'manifest' ? Math.max(0, Math.min(5, Math.floor((t - 300) / 350) + 1)) : 5
+	);
+	const cached = $derived(
+		scene === 'worker' ? Math.max(0, Math.min(3, Math.floor((t - 400) / 800))) : active > 4 ? 3 : 0
+	);
+	const fromCache = $derived(screen === 'app' && !net);
+	const flowing = $derived(net && !clock.reduced && (screen === 'site' || screen === 'app'));
+
+	const LIT: Record<Scene, string[]> = {
+		plain: ['server', 'phone'],
+		offline: ['server', 'phone'],
+		pwa: ['phone'],
+		manifest: ['manifest', 'phone'],
+		worker: ['worker', 'cache', 'server', 'phone'],
+		install: ['phone', 'manifest'],
+		offlineApp: ['phone', 'worker', 'cache'],
+		remember: ['manifest', 'worker', 'cache', 'phone'],
+		try: ['phone', 'worker', 'cache', 'server']
+	};
+	const lit = (k: string) => LIT[scene].includes(k);
+
+	const MANIFEST = ['{', '"name": "nimbus",', '"icons": [...],', '"theme_color": ...', '}'];
+	const FILES = [
+		{ x: 22, label: 'html' },
+		{ x: 50, label: 'css' },
+		{ x: 78, label: 'png' }
+	];
+	const APPS = Array.from({ length: 11 }, (_, k) => k);
+
+	function toggle() {
+		online = !online;
+		onstate?.(online ? 'online' : 'offline');
+	}
 </script>
 
-{#snippet cloud(w: number)}
-	<svg width={w} height={(w * 2) / 3} viewBox="0 0 120 80" aria-hidden="true">
-		<path
-			d="M30 70a22 22 0 0 1-3-43.8A28 28 0 0 1 81 20a20 20 0 0 1 11 50z"
-			fill="var(--color-brand)"
-		/>
-		<circle cx="50" cy="44" r="5" fill="#fff" />
-		<circle cx="72" cy="44" r="5" fill="#fff" />
-		<path d="M53 56q8 6 16 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" />
-	</svg>
-{/snippet}
-
-{#snippet site()}
-	<div class="site">
-		{@render cloud(44)}
-		<b>nimbus.com</b>
-		<span>{tx.pageTagline}</span>
-		<i class="ln"></i>
-		<i class="ln short"></i>
-	</div>
-{/snippet}
-
-<div class="wrap">
-	<ActSteps names={tx.steps} current={Math.min(step, 3)} done={doneSteps} />
-
-	<!-- the one or two actions for this step -->
-	<div class="btns">
-		{#if step === 0}
-			{#if online}
-				<CallToActionButton onclick={plainOff}>
-					{tx.offBtn}
-				</CallToActionButton>
-			{:else}
-				<CallToActionButton onclick={plainOn}>
-					{tx.onBtn}
-				</CallToActionButton>
-			{/if}
-		{:else if step === 1}
-			<button type="button" class="piece" disabled={manifest} onclick={addManifest}>
-				{manifest ? '✓ ' : ''}{tx.manifestBtn}
+{#snippet picture(_i: number)}
+	<div class="visual">
+		{#if scene === 'try'}
+			<button type="button" class="act" onclick={toggle}>
+				{online ? tx.offBtn : tx.onBtn}
 			</button>
-			<button type="button" class="piece" disabled={worker} onclick={addWorker}>
-				{worker ? '✓ ' : ''}{tx.workerBtn}
-			</button>
-		{:else if step === 2}
-			<CallToActionButton onclick={install}>
-				{tx.installBtn}
-			</CallToActionButton>
-		{:else if step === 3}
-			{#if online}
-				<CallToActionButton onclick={cutAgain}>
-					{tx.offAgainBtn}
-				</CallToActionButton>
-			{:else}
-				<CallToActionButton onclick={openApp}>
-					{tx.openAppBtn}
-				</CallToActionButton>
+		{/if}
+		<svg viewBox="0 0 360 330" class="pic" role="img" aria-label={tx.picture}>
+			<!-- the internet line from the server to the phone -->
+			<path d="M306 104 V146 H240" class="wire" class:off={!net} />
+			{#if !net}
+				<path d="M300 118 l12 12 M312 118 l-12 12" class="cut" />
 			{/if}
+			{#if flowing}
+				{#each [0, 1, 2] as k (k)}
+					<circle r="3" class="data">
+						<animateMotion
+							dur="1.8s"
+							begin="{k * 0.6}s"
+							repeatCount="indefinite"
+							path="M306 104 V146 H240"
+						/>
+					</circle>
+				{/each}
+			{/if}
+
+			<!-- server -->
+			<g class="part" class:dim={!lit('server')}>
+				<text x="306" y="18" text-anchor="middle" class="label">{tx.serverLabel}</text>
+				<rect x="270" y="26" width="72" height="78" rx="9" class="rack" />
+				{#each [34, 56, 78] as y (y)}
+					<rect x="277" {y} width="58" height="18" rx="4" class="unit" />
+					<circle cx="326" cy={y + 9} r="2.5" class="led" class:offled={!net} />
+				{/each}
+			</g>
+
+			<!-- manifest, the ID card -->
+			{#if hasManifest}
+				<g class="part" class:dim={!lit('manifest')}>
+					{#if scene === 'remember'}
+						<text x="58" y="22" text-anchor="middle" class="memo">{tx.memo.manifest}</text>
+					{/if}
+					<rect x="6" y="30" width="104" height="96" rx="9" class="card" />
+					<text x="14" y="46" class="file">manifest.json</text>
+					{#each MANIFEST.slice(0, manifestLines) as line, k (k)}
+						<text x={k === 0 || k === 4 ? 14 : 20} y={62 + k * 13} class="json">{line}</text>
+					{/each}
+				</g>
+			{/if}
+
+			<!-- cache box on the phone -->
+			{#if active >= 4}
+				<g class="part" class:dim={!lit('cache')}>
+					<text x="58" y="234" text-anchor="middle" class="label">{tx.cacheLabel}</text>
+					<path d="M10 244 V298 Q10 304 16 304 H100 Q106 304 106 298 V244" class="box" />
+					{#each FILES.slice(0, cached) as f (f.label)}
+						<g transform="translate({f.x} 262)">
+							<g
+								class="fly"
+								class:still={clock.reduced || scene !== 'worker'}
+								style="--dx:{306 - f.x}px; --dy:{60 - 262}px"
+							>
+								<path d="M0 0 H12 L18 6 V26 H0 Z" class="doc" />
+								<text x="9" y="18" text-anchor="middle" class="ext">{f.label}</text>
+							</g>
+						</g>
+					{/each}
+					{#if fromCache}
+						<path d="M106 274 H118" class="feed" />
+					{/if}
+				</g>
+			{/if}
+
+			<!-- phone -->
+			<g class="part" class:dim={!lit('phone')}>
+				<rect x="120" y="36" width="116" height="282" rx="20" class="phone" />
+				<rect x="128" y="50" width="100" height="256" rx="12" class="screen" />
+				<!-- status bar with wifi -->
+				<g transform="translate(214 60)" class="wifi" class:off={!net}>
+					<path d="M-7 -1 Q0 -7 7 -1" />
+					<path d="M-4 2 Q0 -1 4 2" />
+					<circle cx="0" cy="5" r="1.4" />
+				</g>
+				{#if !net}
+					<path d="M206 54 L222 68" class="cut thin" />
+				{/if}
+
+				{#if screen === 'site'}
+					<rect x="134" y="68" width="88" height="14" rx="7" class="addr" />
+					<text x="178" y="78" text-anchor="middle" class="url">nimbus.com</text>
+					<rect x="134" y="90" width="88" height="44" rx="6" class="hero" />
+					<text x="142" y="116" class="brand">{tx.appName}</text>
+					{#each wrap(tx.tagline, 16) as l, k (k)}
+						<text x="136" y={152 + k * 12} class="tagline">{l}</text>
+					{/each}
+					{#each [180, 190, 200, 214, 224] as y (y)}
+						<rect x="136" {y} width={y % 20 === 0 ? 70 : 82} height="4" rx="2" class="lines" />
+					{/each}
+				{:else if screen === 'noNet'}
+					<path
+						d="M158 150 Q150 150 150 141 Q150 132 160 133 Q163 122 176 123 Q188 123 191 134 Q202 133 202 142 Q202 150 194 150 Z"
+						class="cloud"
+					/>
+					<path d="M170 132 l12 12 M182 132 l-12 12" class="cut" />
+					{#each wrap(tx.noInternet, 14) as l, k (k)}
+						<text x="178" y={176 + k * 13} text-anchor="middle" class="sad">{l}</text>
+					{/each}
+				{:else if screen === 'home'}
+					{#each APPS as k (k)}
+						<rect
+							x={140 + (k % 3) * 28}
+							y={84 + Math.floor(k / 3) * 36}
+							width="20"
+							height="20"
+							rx="6"
+							class="otherapp"
+						/>
+					{/each}
+					{#if iconOn}
+						<g
+							class="nimicon"
+							class:pulse={tapIcon && !clock.reduced}
+							style="transform-origin:206px 202px"
+						>
+							<rect x="196" y="192" width="20" height="20" rx="6" class="appicon" />
+							<circle cx="202" cy="204" r="3.2" class="puff" />
+							<circle cx="206.5" cy="200.5" r="4.3" class="puff" />
+							<circle cx="210.5" cy="204.5" r="2.8" class="puff" />
+						</g>
+						<text x="206" y="222" text-anchor="middle" class="iconname">{tx.appName}</text>
+					{/if}
+				{:else}
+					<rect x="128" y="50" width="100" height="70" rx="12" class="hero full" />
+					<text x="140" y="104" class="brand light">{tx.appName}</text>
+					{#each wrap(tx.tagline, 16) as l, k (k)}
+						<text x="136" y={140 + k * 12} class="tagline">{l}</text>
+					{/each}
+					{#each [168, 178, 188, 202, 212] as y (y)}
+						<rect x="136" {y} width={y % 20 === 8 ? 70 : 82} height="4" rx="2" class="lines" />
+					{/each}
+					<rect x="140" y="270" width="76" height="16" rx="8" class="src" class:cache={fromCache} />
+					<text x="178" y="281" text-anchor="middle" class="srctext" class:cache={fromCache}
+						>{fromCache ? tx.fromCache : tx.fromServer}</text
+					>
+				{/if}
+
+				{#if banner}
+					<g class="banner">
+						<rect x="132" y="250" width="92" height="48" rx="9" class="bannerbg" />
+						<text x="140" y="266" class="ask">{tx.installAsk}</text>
+						<rect x="176" y="274" width="42" height="17" rx="8.5" class="install" class:pressed />
+						<text x="197" y="286" text-anchor="middle" class="installtext">{tx.installBtn}</text>
+					</g>
+				{/if}
+			</g>
+
+			<!-- service worker, the doorman on the line -->
+			{#if hasWorker}
+				<g class="part" class:dim={!lit('worker')}>
+					{#if scene === 'remember'}
+						<text x="268" y="174" text-anchor="middle" class="memo">{tx.memo.worker}</text>
+					{/if}
+					<g transform="translate(268 146)"
+						><g class="guard" class:busy={fromCache}>
+							<rect x="-9" y="-2" width="18" height="20" rx="6" class="coat" />
+							<circle cx="0" cy="-9" r="6.5" class="head" />
+							<path d="M-7 -13 H7 L5 -17 H-5 Z" class="cap" />
+							<rect x="5" y="2" width="8" height="10" rx="2.5" class="pack" />
+						</g></g
+					>
+					<text x="268" y={scene === 'remember' ? 188 : 180} text-anchor="middle" class="small"
+						>{tx.workerLabel}</text
+					>
+				</g>
+			{/if}
+		</svg>
+		{#if scene === 'remember'}
+			<p class="rule">{tx.rule}</p>
 		{/if}
 	</div>
+{/snippet}
 
-	<div class="scene">
-		<!-- the phone -->
-		<div class="phone">
-			<div class="status">
-				<span class="time">9:41</span>
-				<span class="net" class:off={!online}>
-					<svg width="12" height="10" viewBox="0 0 24 20" fill="none" aria-hidden="true">
-						<path
-							d="M2 7a15 15 0 0 1 20 0M5.5 10.5a10 10 0 0 1 13 0M9 14a5 5 0 0 1 6 0"
-							stroke="currentColor"
-							stroke-width="2.4"
-							stroke-linecap="round"
-						/>
-						<circle cx="12" cy="17.5" r="1.6" fill="currentColor" />
-						{#if !online}
-							<path
-								d="M3 1 21 19"
-								stroke="currentColor"
-								stroke-width="2.4"
-								stroke-linecap="round"
-							/>
-						{/if}
-					</svg>
-					{online ? tx.internetOn : tx.internetOff}
-				</span>
-			</div>
-
-			<div class="screen">
-				{#if view === 'browser'}
-					<div class="addr"><span class="lock"></span>nimbus.com</div>
-					<div class="body">
-						{#if plainBroken}
-							<div class="broken pop">
-								<svg width="40" height="30" viewBox="0 0 120 80" aria-hidden="true">
-									<path
-										d="M30 70a22 22 0 0 1-3-43.8A28 28 0 0 1 81 20a20 20 0 0 1 11 50z"
-										fill="var(--color-line)"
-									/>
-									<path
-										d="M40 20 85 72"
-										stroke="var(--color-danger)"
-										stroke-width="6"
-										stroke-linecap="round"
-									/>
-								</svg>
-								<b>{tx.noInternet}</b>
-							</div>
-						{:else}
-							{@render site()}
-						{/if}
-						{#if manifest && step === 2}
-							<div class="banner pop">
-								{@render cloud(18)}
-								<span>{tx.installBanner}</span>
-							</div>
-						{/if}
-					</div>
-				{:else if view === 'home'}
-					<div class="home pop">
-						{#each [0, 1, 2, 3, 4, 5, 6] as i (i)}
-							<span class="icon"><i></i></span>
-						{/each}
-						<span class="icon nim pop">
-							<i>{@render cloud(26)}</i>
-							<small>{tx.appName}</small>
-						</span>
-					</div>
-				{:else}
-					<div class="body full pop">
-						{@render site()}
-						<span class="cachetag">{tx.fromCache}</span>
-					</div>
-				{/if}
-			</div>
-		</div>
-
-		<!-- the cache the service worker fills -->
-		<div class="cache" class:on={worker}>
-			<p class="clabel">{tx.cacheLabel}</p>
-			{#if cached === 0}
-				<p class="empty">{tx.cacheEmpty}</p>
-			{:else}
-				<ul>
-					{#each files.slice(0, cached) as f (f)}
-						<li class="pop" class:served={view === 'app'}>{f}</li>
-					{/each}
-				</ul>
-			{/if}
-		</div>
-	</div>
-
-	<p class="note" class:ok={step === 4} class:bad={plainBroken}>{note}</p>
+<div class="stage">
+	<Guide steps={tx.panels} {active} onselect={(i) => (peek = i)} visual={picture} />
 </div>
 
 <style>
-	.wrap {
+	.stage {
 		display: flex;
-		width: min(94vw, 400px);
-		flex-direction: column;
-		align-items: center;
-		gap: 12px;
-	}
-	.btns {
-		display: flex;
-		min-height: 46px;
-		flex-wrap: wrap;
-		align-items: center;
+		height: 100%;
+		width: 100%;
 		justify-content: center;
-		gap: 8px;
+		align-items: flex-start;
+		overflow-y: auto;
+		overflow-x: hidden;
+		padding-bottom: 16px;
 	}
-	.piece {
-		border-radius: 12px;
-		border: 1.5px solid var(--color-line);
-		background: var(--color-card);
-		padding: 10px 14px;
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: 12.5px;
-		font-weight: 700;
-		color: var(--color-ink);
-		transition: border-color 0.2s;
-	}
-	.piece:enabled:hover {
-		border-color: var(--color-brand);
-	}
-	.piece:disabled {
-		border-color: var(--color-grass);
-		background: var(--color-grass-soft);
-		color: var(--color-grass);
-	}
-
-	.scene {
+	.visual {
 		display: flex;
 		width: 100%;
+		max-width: 440px;
+		flex-direction: column;
 		align-items: center;
-		justify-content: center;
-		gap: 14px;
+		gap: 10px;
+	}
+	.pic {
+		display: block;
+		width: 100%;
+		height: auto;
+		max-height: 60vh;
+	}
+	.act {
+		border: 1.5px solid var(--color-brand);
+		border-radius: 999px;
+		background: var(--color-brand-soft);
+		padding: 7px 16px;
+		font-size: 13px;
+		font-weight: 700;
+		color: var(--color-brand);
+	}
+	.rule {
+		margin: 0;
+		text-align: center;
+		font-size: 14px;
+		font-weight: 700;
+		color: var(--color-grass);
+	}
+	.part {
+		transition: opacity 0.4s;
+	}
+	.part.dim {
+		opacity: 0.35;
+	}
+	.label {
+		fill: var(--color-muted);
+		font-size: 10.5px;
+		font-weight: 700;
+	}
+	.small {
+		fill: var(--color-muted);
+		font-size: 9px;
+		font-weight: 600;
+	}
+	.memo {
+		fill: var(--color-grass);
+		font-size: 11px;
+		font-weight: 800;
+	}
+	.wire {
+		fill: none;
+		stroke: var(--color-brand);
+		stroke-width: 2.5;
+		stroke-linejoin: round;
+		transition: stroke 0.4s;
+	}
+	.wire.off {
+		stroke: var(--color-line);
+	}
+	.cut {
+		fill: none;
+		stroke: var(--color-danger);
+		stroke-width: 2.5;
+		stroke-linecap: round;
+	}
+	.cut.thin {
+		stroke-width: 1.8;
+	}
+	.data {
+		fill: var(--color-brand);
+	}
+	.rack {
+		fill: var(--color-paper);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+	}
+	.unit {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+	}
+	.led {
+		fill: var(--color-grass);
+	}
+	.led.offled {
+		fill: var(--color-faint);
+	}
+	.card {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+	}
+	.file {
+		fill: var(--color-brand);
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 8.5px;
+		font-weight: 700;
+	}
+	.json {
+		fill: var(--color-ink);
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 7.2px;
+	}
+	.box {
+		fill: var(--color-amber-soft);
+		stroke: var(--color-amber);
+		stroke-width: 1.8;
+	}
+	.doc {
+		fill: var(--color-card);
+		stroke: var(--color-faint);
+		stroke-width: 1.2;
+	}
+	.ext {
+		fill: var(--color-muted);
+		font-size: 6.5px;
+		font-weight: 700;
+	}
+	.fly {
+		animation: fly 0.9s cubic-bezier(0.4, 0, 0.3, 1) both;
+	}
+	.fly.still {
+		animation: none;
+	}
+	@keyframes fly {
+		from {
+			transform: translate(var(--dx), var(--dy));
+			opacity: 0.3;
+		}
+		to {
+			transform: none;
+			opacity: 1;
+		}
+	}
+	.feed {
+		stroke: var(--color-amber);
+		stroke-width: 3;
+		stroke-linecap: round;
 	}
 	.phone {
-		flex: none;
-		width: 150px;
-		border-radius: 26px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 8px;
-		box-shadow: 0 10px 26px rgba(22, 40, 60, 0.1);
-	}
-	.status {
-		display: flex;
-		justify-content: space-between;
-		padding: 0 6px 5px;
-		font-size: 9px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	.net {
-		display: inline-flex;
-		align-items: center;
-		gap: 3px;
-		color: var(--color-grass);
-	}
-	.net.off {
-		color: var(--color-danger);
+		fill: var(--color-card);
+		stroke: var(--color-ink);
+		stroke-width: 2;
 	}
 	.screen {
-		position: relative;
-		display: flex;
-		height: 220px;
-		flex-direction: column;
-		overflow: hidden;
-		border-radius: 18px;
-		background: var(--color-paper);
+		fill: var(--color-paper);
+	}
+	.wifi path {
+		fill: none;
+		stroke: var(--color-ink);
+		stroke-width: 1.6;
+		stroke-linecap: round;
+	}
+	.wifi circle {
+		fill: var(--color-ink);
+	}
+	.wifi.off path,
+	.wifi.off circle {
+		stroke: var(--color-faint);
+		fill: none;
+	}
+	.wifi.off circle {
+		fill: var(--color-faint);
 	}
 	.addr {
-		display: flex;
-		align-items: center;
-		gap: 5px;
-		border-bottom: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 7px 10px;
-		font-size: 9.5px;
+		fill: var(--color-card);
+		stroke: var(--color-line);
+	}
+	.url {
+		fill: var(--color-muted);
+		font-size: 8px;
 		font-weight: 600;
-		color: var(--color-muted);
 	}
-	.lock {
-		width: 6px;
-		height: 6px;
-		border-radius: 2px;
-		background: var(--color-faint);
+	.hero {
+		fill: var(--color-brand-soft);
 	}
-	.body {
-		position: relative;
-		display: flex;
-		flex: 1;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
+	.hero.full {
+		fill: var(--color-brand);
 	}
-	.site {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 4px;
-		text-align: center;
+	.brand {
+		fill: var(--color-brand);
+		font-size: 16px;
+		font-weight: 800;
 	}
-	.site b {
-		font-family: 'Fraunces', serif;
-		font-size: 14px;
-		color: var(--color-ink);
+	.brand.light {
+		fill: var(--color-card);
 	}
-	.site span {
+	.tagline {
+		fill: var(--color-ink);
 		font-size: 9.5px;
-		color: var(--color-muted);
+		font-weight: 700;
 	}
-	.ln {
-		width: 80px;
-		height: 5px;
-		border-radius: 3px;
-		background: var(--color-line);
+	.lines {
+		fill: var(--color-line);
 	}
-	.ln.short {
-		width: 54px;
+	.cloud {
+		fill: var(--color-card);
+		stroke: var(--color-faint);
+		stroke-width: 1.8;
 	}
-	.broken {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 6px;
-	}
-	.broken b {
-		font-size: 11px;
-		color: var(--color-muted);
-	}
-	.banner {
-		position: absolute;
-		right: 8px;
-		bottom: 8px;
-		left: 8px;
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		border-radius: 10px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 6px 8px;
+	.sad {
+		fill: var(--color-muted);
 		font-size: 10px;
 		font-weight: 700;
-		color: var(--color-ink);
-		box-shadow: 0 6px 14px rgba(22, 40, 60, 0.12);
 	}
-	.home {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		align-content: start;
-		gap: 12px 8px;
-		padding: 18px 12px;
+	.otherapp {
+		fill: var(--color-line);
 	}
-	.icon {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 3px;
+	.appicon {
+		fill: var(--color-brand);
 	}
-	.icon i {
-		display: grid;
-		place-items: center;
-		width: 32px;
-		height: 32px;
-		border-radius: 9px;
-		background: var(--color-line);
+	.puff {
+		fill: var(--color-card);
 	}
-	.icon.nim i {
-		background: var(--color-card);
-		border: 1.5px solid var(--color-brand);
-		box-shadow: 0 0 0 4px var(--color-brand-soft);
+	.nimicon {
+		animation: pop 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) both;
 	}
-	.icon small {
-		font-size: 8.5px;
-		font-weight: 700;
-		color: var(--color-ink);
-	}
-	.body.full {
-		padding-top: 10px;
-	}
-	.cachetag {
-		position: absolute;
-		top: 8px;
-		right: 8px;
-		border-radius: 999px;
-		background: var(--color-grass);
-		padding: 1px 7px;
-		font-size: 8.5px;
-		font-weight: 800;
-		color: #fff;
-	}
-
-	.cache {
-		width: 140px;
-		border-radius: 14px;
-		border: 1.5px solid var(--color-line);
-		background: var(--color-card);
-		padding: 9px 10px;
-		opacity: 0.55;
-		transition:
-			opacity 0.3s,
-			border-color 0.3s;
-	}
-	.cache.on {
-		opacity: 1;
-		border-color: var(--color-brand);
-	}
-	.clabel {
-		font-size: 10px;
-		font-weight: 800;
-		letter-spacing: 0.03em;
-		text-transform: uppercase;
-		color: var(--color-faint);
-	}
-	.empty {
-		margin-top: 5px;
-		font-size: 11px;
-		color: var(--color-faint);
-	}
-	ul {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-		margin-top: 6px;
-	}
-	li {
-		border-radius: 7px;
-		background: var(--color-brand-soft);
-		padding: 3px 7px;
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: 10.5px;
-		color: var(--color-ink);
-		transition: background 0.3s;
-	}
-	li.served {
-		background: var(--color-grass-soft);
-	}
-	.note {
-		min-height: 1.4em;
-		max-width: 340px;
-		text-align: center;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-muted);
-	}
-	.note.ok {
-		color: var(--color-grass);
-	}
-	.note.bad {
-		color: var(--color-danger);
-	}
-	.pop {
-		animation: pop 0.35s ease;
+	.nimicon.pulse {
+		animation: tap 0.6s ease-in-out 2;
 	}
 	@keyframes pop {
 		from {
+			transform: scale(0.2);
 			opacity: 0;
-			transform: translateY(4px);
 		}
 		to {
+			transform: scale(1);
 			opacity: 1;
-			transform: none;
 		}
 	}
-	@media (max-width: 360px) {
-		.scene {
-			flex-direction: column;
+	@keyframes tap {
+		50% {
+			transform: scale(0.85);
 		}
-		.cache {
-			width: 100%;
+	}
+	.iconname {
+		fill: var(--color-ink);
+		font-size: 7.5px;
+		font-weight: 700;
+	}
+	.src {
+		fill: var(--color-brand-soft);
+	}
+	.src.cache {
+		fill: var(--color-amber-soft);
+	}
+	.srctext {
+		fill: var(--color-brand);
+		font-size: 8.5px;
+		font-weight: 700;
+	}
+	.srctext.cache {
+		fill: var(--color-amber);
+	}
+	.banner {
+		animation: rise 0.45s ease both;
+	}
+	@keyframes rise {
+		from {
+			transform: translateY(20px);
+			opacity: 0;
+		}
+		to {
+			transform: none;
+			opacity: 1;
+		}
+	}
+	.bannerbg {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+	}
+	.ask {
+		fill: var(--color-ink);
+		font-size: 9px;
+		font-weight: 700;
+	}
+	.install {
+		fill: var(--color-brand);
+		transition: fill 0.2s;
+	}
+	.install.pressed {
+		fill: var(--color-grass);
+	}
+	.installtext {
+		fill: var(--color-card);
+		font-size: 8px;
+		font-weight: 700;
+	}
+	.coat {
+		fill: var(--color-brand);
+	}
+	.head {
+		fill: var(--color-amber-soft);
+		stroke: var(--color-amber);
+		stroke-width: 1.2;
+	}
+	.cap {
+		fill: var(--color-ink);
+	}
+	.pack {
+		fill: var(--color-amber);
+	}
+	.guard.busy {
+		animation: nod 1.4s ease-in-out infinite;
+	}
+	@keyframes nod {
+		50% {
+			transform: translateY(-2px);
+		}
+	}
+	@media (max-width: 767px) {
+		.stage {
+			padding-bottom: 7rem;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.pop {
+		.part,
+		.wire,
+		.install {
+			transition: none;
+		}
+		.fly,
+		.nimicon,
+		.nimicon.pulse,
+		.banner,
+		.guard.busy {
 			animation: none;
-		}
-	}
-	@media (min-width: 768px) {
-		.wrap {
-			width: 460px;
-		}
-		.phone {
-			width: 176px;
-		}
-		.screen {
-			height: 260px;
-		}
-		.cache {
-			width: 170px;
-		}
-		.note {
-			font-size: 13.5px;
 		}
 	}
 </style>

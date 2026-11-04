@@ -3,76 +3,102 @@ import type { KeysText } from './types';
 export const en: KeysText = {
 	title: 'Symmetric and asymmetric keys',
 	intro: [
-		'People have always wanted to send messages only the receiver could read. About 2000 years ago, Julius Caesar wrote to his generals by shifting every letter three places, so A became D, B became E, and so on.',
-		'Anyone who knew the "shift by three" secret could undo it and read the letter. One shared secret both locks and unlocks, and that is a <b>symmetric key</b>. It is the base of the [[Encryption|networking/encryption]] you already know.',
-		'In World War II, Germany used the <b>Enigma</b> machine, far more complex, with its settings changed every day. Alan Turing and his team at Bletchley Park eventually broke it, and that helped shorten the war.',
-		'But there was a bigger headache. How do you hand the same key to everyone safely? Enigma codebooks had to travel by courier and by ship, and more than once they were captured. Once the key leaks, every message can be read.',
-		'In 1976, Whitfield Diffie and Martin Hellman published an idea that sounded impossible back then. Split the key in two. A <b>public key</b> you can hand to anyone, and a <b>private key</b> that never leaves its owner.',
-		'Picture an open padlock. Anyone can snap it shut, but only the person with the key can open it again. The padlock is the public key, its little key is the private key. That is an <b>asymmetric key</b>.',
-		'A year later, in 1977, three researchers at MIT (Ron Rivest, Adi Shamir, and Leonard Adleman) built a working version, called <b>RSA</b> after their initials. The trick lives in prime numbers, numbers only divisible by 1 and themselves. Multiplying two big primes is easy, but splitting the result back into those two primes is extremely hard.',
-		'[fyi] It turns out Clifford Cocks, a mathematician at the British GCHQ (an intelligence agency), had found the same idea in 1973. It was a state secret, so the world only heard about it in 1997.',
-		'Today both kinds work together every time you open [[HTTPS|security/tls]], and asymmetric keys are also the base of [[digital signatures|security/signature]]. Try it yourself in three acts. Send a secret note to your friend at nimbus.com, and watch out, someone is listening in the middle.'
+		'People have always wanted to send notes only the receiver could read. About 2000 years ago, Julius Caesar wrote to his generals by sliding every letter three places along the alphabet, so A became D and B became E.',
+		'Whoever knew the secret "slide by three" could undo it and read the note. One secret that both locks and unlocks is called a <b>symmetric key</b>. It still powers the fast [[encryption|networking/encryption]] you use every day.',
+		'In World War II, Germany used a machine called <b>Enigma</b>. Its spinning rotors scrambled every letter, and its settings changed every day. Alan Turing and his team at Bletchley Park built machines that cracked it, and that helped end the war sooner.',
+		'But one shared key has a weak spot. Before your friend can open your note, the key has to travel to them. Watch the road. Someone in the middle quietly copies the key, and later opens your note with it.',
+		'In 1976, Whitfield Diffie and Martin Hellman published an idea that sounded impossible. Split the key in two. A <b>public key</b> you may hand to anyone, and a <b>private key</b> that never leaves its owner. Two different keys, so it is called an <b>asymmetric key</b>.',
+		"Watch the same road again. This time your friend sends you an open padlock. The eavesdropper can copy it, but a padlock can only lock. You snap it shut on your note, and only your friend's private key opens it.",
+		'[ingat] The public key is an <b>open padlock anyone can snap shut</b>. The private key is <b>the only key that opens it</b>. Hand out padlocks freely, never the key.',
+		'In 1977, three researchers at MIT (Ron Rivest, Adi Shamir and Leonard Adleman) made it work for real, and named it <b>RSA</b> after their initials. The trick hides in prime numbers. Multiplying two primes is instant, but finding them again from the answer is painfully slow.',
+		'[fyi] Plot twist. Clifford Cocks, a mathematician at GCHQ (a British intelligence agency), found the very same idea in 1973. It was a state secret, so the world only heard about it in 1997.',
+		'Today both kinds work as a team every time you open [[HTTPS|security/tls]], and the private key also powers [[digital signatures|security/signature]]. If you like, switch the road between one shared key and a padlock and watch the difference.'
 	],
 	reactions: {
-		symKey:
-			'The key reached your friend, but look at the eavesdropper. He quietly copied it as it went past. Now three people hold the very same key.',
-		symRead:
-			'Caught. The note was locked, but the eavesdropper has a copy of the key, so he opened it and read everything. That is the big problem with symmetric keys, the key has to travel too.',
+		shared:
+			'One shared key again. It has to travel first, the eavesdropper copies it on the way, and your note is not secret anymore.',
 		padlock:
-			"Your friend only sent an open padlock. The eavesdropper can copy it all he likes, a padlock can only lock things, not open them. The little key stays in your friend's pocket.",
-		sealed:
-			"Safe. The eavesdropper holds the box and the padlock, yet he cannot open a thing. Only your friend's private key fits. No secret key ever travelled the road.",
-		multiply:
-			'Instant, right? Multiplying two primes is a tiny job, even for the cheapest phone calculator.',
-		factor1: 'Easy one. A small number splits in a try or two. Now the number gets bigger.',
-		factor2:
-			'Feel it yet? You had to test more primes before one fit. Try the last one, it is the number we just multiplied.',
-		factor3:
-			'Got it, 61 times 53. Multiplying took a blink, but going backwards took lots of tries. Real RSA keys use numbers hundreds of digits long, and splitting them would take longer than the age of the universe. That is what keeps the asymmetric padlock safe.'
+			"Padlock again. The eavesdropper copies an open padlock, which is useless for opening anything. Only your friend's private key gets the note out."
 	},
-	acts: ['One key', 'Padlock', 'Primes'],
-	actLabel: 'Act {n}',
-	nextAct: 'On to the next act',
+	steps: [
+		{
+			tag: 'About 50 BC',
+			title: 'A secret note',
+			body: 'Caesar slid every letter three places. <b>HELLO</b> turns into <b>KHOOR</b>, and only someone who knows the slide can read it.'
+		},
+		{
+			tag: 'One key',
+			title: 'Symmetric key',
+			body: 'The <b>same</b> secret locks the note and opens it again. Sender and receiver both need a copy.'
+		},
+		{
+			tag: '1939 to 1945',
+			title: 'Enigma and Bletchley Park',
+			body: 'Enigma was still one shared key, just a very complicated one. Turing proved that even a clever machine can be cracked.'
+		},
+		{
+			tag: 'The weak spot',
+			title: 'The key has to travel',
+			body: 'Whoever copies the key on the way can open <b>every</b> note sent with it. Sharing the key safely is the real headache.'
+		},
+		{
+			tag: '1976',
+			title: 'Split the key in two',
+			body: 'A <b>public key</b> that anyone may hold, and a <b>private key</b> that stays home. They work as a pair.'
+		},
+		{
+			tag: 'Two keys',
+			title: 'Asymmetric key',
+			body: 'Only the open padlock travels. Copying it gains nothing, because locking is all a padlock can do.'
+		},
+		{
+			tag: 'Remember it',
+			title: 'Padlock and key',
+			body: 'Public key, an open padlock <b>anyone can snap shut</b>. Private key, the <b>only key that opens it</b>.'
+		},
+		{
+			tag: '1977',
+			title: 'RSA and prime numbers',
+			body: 'A <b>prime</b> can only be divided by 1 and itself. Multiplying two is quick, going back means trying number after number. Real keys use primes hundreds of digits long.'
+		},
+		{
+			tag: 'Side story',
+			title: 'Found first, kept secret',
+			body: 'Clifford Cocks had it in 1973, but spies keep their secrets. Diffie, Hellman and RSA still get the credit for sharing it with the world.'
+		},
+		{
+			tag: 'Optional',
+			title: 'Try both roads',
+			body: 'Switch between one shared key and a padlock. Real HTTPS uses the padlock to pass a shared key safely, then the fast shared key for everything else.'
+		}
+	],
 	youLabel: 'You',
 	friendLabel: 'Your friend',
-	friendSub: 'nimbus.com',
 	snooperLabel: 'Eavesdropper',
 	message: 'Meet at 7',
-	cipher: 'Phhw dw 7',
-	keyChip: 'key',
-	padlockChip: 'padlock',
-	boxChip: 'locked box',
+	tags: {
+		copiedKey: 'key copied',
+		copiedLock: 'padlock copied',
+		read: 'note read',
+		stuck: 'cannot open it'
+	},
+	sharedKey: 'one shared key',
+	publicKey: 'public key',
 	privateKey: 'private key',
-	sym: {
-		sendKey: 'Send the key first',
-		sendBox: 'Send the locked note',
-		copiedTag: 'key copied',
-		readTag: 'read',
-		noteIdle: 'To open your note, your friend needs the same key',
-		noteKey: 'Your friend has the key now, and so does the eavesdropper',
-		noteRead: 'The eavesdropper opens your note with his stolen key'
-	},
-	asym: {
-		askLock: "Ask for your friend's padlock",
-		sendBox: 'Lock the box and send it',
-		copiedTag: 'padlock copied',
-		stuckTag: 'cannot open it',
-		noteIdle: 'This time your friend goes first, sending an open padlock',
-		noteLock: 'The padlock is in your hands, just snap it shut',
-		noteSafe: "Only your friend's private key can open this box"
-	},
+	rule: { anyone: 'anyone can snap it shut', only: 'only this key opens it' },
 	rsa: {
-		multiplyBtn: 'Multiply 61 × 53',
-		instant: 'instant',
-		prompt: 'Which prime times which prime makes {n}?',
-		pickHint: 'Tap a prime to try dividing by it',
-		tries: '{n} tries',
-		triesOne: '1 try',
-		autoBtn: 'Let Nim try them one by one',
-		nextBtn: 'Next number',
-		effortLabel: 'How hard it is to go back',
-		realLabel: 'The size of a number in a real RSA key',
-		realDigits: 'and hundreds of digits more (about 617 in total)',
-		forever: 'longer than the age of the universe'
-	}
+		easy: 'instant',
+		hard: 'going back takes ages',
+		tries: '{n} tries'
+	},
+	secret: 'SECRET',
+	enigma: {
+		alt: 'Photo of a real Enigma machine with its rotors, letter lamps, and keyboard',
+		caption: 'A real Enigma machine'
+	},
+	turing: {
+		alt: 'A black and white photo of a young Alan Turing in a suit',
+		caption: 'Alan Turing, about 1928'
+	},
+	modes: { label: 'Send the note with', shared: 'One shared key', padlock: 'A padlock' }
 };

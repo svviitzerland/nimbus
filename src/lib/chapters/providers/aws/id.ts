@@ -3,12 +3,16 @@ import type { AwsText } from './types';
 export const id: AwsText = {
 	title: 'AWS',
 	intro: [
-		'Kamu sudah kenal semua bagian sebuah setup cloud. Server, load balancer, jaringan privat, database. Sekarang kenalan sama toko paling besar yang menyewakan semua itu, <b>Amazon Web Services</b>, atau AWS.',
-		'AWS lahir dari dalam Amazon sendiri. Tahun 2006 Amazon mulai menyewakan mesin sejenis yang menjalankan toko online mereka, pertama <b>S3</b> buat file, lalu <b>EC2</b> buat server. Sekarang AWS jadi cloud terbesar di dunia.',
-		'Nah, ini bagian yang bikin pusing pemula. AWS punya lebih dari 200 layanan, dan namanya jarang menjelaskan fungsinya. Route 53? CloudFront? Kedengarannya kayak kode rahasia.',
-		'Kabar baiknya, di balik tiap nama aneh ada ide yang sudah kamu kenal. Server tetap server, cuma AWS menyebutnya EC2. Hafalkan petanya sekali, dan console AWS nggak seram lagi.',
-		'[fyi] Ide yang sama punya nama lain di provider lain. Server sewaan disebut Compute Engine di [[Google Cloud|providers/gcp]] dan Virtual Machines di [[Azure|providers/azure]]. Barangnya sama, labelnya beda.',
-		'Yuk bangun nimbus.com di AWS, satu lapis demi satu lapis, dari pintu depan ke bawah. Pilih satu kartu layanan, lalu taruh di ide yang diwakilinya.'
+		'Kamu sudah kenal semua bagian sebuah website di cloud. Pintu depan, jaringan privat, server, data, dan yang berjaga. Di papan ini, tiap bagian jadi satu kartu polos bertuliskan idenya.',
+		'Sekarang kenalan sama toko paling besar yang menyewakan semua itu, <b>Amazon Web Services</b>, atau AWS. Dia lahir di dalam Amazon, dan tahun 2006 mulai menyewakan mesin sejenis yang menjalankan toko online mereka. Sekarang layanannya lebih dari 200, dan namanya kedengaran kayak kode rahasia.',
+		'Lihat baris paling atas membalik. Pintu depan jadi <b>Route 53</b> ([[DNS|networking/dns]], dinamai dari port 53), <b>CloudFront</b> (CDN, salinan dekat tiap pengunjung) dan <b>Elastic Load Balancing</b> (membagi pengunjung ke beberapa server).',
+		'Berikutnya jaringan privat. <b>VPC</b> itu jaringan berpagar milikmu sendiri di dalam AWS, dan <b>Security Group</b> itu firewall di sekeliling tiap server, cuma membiarkan masuk yang kamu izinkan.',
+		'Lalu komputer yang benar benar menjalankan nimbus.com. <b>EC2</b> itu server sewaan, <b>ECS</b> menjalankan container, dan <b>Lambda</b> menjalankan satu fungsi kecil cuma waktu ada yang memanggil.',
+		'Tiap website butuh tempat buat datanya. <b>S3</b> menyimpan file seperti foto dan backup, <b>RDS</b> itu database SQL yang diurus AWS, dan <b>DynamoDB</b> itu database NoSQL buat trafik raksasa.',
+		'Terakhir, alat yang menjaga dan mengawasi. <b>IAM</b> menentukan siapa boleh apa, <b>KMS</b> menyimpan kunci enkripsi, dan <b>CloudWatch</b> menggambar grafik dan membunyikan alarm.',
+		'[ingat] <b>Idenya sama, cuma ganti papan nama.</b> Di AWS kamu nggak belajar ide baru, cuma nama baru buat ide lama. Mulai dari satu pasang, <b>EC2 itu VM</b>. Dua C nya, Compute dan Cloud, komputer di cloud.',
+		'[fyi] Satu kata, beda dunia. Server sewaan disebut Compute Engine di [[Google Cloud|providers/gcp]] dan Virtual Machines di [[Azure|providers/azure]]. Kotaknya sama, labelnya tiga.',
+		'Lihat satu pengunjung berjalan melewati seluruh papan, dari Route 53 sampai CloudWatch. Mau coba sendiri? Pasang lagi nama namanya ke kartu, ini cuma bonus.'
 	],
 	reactions: {
 		dns: 'Route 53 itu [[DNS|networking/dns]] milik AWS, buku telepon yang mengubah nimbus.com jadi alamat IP. Namanya sedikit bercanda, port 53 itu pintu yang dari dulu dipakai DNS.',
@@ -35,6 +39,58 @@ export const id: AwsText = {
 		miss: 'Bukan di situ. Baca lagi namanya, lalu pikirkan kerjanya apa.',
 		live: 'Pengunjungmu masuk lewat Route 53, ambil gambar dari CloudFront, lewat ELB dan Security Group, sampai di EC2, baca RDS dan S3, dan CloudWatch memantau semua langkahnya. Itulah nimbus.com di AWS sungguhan.'
 	},
+	steps: [
+		{
+			tag: 'Ide polos',
+			title: 'Website di cloud',
+			body: 'Lima lapis, dari pintu depan sampai alat yang mengawasi. Tiap kartu itu ide yang sudah kamu kenal.'
+		},
+		{
+			tag: 'Sejak 2006',
+			title: 'Amazon Web Services',
+			body: 'Cloud terbesar di dunia. Layanan pertamanya <b>S3</b> buat file dan <b>EC2</b> buat server.'
+		},
+		{
+			tag: 'Lapis 1',
+			title: 'Pintu depan',
+			body: '<b>Route 53</b> itu DNS, <b>CloudFront</b> itu CDN, <b>Elastic Load Balancing</b> itu load balancer.'
+		},
+		{
+			tag: 'Lapis 2',
+			title: 'Jaringan privat',
+			body: '<b>VPC</b> itu jaringan privat. <b>Security Group</b> itu firewall di tiap server.'
+		},
+		{
+			tag: 'Lapis 3',
+			title: 'Komputasi',
+			body: '<b>EC2</b> itu virtual machine, <b>ECS</b> menjalankan container, <b>Lambda</b> itu serverless.'
+		},
+		{
+			tag: 'Lapis 4',
+			title: 'Data',
+			body: '<b>S3</b> menyimpan file, <b>RDS</b> itu SQL, <b>DynamoDB</b> itu NoSQL.'
+		},
+		{
+			tag: 'Lapis 5',
+			title: 'Akses dan pantau',
+			body: '<b>IAM</b> buat siapa boleh apa, <b>KMS</b> buat kunci, <b>CloudWatch</b> buat grafik dan alarm.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Ide sama, papan nama baru',
+			body: 'Balik kartu mana saja, ide di baliknya sudah kamu kenal. Pasangan paling gampang, <b>EC2 itu VM</b>.'
+		},
+		{
+			tag: 'Di tempat lain',
+			title: 'Tiga label, satu kotak',
+			body: 'Virtual machine di AWS, Google Cloud, dan Azure. Yang berubah cuma papan namanya.'
+		},
+		{
+			tag: 'Opsional',
+			title: 'Satu pengunjung, semua lapis',
+			body: 'Permintaannya menyalakan tiap bagian yang dilewati. Ketuk tombolnya kalau mau mencocokkan sendiri.'
+		}
+	],
 	boardTitle: 'nimbus.com di AWS',
 	youLabel: 'Pengunjung',
 	layers: ['Pintu depan', 'Jaringan privat', 'Komputasi', 'Data', 'Akses dan pantau'],
@@ -54,12 +110,11 @@ export const id: AwsText = {
 		keys: 'Kunci enkripsi',
 		monitor: 'Monitoring'
 	},
+	sameIdea: '{c} di tiap cloud',
+	playBtn: 'Cocokkan sendiri',
 	trayLabel: 'Layanan AWS',
-	pickHint: 'Pilih satu kartu layanan, lalu ketuk ide yang diwakilinya',
+	pickHint: 'Pilih satu nama, lalu ketuk ide yang diwakilinya',
 	placeHint: '{s} masuk ke mana?',
 	missTag: 'bukan di sini',
-	layerTag: '{n} dari {t} lapis',
-	liveBtn: 'Kirim pengunjung ke nimbus.com',
-	noteDone: 'Semua bagian sudah di tempatnya, saatnya pengunjung sungguhan',
-	noteLive: 'Ide yang sama yang kamu kenal, pakai nama AWS'
+	noteLive: 'Beres, ide yang sama dengan nama AWS'
 };

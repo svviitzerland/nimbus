@@ -3,11 +3,16 @@ import type { AzureText } from './types';
 export const id: AzureText = {
 	title: 'Azure',
 	intro: [
-		'Microsoft sudah puluhan tahun membuat Windows dan Office, dan jutaan pekerja kantoran login pakai akun Microsoft tiap pagi. <b>Azure</b> itu cloud milik Microsoft.',
-		'Azure dibuka tahun 2010 dengan nama Windows Azure. Tahun 2014 namanya jadi Microsoft Azure, dan sekarang virtual machine di sana malah lebih banyak yang menjalankan Linux daripada Windows.',
-		'Nama layanan Azure kebanyakan lugas, seperti Virtual Machines, Load Balancer, dan Functions, plus beberapa nama merek yang perlu dihafal, seperti Cosmos DB dan Entra ID.',
-		'[fyi] Azure menaruh semua bagian satu proyek di dalam <b>resource group</b>, mirip folder. Hapus foldernya, semua isinya ikut terhapus. Ide yang sama punya nama lain di [[AWS|providers/aws]] dan [[Google Cloud|providers/gcp]].',
-		'Perusahaan besar sering memilih Azure karena karyawannya sudah login pakai Microsoft. Yuk bangun nimbus.com di Azure, mulai dari pintu depan. Pilih satu kartu layanan, lalu taruh di ide yang diwakilinya.'
+		'Kamu sudah kenal semua bagian sebuah website di cloud. Pintu depan, jaringan privat, server, data, dan yang berjaga. Di papan ini, tiap bagian jadi satu kartu polos bertuliskan idenya.',
+		'Microsoft sudah puluhan tahun membuat Windows dan Office, dan jutaan pekerja kantor login pakai akun Microsoft tiap pagi. <b>Azure</b> itu cloud milik Microsoft. Dibuka tahun 2010, dan sekarang virtual machine di sana lebih banyak yang menjalankan Linux daripada Windows.',
+		'Lihat baris paling atas membalik. Pintu depan jadi <b>Azure DNS</b>, <b>Front Door</b> (CDN sekaligus pintu masuk global, salinan dekat tiap pengunjung) dan <b>Load Balancer</b>, nama yang dibiarkan Azure apa adanya.',
+		'Berikutnya jaringan privat. <b>VNet</b>, singkatan Virtual Network, itu jaringan berpagar milikmu, dan <b>NSG</b> (Network Security Group) itu firewall yang menentukan port mana yang boleh lewat.',
+		'Lalu komputer yang menjalankan nimbus.com. <b>Virtual Machines</b> itu server sewaan, tanpa nama julukan sama sekali. <b>Container Apps</b> menjalankan container, dan <b>Functions</b> menjalankan sepotong kode waktu dipanggil.',
+		'Tiap website butuh tempat buat datanya. <b>Blob Storage</b> menyimpan file, <b>Azure SQL</b> itu database SQL yang diurus Microsoft, dan <b>Cosmos DB</b> itu database NoSQL yang menyalin dirinya ke banyak region.',
+		'Terakhir, alat yang menjaga dan mengawasi. <b>Entra ID</b> itu login yang menentukan siapa boleh apa, <b>Key Vault</b> menyimpan kunci dan password, dan <b>Azure Monitor</b> menggambar grafik dan membunyikan alarm.',
+		'[ingat] <b>Idenya sama, cuma ganti papan nama.</b> Kebanyakan nama di Azure polos, cuma sedikit yang aneh. Ini pasangan yang gampang nempel, <b>Blob Storage itu tempat file</b>. Blob artinya gumpalan, gumpalan apa saja, jadi file apa pun masuk ke situ.',
+		'[fyi] Satu kata, beda dunia. Server sewaan disebut EC2 di [[AWS|providers/aws]] dan Compute Engine di [[Google Cloud|providers/gcp]]. Azure juga mengumpulkan semua bagian satu proyek dalam <b>resource group</b>, seperti folder yang bisa dihapus sekaligus.',
+		'Lihat satu pengunjung berjalan melewati seluruh papan, dari Azure DNS sampai Azure Monitor. Mau coba sendiri? Pasang lagi nama namanya ke kartu, ini cuma bonus.'
 	],
 	reactions: {
 		dns: 'Azure DNS itu [[DNS|networking/dns]], tempat menyimpan catatan yang mengarahkan nimbus.com ke server servermu.',
@@ -34,6 +39,58 @@ export const id: AzureText = {
 		miss: 'Bukan di situ. Baca lagi namanya, lalu pikirkan kerjanya apa.',
 		live: 'Pengunjungmu masuk lewat Azure DNS dan Front Door, melewati Load Balancer dan NSG, sampai di Virtual Machine, baca Azure SQL dan Blob Storage, dan Azure Monitor memantau semua langkahnya. nimbus.com sudah hidup di Azure.'
 	},
+	steps: [
+		{
+			tag: 'Ide polos',
+			title: 'Website di cloud',
+			body: 'Lima lapis, dari pintu depan sampai alat yang mengawasi. Tiap kartu itu ide yang sudah kamu kenal.'
+		},
+		{
+			tag: 'Sejak 2010',
+			title: 'Microsoft Azure',
+			body: 'Cloud dari perusahaan pembuat Windows dan Office. Kantor besar sering memilihnya karena stafnya sudah login pakai Microsoft.'
+		},
+		{
+			tag: 'Lapis 1',
+			title: 'Pintu depan',
+			body: '<b>Azure DNS</b> itu DNS, <b>Front Door</b> itu CDN, <b>Load Balancer</b> itu load balancer.'
+		},
+		{
+			tag: 'Lapis 2',
+			title: 'Jaringan privat',
+			body: '<b>VNet</b> itu jaringan privat. <b>NSG</b> itu firewallnya.'
+		},
+		{
+			tag: 'Lapis 3',
+			title: 'Komputasi',
+			body: '<b>Virtual Machines</b>, <b>Container Apps</b> buat container, <b>Functions</b> buat serverless.'
+		},
+		{
+			tag: 'Lapis 4',
+			title: 'Data',
+			body: '<b>Blob Storage</b> menyimpan file, <b>Azure SQL</b> itu SQL, <b>Cosmos DB</b> itu NoSQL.'
+		},
+		{
+			tag: 'Lapis 5',
+			title: 'Akses dan pantau',
+			body: '<b>Entra ID</b> buat login, <b>Key Vault</b> buat kunci, <b>Azure Monitor</b> buat grafik dan alarm.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Ide sama, papan nama baru',
+			body: 'Kebanyakan papan nama Azure polos. Pasangan buat yang aneh, <b>blob itu file apa saja</b>.'
+		},
+		{
+			tag: 'Di tempat lain',
+			title: 'Tiga label, satu kotak',
+			body: 'Tempat file di AWS, Google Cloud, dan Azure. Yang berubah cuma papan namanya.'
+		},
+		{
+			tag: 'Opsional',
+			title: 'Satu pengunjung, semua lapis',
+			body: 'Permintaannya menyalakan tiap bagian yang dilewati. Ketuk tombolnya kalau mau mencocokkan sendiri.'
+		}
+	],
 	boardTitle: 'nimbus.com di Azure',
 	youLabel: 'Pengunjung',
 	layers: ['Pintu depan', 'Jaringan privat', 'Komputasi', 'Data', 'Akses dan pantau'],
@@ -53,12 +110,11 @@ export const id: AzureText = {
 		keys: 'Kunci enkripsi',
 		monitor: 'Monitoring'
 	},
+	sameIdea: '{c} di tiap cloud',
+	playBtn: 'Cocokkan sendiri',
 	trayLabel: 'Layanan Azure',
-	pickHint: 'Pilih satu kartu layanan, lalu ketuk ide yang diwakilinya',
+	pickHint: 'Pilih satu nama, lalu ketuk ide yang diwakilinya',
 	placeHint: '{s} masuk ke mana?',
 	missTag: 'bukan di sini',
-	layerTag: '{n} dari {t} lapis',
-	liveBtn: 'Kirim pengunjung ke nimbus.com',
-	noteDone: 'Semua bagian sudah di tempatnya, saatnya pengunjung sungguhan',
-	noteLive: 'Ide yang sama yang kamu kenal, pakai nama Azure'
+	noteLive: 'Beres, ide yang sama dengan nama Azure'
 };

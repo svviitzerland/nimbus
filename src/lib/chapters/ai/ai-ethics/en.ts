@@ -3,92 +3,100 @@ import type { AiEthicsText } from './types';
 export const en: AiEthicsText = {
 	title: 'AI ethics',
 	intro: [
-		'Chatbots are handy for all sorts of things. Writing, translating, explaining a tricky homework question. But before you hit send, it helps to know where your message actually goes.',
-		"What you type travels to the provider's servers ([[AI through APIs|ai/ai-api]]). It is usually <b>stored</b> for a while, it may be read by staff checking for abuse, and with some settings it can even help <b>train</b> future models. So treat a chatbot like a helpful stranger, not a diary.",
-		"That puts a few things off limits. <b>Passwords</b> and <b>secret keys</b>, other people's <b>private news</b>, and anything your school or office says must stay inside. Often you can still get the help you want, just clean out the private bits first.",
-		"Then there is the question of who owns what AI makes. Models learned from huge piles of writing and art made by real people, and courts around the world are still arguing about what is fair. Copying a living artist's exact style to sell is where it gets touchy.",
-		'[fyi] None of this makes AI bad. Many companies run private versions that keep nothing and never train on it, and most chatbots let you switch training off in the settings. Knowing what happens is exactly what lets you use it well.',
-		'Here are six messages someone is about to send. For each one, decide whether to send it as it is, clean it first, or keep it out of the chatbot.'
+		"Chatbots are handy for writing, translating, and explaining tricky homework. But before you hit send, it helps to know where your message goes. It leaves your phone and travels to the provider's servers ([[AI through APIs|ai/ai-api]]).",
+		'There it is usually <b>kept</b> for a while. Staff may <b>read</b> it when they check for abuse, and with some settings it can even help <b>train</b> future models. So a chatbot is a helpful stranger, not a diary.',
+		'[ingat] The billboard test. Before you paste anything, picture it printed on a giant billboard by the road. If you would not post it there, do not paste it into a chatbot.',
+		'First message, a question about a public news article. Up on the billboard, nothing private shows. Send it, this is exactly what chatbots are good at.',
+		'Second, help polishing a CV. The writing is fine to share, but the phone number and home address are not. <b>Clean it first</b>, swap the private bits out, and the help still works.',
+		'Third, a friend told you a secret. That is not your news to put on any billboard, and removing her name does not help when the secret is the whole message. <b>Keep it out</b>.',
+		'[fyi] Passwords, bank codes, and secret keys always stay out, no real service will ever ask for them in a chat. Many chatbots also let you switch off training in the settings, which is worth a look.',
+		"[fyi] Fairness matters too. Models learned from writing and art made by real people, so asking for a general style like watercolor is fine, but copying one living artist's exact look to sell is where it gets unfair.",
+		'If you like, tap a message and run the billboard test on it again. Totally optional.'
 	],
 	reactions: {
-		news: 'Easy one. A public article holds nothing private, so asking a chatbot to explain it is exactly what it is good at. Just remember it can still get details wrong.',
-		news_wrong:
-			'You can relax on this one. The article is already public, there is nothing secret in it. Asking the bot to explain it is totally fine.',
-		cv: 'Nice clean up. The bot does not need your phone number or home address to polish your writing. Your experience stays, your private details stay home.',
-		cv_wrong:
-			'Hmm, the help itself is fine, but look at the phone number and home address. The bot does not need those to improve your CV. Try keeping the useful part and dropping the private bits.',
-		key: "Good catch. An API key is like a password for your account, and once it sits on someone else's server you can not take it back. The bug is still there to look at, without the secret.",
-		key_wrong:
-			"Look closer at that code, there is a secret key in it. Pasted as is, the key now lives on someone else's server. But you do not have to give up the help either, the bug makes sense without the key.",
+		news: 'Nothing private up there, so off it goes. Just remember the answer can still get details wrong.',
+		cv: 'The bot does not need your phone number or address to polish your writing. Your experience goes, your private details stay home.',
 		friend:
-			'Right. This is not your news to share, not with a chatbot and not with a group chat. Removing her name would not fix it either, the whole point of the message is the secret.',
-		friend_wrong:
-			'Wait, Rina told you that in secret. Sharing it, with a bot or anyone else, is her call, not yours. Cleaning a name out does not help when the secret is the whole message.',
-		art: "Good thinking. Asking for a style like watercolor is fine, but copying one living artist's look and selling it without them is where AI gets unfair to real creators.",
-		art_wrong:
-			'This one sits in the middle. Making art of Nim with AI is fine, but copying the exact style of a living artist to sell prints takes from their work. Try asking for a general style instead.',
-		bank: "Exactly. No chatbot ever needs your bank password, and no real service will ask you to paste it in a chat. Check transactions inside your bank's own app.",
-		bank_wrong:
-			'Careful, that is your bank password! Never paste it into a chatbot, even with the name cleaned out the bot has no business holding it. This one stays out completely.',
-		done: 'Six for six! The rule of thumb is simple. If you would not shout it across a cafe, do not paste it into a chatbot. Clean out what is private, give credit to real creators, and AI becomes a great helper.'
+			"This one never leaves your phone. It is Rina's news to share, not yours, with a bot or with anyone."
 	},
-	choices: { send: 'Send as is', clean: 'Clean it first', keep: 'Keep it out' },
-	cases: [
+	panels: [
+		{
+			tag: 'Where it goes',
+			title: 'Off to the provider',
+			body: "A message to a chatbot leaves your device and lands on the <b>provider's servers</b>, far away from you."
+		},
+		{
+			tag: 'Over there',
+			title: 'Kept, read, learned from',
+			body: 'It may be <b>kept</b> for a while, <b>read</b> by staff who check for abuse, or used to <b>train</b> later models.'
+		},
+		{
+			tag: 'Remember',
+			title: 'The billboard test',
+			body: 'Picture the message on a giant sign by the road. Fine up there means fine to paste.'
+		},
+		{
+			tag: 'Send it',
+			title: 'Nothing private',
+			body: 'A public article holds no secrets. Ask away, and still double check the facts that matter.'
+		},
+		{
+			tag: 'Clean first',
+			title: 'Swap out the private bits',
+			body: 'Replace phone numbers, addresses, and names with a placeholder. The bot only needs the part you want help with.'
+		},
+		{
+			tag: 'Keep it out',
+			title: 'Not yours to share',
+			body: "Someone else's secret stays out of every chat. When the secret is the whole message, cleaning can not fix it."
+		},
+		{
+			tag: 'Recap',
+			title: 'Three choices',
+			body: 'Send it, clean it first, or keep it out. Passwords and keys always belong in the last group.'
+		},
+		{
+			tag: 'Try it',
+			title: 'Your turn',
+			body: 'Tap a message and watch the billboard test run on it again.'
+		}
+	],
+	picture:
+		'A big billboard by the road showing a message, a phone that wants to send it, and the chatbot provider at the other end of the line.',
+	youLabel: 'you',
+	providerLabel: 'chatbot provider',
+	fates: ['kept', 'read', 'trained on'],
+	billboardAsk: 'Would you put it up here?',
+	messages: [
 		{
 			id: 'news',
-			context: 'Homework help',
-			draft: 'Explain this public news article about the new train line in simple words.',
-			secrets: [],
-			cleaned: ''
+			label: 'News article',
+			lines: [
+				[{ t: 'Can you explain this news article' }],
+				[{ t: 'about solar panels in simple words?' }]
+			]
 		},
 		{
 			id: 'cv',
-			context: 'Your own CV',
-			draft:
-				'Make my CV sound more professional. Budi Santoso, phone 0812 3456 7890, Jl. Melati 12 Bandung. Two years as a junior web developer at nimbus.com.',
-			secrets: ['phone 0812 3456 7890', 'Jl. Melati 12 Bandung'],
-			cleaned:
-				'Make my CV sound more professional. Budi Santoso, [phone removed], [address removed]. Two years as a junior web developer at nimbus.com.'
-		},
-		{
-			id: 'key',
-			context: 'Your hobby project',
-			draft: "Why does this crash? const API_KEY = 'sk_nimbus_8f3a91c2'; fetch(url, API_KEY)",
-			secrets: ["'sk_nimbus_8f3a91c2'"],
-			cleaned: "Why does this crash? const API_KEY = '[key removed]'; fetch(url, API_KEY)"
+			label: 'My CV',
+			lines: [
+				[{ t: 'Please make my CV sound better.' }],
+				[{ t: 'Phone ' }, { t: '0812 3456 7890', secret: true }],
+				[{ t: 'Address ' }, { t: 'Jl. Melati 5, Bandung', secret: true }],
+				[{ t: 'Skills, design and teamwork.' }]
+			]
 		},
 		{
 			id: 'friend',
-			context: "A friend's secret",
-			draft:
-				'My friend Rina told me in secret that she is pregnant. Write a fun message announcing it to our group chat.',
-			secrets: ['told me in secret that she is pregnant'],
-			cleaned: ''
-		},
-		{
-			id: 'art',
-			context: 'Prints to sell',
-			draft:
-				'Draw Nim in the exact style of my favourite living illustrator, so I can sell the prints.',
-			secrets: ['in the exact style of my favourite living illustrator'],
-			cleaned: 'Draw Nim in a soft watercolor style, so I can sell the prints.'
-		},
-		{
-			id: 'bank',
-			context: 'Your bank account',
-			draft:
-				'Here is my bank login, username budi88 and password Melati!2024. Check my last transactions for anything weird.',
-			secrets: ['username budi88', 'password Melati!2024'],
-			cleaned: ''
+			label: 'A secret',
+			lines: [
+				[{ t: 'Rina told me in secret that she', secret: true }],
+				[{ t: 'is moving abroad next month.', secret: true }],
+				[{ t: 'Write a post telling everyone.' }]
+			]
 		}
 	],
-	composerLabel: 'Message to the chatbot',
-	progress: '{n} of {total}',
-	nextBtn: 'Next message',
-	finishBtn: 'Wrap it up',
-	sentTag: 'sent',
-	cleanedTag: 'cleaned, then sent',
-	keptTag: 'kept out',
-	doneNote: 'All six decided',
-	journey: ['Your device', 'Provider servers', 'Stored a while', 'Maybe training']
+	removed: '[removed]',
+	verdicts: { send: 'Send it', clean: 'Clean first', keep: 'Keep it out' },
+	rule: 'Not for a billboard, not for a chatbot'
 };

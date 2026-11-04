@@ -3,76 +3,103 @@ import type { RagText } from './types';
 export const id: RagText = {
 	title: 'Apa itu RAG',
 	intro: [
-		'Coba tanya chatbot soal kebijakan refund nimbus.com, dan ada hal lucu yang terjadi. Dia langsung jawab dengan yakin banget. Padahal dia belum pernah lihat kebijakanmu. Dia belajar dari internet publik, dan dokumen milikmu nggak pernah ada di situ.',
-		'Kalau [[LLM|ai/llm]] nggak tahu, dia tetap menebak token berikutnya yang paling mungkin, jadi dia mengarang jawaban yang terdengar benar. Ini namanya <b>halusinasi</b>, salah satu masalah terbesar AI.',
-		'Solusinya punya nama keren, <b>RAG</b> (retrieval augmented generation), tapi idenya sederhana. Sebelum menjawab, <b>cari</b> dulu di dokumenmu sendiri, lalu tempelkan potongan yang paling cocok ke prompt, tepat di sebelah pertanyaannya.',
-		'Pencariannya biasanya pakai [[embedding|ai/embeddings]]. Pertanyaan dan tiap dokumen diubah jadi angka, dan yang paling dekat menang. Lalu model menjawab dari halaman di depannya, mirip ujian open book.',
-		'[fyi] Bagian terbaiknya, kalau kebijakannya berubah kamu nggak perlu melatih ulang apa pun, cukup edit dokumennya. Makanya kebanyakan chatbot customer service sekarang dibangun pakai RAG.',
-		'Tanyakan soal refund dua kali, sekali ke model saja dan sekali pakai dokumen. Lalu coba ubah jumlah hari refund di kebijakannya dan tanya lagi.'
+		'Ini chat bantuan nimbus.com. Seorang pelanggan bayar hosting 20 hari yang lalu, dan dia nanya apakah masih bisa refund. Sebuah chatbot siap menjawab.',
+		'Dia langsung jawab, yakin banget. Bisa, 30 hari, aman! Padahal bot ini belum pernah lihat kebijakan refund nimbus.com. Dia belajar dari internet publik, jadi dia cuma bilang apa yang biasanya dibilang kebanyakan situs.',
+		'Kebijakan aslinya bilang 14 hari, jadi jawabannya salah. Kalau [[LLM|ai/llm]] nggak tahu sesuatu, dia tetap menebak kata kata yang paling mungkin dan mengarang jawaban yang kedengarannya benar. Ini namanya <b>halusinasi</b>.',
+		'Solusinya namanya <b>RAG</b>, singkatan dari retrieval augmented generation. Namanya keren, idenya sederhana. Sebelum menjawab, bot <b>mencari</b> dulu di dokumen milikmu, potongan mana yang paling cocok dengan pertanyaannya. Pencariannya pakai [[embedding|ai/embeddings]], jadi yang dicocokkan maknanya, bukan kata yang persis sama.',
+		'Yang paling cocok, kebijakan refund, ditempelkan ke prompt tepat di sebelah pertanyaannya. Sekarang model nggak menjawab dari ingatan lagi. Dia membaca halaman yang ada di depannya.',
+		'Dan sekarang jawabannya benar. Maaf, refund cuma berlaku dalam 14 hari. Dia bahkan menunjukkan asal jawabannya, jadi siapa pun bisa mengecek.',
+		'[ingat] RAG mengubah ujian tutup buku jadi ujian buka buku. Tanpa RAG, AI menjawab dari ingatan dan kadang ngarang. Dengan RAG, AI buka bukunya dulu, baru menjawab.',
+		'[fyi] Bagian terbaiknya, kalau kebijakannya berubah kamu nggak perlu melatih ulang apa pun. Cukup edit dokumennya. Makanya kebanyakan chatbot customer service sekarang dibangun pakai RAG.',
+		'Mau lihat buktinya? Ubah kebijakan refundnya dan lihat bot itu mencari lagi. Ini opsional kok.'
 	],
 	reactions: {
-		plain_refund:
-			'Kedengarannya yakin kan? Padahal dia nggak pernah baca kebijakan nimbus.com, dia cuma menebak yang biasanya dibilang situs lain. Itulah halusinasi, jawaban yang meyakinkan tanpa dasar apa apa.',
-		plain_support:
-			'Hotline 24 jam? nimbus.com sama sekali nggak punya nomor telepon. Modelnya mengisi kekosongan dengan sesuatu yang kedengarannya benar, dan dia santai saja mengarahkan pelanggan ke nomor yang nggak ada.',
-		rag_refund:
-			'Kali ini dia mencari dulu, menemukan Kebijakan refund, lalu menjawab dari situ. Lihat label sumber kecilnya? Kamu bisa cek persis dari mana jawabannya berasal.',
-		rag_support:
-			'Pencariannya memilih halaman Kontak sebagai yang paling cocok, dan jawabannya mengikuti halaman itu. Nggak ada nomor telepon karangan lagi.',
-		edit: 'Kebijakannya diperbarui. Model saja nggak akan sadar, dia nggak bisa lihat halaman ini. Tanya lagi pakai dokumen dan lihat hasilnya.',
-		edit_rag:
-			'Kamu mengubah dokumennya dan jawabannya ikut berubah, tanpa melatih ulang sama sekali. Dengan RAG, menjaga AI tetap update semudah mengedit satu halaman.'
+		longer:
+			'Kebijakannya diubah jadi 30 hari, dan bot menemukan halaman barunya lalu mengganti jawabannya. Tanpa melatih ulang, cuma dokumennya yang beda.',
+		shorter:
+			'Balik ke 14 hari, dan jawabannya langsung ikut. Dengan RAG, menjaga AI tetap up to date semudah mengedit satu halaman.'
 	},
-	appTitle: 'Bantuan nimbus.com',
-	modePlain: 'Model saja',
-	modeRag: 'Pakai dokumen',
-	askBtn: 'Tanya',
-	searching: 'Mencari di dokumen nimbus.com',
-	you: 'Kamu',
-	ai: 'AI',
+	panels: [
+		{
+			tag: 'Pertanyaannya',
+			title: 'Pelanggan bertanya',
+			body: 'Chat bantuan di nimbus.com dijalankan oleh LLM. Pelanggannya butuh fakta yang cuma nimbus.com yang tahu.'
+		},
+		{
+			tag: 'Dari ingatan',
+			title: 'Tebakan yang pede',
+			body: 'Model menjawab dari yang dia pelajari waktu dilatih. Dia nggak pernah lihat dokumen nimbus.com, jadi bagian yang kosong diisi jawaban yang umum.'
+		},
+		{
+			tag: 'Halusinasi',
+			title: 'Kedengarannya benar, ternyata salah',
+			body: '<b>Halusinasi</b> itu jawaban karangan yang terdengar meyakinkan. Modelnya bukan sengaja bohong, dia cuma menebak kata yang paling mungkin.'
+		},
+		{
+			tag: 'Retrieve',
+			title: 'Cari dulu',
+			body: 'Pertanyaannya dibandingkan dengan tiap dokumen. Masing masing dapat skor kecocokan, dan yang maknanya paling dekat menang.'
+		},
+		{
+			tag: 'Augment',
+			title: 'Tempel ke prompt',
+			body: 'Dokumen pemenangnya dimasukkan ke prompt bareng pertanyaannya, jadi model bisa membacanya.'
+		},
+		{
+			tag: 'Generate',
+			title: 'Jawab dari halamannya',
+			body: 'Model menulis jawaban dari dokumen yang ada di depannya, lalu menunjukkan sumbernya.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Ujian buka buku',
+			body: 'Tanpa RAG, AI ikut ujian tutup buku. Dengan RAG, dia boleh buka buku dulu.'
+		},
+		{
+			tag: 'Coba',
+			title: 'Edit dokumennya',
+			body: 'Ubah kebijakannya lalu tanya lagi. Bot membaca halaman baru, tanpa perlu dilatih ulang.'
+		}
+	],
+	picture:
+		'Chat bantuan yang menjawab dari ingatan, lalu mencari kebijakan refund dan menjawab ulang',
+	appTitle: 'bantuan nimbus.com',
+	you: 'Pelanggan',
+	ai: 'Bot bantuan',
+	question: 'Aku bayar hosting 20 hari lalu. Masih bisa refund nggak?',
+	wrongAnswer:
+		'Bisa dong! Kebanyakan perusahaan hosting kasih garansi uang kembali 30 hari, jadi kamu masih aman.',
+	answerNo:
+		'Maaf, sudah lewat. nimbus.com cuma refund dalam {days} hari sejak pembayaran. Sisa masa aktifmu bisa diubah jadi saldo akun.',
+	answerYes: 'Bisa! nimbus.com refund dalam {days} hari sejak pembayaran, dan 20 hari masih masuk.',
+	fromMemory: 'dari ingatan',
 	source: 'dari {doc}',
-	noSource: 'tanpa sumber',
+	madeUp: 'Karangan',
 	shelfTitle: 'Dokumen nimbus.com',
-	unseen: 'Model saja nggak bisa melihat ini',
-	attached: 'ditempel',
+	unseen: 'Bot sendirian nggak bisa lihat ini',
+	searching: 'Mencari di dokumen',
 	match: '{n}% cocok',
-	daysLabel: 'Batas refund dalam hari',
-	fewer: 'Kurangi hari',
-	more: 'Tambah hari',
+	readsTitle: 'Yang dibaca model',
 	docs: {
 		refund: {
 			title: 'Kebijakan refund',
-			body: 'Uang kembali penuh dalam {days} hari setelah bayar. Lewat dari itu, sisa waktunya jadi saldo akun.'
+			body: 'Refund penuh dalam {days} hari sejak pembayaran. Sesudah itu, sisa masa aktif jadi saldo akun.'
 		},
 		pricing: {
 			title: 'Harga',
-			body: 'Hosting mulai Rp 25.000 per bulan. Bayar tahunan dapat gratis dua bulan.'
+			body: 'Hosting mulai Rp 25.000 sebulan. Bayar tahunan, gratis dua bulan.'
 		},
 		contact: {
 			title: 'Kontak',
-			body: 'Chat kami lewat gelembung di dashboard, hari kerja pukul 09.00 sampai 17.00. Kami nggak punya nomor telepon.'
+			body: 'Chat kami dari dashboard, Senin sampai Jumat jam 9 sampai 17.'
 		},
 		about: {
 			title: 'Tentang nimbus',
-			body: 'Penyedia cloud kecil yang ramah, dijalankan Nim dan teman teman sejak 2024.'
+			body: 'Penyedia cloud kecil yang ramah, dijalankan Nim dan kawan kawan.'
 		}
 	},
-	questions: {
-		refund: {
-			chip: 'Refund setelah 20 hari?',
-			ask: 'Aku bayar hosting nimbus.com 20 hari lalu. Masih bisa refund nggak?',
-			plain:
-				'Bisa dong! Kebanyakan penyedia hosting kasih garansi uang kembali 30 hari, jadi kamu masih aman.',
-			rag: 'Maaf, nggak bisa. nimbus.com cuma memberi refund dalam {days} hari setelah pembayaran. Lewat dari itu, sisa waktumu diubah jadi saldo akun.'
-		},
-		support: {
-			chip: 'Cara hubungi support?',
-			ask: 'Gimana cara menghubungi support nimbus.com?',
-			plain:
-				'Telepon saja hotline 24 jam mereka, atau kirim email ke tim support dan mereka akan membalas dalam sehari.',
-			rag: 'Buka gelembung chat di dashboard nimbus.com kamu. Timnya siap di hari kerja pukul 09.00 sampai 17.00. Nggak ada nomor telepon.'
-		}
-	},
-	refundYes:
-		'Bisa! nimbus.com memberi refund dalam {days} hari setelah pembayaran, dan 20 hari masih masuk. Kamu bisa ajukan dari halaman tagihan.'
+	closedBook: 'Dari ingatan',
+	openBook: 'Cari dulu',
+	rule: 'Tutup buku menebak, buka buku mengecek',
+	editBtn: 'Ubah kebijakan jadi {days} hari'
 };

@@ -1,34 +1,43 @@
 import type { LessonText } from '../../types';
 
-/** One customer question, with how each model answers it. */
-export interface FineTuneQuestion {
-	q: string; // short chip label and the question itself
-	general: string; // the untuned general model, polite but vague
-	good: string; // the model tuned on good nimbus replies
-	rude: string; // the model tuned on a set that included the rude reply
+export interface FineTuningPanel {
+	tag?: string;
+	title: string;
+	/** May hold simple HTML like <b>. */
+	body: string;
 }
 
 export interface FineTuningText extends LessonText {
-	questionsLabel: string; // caption over the question chips
-	questions: FineTuneQuestion[];
-	/**
-	 * Past support replies the learner can put in the training set. The stage decides which are
-	 * good, rude, or wrong by position (0 good, 1 rude, 2 good, 3 wrong, 4 good).
-	 */
+	/** One panel per scene of the guided picture (nine scenes). */
+	panels: FineTuningPanel[];
+	/** Spoken description of the whole picture. */
+	picture: string;
+	/** Caption over the stack of past replies. */
+	examplesLabel: string;
+	/** Past replies from the team, each a short topic and the reply. The last one is the bad one. */
 	examples: { q: string; a: string }[];
-	examplesLabel: string; // caption over the example cards
-	wrongAdd: string; // the bad habit appended to every answer when the wrong reply was tuned in
-	generalLabel: string; // name of the untuned model
-	tunedLabel: string; // name of the tuned model
-	notTuned: string; // placeholder in the tuned pane before any tuning
-	askHint: string; // placeholder before any question is asked
-	stale: string; // small note when the set changed after tuning
-	setCount: string; // template with {n}, examples in the training set
-	tuneBtn: string;
-	tuning: string; // template with {n}, the round being trained
-	frozen: string; // caption for the frozen base of the model picture
-	adapter: string; // caption for the small tuned part
-	qMark: string; // tiny tag before a past question
-	aMark: string; // tiny tag before a past answer
-	reset: string;
+	/** Captions on the model picture. */
+	modelLabel: string;
+	frozenLabel: string;
+	adapterLabel: string;
+	/** Template with {n}, the training round being played. */
+	round: string;
+	/** Title of the support chat window. */
+	chatTitle: string;
+	/** The customer question asked in every scene. */
+	question: string;
+	/** How each model answers it. */
+	general: string;
+	good: string;
+	/** The bad habit the bad example adds to every answer. */
+	habit: string;
+	/** Small tags on the reply bubble. */
+	generalTag: string;
+	tunedTag: string;
+	/** Memory trick tag over the model, and the rule of thumb line under the picture. */
+	memo: string;
+	rule: string;
+	/** The optional switch on the last beat. */
+	removeBad: string;
+	addBad: string;
 }

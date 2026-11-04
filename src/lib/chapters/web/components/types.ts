@@ -1,26 +1,27 @@
 import type { LessonText } from '../../types';
 
+/** One part of the side panel (title, one or two short sentences, an optional tag). */
+export type GuideStep = { title: string; body: string; tag?: string };
+
 export interface ComponentsText extends LessonText {
-	/** Caption over the component recipe. */
+	/** Side panel parts, one per beat (the last beat reuses the last part). */
+	steps: GuideStep[];
+	/** Caption over the component recipe (a file name). */
 	recipeLabel: string;
-	/** Caption over the data rows. */
-	dataLabel: string;
-	/** Caption over the live shop preview. */
-	previewLabel: string;
-	/** The four products, name and price. */
+	/** Caption over the props that flow into the recipe. */
+	propsLabel: string;
+	/** Address shown in the browser. */
+	pageLabel: string;
+	/** Labels on the page parts in the "made of components" part. */
+	headerTag: string;
+	cardTag: string;
+	/** The four products, name and price (names short, about 12 letters). */
 	products: { name: string; price: number }[];
 	/** Money template, {n} is the amount. */
 	money: string;
-	/** Button on each data row that drops a Card on the page. */
-	use: string;
-	/** Shown on a row once its card is on the page. */
-	used: string;
-	/** Shown in the preview while it is empty. */
-	empty: string;
-	/** The one change to the recipe, offered once every card is placed. */
-	upgrade: string;
-	/** Text of the button that the upgrade adds to every card. */
+	/** The button that Card gains. */
 	addToCart: string;
-	/** Hint before the upgrade is unlocked. */
-	upgradeHint: string;
+	/** The optional toggle on the last beat. */
+	removeButton: string;
+	addButton: string;
 }

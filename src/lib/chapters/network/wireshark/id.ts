@@ -3,43 +3,72 @@ import type { WiresharkText } from './types';
 export const id: WiresharkText = {
 	title: 'Apa itu Wireshark',
 	intro: [
-		'Tiap kali kamu membuka halaman, puluhan paket keluar masuk laptopmu. Kamu nggak pernah melihatnya, browser menyembunyikan semua itu dan cuma menampilkan halamannya.',
-		'<b>Wireshark</b> itu aplikasi gratis yang bikin kamu bisa melihatnya. Dia menguping di kartu jaringanmu dan merekam tiap paket yang lewat, namanya <b>capture</b>. Orang jaringan memakainya kalau perlu tahu apa yang benar benar terjadi, bukan yang mereka kira terjadi.',
-		'Ingat [[lapisan dan paket|networking/layers]]? Tiap paket itu bingkisan yang dibungkus berlapis lapis. Wireshark membukakan bungkusnya buat kamu, satu lapisan per baris, dari sinyal di paling bawah sampai pesan di paling atas.',
+		'Tiap kali kamu membuka halaman, puluhan paket kecil keluar masuk laptopmu. Kamu nggak pernah melihatnya, browser menyembunyikan semua itu dan cuma menampilkan halamannya.',
+		'<b>Wireshark</b> itu aplikasi gratis yang bikin kamu bisa melihatnya. Dia menguping di kartu jaringanmu dan mencatat tiap paket yang lewat. Rekaman itu namanya <b>capture</b>. Lihat daftarnya terisi saat nimbus.com dimuat.',
+		'Pilih satu paket dan Wireshark membuka bungkusnya, seperti paket di dalam paket. Paling luar ada frame WiFi (laptop ke router), di dalamnya paket IP (ke alamat mana), lalu port (pintu yang mana), dan di tengah isi sebenarnya. Bungkusan itu adalah [[lapisan|networking/layers]].',
+		'Sekarang lihat paket paket terakhir, halamannya sendiri. Bungkus luarnya masih bisa dibaca, tapi isinya terkunci. Itu kerjanya [[HTTPS|security/tls]], bahkan terhadap alat seperti ini.',
+		'[ingat] Wireshark itu kayak CCTV di jalan raya. Semua mobil terekam dan plat nomornya kebaca, tapi bagasi yang dikunci tetap tertutup.',
 		'[fyi] Versi mininya sebenarnya sudah kamu punya. Buka Developer Tools di browser dan lihat tab Network, di situ ada daftar semua permintaan yang dibuat sebuah halaman. Wireshark masuk lebih dalam, sampai ke tiap paket.',
-		'Yuk kita rekam kamu membuka nimbus.com. Mulai capture, lalu ketuk paketnya buat membuka bungkusnya. Coba satu paket DNS, satu paket TCP, dan data terenkripsi di bagian akhir.'
+		'Kalau penasaran, ketuk baris mana pun di capture buat membuka bungkusnya.'
 	],
 	reactions: {
-		capture:
-			'Sembilan paket cuma buat membuka satu halaman, dan ini versi pendeknya. Warnanya mengelompokkan jenis paket. Ketuk baris mana saja buat membuka bungkusnya lapis demi lapis.',
-		dns: 'Paket ini bertanya ke router di mana alamat nimbus.com. Dia naik UDP ke pintu 53, tanpa kunci sama sekali, jadi siapa pun di jaringanmu bisa melihat situs apa yang mau kamu buka.',
-		tcp: 'Ini jabat tangan TCP, SYN, lalu SYN ACK, lalu ACK. Laptopmu dan server saling menyapa tiga kali sebelum data beneran bergerak. Lihat lapisan 4, pintu 443 itu pintu web yang aman.',
+		dns: 'Paket DNS. Laptopmu nanya nimbus.com tinggal di mana. Paket ini jalan tanpa gembok, jadi siapa pun di jaringanmu bisa tahu situs apa yang mau kamu buka.',
+		tcp: 'Bagian dari jabat tangan TCP. Laptopmu dan server saling menyapa tiga kali (SYN, SYN ACK, ACK) sebelum data beneran dikirim.',
 		hello:
-			'Salam pembuka TLS. Di sini laptopmu dan nimbus.com sepakat soal kunci rahasia. Nama nimbus.com masih kelihatan, tapi mulai paket berikutnya, semuanya dikunci.',
-		data: 'Terenkripsi. Wireshark masih bisa membaca lapisan luarnya, siapa pengirimnya, ke mana, lewat pintu berapa, tapi isi halamannya cuma acakan. Itulah [[HTTPS|security/tls]] yang melindungimu, bahkan dari alat seperti ini.'
+			'Sapaan TLS. Di sini kedua pihak menyepakati kunci rahasia. Nama nimbus.com masih kelihatan, semua setelah ini dikunci.',
+		data: 'Data aplikasi, terkunci. Wireshark tahu siapa pengirimnya, ke mana, dan lewat pintu mana, tapi halamannya sendiri cuma acakan.'
 	},
-	captureBtn: 'Mulai capture',
-	againBtn: 'Rekam lagi',
+	steps: [
+		{
+			title: 'Lalu lintas tak terlihat',
+			body: 'Memuat satu halaman butuh banyak paket kecil bolak balik. Browser cuma menunjukkan hasil akhirnya.'
+		},
+		{
+			tag: 'Capture',
+			title: 'Mencatat tiap paket',
+			body: 'Wireshark mendaftar tiap paket dengan nomor, protokol, dan ringkasan pendek. Warna mengelompokkan jenisnya.'
+		},
+		{
+			title: 'Paket di dalam paket',
+			body: 'Tiap paket dibungkus berlapis. Paling luar <b>dari siapa ke siapa</b> di WiFi kamu, lalu <b>alamat IP</b>, lalu <b>port</b>, dan isinya ada di tengah.'
+		},
+		{
+			title: 'Isi terkunci',
+			body: 'Dengan HTTPS, bagian tengahnya dienkripsi. Wireshark tetap lihat bagian luar (siapa ngobrol dengan siapa, dan seberapa banyak), tapi nggak lihat halamannya.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Plat kebaca, bagasi nggak',
+			body: 'Alamat di luar selalu bisa dibaca. Isi di dalam HTTPS nggak bisa.'
+		}
+	],
 	capturing: 'Merekam di WiFi',
-	captured: '{n} paket terekam',
-	filterLabel: 'Tampilkan',
-	filterAll: 'Semua',
 	colNo: 'No.',
 	colProto: 'Protokol',
 	colInfo: 'Info',
-	idleHint: 'Belum ada yang direkam',
-	pickHint: 'Ketuk sebuah paket buat membuka lapisannya',
-	layerLabel: 'Lapisan {n}',
-	layerNames: { 1: 'Physical', 2: 'Data Link', 3: 'Network', 4: 'Transport', 7: 'Application' },
+	layerNames: { frame: 'Frame WiFi', ip: 'Paket IP', port: 'Port', content: 'Isi' },
+	lockedLabel: 'terkunci',
+	packetTitle: 'Paket {n}',
+	contents: [
+		'nimbus.com di mana?',
+		'nimbus.com ada di 76.76.21.21',
+		'SYN, boleh ngobrol?',
+		'SYN ACK, boleh',
+		'ACK, sip',
+		'Halo, aku mau nimbus.com',
+		'Ini sertifikatku',
+		'',
+		''
+	],
 	packetNotes: [
-		'Laptopmu bertanya ke router, nimbus.com tinggal di mana.',
-		'Jawabannya datang, nimbus.com tinggal di 76.76.21.21.',
-		'Jabat tangan langkah satu. Laptopmu mengetuk pintu 443 di server.',
-		'Jabat tangan langkah dua. Server balas mengetuk.',
-		'Jabat tangan langkah tiga. Sambungannya terbuka.',
-		'Laptopmu mulai memasang kunci, dan menyebut situs yang dia mau.',
-		'Server menjawab dengan sertifikatnya, bukti kalau dia memang nimbus.com.',
+		'Laptopmu nanya ke router, nimbus.com tinggal di mana.',
+		'Jawabannya datang, nimbus.com ada di 76.76.21.21.',
+		'Jabat tangan, langkah satu. Laptopmu mengetuk pintu 443 di server.',
+		'Jabat tangan, langkah dua. Server balas mengetuk.',
+		'Jabat tangan, langkah tiga. Sambungannya terbuka.',
+		'Laptopmu mulai memasang gembok, dan menyebut situs yang dia mau.',
+		'Server menjawab dengan sertifikatnya, bukti bahwa dia benar benar nimbus.com.',
 		'Permintaan halamanmu, terkunci rapat.',
-		'Halamannya sendiri pulang, terkunci rapat juga.'
+		'Halamannya sendiri datang, juga terkunci rapat.'
 	]
 };

@@ -7,22 +7,54 @@ export const en: InferenceText = {
 	title: 'Training and inference',
 	intro: [
 		'A model has two very different moments in its life. First it learns, then it works. Those two moments have names, <b>training</b> and <b>inference</b>.',
-		'<b>Training</b> is the studying. The machine goes through every example, again and again, adjusting itself a tiny bit each time. For a big model that means thousands of computers busy for weeks, and a bill in the millions. Luckily it only happens once (or once in a while, for a new version).',
-		'What comes out is the <b>model</b>, basically a file full of numbers. From then on it is frozen, it does not learn anything new while it works.',
-		'<b>Inference</b> is the working. Someone asks a question, the model runs once and gives an answer, done. One answer takes a tiny fraction of a second, and the same model can serve millions of people a day.',
+		'<b>Training</b> is the studying. The computer reads lots of examples (here, emails already marked spam or normal) again and again, adjusting itself a tiny bit each time. For a big model that keeps thousands of computers busy for weeks.',
+		'What comes out is the <b>model</b>, basically a file full of numbers. It moves onto a server, and from then on it is frozen. It does not learn anything new while it works.',
+		'<b>Inference</b> is the working. Someone sends a question, the model runs once and answers, done. One answer takes a tiny fraction of a second.',
+		'And it never gets tired. The same frozen model can answer millions of people a day, one quick answer after another.',
+		'[ingat] Cook once, serve many times. Training is cooking a huge pot, slow and expensive. Inference is scooping out a plate, quick, again and again.',
 		"[fyi] Every time you chat with an AI app, you are doing inference. The training happened months earlier on special chips called [[GPUs|ai/gpu]]. Apps that use someone else's model pay a little for every answer, through an [[API|ai/ai-api]].",
-		'Let me train a little spam filter for you. Press train and watch the long bar, then put the model on a server and fire questions at it.'
+		'If you like, tap one of the emails below and send it to the model yourself. The answer is back before you can blink.'
 	],
 	reactions: {
-		training:
-			'Training is running. My filter reads each labelled email and counts which words show up in spam and which in normal mail. The meters show what this step costs at the size of a real big model.',
-		trained:
-			'Done, and that was the slow, pricey part. Out came a small file of word counts. It moves onto the server, and from now on it only answers.',
-		ask: 'Answered in less than a millisecond! It did not study anything new, it just looked the words up in what it already learned. That is inference.',
-		typed:
-			'Your own sentence, one it has never seen, and still an instant answer. It only knows words from training, so a word it never met simply counts for nothing.',
-		rush: 'A thousand questions, answered faster than a blink, while training needed that whole long bar. Train once, slowly. Answer again and again, quickly. With millions of users those tiny answers still add up to a real bill, which is why companies care about both.'
+		ask: 'Answered in less than a millisecond! It did not study anything new, it just looked the words up in what it already learned. That is inference.'
 	},
+	panels: [
+		{
+			tag: 'Two moments',
+			title: 'Learn first, then work',
+			body: 'The top half is where the model learns, the bottom half is where it works for people. They happen at different times, often on different machines.'
+		},
+		{
+			tag: 'Training',
+			title: 'The long study',
+			body: 'Examples flow into the machines, and the model adjusts itself after each one. The bar is slow on purpose, real training takes days or weeks.'
+		},
+		{
+			tag: 'The model',
+			title: 'A frozen file of numbers',
+			body: 'All that studying ends up as one file. It gets copied onto a server, and from now on it only answers, it does not learn.'
+		},
+		{
+			tag: 'Inference',
+			title: 'One question, one quick answer',
+			body: 'A phone sends an email to the server, the model checks its words against what it learned, and replies spam or not spam in under a millisecond.'
+		},
+		{
+			tag: 'At scale',
+			title: 'Again and again',
+			body: 'Each answer is tiny, but there are millions of them. That is why companies care about the cost of inference too, not just training.'
+		},
+		{
+			tag: 'Remember',
+			title: 'Cook once, serve many times',
+			body: 'Training happens once (or once in a while, for a new version) and is slow. Inference happens on every question and is fast.'
+		},
+		{
+			tag: 'Try it',
+			title: 'Ask the model',
+			body: 'Tap an email. The model has never seen it, but it still answers instantly from what it learned.'
+		}
+	],
 	examples: [
 		spam('win a free phone now'),
 		ham('the meeting moved to monday'),
@@ -48,31 +80,24 @@ export const en: InferenceText = {
 		'dinner with the team tonight'
 	],
 	trainTitle: 'Training, happens once',
-	trainBtn: 'Train the model',
+	inferTitle: 'Inference, every question',
 	reading: 'Reading example {n} of {total}',
-	days: 'Computers busy',
-	daysValue: '{n} days',
-	cost: 'Bill so far',
-	costValue: '${n} million',
-	decimal: '.',
-	scaleNote: 'Meters show a big model at real scale',
-	trainedOnce: 'Trained once, {days} days and {cost}',
+	day: 'Day {n} of computer time',
 	modelFile: 'spam model',
-	modelInfo: '{n} words learned',
-	frozen: 'frozen, not learning',
+	frozen: 'frozen',
 	you: 'You',
 	server: 'Server',
-	inferTitle: 'Inference, every question',
-	askHint: 'Tap an email or type your own',
-	placeholder: 'Type an email line',
-	askBtn: 'Ask',
 	spam: 'spam',
 	ham: 'not spam',
-	fast: 'under 1 ms',
-	ms: '{n} ms',
-	answered: '{n} questions answered',
-	rushBtn: 'Send 1,000 at once',
-	rushDone: '1,000 answers in {time}',
 	spamTag: 'spam',
-	hamTag: 'normal'
+	hamTag: 'normal',
+	fast: 'under 1 ms',
+	answered: '{n} answered',
+	sep: ',',
+	longBar: 'Training',
+	shortBar: 'One answer',
+	longTime: 'weeks',
+	shortTime: 'a blink',
+	rule: 'Cook once, serve many times',
+	askHint: 'Tap an email to ask the model'
 };

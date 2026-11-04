@@ -3,36 +3,70 @@ import type { ConfigMgmtText } from './types';
 export const en: ConfigMgmtText = {
 	title: 'Configuration management',
 	intro: [
-		'nimbus.com is popular now, and it runs on ten servers behind a [[load balancer|traffic/load-balancer]]. Today a new version of the app is out, and every one of those ten servers needs it.',
-		'The manual way means logging into each server with [[SSH|cloud/remote-access]], typing the same commands, checking it worked, then moving on to the next one. Ten times. Somewhere along the way you get tired, and a typo slips in.',
-		'A <b>configuration management</b> tool does this for you. You write down once what every server should look like (which app version, which settings), and the tool makes all of them match.',
-		'A popular one is <b>Ansible</b>. The list of steps lives in a file called a <b>playbook</b>. Ansible logs into all the servers for you, runs the steps on many of them at once, and reports back what changed.',
-		'[fyi] The neat part is that a playbook can run again and again safely. If a server already matches, Ansible leaves it alone. And it is not only for cloud servers, network teams use the same tool to set up hundreds of routers and switches in one go.',
-		'Ten servers are waiting for the update. Try a couple by hand first, then type the playbook command in the terminal.'
+		'nimbus.com is popular now. It runs on six servers behind a [[load balancer|traffic/load-balancer]], and today version 2 of the app is ready. Every one of those six servers needs the update.',
+		'The manual way means logging into each server with [[SSH|cloud/remote-access]] (a way to type commands on another computer), typing the same commands, then moving on to the next one. One by one, six times.',
+		'Somewhere around the fourth server you get tired, and a typo slips in. Now one server is broken and the rest do not all match. Imagine doing this with a hundred servers.',
+		'<b>Configuration management</b> fixes this. You write down once what every server should look like (which app version, which settings), and a tool makes all of them match.',
+		'A popular tool is <b>Ansible</b>. Its list of steps lives in a file called a <b>playbook</b>. Ansible logs into all six servers for you, runs the steps on all of them at once, and reports back.',
+		'Run it again and nothing breaks. Ansible checks each server first, and if it already matches, it leaves it alone. The report simply says nothing changed.',
+		'[ingat] <b>Write once, run everywhere.</b> The playbook is one checklist read out to every server at the same time. Servers that already match just nod and wait.',
+		'[fyi] [[Terraform|devops/iac]] creates the servers, Ansible sets up what runs inside them, so teams often use both. Network teams love Ansible too, it can set up hundreds of routers and switches in one go.',
+		'Want to try? Tap a server to mess it up by hand, then watch the playbook bring it back in line. Or just keep watching.'
 	],
 	reactions: {
-		manual:
-			'One down. Log in, type, check, log out. Five minutes for one server. Now picture a hundred of them.',
-		typo: 'Oops, a typo. That server now has a broken config and nobody noticed. This is exactly how servers slowly end up different from each other.',
-		playbook:
-			'Ansible went through all ten, five at a time, and every server now runs the new version. Even the one with the typo got fixed, because the playbook says exactly how it should look.',
-		again:
-			'Ran it again, and it says changed=0. Every server already matches the playbook, so Ansible touched nothing. You can run it every day without fear.'
+		drift:
+			'Someone changed that server by hand, so it drifted away from the playbook. Ansible ran again, fixed only that one, and left the others alone.'
 	},
-	missionLabel: 'Mission',
-	mission: 'Update all 10 servers to nimbus app v2',
-	manualBtn: 'SSH into the next server',
-	manualDone: 'Every server visited',
-	minutesTag: '{n} minutes by hand',
-	typoTag: 'typo',
-	oldTag: 'v1',
-	newTag: 'v2',
-	hintLabel: 'Tap to fill in',
-	placeholder: 'type a command',
-	unknown: 'command not found, {cmd}',
-	noteIdle: 'Ten servers, all still on v1',
-	noteManual: 'Updated by hand. {n} left to go.',
-	noteTypo: 'One server got a typo and is now broken',
-	notePlaybook: 'One command, all ten servers on v2',
-	noteAgain: 'Already up to date, nothing to change'
+	steps: [
+		{
+			tag: 'The job',
+			title: 'Six servers, one update',
+			body: 'Every server runs <b>v1</b> of the app. All six should end up on <b>v2</b>, set up exactly the same.'
+		},
+		{
+			tag: 'By hand',
+			title: 'One at a time',
+			body: 'Log in, type the commands, log out, next. The same few lines, typed again and again.'
+		},
+		{
+			tag: 'The problem',
+			title: 'A typo slips in',
+			body: '<b>nimbus-ap</b> instead of nimbus-app. One letter, and that server is broken while the others moved on.'
+		},
+		{
+			tag: 'The idea',
+			title: 'Describe it once',
+			body: 'A file that says how every server should look. Here it says install version 2, then restart the app.'
+		},
+		{
+			tag: 'The tool',
+			title: 'ansible-playbook',
+			body: 'One command. Ansible reaches all six servers at once and runs the same steps on each, typo free.'
+		},
+		{
+			tag: 'Safe to repeat',
+			title: 'changed=0',
+			body: 'Everything already matches, so nothing is touched. You can run a playbook as often as you like.'
+		},
+		{
+			tag: 'Rule of thumb',
+			title: 'Write once, run everywhere',
+			body: 'One checklist for every server. The ones that already match just nod.'
+		},
+		{
+			tag: 'Good to know',
+			title: 'Terraform and Ansible',
+			body: '<b>Terraform</b> builds the machines, <b>Ansible</b> sets up what is inside them.'
+		},
+		{
+			tag: 'Optional',
+			title: 'Break one',
+			body: 'Tap a server to change it by hand. The playbook runs and brings it back.'
+		}
+	],
+	terminalTab: 'Terminal',
+	serversLabel: 'Servers',
+	brokenTag: 'broken',
+	driftTag: 'edited',
+	tapHint: 'Tap a server'
 };

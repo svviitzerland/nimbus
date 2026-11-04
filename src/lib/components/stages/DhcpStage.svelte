@@ -1,598 +1,529 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
+	// Guided DHCP lesson. A cafe where the router is a receptionist with a board of keys (the
+	// address pool). A phone walks in with no address, and the four DORA messages play out one
+	// per beat: the key lifts off the board, crosses the desk, and the phone takes a seat. Then
+	// the lease runs out and the key goes home. On the last beat, more guests may walk in until
+	// the board is empty, which is optional.
+	import { onDestroy, onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
+	import Guide from '$lib/components/Guide.svelte';
 	import Device from '$lib/components/stages/addressing/Device.svelte';
 	import type { LessonText } from '$lib/chapters/types';
 	import type { DhcpText } from '$lib/chapters/network/dhcp/types';
 
 	let {
 		text,
+		beat = 0,
 		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+		onstate,
+		onshow
+	}: {
+		text: LessonText;
+		beat?: number;
+		oncomplete?: () => void;
+		onstate?: (s: string) => void;
+		onshow?: (v: boolean) => void;
+	} = $props();
 	const tx = $derived(text as DhcpText);
+	const LAST = $derived(tx.intro.length - 1);
 
-	type KeyState = 'free' | 'lent' | 'cooling';
-	type Key = { ip: string; state: KeyState };
-	type Guest = { id: number; kind: 'phone' | 'laptop'; ip: string };
-	type Door = { id: number; kind: 'phone' | 'laptop'; denied: boolean };
+	type Pt = { x: number; y: number };
+	const KEYS = ['.10', '.11', '.12', '.13'];
+	const MINE = 2; // the phone in the story gets .12
+	const HOOK = (k: number): Pt => ({ x: 238 + k * 25, y: 66 });
+	const DESK: Pt = { x: 214, y: 156 };
+	const DOOR: Pt = { x: 34, y: 232 };
+	const MID: Pt = { x: 120, y: 214 };
+	const SEATS: Pt[] = [
+		{ x: 70, y: 82 },
+		{ x: 140, y: 82 },
+		{ x: 70, y: 148 },
+		{ x: 140, y: 148 }
+	];
+	const GATEWAY = '192.168.1.1';
 
-	const keys = $state<Key[]>(
-		[10, 11, 12, 13, 14, 15].map((n) => ({ ip: `192.168.1.${n}`, state: 'free' as KeyState }))
-	);
-	let seated = $state<Guest[]>([]);
-	let door = $state<Door | null>(null);
-	let step = $state(-1); // which DORA message is on the wire right now
-	let offered = $state(''); // the key being offered to the newcomer
-	let slipFor = $state<Guest | null>(null);
-	let note = $state('');
-	let count = 0;
-	let firstJoin = true;
-	let completed = false;
+	let still = $state(false);
+	let t = $state(0);
+	let peek = $state<number | null>(null);
+	// Guests on the last beat, each with the key it got (or -1 when the board was empty).
+	let guests = $state<{ key: number; seated: boolean }[]>([]);
 	let timers: ReturnType<typeof setTimeout>[] = [];
 
-	const COOL_MS = 4000;
-	const busy = $derived(step >= 0);
+	onMount(() => {
+		still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+		onshow?.(true);
+		oncomplete?.();
+	});
 
-	function speed() {
-		const r =
-			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-		return r ? 0.3 : 1;
-	}
-	function later(ms: number, fn: () => void) {
-		timers.push(setTimeout(fn, ms * speed()));
-	}
-
-	function arrive() {
-		if (door || busy) return;
-		count += 1;
-		door = { id: count, kind: count % 2 ? 'phone' : 'laptop', denied: false };
-		runDora();
-	}
-
-	function runDora() {
-		if (!door) return;
-		const d = door;
-		const wasDenied = d.denied;
-		d.denied = false;
-		step = 0;
-		note = tx.notes.asking;
-		const key = keys.find((k) => k.state === 'free');
-		if (!key) {
-			later(1300, () => {
-				step = -1;
-				d.denied = true;
-				note = tx.notes.empty;
-				onstate?.('empty');
-			});
-			return;
-		}
-		later(750, () => {
-			step = 1;
-			offered = key.ip;
-			key.state = 'lent';
-		});
-		later(1500, () => (step = 2));
-		later(2250, () => (step = 3));
-		later(3000, () => {
-			const g: Guest = { id: d.id, kind: d.kind, ip: key.ip };
-			seated.push(g);
-			slipFor = g;
-			door = null;
-			step = -1;
-			offered = '';
-			note = wasDenied ? tx.notes.rejoin : tx.notes.joined;
-			if (wasDenied) {
-				onstate?.('rejoin');
-				if (!completed) {
-					completed = true;
-					oncomplete?.();
-				}
-			} else if (firstJoin) {
-				firstJoin = false;
-				onstate?.('dora');
-			}
-		});
-	}
-
-	function leave(g: Guest) {
-		if (busy) return;
-		seated = seated.filter((s) => s.id !== g.id);
-		if (slipFor?.id === g.id) slipFor = null;
-		const key = keys.find((k) => k.ip === g.ip);
-		if (!key) return;
-		key.state = 'cooling';
-		note = tx.notes.cooling;
-		onstate?.('leave');
-		later(COOL_MS, () => {
-			key.state = 'free';
-			if (door?.denied && !busy) runDora();
-		});
-	}
-
-	const shown = $derived(note || tx.notes.idle);
-	// Discover and Request travel up to the router, Offer and Ack come back down.
-	const up = $derived(step === 0 || step === 2);
+	$effect(() => {
+		void beat;
+		peek = null;
+		t = 0;
+		if (still) return;
+		const id = setInterval(() => (t += 1), 1400);
+		return () => clearInterval(id);
+	});
 
 	onDestroy(() => timers.forEach(clearTimeout));
+
+	const FREE = [0, 1, 3];
+	const empty = $derived(guests.some((g) => g.key < 0));
+
+	function arrive() {
+		if (empty) return;
+		const used = guests.length;
+		const key = used < FREE.length ? FREE[used] : -1;
+		guests.push({ key, seated: false });
+		const idx = guests.length - 1;
+		timers.push(
+			setTimeout(
+				() => {
+					if (key >= 0) guests[idx].seated = true;
+					onstate?.(key >= 0 ? 'join' : 'empty');
+				},
+				still ? 50 : 900
+			)
+		);
+	}
+
+	type Scene = {
+		phone: Pt;
+		faded: boolean;
+		key: Pt | null; // where the .12 key is, null when it hangs on its hook
+		bubble: { from: Pt; k: number } | null;
+		rings: boolean;
+		tag: string;
+		hot: boolean;
+		addr: string;
+	};
+
+	const nearPhone = (p: Pt): Pt => ({ x: p.x + 22, y: p.y - 16 });
+
+	function scene(i: number): Scene {
+		const base: Scene = {
+			phone: SEATS[0],
+			faded: false,
+			key: nearPhone(SEATS[0]),
+			bubble: null,
+			rings: false,
+			tag: '',
+			hot: false,
+			addr: '192.168.1.12'
+		};
+		if (i === 0) return { ...base, phone: DOOR, key: null, tag: tx.noAddress, addr: '' };
+		if (i === 1) return { ...base, phone: DOOR, key: null, tag: tx.noAddress, hot: true, addr: '' };
+		if (i === 2)
+			return { ...base, phone: MID, key: null, bubble: { from: MID, k: 0 }, rings: true, addr: '' };
+		if (i === 3)
+			return { ...base, phone: MID, key: DESK, bubble: { from: DESK, k: 1 }, hot: true, addr: '' };
+		if (i === 4) return { ...base, phone: MID, key: DESK, bubble: { from: MID, k: 2 }, addr: '' };
+		if (i === 5) return { ...base, bubble: { from: { x: 214, y: 150 }, k: 3 } };
+		if (i === 6) {
+			const p = still ? 0 : t % 7;
+			if (p === 0) return base;
+			if (p <= 3)
+				return { ...base, phone: DOOR, faded: true, key: DESK, tag: tx.leaving, addr: '' };
+			return { ...base, phone: DOOR, faded: true, key: null, addr: '' };
+		}
+		return base;
+	}
+
+	function bubbleW(s: string) {
+		return Math.max(70, s.length * 5.6 + 22);
+	}
 </script>
 
-{#snippet keyIcon(color: string)}
-	<svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-		<circle cx="8" cy="8" r="4.5" stroke={color} stroke-width="2.6" />
-		<path d="M11 11.5 20 20m-3.5.5V17" stroke={color} stroke-width="2.6" stroke-linecap="round" />
-	</svg>
-{/snippet}
-
 <div class="wrap">
-	<div class="btns">
-		<CallToActionButton onclick={arrive} disabled={door !== null || busy}>
-			{tx.arriveBtn}
-		</CallToActionButton>
-	</div>
-
-	<!-- the router with its board of keys -->
-	<div class="desk">
-		<div class="router">
-			<Device kind="router" size={50} tone={busy ? 'var(--color-amber)' : 'var(--color-grass)'} />
-			<b>{tx.routerLabel}</b>
-			<span>{tx.routerSub}</span>
-		</div>
-		<div class="board">
-			<span class="blabel">{tx.boardLabel}</span>
-			{#each keys as k (k.ip)}
-				<div class="key {k.state}" class:offer={offered === k.ip}>
-					{@render keyIcon(
-						k.state === 'free'
-							? 'var(--color-grass)'
-							: k.state === 'cooling'
-								? 'var(--color-amber)'
-								: 'var(--color-faint)'
-					)}
-					<code>.{k.ip.split('.')[3]}</code>
-					<span class="kstate"
-						>{k.state === 'free'
-							? tx.keyFree
-							: k.state === 'lent'
-								? tx.keyLent
-								: tx.keyCooling}</span
-					>
-					{#if k.state === 'cooling'}
-						<span class="cool" style="animation-duration:{COOL_MS * speed()}ms"></span>
-					{/if}
-				</div>
-			{/each}
-		</div>
-	</div>
-
-	<!-- DORA, four messages between the newcomer and the router -->
-	<div class="dora" class:live={busy}>
-		{#each tx.steps as s, i (i)}
-			<div class="pill" class:on={step === i} class:past={busy && step > i}>
-				<span class="arrow" class:down={i % 2 === 1}>
-					<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
-						<path
-							d="M5 8.5V1.5M2 4.5l3-3 3 3"
-							stroke="currentColor"
-							stroke-width="1.6"
-							fill="none"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						/>
-					</svg>
-				</span>
-				<b>{s.name}</b>
-			</div>
-		{/each}
-	</div>
-	<p class="say">
-		{#if busy}
-			<span class="sayin" class:up>{tx.steps[step].say}</span>
-			{#if step >= 1 && offered}<code>{offered}</code>{/if}
-		{:else}
-			&nbsp;
-		{/if}
-	</p>
-
-	<!-- the door, where a newcomer stands while asking -->
-	<div class="door" class:filled={door !== null}>
-		<span class="dlabel">{tx.doorLabel}</span>
-		{#if door}
-			<div class="newbie" class:denied={door.denied}>
-				<Device
-					kind={door.kind}
-					size={30}
-					tone={door.denied ? 'var(--color-danger)' : 'var(--color-amber)'}
-				/>
-				<span>{tx.guestLabel.replace('{n}', String(door.id))}</span>
-				{#if door.denied}<em>{tx.noAddress}</em>{/if}
-			</div>
-		{/if}
-	</div>
-
-	<!-- the seats inside the cafe, tap one to send that customer home -->
-	<div class="seats">
-		{#each { length: 6 }, i (i)}
-			{@const g = seated[i]}
-			{#if g}
-				<button
-					type="button"
-					class="seat taken"
-					class:picked={slipFor?.id === g.id}
-					onclick={() => leave(g)}
-					disabled={busy}
-				>
-					<Device kind={g.kind} size={26} tone="var(--color-grass)" />
-					<span class="gname">{tx.guestLabel.replace('{n}', String(g.id))}</span>
-					<code>{g.ip}</code>
-				</button>
-			{:else}
-				<span class="seat"></span>
-			{/if}
-		{/each}
-	</div>
-	<p class="hint">{seated.length ? tx.tapToLeave : ' '}</p>
-
-	<p class="note">{shown}</p>
-
-	{#if slipFor}
-		<div class="slip">
-			<b>{tx.slipTitle.replace('{n}', String(slipFor.id))}</b>
-			<div><span>{tx.slip.address}</span><code>{slipFor.ip}</code></div>
-			<div><span>{tx.slip.gateway}</span><code>192.168.1.1</code></div>
-			<div><span>{tx.slip.dns}</span><code>192.168.1.1</code></div>
-			<div><span>{tx.slip.lease}</span><code>{tx.slip.leaseValue}</code></div>
+	{#if beat >= LAST}
+		<div class="play" in:fade={{ duration: 200 }}>
+			<button type="button" class="ask" disabled={empty} onclick={arrive}>{tx.arriveBtn}</button>
 		</div>
 	{/if}
+
+	<Guide steps={tx.steps} active={peek ?? beat} onselect={(k) => (peek = k)}>
+		{#snippet visual(i)}
+			{@const s = scene(i)}
+			<div class="scene">
+				{@render cafe(i, s)}
+				{#if i === 7}
+					<div class="dora" in:fade={{ duration: 300 }}>
+						{#each tx.dora as d, k (k)}
+							<span class="letter" class:on={still || t % 5 === k}>
+								<b>{d.name.charAt(0)}</b>
+								<small>{d.name}</small>
+							</span>
+						{/each}
+					</div>
+				{:else if i === 5 || i === 8}
+					<dl class="slip" in:fade={{ duration: 300 }}>
+						<p class="slip-t">{tx.slipTitle}</p>
+						<div>
+							<dt>{tx.slip.address}</dt>
+							<dd>192.168.1.12</dd>
+						</div>
+						<div>
+							<dt>{tx.slip.gateway}</dt>
+							<dd>{GATEWAY}</dd>
+						</div>
+						<div>
+							<dt>{tx.slip.dns}</dt>
+							<dd>1.1.1.1</dd>
+						</div>
+						<div>
+							<dt>{tx.slip.lease}</dt>
+							<dd>{tx.slip.leaseValue}</dd>
+						</div>
+					</dl>
+				{/if}
+			</div>
+		{/snippet}
+	</Guide>
 </div>
+
+{#snippet keyShape(label: string, lit: boolean)}
+	<g class="key" class:lit>
+		<circle cx="0" cy="-6" r="5" />
+		<path d="M0 -1 L0 11 M0 6 L4 6 M0 10 L3 10" />
+		<text x="0" y="23" class="key-t">{label}</text>
+	</g>
+{/snippet}
+
+{#snippet cafe(i: number, s: Scene)}
+	{@const play = i === LAST}
+	<svg viewBox="0 0 340 290" class="svg" role="img" aria-label={tx.sceneLabel}>
+		<rect x="6" y="6" width="328" height="278" rx="22" class="floor" />
+		<!-- door -->
+		<rect x="6" y="206" width="8" height="56" rx="3" class="door" />
+		<!-- tables -->
+		{#each SEATS as seat, k (k)}
+			<rect x={seat.x - 22} y={seat.y + 18} width="44" height="7" rx="3.5" class="table" />
+		{/each}
+		<!-- key board -->
+		<text x="275" y="30" class="small-label">{tx.boardLabel}</text>
+		<rect x="222" y="38" width="106" height="66" rx="10" class="board" class:hot={s.hot} />
+		{#each KEYS as label, k (k)}
+			{@const h = HOOK(k)}
+			{@const onHook = play
+				? k !== MINE && !guests.some((g) => g.key === k)
+				: k !== MINE || s.key === null}
+			<circle cx={h.x} cy={h.y - 16} r="2" class="hook" />
+			{#if onHook}
+				<g transform="translate({h.x} {h.y})">{@render keyShape(label, false)}</g>
+			{/if}
+		{/each}
+		<!-- reception desk with the router -->
+		<g transform="translate(250 132)"
+			><Device kind="router" size={44} tone="var(--color-grass)" /></g
+		>
+		<rect x="226" y="168" width="100" height="26" rx="8" class="desk" class:hot={s.hot} />
+		<text x="276" y="212" class="name">{tx.routerLabel}</text>
+		<text x="276" y="225" class="small-label">{tx.routerSub}</text>
+
+		{#if s.rings && !still}
+			{#each [0, 1, 2] as k (k)}
+				<circle
+					cx={s.phone.x}
+					cy={s.phone.y}
+					r="140"
+					class="ring"
+					style="transform-origin:{s.phone.x}px {s.phone.y}px; animation-delay:{k * 0.55}s"
+				/>
+			{/each}
+		{/if}
+
+		<!-- the phone from the story -->
+		<g
+			class="mover"
+			style="transform:translate({s.phone.x}px, {s.phone.y}px)"
+			class:faded={s.faded}
+		>
+			<g transform="translate(-17 -14)"><Device kind="phone" size={34} /></g>
+			{#if s.addr}
+				<text x="0" y="28" class="addr">{s.addr}</text>
+			{:else if s.tag && !s.faded}
+				<text x="0" y="28" class="tag-t">{s.tag}</text>
+			{/if}
+		</g>
+		{#if s.key && !play}
+			<g class="mover" style="transform:translate({s.key.x}px, {s.key.y}px)">
+				{@render keyShape(KEYS[MINE], true)}
+			</g>
+		{/if}
+		{#if s.faded && s.tag}
+			<text x={DESK.x} y={DESK.y + 40} class="tag-t">{s.tag}</text>
+		{/if}
+
+		<!-- the guests on the last beat -->
+		{#if play}
+			<g transform="translate({SEATS[0].x + 22} {SEATS[0].y - 16})"
+				>{@render keyShape(KEYS[MINE], true)}</g
+			>
+			{#each guests as g, k (k)}
+				{@const at = g.seated ? SEATS[k + 1] : DOOR}
+				<g
+					class="mover"
+					style="transform:translate({at.x}px, {at.y}px)"
+					in:fade={{ duration: 300 }}
+				>
+					<g transform="translate(-17 -14)">
+						<Device
+							kind="phone"
+							size={34}
+							tone={g.key < 0 ? 'var(--color-amber)' : 'var(--color-brand)'}
+						/>
+					</g>
+					{#if g.seated}
+						<text x="0" y="28" class="addr">192.168.1{KEYS[g.key]}</text>
+						<g transform="translate(22 -16)">{@render keyShape(KEYS[g.key], true)}</g>
+					{:else if g.key < 0}
+						<text x="0" y="28" class="tag-t">{tx.emptyLabel}</text>
+					{/if}
+				</g>
+			{/each}
+		{/if}
+
+		{#if s.bubble && !play}
+			{@const d = tx.dora[s.bubble.k]}
+			{@const w = bubbleW(d.say) + 8}
+			{@const bx = Math.min(330 - w, Math.max(10, s.bubble.from.x - w / 2))}
+			{#key i}
+				<g in:fade={{ duration: 250 }}>
+					<rect x={bx} y={s.bubble.from.y - 66} width={w} height="34" rx="10" class="bubble" />
+					<text x={bx + w / 2} y={s.bubble.from.y - 52} class="bubble-n">{d.name}</text>
+					<text x={bx + w / 2} y={s.bubble.from.y - 39} class="bubble-t">{d.say}</text>
+				</g>
+			{/key}
+		{/if}
+	</svg>
+{/snippet}
 
 <style>
 	.wrap {
 		display: flex;
 		width: 100%;
-		max-height: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 9px;
-		overflow-x: hidden;
-		overflow-y: auto;
-		padding-bottom: 12px;
+		gap: 14px;
+		padding: 8px 16px 112px;
 	}
-	code {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-	}
-	.btns {
-		display: flex;
-		min-height: 46px;
-		justify-content: center;
-	}
-	.btns :global(.cta) {
-		padding: 10px 18px;
-		font-size: 13px;
-	}
-
-	.desk {
-		display: flex;
-		width: min(94vw, 380px);
-		align-items: center;
-		gap: 12px;
-	}
-	.router {
-		display: flex;
-		width: 92px;
-		flex: none;
-		flex-direction: column;
-		align-items: center;
-		line-height: 1.2;
-	}
-	.router b {
-		margin-top: 2px;
-		font-size: 11px;
-		font-weight: 800;
-		color: var(--color-ink);
-	}
-	.router span {
-		font-size: 9px;
-		color: var(--color-faint);
-	}
-	.board {
-		display: grid;
-		flex: 1;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 5px;
-		border-radius: 14px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 8px;
-	}
-	.blabel {
-		grid-column: 1 / -1;
-		font-size: 9px;
-		font-weight: 800;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		color: var(--color-faint);
-	}
-	.key {
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 1px;
-		overflow: hidden;
-		border-radius: 9px;
-		border: 1px solid var(--color-line);
-		background: var(--color-grass-soft);
-		padding: 4px 2px 5px;
-		transition:
-			background 0.3s,
-			transform 0.3s;
-	}
-	.key code {
-		font-size: 11px;
-		font-weight: 700;
-		color: var(--color-ink);
-	}
-	.kstate {
-		font-size: 8px;
-		font-weight: 700;
-		color: var(--color-muted);
-		white-space: nowrap;
-	}
-	.key.lent {
-		background: var(--color-paper);
-	}
-	.key.lent code {
-		color: var(--color-faint);
-	}
-	.key.cooling {
-		background: var(--color-amber-soft);
-	}
-	.key.offer {
-		transform: scale(1.08);
-		border-color: var(--color-amber);
-	}
-	.cool {
-		position: absolute;
-		left: 0;
-		bottom: 0;
-		height: 3px;
-		width: 100%;
-		background: var(--color-amber);
-		transform-origin: left;
-		animation: drain linear forwards;
-	}
-	@keyframes drain {
-		to {
-			transform: scaleX(0);
+	@media (min-width: 768px) {
+		.wrap {
+			padding-bottom: 24px;
 		}
 	}
-
-	.dora {
-		display: grid;
-		width: min(94vw, 360px);
-		grid-template-columns: repeat(4, 1fr);
-		gap: 5px;
-		opacity: 0.55;
-		transition: opacity 0.3s;
-	}
-	.dora.live {
-		opacity: 1;
-	}
-	.pill {
+	.play {
 		display: flex;
-		align-items: center;
 		justify-content: center;
-		gap: 3px;
+	}
+	.ask {
+		border: 1px solid var(--color-line);
 		border-radius: 999px;
-		border: 1px solid var(--color-line);
 		background: var(--color-card);
-		padding: 4px 2px;
-		font-size: 10px;
-		color: var(--color-faint);
-		transition:
-			background 0.25s,
-			color 0.25s,
-			border-color 0.25s;
+		padding: 9px 18px;
+		font-size: 13.5px;
+		font-weight: 600;
+		color: var(--color-ink);
+		box-shadow: 0 6px 16px rgba(22, 40, 60, 0.06);
 	}
-	.pill b {
-		font-weight: 800;
+	.ask:disabled {
+		opacity: 0.55;
 	}
-	.pill.past {
-		color: var(--color-grass);
-		border-color: var(--color-grass);
-	}
-	.pill.on {
-		background: var(--color-amber);
-		border-color: var(--color-amber);
-		color: #fff;
-	}
-	.arrow {
-		display: inline-flex;
-	}
-	.arrow.down {
-		transform: rotate(180deg);
-	}
-	.say {
+	.scene {
 		display: flex;
-		min-height: 22px;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
-		gap: 6px;
-		font-size: 12px;
-		font-weight: 700;
-		color: var(--color-amber);
-	}
-	.sayin {
-		animation: rise 0.3s ease;
-	}
-	.say code {
-		border-radius: 6px;
-		background: var(--color-amber-soft);
-		padding: 1px 6px;
-		font-size: 11px;
-	}
-	@keyframes rise {
-		from {
-			opacity: 0;
-			transform: translateY(4px);
-		}
-	}
-	.sayin.up {
-		animation-name: fall;
-	}
-	@keyframes fall {
-		from {
-			opacity: 0;
-			transform: translateY(-4px);
-		}
-	}
-
-	.door {
-		display: flex;
-		width: min(94vw, 360px);
-		min-height: 62px;
+		width: 100%;
+		max-width: 440px;
+		flex-direction: column;
 		align-items: center;
 		gap: 10px;
-		border-radius: 14px;
-		background: var(--color-paper);
-		border: 1px solid var(--color-line);
-		padding: 6px 12px;
 	}
-	.door.filled {
-		border-color: var(--color-amber);
+	.svg {
+		width: 100%;
+		height: auto;
+		overflow: visible;
 	}
-	.dlabel {
-		font-size: 9px;
-		font-weight: 800;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		color: var(--color-faint);
+	.floor {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
 	}
-	.newbie {
-		display: flex;
-		align-items: center;
-		gap: 6px;
+	.door {
+		fill: var(--color-amber);
+		opacity: 0.6;
+	}
+	.table {
+		fill: var(--color-line);
+	}
+	.board,
+	.desk {
+		fill: var(--color-paper);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+		transition: stroke 0.5s;
+	}
+	.board.hot,
+	.desk.hot {
+		stroke: var(--color-grass);
+	}
+	.hook {
+		fill: var(--color-faint);
+	}
+	.key circle {
+		fill: none;
+		stroke: var(--color-muted);
+		stroke-width: 2;
+	}
+	.key path {
+		fill: none;
+		stroke: var(--color-muted);
+		stroke-width: 2;
+		stroke-linecap: round;
+	}
+	.key.lit circle,
+	.key.lit path {
+		stroke: var(--color-amber);
+	}
+	.key-t {
+		text-anchor: middle;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 8.5px;
+		font-weight: 700;
+		fill: var(--color-muted);
+	}
+	.name {
+		text-anchor: middle;
 		font-size: 11px;
 		font-weight: 700;
-		color: var(--color-muted);
-		animation: rise 0.35s ease;
+		fill: var(--color-ink);
 	}
-	.newbie em {
-		border-radius: 999px;
-		background: var(--color-danger);
-		color: #fff;
-		padding: 2px 8px;
+	.small-label {
+		text-anchor: middle;
 		font-size: 9.5px;
-		font-style: normal;
+		font-weight: 600;
+		fill: var(--color-faint);
+	}
+	.addr {
+		text-anchor: middle;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 9px;
+		font-weight: 700;
+		fill: var(--color-brand);
+	}
+	.tag-t {
+		text-anchor: middle;
+		font-size: 9.5px;
+		font-weight: 700;
+		fill: var(--color-amber);
+	}
+	.mover {
+		transition:
+			transform 1.1s cubic-bezier(0.45, 0, 0.2, 1),
+			opacity 0.8s;
+	}
+	.mover.faded {
+		opacity: 0.35;
+	}
+	.ring {
+		fill: none;
+		stroke: var(--color-brand);
+		stroke-width: 1.4;
+		animation: ring 1.8s ease-out infinite;
+	}
+	@keyframes ring {
+		from {
+			transform: scale(0.08);
+			opacity: 0.7;
+		}
+		to {
+			transform: scale(1);
+			opacity: 0;
+		}
+	}
+	.bubble {
+		fill: var(--color-brand-soft);
+		stroke: var(--color-brand);
+		stroke-width: 1;
+	}
+	.bubble-n {
+		text-anchor: middle;
+		font-size: 10px;
 		font-weight: 800;
+		fill: var(--color-brand);
 	}
-
-	.seats {
-		display: grid;
-		width: min(94vw, 360px);
-		grid-template-columns: repeat(3, 1fr);
-		gap: 6px;
+	.bubble-t {
+		text-anchor: middle;
+		font-size: 10px;
+		font-weight: 500;
+		fill: var(--color-ink);
 	}
-	.seat {
+	.dora {
 		display: flex;
-		min-height: 66px;
+		gap: 8px;
+	}
+	.letter {
+		display: flex;
+		min-width: 64px;
 		flex-direction: column;
 		align-items: center;
-		justify-content: center;
-		gap: 1px;
-		border-radius: 12px;
 		border: 1px solid var(--color-line);
-		background: var(--color-paper);
-	}
-	.seat.taken {
+		border-radius: 12px;
 		background: var(--color-card);
-		cursor: pointer;
-		animation: rise 0.35s ease;
-		transition: border-color 0.2s;
+		padding: 6px 8px;
+		transition:
+			border-color 0.3s,
+			background 0.3s;
 	}
-	.seat.taken:enabled:hover {
-		border-color: var(--color-danger);
-	}
-	.seat.picked {
-		border-color: var(--color-grass);
-	}
-	.gname {
-		font-size: 10px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	.seat code {
-		font-size: 9.5px;
+	.letter b {
+		font-family: var(--font-display);
+		font-size: 22px;
 		color: var(--color-ink);
 	}
-	.hint {
-		min-height: 1.2em;
-		font-size: 10.5px;
-		color: var(--color-faint);
-	}
-	.note {
-		min-height: 1.4em;
-		max-width: 340px;
-		text-align: center;
-		font-size: 12px;
-		font-weight: 600;
+	.letter small {
+		font-size: 10px;
 		color: var(--color-muted);
 	}
-	.slip {
-		display: flex;
-		width: min(94vw, 260px);
-		flex-direction: column;
-		gap: 2px;
-		border-radius: 13px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 8px 12px;
+	.letter.on {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
 	}
-	.slip b {
-		font-size: 9.5px;
-		font-weight: 800;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		color: var(--color-faint);
+	.slip {
+		margin: 0;
+		width: 100%;
+		max-width: 280px;
+		border: 1px solid var(--color-line);
+		border-radius: 14px;
+		background: var(--color-card);
+		padding: 10px 14px;
+		font-size: 12px;
+	}
+	.slip-t {
+		margin: 0 0 6px;
+		font-weight: 700;
+		color: var(--color-ink);
 	}
 	.slip div {
 		display: flex;
 		justify-content: space-between;
-		font-size: 11px;
+		gap: 8px;
+		padding: 2px 0;
 	}
-	.slip span {
-		font-weight: 700;
+	.slip dt {
 		color: var(--color-muted);
 	}
-	.slip code {
+	.slip dd {
+		margin: 0;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-weight: 600;
 		color: var(--color-ink);
 	}
-
 	@media (prefers-reduced-motion: reduce) {
-		.sayin,
-		.newbie,
-		.seat.taken {
+		.mover,
+		.letter,
+		.board,
+		.desk {
+			transition: none;
+		}
+		.ring {
 			animation: none;
-		}
-	}
-	@media (min-width: 768px) {
-		.desk,
-		.dora,
-		.door,
-		.seats {
-			width: 440px;
-		}
-		.pill {
-			font-size: 11.5px;
-		}
-		.say,
-		.note {
-			font-size: 14px;
-		}
-		.note {
-			max-width: 460px;
 		}
 	}
 </style>

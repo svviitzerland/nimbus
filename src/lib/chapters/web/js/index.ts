@@ -6,16 +6,19 @@ import { en } from './en';
 export const js: Lesson = {
 	id: 'js',
 	mood: 'calm',
-	moods: ['thinking', 'idea', 'calm', 'calm', 'wink', 'worried', 'excited'],
-	reactionMood: {
-		count: 'happy',
-		step: 'excited',
-		broken: 'surprised',
-		dead: 'sad',
-		fixed: 'happy',
-		loop: 'wink',
-		done: 'excited'
-	},
+	moods: [
+		'thinking',
+		'idea',
+		'calm',
+		'idea',
+		'excited',
+		'wink',
+		'worried',
+		'happy',
+		'idea',
+		'excited'
+	],
+	reactionMood: { tap: 'happy', step: 'excited' },
 	stage: JsStage,
 	text: { id, en }
 };

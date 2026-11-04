@@ -1,262 +1,331 @@
 <script lang="ts">
-	import type { LessonText } from '$lib/chapters/types';
-	import type { EmbedWord, EmbeddingsText } from '$lib/chapters/ai/embeddings/types';
+	// A guided "watch" stage for embeddings. Words start as a loose jumble of letters, get their
+	// numbers, then glide onto a map of meaning where similar words settle side by side. Lines
+	// show near and far, a search pin drops among the animals, and the neighbourhoods turn into
+	// supermarket aisles. The only optional play is dropping a few new words on the last beat.
+	import { fade } from 'svelte/transition';
+	import Guide from '$lib/components/Guide.svelte';
+	import type { StageProps } from '$lib/chapters/types';
+	import type { EmbedRegion, EmbedWord, EmbeddingsText } from '$lib/chapters/ai/embeddings/types';
+	import { sceneClock } from './webship/clock.svelte';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as EmbeddingsText);
 
-	type Group = 'animal' | 'royal' | 'food' | 'tech';
-	type Pt = { x: number; y: number };
-
-	// ---- the map (SVG viewBox 320 x 272), the meaning area on top and the shelf below ----
-	const W = 320;
-	const MAP_H = 220;
-	const H = 272;
-	const SHELF_Y = 250;
-
-	/** Words with a fixed home, as if a model already learned their numbers. */
-	const FIXED: { id: EmbedWord; g: Group; x: number; y: number }[] = [
-		{ id: 'cat', g: 'animal', x: 58, y: 50 },
-		{ id: 'dog', g: 'animal', x: 104, y: 36 },
-		{ id: 'rabbit', g: 'animal', x: 56, y: 92 },
-		{ id: 'king', g: 'royal', x: 228, y: 40 },
-		{ id: 'prince', g: 'royal', x: 272, y: 72 },
-		{ id: 'palace', g: 'royal', x: 222, y: 98 },
-		{ id: 'rice', g: 'food', x: 52, y: 156 },
-		{ id: 'soup', g: 'food', x: 108, y: 146 },
-		{ id: 'bread', g: 'food', x: 84, y: 194 },
-		{ id: 'website', g: 'tech', x: 246, y: 134 },
-		{ id: 'server', g: 'tech', x: 214, y: 172 },
-		{ id: 'cloud', g: 'tech', x: 272, y: 194 }
+	type Scene = 'letters' | 'numbers' | 'settle' | 'near' | 'search' | 'remember' | 'many' | 'try';
+	const SCENES: Scene[] = [
+		'letters',
+		'numbers',
+		'settle',
+		'near',
+		'search',
+		'remember',
+		'many',
+		'try'
 	];
-	/** Words the learner places, with the family they truly belong to. */
-	const LOOSE: { id: EmbedWord; g: Group; x: number }[] = [
-		{ id: 'queen', g: 'royal', x: 46 },
-		{ id: 'nimbus', g: 'tech', x: 126 },
-		{ id: 'puppy', g: 'animal', x: 206 },
-		{ id: 'noodles', g: 'food', x: 278 }
+	const SCENE_OF_BEAT = [0, 1, 2, 3, 4, 5, 6, 7];
+
+	type Spot = { x: number; y: number; r: EmbedRegion };
+	const SPOT: Record<EmbedWord, Spot> = {
+		cat: { x: 72, y: 70, r: 'animals' },
+		kitten: { x: 96, y: 96, r: 'animals' },
+		dog: { x: 118, y: 58, r: 'animals' },
+		rabbit: { x: 52, y: 106, r: 'animals' },
+		puppy: { x: 136, y: 90, r: 'animals' },
+		king: { x: 252, y: 58, r: 'royals' },
+		prince: { x: 300, y: 84, r: 'royals' },
+		palace: { x: 242, y: 104, r: 'royals' },
+		queen: { x: 300, y: 42, r: 'royals' },
+		rice: { x: 64, y: 206, r: 'food' },
+		bread: { x: 112, y: 222, r: 'food' },
+		soup: { x: 50, y: 246, r: 'food' },
+		noodles: { x: 96, y: 262, r: 'food' },
+		server: { x: 252, y: 200, r: 'tech' },
+		cloud: { x: 302, y: 216, r: 'tech' },
+		website: { x: 252, y: 246, r: 'tech' },
+		nimbus: { x: 300, y: 262, r: 'tech' }
+	};
+	const BASE: EmbedWord[] = [
+		'cat',
+		'kitten',
+		'dog',
+		'rabbit',
+		'king',
+		'prince',
+		'palace',
+		'rice',
+		'bread',
+		'soup',
+		'server',
+		'cloud',
+		'website'
 	];
-	const groupOf = (id: EmbedWord) =>
-		(FIXED.find((f) => f.id === id) ?? LOOSE.find((l) => l.id === id))!.g;
-	const isLoose = (id: EmbedWord) => LOOSE.some((l) => l.id === id);
+	const NEW: EmbedWord[] = ['puppy', 'queen', 'noodles', 'nimbus'];
+	const REGIONS: { id: EmbedRegion; x: number; y: number; rx: number; ry: number; c: string }[] = [
+		{ id: 'animals', x: 94, y: 80, rx: 76, ry: 50, c: 'grass' },
+		{ id: 'royals', x: 272, y: 72, rx: 66, ry: 50, c: 'amber' },
+		{ id: 'food', x: 82, y: 234, rx: 66, ry: 46, c: 'danger' },
+		{ id: 'tech', x: 276, y: 230, rx: 66, ry: 46, c: 'brand' }
+	];
+	// where the loose words float before they have numbers, a tidy jumble in the middle
+	const JUMBLE: Partial<Record<EmbedWord, [number, number]>> = {
+		cat: [96, 96],
+		kitten: [214, 228],
+		dog: [256, 120],
+		rabbit: [120, 176],
+		king: [196, 72],
+		prince: [76, 214],
+		palace: [292, 178],
+		rice: [254, 64],
+		bread: [178, 150],
+		soup: [292, 248],
+		server: [118, 254],
+		cloud: [66, 140],
+		website: [222, 190]
+	};
+	const QUERY = { x: 84, y: 84 };
 
-	let pos = $state<Record<string, Pt>>(
-		Object.fromEntries(LOOSE.map((l) => [l.id, { x: l.x, y: SHELF_Y }]))
-	);
-	let active = $state<EmbedWord | null>(null);
-	let drag = $state<{ id: EmbedWord; dx: number; dy: number } | null>(null);
-	const announced: EmbedWord[] = [];
-	let saidSelect = false;
-	let done = false;
-	let svgEl: SVGSVGElement | undefined = $state();
-	let keyTimer: ReturnType<typeof setTimeout> | undefined;
+	let peek = $state<number | null>(null);
+	let dropped = $state(0);
 
-	$effect(() => () => clearTimeout(keyTimer));
+	const active = $derived(peek ?? SCENE_OF_BEAT[Math.min(beat, SCENE_OF_BEAT.length - 1)]);
+	const scene = $derived(SCENES[active]);
+	const clock = sceneClock(() => scene);
+	const t = $derived(clock.t);
 
-	const where = (id: EmbedWord): Pt => pos[id] ?? FIXED.find((f) => f.id === id)!;
-	const onMap = (id: EmbedWord) => where(id).y < MAP_H;
-	const dist = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y);
-	const closeness = (d: number) => Math.max(0, Math.round(100 * (1 - d / 260)));
-
-	const allIds = $derived([...FIXED.map((f) => f.id), ...LOOSE.map((l) => l.id)]);
-
-	/** The three closest words on the map to the active one. */
-	const near = $derived.by(() => {
-		if (!active || !onMap(active)) return [];
-		const me = where(active);
-		return allIds
-			.filter((id) => id !== active && onMap(id))
-			.map((id) => ({ id, d: dist(me, where(id)) }))
-			.sort((a, b) => a.d - b.d)
-			.slice(0, 3);
+	$effect(() => {
+		onshow?.(true);
+		oncomplete?.();
+	});
+	$effect(() => {
+		void beat;
+		peek = null;
 	});
 
-	function settled(id: EmbedWord) {
-		if (!onMap(id)) return false;
-		const me = where(id);
-		let best = FIXED[0];
-		for (const f of FIXED) if (dist(me, f) < dist(me, best)) best = f;
-		return best.g === groupOf(id) && dist(me, best) < 78;
-	}
-	const placedCount = $derived(LOOSE.filter((l) => settled(l.id)).length);
-
-	function width(id: EmbedWord) {
-		return tx.words[id].length * 6.1 + 16;
-	}
-	const vec = (p: Pt) => `[${(p.x / W).toFixed(2)}, ${(1 - p.y / MAP_H).toFixed(2)}]`;
-
-	function select(id: EmbedWord) {
-		active = id;
-		if (!saidSelect && onMap(id)) {
-			saidSelect = true;
-			onstate?.('select');
+	const placed = $derived(active >= 2);
+	const words = $derived<EmbedWord[]>(scene === 'try' ? [...BASE, ...NEW.slice(0, dropped)] : BASE);
+	const pos = (w: EmbedWord) => {
+		if (!placed && JUMBLE[w]) {
+			const [x, y] = JUMBLE[w]!;
+			return { x, y };
 		}
-	}
-
-	function check(id: EmbedWord) {
-		if (!onMap(id)) return;
-		if (settled(id)) {
-			if (LOOSE.every((l) => settled(l.id))) {
-				if (!done) {
-					done = true;
-					onstate?.('all');
-					oncomplete?.();
-				}
-			} else if (!announced.includes(id)) {
-				announced.push(id);
-				onstate?.(id);
-			}
-		} else {
-			onstate?.('wrong');
-		}
-	}
-
-	function toSvg(e: PointerEvent): Pt {
-		const m = svgEl?.getScreenCTM();
-		if (!m) return { x: 0, y: 0 };
-		const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
-		return { x: p.x, y: p.y };
-	}
-	const clampPt = (p: Pt, id: EmbedWord): Pt => {
-		const half = width(id) / 2;
-		return {
-			x: Math.max(half, Math.min(W - half, p.x)),
-			y: Math.max(12, Math.min(H - 12, p.y))
-		};
+		return SPOT[w];
 	};
+	const dist = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+		Math.hypot(a.x - b.x, a.y - b.y);
+	const nearest = (p: { x: number; y: number }, pool: EmbedWord[], n: number) =>
+		[...pool].sort((a, b) => dist(SPOT[a], p) - dist(SPOT[b], p)).slice(0, n);
 
-	function down(e: PointerEvent, id: EmbedWord) {
-		select(id);
-		if (!isLoose(id)) return;
-		(e.currentTarget as Element).setPointerCapture(e.pointerId);
-		const p = toSvg(e);
-		drag = { id, dx: pos[id].x - p.x, dy: pos[id].y - p.y };
-	}
-	function move(e: PointerEvent) {
-		if (!drag) return;
-		const p = toSvg(e);
-		pos[drag.id] = clampPt({ x: p.x + drag.dx, y: p.y + drag.dy }, drag.id);
-	}
-	function up() {
-		if (!drag) return;
-		const id = drag.id;
-		drag = null;
-		check(id);
-	}
+	// which words are in focus on each scene
+	const focus = $derived.by<EmbedWord[] | null>(() => {
+		if (scene === 'letters') return ['cat', 'dog', 'server'];
+		if (scene === 'numbers') return ['cat', 'dog', 'server'];
+		if (scene === 'near') return ['cat', 'kitten', 'dog', 'rabbit', 'server'];
+		if (scene === 'search' && t > 1400) return nearest(QUERY, BASE, 3);
+		if (scene === 'many') return ['cat'];
+		if (scene === 'try' && dropped > 0) {
+			const w = NEW[dropped - 1];
+			return [w, ...nearest(SPOT[w], BASE, 2)];
+		}
+		return null;
+	});
+	const dim = (w: EmbedWord) => focus !== null && !focus.includes(w);
 
-	function key(e: KeyboardEvent, id: EmbedWord) {
-		const steps: Record<string, Pt> = {
-			ArrowLeft: { x: -8, y: 0 },
-			ArrowRight: { x: 8, y: 0 },
-			ArrowUp: { x: 0, y: -8 },
-			ArrowDown: { x: 0, y: 8 }
-		};
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			select(id);
+	// the two numbers of a word, read straight off its spot on the map
+	const vec = (w: EmbedWord) => {
+		const s = SPOT[w];
+		return [(s.x / 360).toFixed(2), (1 - s.y / 300).toFixed(2)];
+	};
+	const vecShown = (k: number) => scene === 'numbers' && t > 500 + k * 700;
+
+	// lines between words
+	type Link = { a: { x: number; y: number }; b: { x: number; y: number }; far: boolean; k: number };
+	const links = $derived.by<Link[]>(() => {
+		if (scene === 'near') {
+			const cat = SPOT.cat;
+			const out: Link[] = (['kitten', 'dog', 'rabbit'] as EmbedWord[]).map((w, k) => ({
+				a: cat,
+				b: SPOT[w],
+				far: false,
+				k
+			}));
+			if (t > 1800 || clock.reduced) out.push({ a: cat, b: SPOT.server, far: true, k: 3 });
+			return out;
+		}
+		if (scene === 'search' && t > 1400) {
+			return nearest(QUERY, BASE, 3).map((w, k) => ({ a: QUERY, b: SPOT[w], far: false, k }));
+		}
+		if (scene === 'try' && dropped > 0) {
+			const w = NEW[dropped - 1];
+			return nearest(SPOT[w], BASE, 2).map((n, k) => ({ a: SPOT[w], b: SPOT[n], far: false, k }));
+		}
+		return [];
+	});
+	const farMid = $derived({
+		x: (SPOT.cat.x + SPOT.server.x) / 2,
+		y: (SPOT.cat.y + SPOT.server.y) / 2
+	});
+
+	const showRegions = $derived(scene === 'remember' || scene === 'many' || scene === 'try');
+	const pinDown = $derived(scene === 'search' && t > 600);
+
+	// a long, made up list of numbers for the real size scene
+	const MANY = Array.from(
+		{ length: 9 },
+		(_, k) => (((Math.sin(k * 12.9898) * 43758.5453) % 1) + 1) % 1
+	);
+	const manyShown = $derived(scene === 'many' ? Math.min(MANY.length, Math.floor(t / 260)) : 0);
+
+	const labelW = (s: string) => s.length * 6.6 + 16;
+
+	function drop() {
+		if (dropped >= NEW.length) {
+			dropped = 0;
 			return;
 		}
-		const s = steps[e.key];
-		if (!s || !isLoose(id)) return;
-		e.preventDefault();
-		active = id;
-		// a word lifted off the shelf by keyboard jumps to the middle of the map first
-		const from = onMap(id) ? pos[id] : { x: W / 2, y: MAP_H / 2 + 8 };
-		pos[id] = clampPt({ x: from.x + s.x, y: from.y + s.y }, id);
-		clearTimeout(keyTimer);
-		keyTimer = setTimeout(() => check(id), 600);
+		const w = NEW[dropped];
+		dropped += 1;
+		onstate?.(w);
 	}
 </script>
 
-<div class="stage">
-	<!-- the selected word's numbers and its nearest neighbours -->
-	<div class="panel" aria-live="polite">
-		{#if active && onMap(active)}
-			<span class="vec">
-				{tx.vectorLabel.replace('{word}', tx.words[active])}
-				<code>{vec(where(active))}</code>
-			</span>
-			<span class="ntitle">{tx.nearTitle.replace('{word}', tx.words[active])}</span>
-			<div class="nlist">
-				{#each near as n (n.id)}
-					<span class="nb">
-						<b>{tx.words[n.id]}</b>
-						<small>{tx.closeness.replace('{n}', String(closeness(n.d)))}</small>
-					</span>
-				{/each}
-			</div>
-		{:else}
-			<span class="hint">{tx.pickHint}</span>
+{#snippet picture(_i: number)}
+	<div class="visual">
+		{#if scene === 'try'}
+			<button type="button" class="act" onclick={drop}>
+				{dropped >= NEW.length ? tx.againBtn : tx.dropBtn}
+			</button>
 		{/if}
-	</div>
-	<span class="count" class:full={placedCount === 4}
-		>{tx.placed.replace('{n}', String(placedCount))}</span
-	>
 
-	<svg
-		bind:this={svgEl}
-		class="map"
-		class:dragging={drag !== null}
-		viewBox="0 0 {W} {H}"
-		role="group"
-		aria-label={tx.mapLabel}
-		onpointermove={move}
-		onpointerup={up}
-		onpointercancel={up}
-	>
-		<rect class="area" x="0.75" y="0.75" width={W - 1.5} height={MAP_H - 1.5} rx="14" />
-		{#each [1, 2, 3] as i (i)}
-			<line class="grid" x1={(W / 4) * i} y1="8" x2={(W / 4) * i} y2={MAP_H - 8} />
-		{/each}
-		{#each [1, 2] as i (i)}
-			<line class="grid" x1="8" y1={(MAP_H / 3) * i} x2={W - 8} y2={(MAP_H / 3) * i} />
-		{/each}
+		<svg viewBox="0 0 360 300" class="map" role="img" aria-label={tx.mapLabel}>
+			<rect x="1" y="1" width="358" height="298" rx="18" class="paper" />
+			{#each [75, 150, 225] as gy (gy)}
+				<line x1="12" x2="348" y1={gy} y2={gy} class="grid" class:show={placed} />
+			{/each}
+			{#each [90, 180, 270] as gx (gx)}
+				<line y1="12" y2="288" x1={gx} x2={gx} class="grid" class:show={placed} />
+			{/each}
 
-		<rect class="shelf" x="0.75" y={MAP_H + 8} width={W - 1.5} height={H - MAP_H - 9} rx="12" />
-		<text class="slabel" x={W / 2} y={MAP_H + 20}>{tx.shelf}</text>
+			{#if showRegions}
+				{#each REGIONS as r (r.id)}
+					<g in:fade={{ duration: clock.reduced ? 0 : 500 }}>
+						<ellipse cx={r.x} cy={r.y} rx={r.rx} ry={r.ry} class="region {r.c}" />
+						{#if scene === 'remember'}
+							<g transform="translate({r.x} {r.y - r.ry - 2})">
+								<rect
+									x={-labelW(tx.regions[r.id]) / 2}
+									y="-9"
+									width={labelW(tx.regions[r.id])}
+									height="18"
+									rx="5"
+									class="sign {r.c}"
+								/>
+								<text y="4" text-anchor="middle" class="sign-text">{tx.regions[r.id]}</text>
+							</g>
+						{/if}
+					</g>
+				{/each}
+			{/if}
 
-		<!-- neighbour lines from the active word -->
-		{#if active && onMap(active)}
-			{@const me = where(active)}
-			{#each near as n (n.id)}
-				{@const p = where(n.id)}
+			{#each links as l (`${scene}-${l.k}-${dropped}`)}
 				<line
-					class="nline"
-					x1={me.x}
-					y1={me.y}
-					x2={p.x}
-					y2={p.y}
-					opacity={0.25 + 0.75 * (closeness(n.d) / 100)}
+					x1={l.a.x}
+					y1={l.a.y}
+					x2={l.b.x}
+					y2={l.b.y}
+					class="link"
+					class:far={l.far}
+					style="--d:{l.k * 0.25}s"
 				/>
 			{/each}
+			{#if scene === 'near' && links.some((l) => l.far)}
+				<g transform="translate({farMid.x} {farMid.y})" in:fade={{ duration: 300 }}>
+					<rect x="-18" y="-9" width="36" height="18" rx="9" class="far-tag" />
+					<text y="4" text-anchor="middle" class="far-text">{tx.far}</text>
+				</g>
+			{/if}
+
+			{#if scene === 'search'}
+				<g
+					class="pin"
+					class:down={pinDown || clock.reduced}
+					style="--px:{QUERY.x}px; --py:{QUERY.y}px"
+				>
+					{#if pinDown || clock.reduced}
+						<circle r="20" class="ring" />
+					{/if}
+					<circle r="6" class="pin-dot" />
+					<g transform="translate(0 -18)">
+						<rect
+							x={-labelW(tx.query) / 2}
+							y="-10"
+							width={labelW(tx.query)}
+							height="20"
+							rx="10"
+							class="pin-tag"
+						/>
+						<text y="4" text-anchor="middle" class="pin-text">{tx.query}</text>
+					</g>
+				</g>
+			{/if}
+
+			{#each words as w, k (w)}
+				{@const p = pos(w)}
+				<g
+					class="word"
+					class:dim={dim(w)}
+					class:new={NEW.includes(w)}
+					class:still={clock.reduced}
+					style="transform:translate({p.x}px, {p.y}px); transition-delay:{scene === 'settle' &&
+					!clock.reduced
+						? k * 110
+						: 0}ms"
+				>
+					<circle r="3.5" class="dot {SPOT[w].r}" class:hide={!placed} />
+					<g transform="translate(0 {placed ? -12 : 0})" class="lbl">
+						<rect
+							x={-labelW(tx.words[w]) / 2}
+							y="-10"
+							width={labelW(tx.words[w])}
+							height="20"
+							rx="6"
+							class="pill"
+						/>
+						<text y="4" text-anchor="middle" class="w">{tx.words[w]}</text>
+					</g>
+					{#if scene === 'numbers' && focus?.includes(w)}
+						{@const v = vec(w)}
+						{#if vecShown(focus?.indexOf(w) ?? 0)}
+							<g transform="translate(0 22)" in:fade={{ duration: 300 }}>
+								<rect x="-38" y="-10" width="76" height="20" rx="6" class="vec-pill" />
+								<text y="4" text-anchor="middle" class="vec">[{v[0]}, {v[1]}]</text>
+							</g>
+						{/if}
+					{/if}
+				</g>
+			{/each}
+		</svg>
+
+		{#if scene === 'many'}
+			<div class="many" in:fade={{ duration: 300 }}>
+				<p class="many-label">{tx.manyLabel.replace('{word}', tx.words.cat)}</p>
+				<p class="nums">
+					[{#each MANY.slice(0, manyShown) as n, k (k)}<span in:fade={{ duration: 200 }}
+							>{k ? ', ' : ''}{n.toFixed(2)}</span
+						>{/each}{manyShown >= MANY.length ? ', ...' : ''}]
+				</p>
+				<p class="many-count">{tx.manyCount.replace('{n}', '768')}</p>
+			</div>
 		{/if}
 
-		{#each allIds as id (id)}
-			{@const p = where(id)}
-			{@const w = width(id)}
-			{@const loose = isLoose(id)}
-			<g
-				class="word"
-				class:loose
-				class:home={loose && settled(id)}
-				class:active={active === id}
-				class:lifted={drag?.id === id}
-				transform="translate({p.x} {p.y})"
-				role="button"
-				tabindex="0"
-				aria-label={tx.words[id]}
-				onpointerdown={(e) => down(e, id)}
-				onkeydown={(e) => key(e, id)}
-			>
-				<rect x={-w / 2} y="-10.5" width={w} height="21" rx="10.5" />
-				<text y="3.8">{tx.words[id]}</text>
-			</g>
-		{/each}
-	</svg>
+		{#if scene === 'remember'}
+			<p class="rule" in:fade={{ duration: 300 }}>{tx.rule}</p>
+		{/if}
+	</div>
+{/snippet}
+
+<div class="stage">
+	<Guide steps={tx.panels} {active} onselect={(i) => (peek = i)} visual={picture} />
 </div>
 
 <style>
@@ -264,196 +333,280 @@
 		display: flex;
 		height: 100%;
 		width: 100%;
-		flex-direction: column;
-		align-items: center;
 		justify-content: center;
-		gap: 8px;
+		align-items: flex-start;
+		overflow-y: auto;
+		overflow-x: hidden;
+		padding-bottom: 16px;
 	}
-	.panel {
+	.visual {
 		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 4px;
 		width: 100%;
-		max-width: 360px;
-		min-height: 74px;
-		border-radius: 14px;
-		border: 1.5px solid var(--color-line);
-		background: var(--color-card);
-		padding: 8px 12px;
-	}
-	.hint {
-		font-size: 12px;
-		color: var(--color-faint);
-		text-align: center;
-	}
-	.vec {
-		display: flex;
+		max-width: 440px;
+		flex-direction: column;
 		align-items: center;
-		gap: 6px;
-		font-size: 11.5px;
-		font-weight: 600;
-		color: var(--color-muted);
+		gap: 10px;
 	}
-	.vec code {
-		border-radius: 6px;
+	.act {
+		border: 1.5px solid var(--color-brand);
+		border-radius: 999px;
 		background: var(--color-brand-soft);
-		padding: 1px 6px;
-		font-size: 11.5px;
+		padding: 7px 16px;
+		font-size: 13px;
 		font-weight: 700;
 		color: var(--color-brand);
-		font-variant-numeric: tabular-nums;
+		transition: transform 0.15s;
 	}
-	.ntitle {
-		font-size: 10px;
+	.act:hover {
+		transform: translateY(-1px);
+	}
+	.rule {
+		margin: 0;
+		text-align: center;
+		font-size: 14px;
 		font-weight: 700;
-		color: var(--color-faint);
-	}
-	.nlist {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 5px;
-	}
-	.nb {
-		display: flex;
-		align-items: baseline;
-		gap: 4px;
-		border-radius: 999px;
-		background: var(--color-paper);
-		padding: 2px 9px;
-	}
-	.nb b {
-		font-size: 11.5px;
-		font-weight: 700;
-		color: var(--color-ink);
-	}
-	.nb small {
-		font-size: 10px;
-		color: var(--color-muted);
-		font-variant-numeric: tabular-nums;
-	}
-	.count {
-		border-radius: 999px;
-		background: var(--color-card);
-		border: 1px solid var(--color-line);
-		padding: 1px 9px;
-		font-size: 10.5px;
-		font-weight: 700;
-		color: var(--color-faint);
-	}
-	.count.full {
 		color: var(--color-grass);
-		border-color: var(--color-grass);
 	}
-
 	.map {
+		display: block;
 		width: 100%;
-		max-width: min(400px, 92vw);
 		height: auto;
+		max-height: 58vh;
 		overflow: visible;
-		user-select: none;
-		touch-action: none;
 	}
-	.area {
+	.paper {
 		fill: var(--color-card);
 		stroke: var(--color-line);
 		stroke-width: 1.5;
 	}
 	.grid {
 		stroke: var(--color-line);
-		stroke-width: 0.8;
+		stroke-width: 1;
+		opacity: 0;
+		transition: opacity 0.6s;
+	}
+	.grid.show {
 		opacity: 0.7;
 	}
-	.shelf {
-		fill: var(--color-paper);
+
+	.region {
+		stroke-width: 1.5;
+	}
+	.region.grass {
+		fill: var(--color-grass-soft);
+		stroke: color-mix(in srgb, var(--color-grass) 35%, transparent);
+	}
+	.region.amber {
+		fill: var(--color-amber-soft);
+		stroke: color-mix(in srgb, var(--color-amber) 35%, transparent);
+	}
+	.region.danger {
+		fill: var(--color-danger-soft);
+		stroke: color-mix(in srgb, var(--color-danger) 35%, transparent);
+	}
+	.region.brand {
+		fill: var(--color-brand-soft);
+		stroke: color-mix(in srgb, var(--color-brand) 35%, transparent);
+	}
+	.sign.grass {
+		fill: var(--color-grass);
+	}
+	.sign.amber {
+		fill: var(--color-amber);
+	}
+	.sign.danger {
+		fill: var(--color-danger);
+	}
+	.sign.brand {
+		fill: var(--color-brand);
+	}
+	.sign-text {
+		fill: var(--color-card);
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.word {
+		transition:
+			transform 1.1s cubic-bezier(0.3, 0.8, 0.3, 1),
+			opacity 0.4s;
+	}
+	.word.still {
+		transition: none;
+	}
+	.word.dim {
+		opacity: 0.28;
+	}
+	.word.new {
+		animation: drop 0.9s cubic-bezier(0.3, 0.8, 0.3, 1);
+	}
+	@keyframes drop {
+		from {
+			transform: translate(180px, -20px);
+			opacity: 0;
+		}
+	}
+	.lbl {
+		transition: transform 1.1s;
+	}
+	.pill {
+		fill: var(--color-card);
 		stroke: var(--color-line);
 		stroke-width: 1.2;
 	}
-	.slabel {
-		font-size: 9px;
-		font-weight: 700;
-		fill: var(--color-faint);
-		text-anchor: middle;
-	}
-	.nline {
+	.word.new .pill {
 		stroke: var(--color-brand);
 		stroke-width: 1.6;
+	}
+	.w {
+		fill: var(--color-ink);
+		font-size: 11.5px;
+		font-weight: 600;
+	}
+	.dot {
+		transition: opacity 0.4s;
+	}
+	.dot.hide {
+		opacity: 0;
+	}
+	.dot.animals {
+		fill: var(--color-grass);
+	}
+	.dot.royals {
+		fill: var(--color-amber);
+	}
+	.dot.food {
+		fill: var(--color-danger);
+	}
+	.dot.tech {
+		fill: var(--color-brand);
+	}
+	.vec-pill {
+		fill: var(--color-brand-soft);
+	}
+	.vec {
+		fill: var(--color-brand);
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 10.5px;
+		font-weight: 700;
+	}
+
+	.link {
+		stroke: var(--color-grass);
+		stroke-width: 2;
 		stroke-linecap: round;
-		pointer-events: none;
+		animation: grow 0.6s ease-out both;
+		animation-delay: var(--d);
 	}
-	.word {
-		cursor: pointer;
-		outline: none;
+	.link.far {
+		stroke: var(--color-faint);
+		stroke-width: 1.5;
 	}
-	.word rect {
+	@keyframes grow {
+		from {
+			opacity: 0;
+		}
+	}
+	.far-tag {
 		fill: var(--color-paper);
 		stroke: var(--color-line);
-		stroke-width: 1.3;
-		transition:
-			fill 0.2s ease,
-			stroke 0.2s ease;
 	}
-	.word text {
-		font-size: 10.5px;
-		font-weight: 600;
+	.far-text {
 		fill: var(--color-muted);
-		text-anchor: middle;
-		pointer-events: none;
-	}
-	.word.loose {
-		cursor: grab;
-	}
-	.word.loose rect {
-		fill: var(--color-card);
-		stroke: var(--color-brand);
-		stroke-width: 1.6;
-	}
-	.word.loose text {
-		fill: var(--color-ink);
+		font-size: 10.5px;
 		font-weight: 700;
 	}
-	.word.home rect {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
+
+	.pin {
+		transform: translate(var(--px), -30px);
+		opacity: 0;
+		transition:
+			transform 0.7s cubic-bezier(0.3, 1.4, 0.5, 1),
+			opacity 0.3s;
 	}
-	.word.active rect {
-		stroke: var(--color-ink);
-		stroke-width: 2;
+	.pin.down {
+		transform: translate(var(--px), var(--py));
+		opacity: 1;
 	}
-	.word.active text {
-		fill: var(--color-ink);
+	.pin-dot {
+		fill: var(--color-brand);
 	}
-	.word.lifted {
-		cursor: grabbing;
+	.ring {
+		fill: none;
+		stroke: var(--color-brand);
+		stroke-width: 1.5;
+		transform-origin: 0 0;
+		animation: ring 1.8s ease-out infinite;
 	}
-	.word.lifted rect {
-		filter: drop-shadow(0 4px 6px rgba(22, 40, 60, 0.18));
+	@keyframes ring {
+		from {
+			transform: scale(0.3);
+			opacity: 0.9;
+		}
+		to {
+			transform: scale(1.8);
+			opacity: 0;
+		}
 	}
-	.word:focus-visible rect {
-		stroke: var(--color-ink);
-		stroke-width: 2;
+	.pin-tag {
+		fill: var(--color-brand);
 	}
-	.dragging .word:not(.lifted) {
-		pointer-events: none;
+	.pin-text {
+		fill: var(--color-card);
+		font-size: 11px;
+		font-weight: 700;
 	}
 
+	.many {
+		width: 100%;
+		border: 1px solid var(--color-line);
+		border-radius: 14px;
+		background: var(--color-card);
+		padding: 10px 14px;
+		text-align: center;
+	}
+	.many-label {
+		margin: 0;
+		font-size: 10.5px;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+	}
+	.nums {
+		margin: 4px 0;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 12.5px;
+		font-weight: 600;
+		color: var(--color-brand);
+		word-break: break-word;
+	}
+	.many-count {
+		margin: 0;
+		font-size: 12px;
+		color: var(--color-muted);
+	}
+
+	@media (max-width: 767px) {
+		.stage {
+			padding-bottom: 7rem;
+		}
+	}
 	@media (prefers-reduced-motion: reduce) {
-		.word rect {
+		.word,
+		.lbl,
+		.grid,
+		.dot,
+		.pin,
+		.act {
 			transition: none;
 		}
-	}
-
-	@media (min-width: 768px) {
-		.panel {
-			max-width: 420px;
-		}
-		.map {
-			max-width: 480px;
-		}
-		.hint {
-			font-size: 13px;
+		.word.new,
+		.link,
+		.ring {
+			animation: none;
 		}
 	}
 </style>

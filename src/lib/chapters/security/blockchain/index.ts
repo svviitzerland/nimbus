@@ -6,13 +6,21 @@ import { en } from './en';
 export const blockchain: Lesson = {
 	id: 'blockchain',
 	mood: 'calm',
-	moods: ['calm', 'idea', 'thinking', 'surprised', 'calm', 'wink', 'thinking', 'happy'],
+	moods: [
+		'calm',
+		'idea',
+		'thinking',
+		'surprised',
+		'wink',
+		'happy',
+		'thinking',
+		'idea',
+		'calm',
+		'happy'
+	],
 	reactionMood: {
 		broken: 'surprised',
-		tip: 'thinking',
-		restored: 'happy',
-		rehash: 'wink',
-		synced: 'happy'
+		restored: 'happy'
 	},
 	stage: BlockchainStage,
 	text: { id, en }

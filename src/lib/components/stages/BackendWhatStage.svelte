@@ -1,563 +1,456 @@
 <script lang="ts">
-	import Server from '$lib/components/Server.svelte';
-	import MiniPhone from './backend/MiniPhone.svelte';
-	import type { LessonText } from '$lib/chapters/types';
-	import type { BackendStepId, BackendWhatText } from '$lib/chapters/web/backend-what/types';
+	// Guided "watch" stage. One order travels by itself from the phone (frontend) into the
+	// backend server, visiting four drawers (who is it, in stock, save, send receipt), while the
+	// database and the email box light up beside it. Nim's beat picks the moment in focus.
+	// The only optional play, on the last beat, is logging out and watching the order get stopped.
+	import Guide from '$lib/components/Guide.svelte';
+	import SvgPhone from '$lib/components/stages/backend-guided/SvgPhone.svelte';
+	import { sceneClock } from '$lib/components/stages/backend-guided/clock.svelte';
+	import type { StageProps } from '$lib/chapters/types';
+	import type { BackendWhatText, BackendStationId } from '$lib/chapters/web/backend-what/types';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as BackendWhatText);
 
-	const STEPS: BackendStepId[] = ['login', 'stock', 'save', 'email'];
+	$effect(() => {
+		onshow?.(true);
+		oncomplete?.();
+	});
 
-	let loggedIn = $state(true);
-	// 0 idle, 1 to 4 the active station, 5 the order is confirmed
-	let step = $state(0);
-	let rejected = $state(false);
-	let completed = false;
+	let peek = $state<number | null>(null);
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
+	const lastBeat = $derived(tx.intro.length - 1);
+	const step = $derived(peek ?? Math.min(beat, tx.steps.length - 1));
+	const live = $derived(beat >= lastBeat && peek === null);
 
-	const running = $derived(step >= 1 && step <= 4 && !rejected);
+	let loggedOut = $state(false);
+	function toggleLogin() {
+		loggedOut = !loggedOut;
+		onstate?.(loggedOut ? 'loggedOut' : 'loggedIn');
+	}
 
-	function place() {
-		rejected = false;
-		step = 1;
-		if (!loggedIn) {
-			rejected = true;
-			onstate?.('rejected');
-		} else {
-			onstate?.('login');
+	const clock = sceneClock(() => [step, loggedOut]);
+
+	const STATIONS: BackendStationId[] = ['who', 'stock', 'save', 'mail'];
+	const drawerY = (i: number) => 70 + i * 42;
+
+	/** The order's journey, 0 on the phone, 1 arrived, 2 to 5 at a drawer, 6 done. */
+	function loop(t: number, out: boolean, reduced: boolean) {
+		if (out) return reduced ? 2 : Math.min(2, Math.floor((t % 4600) / 1000));
+		return reduced ? 6 : Math.min(6, Math.floor((t % 8400) / 1000));
+	}
+	const phase = $derived.by(() => {
+		const t = clock.t;
+		switch (step) {
+			case 0:
+				return 0;
+			case 1:
+				return t < 900 ? 0 : 1;
+			case 2:
+				return 1;
+			case 3:
+				return t < 700 ? 1 : 2;
+			case 4:
+				return t < 700 ? 2 : 3;
+			case 5:
+				return t < 900 ? 4 : t < 2200 ? 5 : 6;
+			case 7:
+				return 6;
+			default:
+				return loop(t, live && loggedOut, clock.reduced);
 		}
-	}
+	});
+	const fail = $derived(live && loggedOut && phase >= 2);
 
-	function next() {
-		step += 1;
-		if (step <= 4) {
-			onstate?.(STEPS[step - 1]);
-		} else {
-			onstate?.('done');
-			if (!completed) {
-				completed = true;
-				oncomplete?.();
-			}
-		}
-	}
-
-	function act() {
-		if (running) next();
-		else place();
-	}
-
-	function status(i: number): 'wait' | 'on' | 'ok' | 'fail' {
-		const n = i + 1;
-		if (rejected && n === 1) return 'fail';
-		if (rejected) return 'wait';
-		if (step > n) return 'ok';
-		if (step === n) return 'on';
-		return 'wait';
-	}
-
-	const led = $derived(
-		rejected
-			? 'bad'
-			: step === 5
-				? 'ok'
-				: running
-					? 'busy'
-					: ('idle' as 'idle' | 'busy' | 'ok' | 'bad')
+	const status = $derived(
+		fail ? 'rejected' : phase === 0 ? 'idle' : phase === 6 ? 'done' : 'waiting'
 	);
-	const phoneLine = $derived(
-		rejected
-			? tx.phone.rejected
-			: step === 5
-				? tx.phone.done
-				: running
-					? tx.phone.waiting
-					: tx.phone.idle
+	const ticket = $derived(
+		phase === 0
+			? { x: 70, y: 226, o: 0 }
+			: phase === 1
+				? { x: 170, y: drawerY(0) + 17, o: 1 }
+				: { x: 170, y: drawerY(Math.min(3, phase - 2)) + 17, o: phase === 6 ? 0 : 1 }
 	);
-	const btnLabel = $derived(running ? tx.nextStep : step === 0 ? tx.placeOrder : tx.again);
+	function drawer(i: number) {
+		if (fail && i === 0) return 'bad';
+		if (fail) return 'idle';
+		if (phase - 2 === i) return 'active';
+		if (phase - 2 > i) return 'ok';
+		return 'idle';
+	}
+	const dbOn = $derived(!fail && (phase === 3 || phase === 4));
+	const newRow = $derived(!fail && phase >= 4);
+	const mailOn = $derived(!fail && phase === 5);
+	const rooms = $derived(step === 6);
 </script>
 
-<div class="wrap">
-	<div class="top">
-		<div class="seg" role="group">
-			<button type="button" class:on={loggedIn} disabled={running} onclick={() => (loggedIn = true)}
-				>{tx.loggedIn}</button
-			>
-			<button
-				type="button"
-				class:on={!loggedIn}
-				disabled={running}
-				onclick={() => (loggedIn = false)}>{tx.loggedOut}</button
-			>
-		</div>
-		<button type="button" class="cta" onclick={act}>{btnLabel}</button>
-	</div>
+{#snippet visual()}
+	<div class="w-full">
+		<svg
+			viewBox="0 0 360 280"
+			class="mx-auto block w-full max-w-[420px]"
+			role="img"
+			aria-label={tx.steps[step].title}
+		>
+			<!-- captions -->
+			<text x="70" y="24" text-anchor="middle" class="cap" class:hl={step === 0}>
+				{tx.frontLabel}
+			</text>
+			<text x="70" y="40" text-anchor="middle" class="sub" class:room={rooms}>
+				{rooms ? tx.roomFront : tx.frontSub}
+			</text>
+			<text x="236" y="24" text-anchor="middle" class="cap" class:hl={step === 2}>
+				{tx.backLabel}
+			</text>
+			<text x="236" y="40" text-anchor="middle" class="sub" class:room={rooms}>
+				{rooms ? tx.roomBack : tx.backSub}
+			</text>
+			<line x1="140" y1="12" x2="140" y2="272" class="divider" />
 
-	<div class="front">
-		<MiniPhone {led} width={180}>
-			<div class="item">
-				<span class="cap" aria-hidden="true">
-					<svg viewBox="0 0 24 24" width="22" height="22"
-						><path d="M4 15a8 8 0 0 1 16 0Z" style="fill:var(--color-brand)" /><path
-							d="M3 15h15l3 2H3Z"
-							style="fill:var(--color-ink)"
-							opacity="0.8"
-						/></svg
-					>
-				</span>
-				<span class="iname"><b>{tx.product}</b><span>{tx.price}</span></span>
-			</div>
-			<p
-				class="pstat"
-				class:ok={step === 5}
-				class:bad={rejected}
-				class:busy={running}
-				aria-live="polite"
-			>
-				{phoneLine}
-			</p>
-			{#if step === 5}
-				<p class="inbox">
-					<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"
-						><rect
-							x="3"
-							y="6"
-							width="18"
-							height="12"
-							rx="2"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-						/><path
-							d="m3.5 7 8.5 6 8.5-6"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-						/></svg
-					>
-					{tx.phone.inbox}
-				</p>
+			<!-- the wire between them, the API on its beat -->
+			<line x1="122" y1="160" x2="158" y2="160" class="wire" class:on={step === 7} />
+			{#if step === 7}
+				<g class="fade">
+					<rect x="122" y="138" width="36" height="16" rx="8" class="apiTag" />
+					<text x="140" y="150" text-anchor="middle" class="apiT">{tx.apiLabel}</text>
+				</g>
 			{/if}
-		</MiniPhone>
-		<span class="cap2">{tx.frontLabel}</span>
-	</div>
 
-	<div class="wire" class:live={running} aria-hidden="true"><i></i></div>
+			<!-- you, the phone -->
+			<SvgPhone x={18} y={62} w={104} h={200} focus={step === 0}>
+				<path d="M27 52a18 17 0 0 1 36 0Z" class="capTop" />
+				<rect x="21" y="50" width="48" height="6" rx="3" class="capBrim" />
+				<circle cx="45" cy="34" r="2.5" class="capTop" />
+				<text x="45" y="84" text-anchor="middle" class="prod">{tx.product}</text>
+				<text x="45" y="99" text-anchor="middle" class="price">{tx.price}</text>
+				<text x="45" y="124" text-anchor="middle" class="status {status}">
+					{tx.phone[status]}
+				</text>
+				<rect
+					x="10"
+					y="136"
+					width="70"
+					height="24"
+					rx="12"
+					class="buy"
+					class:wait={status === 'waiting'}
+				/>
+				<text x="45" y="152" text-anchor="middle" class="buyT">{tx.buy}</text>
+				{#if status === 'done'}
+					<g class="fade" transform="translate(66 6)">
+						<rect width="18" height="13" rx="2" class="env" />
+						<path d="M1 1l8 6 8-6" class="envFlap" />
+					</g>
+				{/if}
+			</SvgPhone>
 
-	<div class="back">
-		<div class="bhead">
-			<Server active={running || step === 5} slots={2} />
-			<span class="btxt"><b>{tx.backLabel}</b><span>{tx.backSub}</span></span>
-		</div>
-		<ol class="stations">
-			{#each STEPS as s, i (s)}
-				{@const st = status(i)}
-				<li class={st}>
-					<span class="num">
-						{#if st === 'ok'}
-							<svg viewBox="0 0 16 16" width="12" height="12"
-								><path
-									d="M3.5 8.5l3 3 6-6.5"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="2.4"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								/></svg
-							>
-						{:else if st === 'fail'}
-							×
-						{:else}
-							{i + 1}
-						{/if}
-					</span>
-					<span class="stxt">
-						<b>{tx.steps[s].title}</b>
-						<span>{st === 'fail' ? tx.loginFail : tx.steps[s].detail}</span>
-					</span>
-					{#if s === 'stock' || s === 'save'}
-						<span class="side" class:hot={st === 'on'}>
-							<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"
-								><ellipse
-									cx="12"
-									cy="6"
-									rx="7"
-									ry="3"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="1.8"
-								/><path
-									d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="1.8"
-								/></svg
-							>
-							{tx.dbLabel}
-						</span>
-					{:else if s === 'email'}
-						<span class="side" class:hot={st === 'on'}>
-							<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"
-								><rect
-									x="3"
-									y="6"
-									width="18"
-									height="12"
-									rx="2"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="1.8"
-								/><path
-									d="m3.5 7 8.5 6 8.5-6"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="1.8"
-								/></svg
-							>
-							{tx.mailLabel}
-						</span>
-					{/if}
-				</li>
-			{/each}
-		</ol>
+			<!-- the backend, a server with four drawers -->
+			<g class="dimmable" class:dim={step === 0}>
+				<rect
+					x="158"
+					y="58"
+					width="130"
+					height="184"
+					rx="10"
+					class="rack"
+					class:focus={step === 2}
+				/>
+				{#each STATIONS as id, i (id)}
+					{@const st = drawer(i)}
+					<g>
+						<rect x="182" y={drawerY(i)} width="98" height="34" rx="6" class="drawer {st}" />
+						<circle cx="194" cy={drawerY(i) + 17} r="4" class="led {st}" />
+						<text x="204" y={drawerY(i) + 21} class="dT">{tx.stations[id]}</text>
+					</g>
+				{/each}
+
+				<!-- the email box -->
+				<line x1="288" y1="92" x2="304" y2="92" class="wire" class:on={mailOn} />
+				<rect x="304" y="78" width="40" height="28" rx="4" class="env" class:on={mailOn} />
+				<path d="M306 80l18 13 18-13" class="envFlap" />
+				<text x="324" y="122" text-anchor="middle" class="sub">{tx.mailLabel}</text>
+
+				<!-- the database -->
+				<line x1="288" y1="196" x2="302" y2="196" class="wire" class:on={dbOn} />
+				<path d="M302 178v48a22 7 0 0 0 44 0v-48" class="db" class:on={dbOn} />
+				<ellipse cx="324" cy="178" rx="22" ry="7" class="db" class:on={dbOn} />
+				<line x1="312" y1="196" x2="336" y2="196" class="row" />
+				<line x1="312" y1="206" x2="332" y2="206" class="row" />
+				{#if newRow}
+					<line x1="312" y1="216" x2="338" y2="216" class="row new fade" />
+				{/if}
+				<text x="324" y="252" text-anchor="middle" class="sub">{tx.dbLabel}</text>
+			</g>
+
+			<!-- the order note, travelling -->
+			<g class="move" style="transform:translate({ticket.x}px, {ticket.y}px);opacity:{ticket.o}">
+				<rect x="-9" y="-7" width="18" height="14" rx="2" class="note" class:bad={fail} />
+				<line x1="-5" y1="-2" x2="5" y2="-2" class="noteL" />
+				<line x1="-5" y1="2" x2="2" y2="2" class="noteL" />
+			</g>
+			<!-- the receipt, flying back to the phone -->
+			<g
+				class="move slow"
+				style="transform:translate({mailOn ? 92 : 316}px, {mailOn ? 84 : 84}px);opacity:{mailOn
+					? 1
+					: 0}"
+			>
+				<rect width="18" height="13" rx="2" class="env on" />
+				<path d="M1 1l8 6 8-6" class="envFlap" />
+			</g>
+		</svg>
+		{#if live}
+			<div class="mt-3 flex justify-center">
+				<button type="button" class="play" class:on={loggedOut} onclick={toggleLogin}>
+					{loggedOut ? tx.loginBtn : tx.logoutBtn}
+				</button>
+			</div>
+		{/if}
 	</div>
+{/snippet}
+
+<div class="flex w-full justify-center px-1 pb-28 md:pb-6">
+	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
 </div>
 
 <style>
-	.wrap {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 10px;
-		width: min(94vw, 420px);
-		max-width: 100%;
-		max-height: 100%;
-		overflow-y: auto;
-		overflow-x: hidden;
-		padding-bottom: 6px;
-	}
-	.top {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
-		gap: 8px;
-	}
-	.seg {
-		display: flex;
-		border-radius: 12px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 3px;
-	}
-	.seg button {
-		border-radius: 9px;
-		padding: 7px 11px;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-muted);
+	.move {
 		transition:
-			background 0.2s ease,
-			color 0.2s ease;
+			transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+			opacity 0.4s;
 	}
-	.seg button.on {
-		background: var(--toggle-active);
-		color: #fff;
-	}
-	.seg button:disabled {
-		cursor: not-allowed;
-	}
-	.cta {
-		border-radius: 12px;
-		background: var(--btn-primary);
-		color: #fff;
-		padding: 10px 18px;
-		font-size: 13px;
-		font-weight: 600;
-		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.16);
-		transition: filter 0.2s ease;
-	}
-	.cta:hover {
-		filter: brightness(1.18);
-	}
-
-	.front {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 5px;
-	}
-	.cap2 {
-		font-size: 10.5px;
-		font-weight: 600;
-		color: var(--color-muted);
-	}
-	.item {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		border-radius: 10px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 6px 8px;
-	}
-	.cap {
-		display: flex;
-		width: 30px;
-		height: 30px;
-		align-items: center;
-		justify-content: center;
-		border-radius: 8px;
-		background: var(--color-brand-soft);
-	}
-	.iname {
-		display: flex;
-		flex-direction: column;
-		line-height: 1.25;
-	}
-	.iname b {
-		font-size: 11.5px;
-	}
-	.iname span {
-		font-size: 10.5px;
-		color: var(--color-muted);
-	}
-	.pstat {
-		margin: 0;
-		border-radius: 8px;
-		background: var(--color-card);
-		border: 1px solid var(--color-line);
-		padding: 6px 8px;
-		text-align: center;
-		font-size: 11px;
-		font-weight: 700;
-		color: var(--color-muted);
+	.move.slow {
 		transition:
-			background 0.25s ease,
-			color 0.25s ease;
+			transform 1.1s cubic-bezier(0.45, 0, 0.2, 1),
+			opacity 0.3s;
 	}
-	.pstat.busy {
-		color: var(--color-amber);
+	.fade {
+		animation: fadeIn 0.45s ease-out;
 	}
-	.pstat.ok {
-		background: var(--color-grass-soft);
-		border-color: transparent;
-		color: var(--color-grass);
-	}
-	.pstat.bad {
-		background: var(--color-danger-soft);
-		border-color: transparent;
-		color: var(--color-danger);
-	}
-	.inbox {
-		margin: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 5px;
-		font-size: 10px;
-		font-weight: 600;
-		color: var(--color-brand);
-		animation: rise 0.35s ease;
-	}
-
-	.wire {
-		position: relative;
-		width: 2px;
-		height: 24px;
-		background: var(--color-line);
-		overflow: visible;
-	}
-	.wire i {
-		position: absolute;
-		left: 50%;
-		top: 0;
-		width: 8px;
-		height: 8px;
-		margin-left: -4px;
-		border-radius: 50%;
-		background: var(--color-brand);
-		opacity: 0;
-	}
-	.wire.live i {
-		animation: drip 1.1s ease-in-out infinite;
-	}
-	@keyframes drip {
-		0% {
-			top: -4px;
-			opacity: 0;
-		}
-		30% {
-			opacity: 1;
-		}
-		100% {
-			top: 22px;
-			opacity: 0;
-		}
-	}
-
-	.back {
-		width: 100%;
-		border-radius: 16px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 10px;
-		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.06);
-	}
-	.bhead {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-		margin-bottom: 8px;
-	}
-	.bhead :global(.server) {
-		width: 46px;
-		padding: 6px;
-		gap: 5px;
-		border-radius: 9px;
-		box-shadow: none;
-	}
-	.bhead :global(.server .slot) {
-		height: 9px;
-	}
-	.btxt {
-		display: flex;
-		flex-direction: column;
-		line-height: 1.25;
-	}
-	.btxt b {
-		font-size: 13px;
-	}
-	.btxt span {
-		font-size: 10.5px;
-		color: var(--color-muted);
-	}
-	.stations {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-	.stations li {
-		display: flex;
-		align-items: center;
-		gap: 9px;
-		border-radius: 11px;
-		border: 1px solid var(--color-line);
-		background: var(--color-paper);
-		padding: 7px 9px;
-		opacity: 0.6;
-		transition:
-			opacity 0.25s ease,
-			border-color 0.25s ease,
-			background 0.25s ease;
-	}
-	.stations li.on {
-		opacity: 1;
-		border-color: var(--color-brand);
-		background: var(--color-brand-soft);
-	}
-	.stations li.ok {
-		opacity: 1;
-	}
-	.stations li.fail {
-		opacity: 1;
-		border-color: var(--color-danger);
-		background: var(--color-danger-soft);
-	}
-	.num {
-		display: flex;
-		flex: none;
-		width: 22px;
-		height: 22px;
-		align-items: center;
-		justify-content: center;
-		border-radius: 50%;
-		background: var(--color-card);
-		border: 1px solid var(--color-line);
-		font-size: 11px;
-		font-weight: 800;
-		color: var(--color-muted);
-	}
-	li.on .num {
-		background: var(--color-brand);
-		border-color: var(--color-brand);
-		color: #fff;
-	}
-	li.ok .num {
-		background: var(--color-grass);
-		border-color: var(--color-grass);
-		color: #fff;
-	}
-	li.fail .num {
-		background: var(--color-danger);
-		border-color: var(--color-danger);
-		color: #fff;
-	}
-	.stxt {
-		display: flex;
-		flex: 1;
-		min-width: 0;
-		flex-direction: column;
-		line-height: 1.25;
-	}
-	.stxt b {
-		font-size: 12px;
-	}
-	.stxt span {
-		font-size: 10.5px;
-		color: var(--color-muted);
-	}
-	li.fail .stxt span {
-		color: var(--color-danger);
-	}
-	.side {
-		display: flex;
-		flex: none;
-		flex-direction: column;
-		align-items: center;
-		gap: 1px;
-		font-size: 9px;
-		font-weight: 700;
-		color: var(--color-faint);
-		transition: color 0.25s ease;
-	}
-	.side.hot {
-		color: var(--color-brand);
-	}
-	@keyframes rise {
+	@keyframes fadeIn {
 		from {
 			opacity: 0;
-			transform: translateY(4px);
 		}
-		to {
-			opacity: 1;
-			transform: none;
+	}
+	.dimmable {
+		transition: opacity 0.5s;
+	}
+	.dimmable.dim {
+		opacity: 0.35;
+	}
+	.cap {
+		font-family: var(--font-display);
+		font-size: 14px;
+		font-weight: 600;
+		fill: var(--color-ink);
+	}
+	.cap.hl {
+		fill: var(--color-brand);
+	}
+	.sub {
+		font-size: 11px;
+		fill: var(--color-faint);
+	}
+	.sub.room {
+		fill: var(--color-grass);
+		font-weight: 700;
+	}
+	.divider {
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+	}
+	.wire {
+		stroke: var(--color-line);
+		stroke-width: 3;
+		stroke-linecap: round;
+		transition: stroke 0.3s;
+	}
+	.wire.on {
+		stroke: var(--color-brand);
+	}
+	.apiTag {
+		fill: var(--color-brand-soft);
+		stroke: var(--color-brand);
+		stroke-width: 1.5;
+	}
+	.apiT {
+		font-size: 10px;
+		font-weight: 800;
+		fill: var(--color-brand);
+	}
+	.capTop {
+		fill: var(--color-brand);
+	}
+	.capBrim {
+		fill: var(--color-brand);
+		opacity: 0.7;
+	}
+	.prod {
+		font-size: 11px;
+		font-weight: 700;
+		fill: var(--color-ink);
+	}
+	.price {
+		font-size: 10px;
+		fill: var(--color-muted);
+	}
+	.status {
+		font-size: 9.5px;
+		font-weight: 700;
+		fill: var(--color-faint);
+	}
+	.status.waiting {
+		fill: var(--color-amber);
+	}
+	.status.done {
+		fill: var(--color-grass);
+	}
+	.status.rejected {
+		fill: var(--color-danger);
+	}
+	.buy {
+		fill: var(--color-brand);
+		transition: fill 0.3s;
+	}
+	.buy.wait {
+		fill: var(--color-faint);
+	}
+	.buyT {
+		font-size: 11px;
+		font-weight: 700;
+		fill: var(--color-card);
+	}
+	.rack {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 2;
+		transition: stroke 0.4s;
+	}
+	.rack.focus {
+		stroke: var(--color-brand);
+		stroke-width: 3;
+	}
+	.drawer {
+		fill: var(--color-paper);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+		transition:
+			fill 0.3s,
+			stroke 0.3s;
+	}
+	.drawer.active {
+		fill: var(--color-brand-soft);
+		stroke: var(--color-brand);
+		stroke-width: 2;
+	}
+	.drawer.bad {
+		fill: var(--color-danger-soft);
+		stroke: var(--color-danger);
+		stroke-width: 2;
+	}
+	.led {
+		fill: var(--color-line);
+		transition: fill 0.3s;
+	}
+	.led.active {
+		fill: var(--color-amber);
+		animation: blink 0.8s ease-in-out infinite;
+	}
+	.led.ok {
+		fill: var(--color-grass);
+	}
+	.led.bad {
+		fill: var(--color-danger);
+	}
+	@keyframes blink {
+		50% {
+			opacity: 0.3;
 		}
+	}
+	.dT {
+		font-size: 10px;
+		font-weight: 700;
+		fill: var(--color-ink);
+	}
+	.env {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+		transition: stroke 0.3s;
+	}
+	.env.on {
+		stroke: var(--color-brand);
+		fill: var(--color-brand-soft);
+	}
+	.envFlap {
+		fill: none;
+		stroke: var(--color-faint);
+		stroke-width: 1.5;
+		stroke-linejoin: round;
+	}
+	.db {
+		fill: var(--color-amber-soft);
+		stroke: var(--color-amber);
+		stroke-width: 2;
+		transition: stroke-width 0.3s;
+	}
+	.db.on {
+		stroke-width: 3.5;
+	}
+	.row {
+		stroke: var(--color-amber);
+		stroke-width: 2;
+		stroke-linecap: round;
+		opacity: 0.6;
+	}
+	.row.new {
+		stroke: var(--color-grass);
+		opacity: 1;
+	}
+	.note {
+		fill: var(--color-card);
+		stroke: var(--color-brand);
+		stroke-width: 2;
+	}
+	.note.bad {
+		stroke: var(--color-danger);
+	}
+	.noteL {
+		stroke: var(--color-faint);
+		stroke-width: 1.5;
+		stroke-linecap: round;
+	}
+	.play {
+		border-radius: 999px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 9px 18px;
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--color-ink);
+		box-shadow: 0 4px 14px rgba(22, 40, 60, 0.07);
+	}
+	.play.on {
+		border-color: var(--color-brand);
+		color: var(--color-brand);
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.wire.live i {
+		.move,
+		.move.slow,
+		.dimmable,
+		.wire,
+		.drawer,
+		.led,
+		.buy {
+			transition: none;
+		}
+		.fade,
+		.led.active {
 			animation: none;
-			opacity: 1;
-			top: 8px;
-		}
-		.inbox {
-			animation: none;
-		}
-	}
-	@media (min-width: 768px) {
-		.wrap {
-			width: 440px;
-			gap: 12px;
-		}
-		.cta,
-		.seg button {
-			font-size: 14px;
 		}
 	}
 </style>

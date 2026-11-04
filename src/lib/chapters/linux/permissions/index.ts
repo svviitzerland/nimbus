@@ -6,25 +6,27 @@ import { en } from './en';
 export const permissions: Lesson = {
 	id: 'permissions',
 	mood: 'thinking',
-	moods: ['calm', 'idea', 'thinking', 'wink', 'idea', 'happy'],
+	moods: [
+		'calm',
+		'idea',
+		'thinking',
+		'surprised',
+		'happy',
+		'idea',
+		'wink',
+		'thinking',
+		'wink',
+		'happy'
+	],
 	reactionMood: {
-		listed: 'idea',
-		runDenied: 'surprised',
-		chmodX: 'happy',
-		ran: 'excited',
-		bashTrick: 'wink',
-		confDenied: 'thinking',
-		sudo: 'happy',
-		notOwner: 'thinking',
-		risky: 'worried',
-		othersWrite: 'worried',
+		locked: 'excited',
 		chmod: 'happy',
-		undo: 'happy',
-		rmrf: 'surprised',
+		risky: 'worried',
+		ran: 'happy',
+		sudo: 'wink',
 		missing: 'thinking',
 		denied: 'thinking',
-		error: 'surprised',
-		done: 'excited'
+		error: 'surprised'
 	},
 	stage: PermissionsStage,
 	text: { id, en }

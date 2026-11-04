@@ -6,7 +6,18 @@ import { en } from './en';
 export const azure: Lesson = {
 	id: 'azure',
 	mood: 'happy',
-	moods: ['calm', 'thinking', 'happy', 'idea', 'excited'],
+	moods: [
+		'calm',
+		'thinking',
+		'happy',
+		'idea',
+		'thinking',
+		'happy',
+		'calm',
+		'wink',
+		'idea',
+		'excited'
+	],
 	reactionMood: {
 		dns: 'wink',
 		cdn: 'happy',

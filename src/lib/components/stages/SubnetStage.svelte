@@ -1,584 +1,570 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
+	// Guided subnet lesson, built on one picture and one rule. The block 192.168.1.0 is a building
+	// with 256 windows (one window, one address). The number after the slash sets the room size,
+	// and the walls split or merge by themselves as the beats move the number. No binary math,
+	// just the rule "bigger number, smaller room" and a small cheat sheet. The last beat lets the
+	// learner nudge the number, which is optional.
+	import { onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
+	import Guide from '$lib/components/Guide.svelte';
 	import type { LessonText } from '$lib/chapters/types';
 	import type { SubnetText } from '$lib/chapters/network/subnet/types';
 
 	let {
 		text,
+		beat = 0,
 		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+		onstate,
+		onshow
+	}: {
+		text: LessonText;
+		beat?: number;
+		oncomplete?: () => void;
+		onstate?: (s: string) => void;
+		onshow?: (v: boolean) => void;
+	} = $props();
 	const tx = $derived(text as SubnetText);
+	const LAST = $derived(tx.intro.length - 1);
 
-	const MIN = 24;
-	const MAX = 30;
-	// Devices each plan needs, and the /number that fits them best.
-	const NEEDS = [50, 12, 200];
-	const ANSWERS = [26, 28, 24];
-	const TOKENS = ['m1', 'm2', 'done'];
+	// The building, 16 by 16 windows.
+	const X0 = 30;
+	const Y0 = 80;
+	const P = 15; // window pitch
+	const W = 12; // window size
+	const ADDRS = Array.from({ length: 256 }, (_, k) => k);
+	const CHEAT = [32, 30, 24, 16, 8];
+	const SPLIT = [24, 25, 26, 27, 28];
+	const MERGE = [28, 27, 26, 25, 24];
+	// Spots used on the "tiny ones" beat, a /30 room of 4 and a single /32 window.
+	const R30 = [36, 37, 38, 39];
+	const R32 = 170;
 
-	let prefix = $state(MIN);
-	let mission = $state(0);
-	let finished = $state(false);
-	let verdict = $state<'' | 'ok' | 'small' | 'waste'>('');
-	let selCell = $state(0); // the address the learner last tapped, its room is highlighted
-	let sawSplit = false;
-	let sawTiny = false;
-	let completed = false;
-	let timer: ReturnType<typeof setTimeout> | undefined;
+	let still = $state(false);
+	let t = $state(0);
+	let peek = $state<number | null>(null);
+	let mine = $state(24); // the learner's own number on the last beat
 
-	const size = $derived(2 ** (32 - prefix));
-	const rooms = $derived(256 / size);
-	const usable = $derived(size - 2);
-	const selRoom = $derived(Math.floor(selCell / size));
-	const first = $derived(selRoom * size);
-	const last = $derived(first + size - 1);
-	const mask = $derived(`255.255.255.${256 - size}`);
-	const ip = (n: number) => `192.168.1.${n}`;
-
-	function setPrefix(p: number) {
-		const v = Math.max(MIN, Math.min(MAX, p));
-		if (v === prefix) return;
-		prefix = v;
-		if (verdict !== 'ok') verdict = '';
-		if (v === MAX && !sawTiny) {
-			sawTiny = true;
-			sawSplit = true;
-			onstate?.('tiny');
-		} else if (v > MIN && !sawSplit) {
-			sawSplit = true;
-			onstate?.('split');
-		}
-	}
-
-	function check() {
-		if (finished || verdict === 'ok') return;
-		const need = NEEDS[mission];
-		if (usable < need) {
-			verdict = 'small';
-			onstate?.('small');
-			return;
-		}
-		if (prefix < ANSWERS[mission]) {
-			verdict = 'waste';
-			onstate?.('waste');
-			return;
-		}
-		verdict = 'ok';
-		onstate?.(TOKENS[mission]);
-		if (mission === NEEDS.length - 1) {
-			finished = true;
-			if (!completed) {
-				completed = true;
-				oncomplete?.();
-			}
-			return;
-		}
-		timer = setTimeout(() => {
-			mission += 1;
-			verdict = '';
-		}, 1400);
-	}
-
-	// Neighbouring rooms never share a colour, even when several rooms sit on one row.
-	function tone(room: number) {
-		if (size >= 16) return room % 4;
-		const row = Math.floor((room * size) / 16);
-		return (room + row) % 4;
-	}
-
-	const statusText = $derived(
-		verdict === 'ok'
-			? tx.status.ok
-			: verdict === 'small'
-				? tx.status.small.replace('{need}', String(NEEDS[mission])).replace('{fit}', String(usable))
-				: verdict === 'waste'
-					? tx.status.waste
-					: ''
-	);
-
-	onDestroy(() => {
-		if (timer) clearTimeout(timer);
+	onMount(() => {
+		still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+		onshow?.(true);
+		oncomplete?.();
 	});
+
+	$effect(() => {
+		void beat;
+		peek = null;
+		t = 0;
+		if (still) return;
+		const id = setInterval(() => (t += 1), 1500);
+		return () => clearInterval(id);
+	});
+
+	function prefixFor(i: number) {
+		if (i === 2) return SPLIT[still ? 2 : Math.min(t % 7, 4)];
+		if (i === 3) return MERGE[still ? 4 : Math.min(t % 7, 4)];
+		if (i === 7) return 26;
+		if (i === 8) return 25;
+		if (i === LAST) return mine;
+		return 24;
+	}
+
+	const sizeOf = (p: number) => 2 ** (32 - p);
+	const group = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, tx.thousands);
+
+	function roomsLine(p: number) {
+		const size = sizeOf(p);
+		const n = 256 / size;
+		if (n === 1) return tx.oneRoom.replace('{size}', group(size));
+		if (size === 1) return tx.roomsSingle.replace('{n}', group(n));
+		return tx.rooms.replace('{n}', group(n)).replace('{size}', group(size));
+	}
+
+	function roomRects(p: number) {
+		const size = sizeOf(p);
+		const cols = Math.min(size, 16);
+		const rows = Math.max(1, size / 16);
+		return Array.from({ length: 256 / size }, (_, k) => {
+			const first = k * size;
+			return {
+				k,
+				x: X0 - 1.5 + (first % 16) * P,
+				y: Y0 - 1.5 + Math.floor(first / 16) * P,
+				w: cols * P,
+				h: rows * P
+			};
+		});
+	}
+
+	function nudge(d: number) {
+		const next = Math.max(24, Math.min(32, mine + d));
+		if (next === mine) return;
+		mine = next;
+		onstate?.(next === 32 ? 'one' : d > 0 ? 'split' : 'merge');
+	}
+
+	const wx = (a: number) => X0 + (a % 16) * P;
+	const wy = (a: number) => Y0 + Math.floor(a / 16) * P;
 </script>
 
 <div class="wrap">
-	<!-- the plan to solve, with its check button -->
-	<div class="mission" class:ok={verdict === 'ok'} class:bad={verdict === 'small'}>
-		{#if finished}
-			<span class="mlabel">✓ {tx.allDone}</span>
-		{:else}
-			<span class="mlabel"
-				>{tx.missionLabel
-					.replace('{n}', String(mission + 1))
-					.replace('{total}', String(NEEDS.length))}</span
+	{#if beat >= LAST}
+		<div class="play" in:fade={{ duration: 200 }}>
+			<button
+				type="button"
+				class="nudge"
+				aria-label={tx.smaller}
+				disabled={mine <= 24}
+				onclick={() => nudge(-1)}>&minus;</button
 			>
-			<p class="mtext">{tx.missions[mission]}</p>
-			<div class="mrow">
-				<button type="button" class="check" onclick={check} disabled={verdict === 'ok'}
-					>{tx.checkBtn}</button
-				>
-				{#if statusText}
-					<span class="status {verdict}">{statusText}</span>
+			<span class="now">/{mine}</span>
+			<button
+				type="button"
+				class="nudge"
+				aria-label={tx.bigger}
+				disabled={mine >= 32}
+				onclick={() => nudge(1)}>+</button
+			>
+		</div>
+	{/if}
+
+	<Guide steps={tx.steps} active={peek ?? beat} onselect={(k) => (peek = k)}>
+		{#snippet visual(i)}
+			<div class="scene">
+				{#if i === 5}
+					{@render campus()}
+				{:else if i === 6}
+					{@render cheatBig()}
+				{:else}
+					{@render building(i, prefixFor(i))}
+					{#if i >= 1}
+						{@render cheatStrip(i === 4 ? 0 : prefixFor(i))}
+					{/if}
 				{/if}
 			</div>
+		{/snippet}
+	</Guide>
+</div>
+
+{#snippet building(i: number, p: number)}
+	{@const size = sizeOf(p)}
+	{@const tiny = i === 4}
+	{@const ends = i === 7}
+	<svg viewBox="0 0 300 336" class="svg" role="img" aria-label={tx.buildingLabel}>
+		<!-- sign on the roof -->
+		<rect x="70" y="18" width="160" height="30" rx="9" class="sign" />
+		<text x="150" y="38" class="sign-t"
+			>192.168.1.0{#if i >= 1 && !tiny}<tspan class="slash">/{p}</tspan>{/if}</text
+		>
+		<line x1="150" y1="48" x2="150" y2="60" class="post" />
+		<!-- the building itself -->
+		<rect x="20" y="60" width="260" height="268" rx="10" class="body" />
+		<line x1="8" y1="328" x2="292" y2="328" class="ground" />
+
+		{#each ADDRS as a (a)}
+			{@const odd = Math.floor(a / size) % 2 === 1}
+			{@const lit = tiny && (R30.includes(a) || a === R32)}
+			{@const first = ends && a % size === 0}
+			{@const last = ends && a % size === size - 1}
+			<rect
+				x={wx(a)}
+				y={wy(a)}
+				width={W}
+				height={W}
+				rx="2"
+				class="win"
+				class:odd={odd && !tiny}
+				class:dim={tiny && !lit}
+				class:lit
+				class:first
+				class:last
+			/>
+		{/each}
+
+		{#if !tiny}
+			{#key p}
+				<g in:fade={{ duration: still ? 0 : 450 }}>
+					{#each roomRects(p) as r (r.k)}
+						<rect x={r.x} y={r.y} width={r.w} height={r.h} rx="3" class="wall" />
+					{/each}
+				</g>
+			{/key}
+		{:else}
+			<g in:fade={{ duration: 400 }}>
+				<rect
+					x={wx(R30[0]) - 1.5}
+					y={wy(R30[0]) - 1.5}
+					width={4 * P}
+					height={P}
+					rx="3"
+					class="wall hot"
+				/>
+				<rect x={wx(R32) - 1.5} y={wy(R32) - 1.5} width={P} height={P} rx="3" class="wall hot" />
+				<rect x={wx(R30[3]) + 18} y={wy(R30[0]) - 3} width="38" height="18" rx="9" class="pin" />
+				<text x={wx(R30[3]) + 37} y={wy(R30[0]) + 10} class="pin-t">/30</text>
+				<rect x={wx(R32) + 18} y={wy(R32) - 3} width="38" height="18" rx="9" class="pin" />
+				<text x={wx(R32) + 37} y={wy(R32) + 10} class="pin-t">/32</text>
+			</g>
 		{/if}
-	</div>
 
-	<!-- the address with its slash, and the slider that moves it -->
-	<div class="cidr">
-		<span class="net">192.168.1.0</span><span class="slash">/{prefix}</span>
-	</div>
-	<div class="slider">
-		<button
-			type="button"
-			class="step"
-			aria-label={tx.smaller}
-			disabled={prefix === MIN}
-			onclick={() => setPrefix(prefix - 1)}
-			><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"
-				><path d="M3 7h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg
-			></button
-		>
-		<input
-			type="range"
-			min={MIN}
-			max={MAX}
-			step="1"
-			value={prefix}
-			aria-label="CIDR"
-			oninput={(e) => setPrefix(Number((e.currentTarget as HTMLInputElement).value))}
-		/>
-		<button
-			type="button"
-			class="step"
-			aria-label={tx.bigger}
-			disabled={prefix === MAX}
-			onclick={() => setPrefix(prefix + 1)}
-			><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"
-				><path
-					d="M3 7h8M7 3v8"
-					stroke="currentColor"
-					stroke-width="2"
-					stroke-linecap="round"
-				/></svg
-			></button
-		>
-	</div>
+		{#if i === 8}
+			<g in:fade={{ duration: 400 }}>
+				<rect x="95" y="128" width="110" height="22" rx="11" class="pin" />
+				<text x="150" y="143" class="pin-t">{tx.publicLabel}</text>
+				<rect x="95" y="248" width="110" height="22" rx="11" class="pin" />
+				<text x="150" y="263" class="pin-t">{tx.privateLabel}</text>
+			</g>
+		{/if}
+	</svg>
+	{#if ends}
+		<div class="legend" in:fade={{ duration: 300 }}>
+			<span><i class="sw first"></i>{tx.nameLabel}</span>
+			<span><i class="sw last"></i>{tx.shoutLabel}</span>
+		</div>
+	{:else if i !== 4}
+		<p class="caption">{roomsLine(p)}</p>
+	{/if}
+{/snippet}
 
-	<!-- 32 bits, the locked ones name the room, the free ones number the devices -->
-	<div class="bits" aria-hidden="true">
-		{#each [0, 1, 2, 3] as g (g)}
-			<span class="octet">
-				{#each { length: 8 }, b (b)}
-					<i class:lock={g * 8 + b < prefix}>{g * 8 + b < prefix ? 1 : 0}</i>
-				{/each}
+{#snippet cheatStrip(p: number)}
+	<div class="strip" aria-label={tx.cheatTitle}>
+		{#each CHEAT as c, k (c)}
+			<span class="pill" class:on={c === p || (p === 0 && (c === 30 || c === 32))}>
+				<b>/{c}</b>
+				<small>{tx.cheat[k].size}</small>
 			</span>
 		{/each}
 	</div>
-	<div class="bitlegend">
-		<span class="lk">{tx.locked.replace('{n}', String(prefix))}</span>
-		<span class="fr">{tx.free.replace('{n}', String(32 - prefix))}</span>
-	</div>
-	<p class="mask">{tx.maskLabel} <code>{mask}</code></p>
+{/snippet}
 
-	<!-- the three numbers that matter -->
-	<div class="stats">
-		<div><b>{rooms}</b><span>{tx.roomsLabel}</span></div>
-		<div><b>{size}</b><span>{tx.sizeLabel}</span></div>
-		<div class:hot={verdict === 'small'}><b>{usable}</b><span>{tx.usableLabel}</span></div>
-	</div>
-
-	<!-- the hall, 256 addresses, coloured by room -->
-	<div class="hall">
-		<span class="hlabel">{tx.hallLabel}</span>
-		<div class="grid" role="group" aria-label={tx.tapHint}>
-			{#each { length: 256 }, i (i)}
-				{@const room = Math.floor(i / size)}
-				{@const pos = i % size}
-				<button
-					type="button"
-					class="c t{tone(room)}"
-					class:res={pos === 0 || pos === size - 1}
-					class:sel={room === selRoom}
-					style="transition-delay:{i * 1.4}ms"
-					aria-label={ip(i)}
-					onclick={() => (selCell = i)}
-				></button>
-			{/each}
-		</div>
-		<div class="legend">
-			<span><i class="sw use"></i>{tx.legendUse}</span>
-			<span><i class="sw res"></i>{tx.legendRes}</span>
-			<span class="tap">{tx.tapHint}</span>
-		</div>
-	</div>
-
-	<!-- what is inside the room that is highlighted -->
-	<div class="info">
-		<b class="ititle t{tone(selRoom)}"
-			>{tx.roomTitle.replace('{n}', String(selRoom + 1)).replace('{total}', String(rooms))}</b
-		>
-		<div class="irow">
-			<span>{tx.rangeLabel}</span><code
-				>{tx.range.replace('{a}', ip(first)).replace('{b}', ip(last))}</code
+{#snippet campus()}
+	{@const more = still || t >= 1}
+	<svg viewBox="0 0 300 300" class="svg" role="img" aria-label={tx.campus16}>
+		{#each ADDRS as b (b)}
+			{@const x = 30 + (b % 16) * 15}
+			{@const y = 30 + Math.floor(b / 16) * 15}
+			<g
+				class="mini"
+				class:ours={b === 0}
+				class:hide={b !== 0 && !more}
+				style="transition-delay:{(b % 16) * 25 + Math.floor(b / 16) * 25}ms"
 			>
-		</div>
-		<div class="irow">
-			<span>{tx.nameLabel}</span><code>{ip(first)}/{prefix}</code>
-		</div>
-		<div class="irow">
-			<span>{tx.devicesLabel}</span><code
-				>{tx.range.replace('{a}', ip(first + 1)).replace('{b}', ip(last - 1))}</code
-			>
-		</div>
-		<div class="irow">
-			<span>{tx.shoutLabel}</span><code>{ip(last)}</code>
-		</div>
+				<rect {x} y={y + 3} width="11" height="9" rx="1.5" />
+				<path d="M{x} {y + 3.5} L{x + 5.5} {y} L{x + 11} {y + 3.5}" />
+			</g>
+		{/each}
+	</svg>
+	<p class="caption">{tx.campus16}</p>
+	{#if still || t >= 3}
+		<p class="caption soft" in:fade={{ duration: 400 }}>{tx.campus8}</p>
+	{/if}
+{/snippet}
+
+{#snippet cheatBig()}
+	<div class="cheat" in:fade={{ duration: 300 }}>
+		<p class="cheat-title">{tx.cheatTitle}</p>
+		<p class="rule">{tx.ruleLine}</p>
+		{#each CHEAT as c, k (c)}
+			<div class="cheat-row" class:on={c === 24}>
+				<b class="mono">/{c}</b>
+				<span class="bar"><i style="width:{8 + ((32 - c) / 24) * 92}%"></i></span>
+				<span class="num">{tx.cheat[k].size}</span>
+				<span class="note">{tx.cheat[k].note}</span>
+			</div>
+		{/each}
 	</div>
-</div>
+{/snippet}
 
 <style>
 	.wrap {
 		display: flex;
 		width: 100%;
-		max-height: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 9px;
-		overflow-x: hidden;
-		overflow-y: auto;
-		padding-bottom: 12px;
+		gap: 14px;
+		padding: 8px 16px 112px;
 	}
-	code {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	@media (min-width: 768px) {
+		.wrap {
+			padding-bottom: 24px;
+		}
 	}
-
-	.mission {
+	.play {
 		display: flex;
-		width: min(94vw, 360px);
-		flex-direction: column;
-		gap: 5px;
-		border-radius: 14px;
+		align-items: center;
+		gap: 12px;
+	}
+	.nudge {
+		display: grid;
+		height: 40px;
+		width: 40px;
+		place-items: center;
 		border: 1px solid var(--color-line);
+		border-radius: 999px;
 		background: var(--color-card);
-		padding: 10px 14px;
-		transition: border-color 0.3s;
-	}
-	.mission.ok {
-		border-color: var(--color-grass);
-	}
-	.mission.bad {
-		border-color: var(--color-danger);
-	}
-	.mlabel {
-		font-size: 9.5px;
-		font-weight: 800;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		color: var(--color-faint);
-	}
-	.mtext {
-		font-size: 13px;
-		font-weight: 600;
-		line-height: 1.35;
+		font-size: 20px;
+		font-weight: 700;
 		color: var(--color-ink);
+		box-shadow: 0 6px 16px rgba(22, 40, 60, 0.06);
 	}
-	.mrow {
+	.nudge:disabled {
+		opacity: 0.4;
+	}
+	.now {
+		min-width: 52px;
+		text-align: center;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 22px;
+		font-weight: 700;
+		color: var(--color-brand);
+	}
+	.scene {
 		display: flex;
-		flex-wrap: wrap;
+		width: 100%;
+		max-width: 400px;
+		flex-direction: column;
 		align-items: center;
 		gap: 8px;
 	}
-	.check {
-		border-radius: 10px;
-		background: var(--color-ink);
-		color: var(--color-paper);
-		padding: 7px 14px;
-		font-size: 12px;
+	.svg {
+		width: 100%;
+		max-height: 52vh;
+		height: auto;
+	}
+	.sign {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+	}
+	.sign-t {
+		text-anchor: middle;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 14px;
 		font-weight: 700;
-		transition: filter 0.2s;
-	}
-	.check:enabled:hover {
-		filter: brightness(1.15);
-	}
-	.check:disabled {
-		opacity: 0.45;
-	}
-	.status {
-		flex: 1;
-		min-width: 140px;
-		font-size: 11px;
-		font-weight: 700;
-		line-height: 1.3;
-	}
-	.status.ok {
-		color: var(--color-grass);
-	}
-	.status.small {
-		color: var(--color-danger);
-	}
-	.status.waste {
-		color: var(--color-amber);
-	}
-
-	.cidr {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 22px;
-		font-weight: 700;
-		color: var(--color-ink);
+		fill: var(--color-ink);
 	}
 	.slash {
-		color: var(--color-brand);
+		fill: var(--color-brand);
 	}
-	.slider {
-		display: flex;
-		width: min(90vw, 320px);
-		align-items: center;
-		gap: 10px;
+	.post {
+		stroke: var(--color-line);
+		stroke-width: 2;
 	}
-	.slider input {
-		flex: 1;
-		accent-color: var(--color-brand);
-		cursor: pointer;
+	.body {
+		fill: var(--color-card);
+		stroke: var(--color-muted);
+		stroke-width: 1.5;
 	}
-	.step {
-		display: grid;
-		place-items: center;
-		width: 32px;
-		height: 32px;
-		flex: none;
-		border-radius: 50%;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		color: var(--color-ink);
-		font-size: 18px;
-		font-weight: 700;
-		line-height: 1;
+	.ground {
+		stroke: var(--color-line);
+		stroke-width: 2;
 	}
-	.step:disabled {
-		opacity: 0.35;
-	}
-
-	.bits {
-		display: flex;
-		gap: 5px;
-	}
-	.octet {
-		display: flex;
-		gap: 1.5px;
-	}
-	.bits i {
-		display: grid;
-		place-items: center;
-		width: 8px;
-		height: 15px;
-		border-radius: 2.5px;
-		background: var(--color-grass-soft);
-		color: var(--color-grass);
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 7.5px;
-		font-style: normal;
-		font-weight: 800;
+	.win {
+		fill: var(--color-brand);
+		opacity: 0.32;
 		transition:
-			background 0.25s,
-			color 0.25s;
+			fill 0.5s,
+			opacity 0.5s;
 	}
-	.bits i.lock {
-		background: var(--color-brand);
-		color: #fff;
+	.win.odd {
+		fill: var(--color-grass);
 	}
-	.bitlegend {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 4px 14px;
+	.win.dim {
+		opacity: 0.1;
+	}
+	.win.lit {
+		fill: var(--color-amber);
+		opacity: 0.9;
+	}
+	.win.first {
+		fill: var(--color-grass);
+		opacity: 0.95;
+	}
+	.win.last {
+		fill: var(--color-amber);
+		opacity: 0.95;
+	}
+	.wall {
+		fill: none;
+		stroke: var(--color-ink);
+		stroke-width: 1.2;
+		opacity: 0.55;
+	}
+	.wall.hot {
+		stroke: var(--color-amber);
+		stroke-width: 1.8;
+		opacity: 1;
+	}
+	.pin {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1;
+	}
+	.pin-t {
+		text-anchor: middle;
 		font-size: 10.5px;
 		font-weight: 700;
+		fill: var(--color-ink);
 	}
-	.lk {
-		color: var(--color-brand);
-	}
-	.fr {
-		color: var(--color-grass);
-	}
-	.mask {
-		font-size: 10.5px;
-		color: var(--color-faint);
-	}
-	.mask code {
-		color: var(--color-muted);
-		font-weight: 700;
-	}
-
-	.stats {
-		display: grid;
-		width: min(94vw, 340px);
-		grid-template-columns: repeat(3, 1fr);
-		gap: 6px;
-	}
-	.stats div {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		border-radius: 12px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 6px 4px;
-		transition: border-color 0.3s;
-	}
-	.stats div.hot {
-		border-color: var(--color-danger);
-	}
-	.stats b {
-		font-family: var(--font-display, serif);
-		font-size: 20px;
+	.caption {
+		margin: 0;
+		text-align: center;
+		font-size: 13px;
 		font-weight: 600;
-		line-height: 1.1;
 		color: var(--color-ink);
 	}
-	.stats span {
-		text-align: center;
-		font-size: 9.5px;
-		font-weight: 700;
-		line-height: 1.2;
-		color: var(--color-faint);
-	}
-
-	.hall {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 6px;
-	}
-	.hlabel {
-		font-size: 9.5px;
-		font-weight: 800;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		color: var(--color-faint);
-	}
-	.grid {
-		display: grid;
-		width: min(84vw, 272px);
-		grid-template-columns: repeat(16, 1fr);
-		gap: 2px;
-	}
-	.c {
-		--t: var(--color-brand);
-		aspect-ratio: 1;
-		border-radius: 3px;
-		background: color-mix(in srgb, var(--t) 38%, var(--color-card));
-		transition: background 0.35s ease;
-		cursor: pointer;
-	}
-	.c.sel {
-		background: color-mix(in srgb, var(--t) 88%, var(--color-card));
-	}
-	.c.res {
-		background: color-mix(in srgb, var(--t) 12%, var(--color-card));
-		box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--t) 40%, transparent);
-	}
-	.c.res.sel {
-		background: color-mix(in srgb, var(--t) 25%, var(--color-card));
-		box-shadow: inset 0 0 0 1.5px var(--t);
-	}
-	.t1 {
-		--t: var(--color-grass);
-	}
-	.t2 {
-		--t: var(--color-amber);
-	}
-	.t3 {
-		--t: var(--color-muted);
+	.caption.soft {
+		font-weight: 500;
+		color: var(--color-muted);
 	}
 	.legend {
 		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		align-items: center;
-		gap: 4px 12px;
-		font-size: 10px;
+		gap: 16px;
+		font-size: 12px;
 		color: var(--color-muted);
 	}
 	.legend span {
-		display: inline-flex;
+		display: flex;
 		align-items: center;
-		gap: 4px;
+		gap: 6px;
 	}
 	.sw {
-		width: 10px;
-		height: 10px;
+		display: inline-block;
+		height: 11px;
+		width: 11px;
 		border-radius: 3px;
 	}
-	.sw.use {
-		background: color-mix(in srgb, var(--color-brand) 88%, var(--color-card));
+	.sw.first {
+		background: var(--color-grass);
 	}
-	.sw.res {
-		background: color-mix(in srgb, var(--color-brand) 25%, var(--color-card));
-		box-shadow: inset 0 0 0 1.5px var(--color-brand);
+	.sw.last {
+		background: var(--color-amber);
 	}
-	.tap {
-		color: var(--color-faint);
-	}
-
-	.info {
+	.strip {
 		display: flex;
-		width: min(94vw, 320px);
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 6px;
+	}
+	.pill {
+		display: flex;
+		min-width: 54px;
 		flex-direction: column;
-		gap: 3px;
-		border-radius: 13px;
+		align-items: center;
 		border: 1px solid var(--color-line);
+		border-radius: 10px;
 		background: var(--color-card);
-		padding: 9px 12px;
+		padding: 4px 8px;
+		line-height: 1.2;
+		transition:
+			border-color 0.3s,
+			background 0.3s;
 	}
-	.ititle {
-		--t: var(--color-brand);
+	.pill b {
+		font-family: var(--font-mono, ui-monospace, monospace);
 		font-size: 12px;
-		font-weight: 800;
-		color: var(--t);
-	}
-	.irow {
-		display: flex;
-		justify-content: space-between;
-		gap: 8px;
-		font-size: 10.5px;
-	}
-	.irow span {
-		font-weight: 700;
-		color: var(--color-faint);
-	}
-	.irow code {
-		text-align: right;
 		color: var(--color-ink);
 	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.c,
-		.bits i {
-			transition: none;
-		}
+	.pill small {
+		font-size: 10px;
+		color: var(--color-faint);
 	}
-	@media (min-width: 768px) {
-		.mission {
-			width: 440px;
-		}
-		.mtext {
-			font-size: 14px;
-		}
-		.cidr {
-			font-size: 26px;
-		}
-		.bits i {
-			width: 10px;
-			height: 17px;
-			font-size: 8.5px;
-		}
-		.grid {
-			width: 300px;
-		}
-		.irow {
-			font-size: 11.5px;
+	.pill.on {
+		border-color: var(--color-brand);
+		background: var(--color-brand-soft);
+	}
+	.mini rect,
+	.mini path {
+		fill: var(--color-line);
+		stroke: none;
+		transition: opacity 0.4s;
+	}
+	.mini path {
+		fill: none;
+		stroke: var(--color-line);
+		stroke-width: 1.2;
+	}
+	.mini.ours rect {
+		fill: var(--color-brand);
+	}
+	.mini.ours path {
+		stroke: var(--color-brand);
+	}
+	.mini {
+		transition: opacity 0.5s;
+	}
+	.mini.hide {
+		opacity: 0;
+	}
+	.cheat {
+		width: 100%;
+		border: 1px solid var(--color-line);
+		border-radius: 18px;
+		background: var(--color-card);
+		padding: 16px 16px 10px;
+	}
+	.cheat-title {
+		margin: 0;
+		font-size: 11px;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+	}
+	.rule {
+		margin: 4px 0 12px;
+		font-family: var(--font-display);
+		font-size: 18px;
+		font-weight: 600;
+		color: var(--color-ink);
+	}
+	.cheat-row {
+		display: grid;
+		grid-template-columns: 40px minmax(0, 1fr) auto;
+		grid-template-areas: 'p bar num' 'p note note';
+		align-items: center;
+		column-gap: 10px;
+		border-radius: 10px;
+		padding: 6px 8px;
+	}
+	.cheat-row.on {
+		background: var(--color-brand-soft);
+	}
+	.cheat-row .mono {
+		grid-area: p;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 15px;
+		color: var(--color-ink);
+	}
+	.bar {
+		grid-area: bar;
+		height: 8px;
+		border-radius: 999px;
+		background: var(--color-paper);
+	}
+	.bar i {
+		display: block;
+		height: 100%;
+		border-radius: 999px;
+		background: var(--color-brand);
+		opacity: 0.7;
+	}
+	.num {
+		grid-area: num;
+		font-size: 13px;
+		font-weight: 700;
+		color: var(--color-ink);
+	}
+	.note {
+		grid-area: note;
+		font-size: 11.5px;
+		color: var(--color-muted);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.win,
+		.pill,
+		.mini,
+		.mini rect {
+			transition: none;
 		}
 	}
 </style>

@@ -1,58 +1,90 @@
 import type { SubnetText } from './types';
 
 export const en: SubnetText = {
-	title: 'Subnets and CIDR',
+	title: 'Subnets',
 	intro: [
-		'The nimbus.com office has one network, 192.168.1.0, with room for 256 [[IP addresses|network/ip-address]] (192.168.1.0 up to 192.168.1.255). Staff laptops, guest phones, cameras, and printers all share one big hall.',
-		'One big hall gets messy. Every [[ARP shout|network/mac]] reaches every device, and a guest phone sits right next to the finance laptop. So we split the hall into smaller rooms, and each room is a <b>subnet</b>.',
-		'To say how big a room is, we add a slash and a number after the address, like 192.168.1.0/24. That way of writing it is called <b>CIDR</b> (Classless Inter Domain Routing, a long name for a simple idea).',
-		'An IPv4 address is 32 bits, 32 little switches. The number after the slash says how many of those bits are locked as the name of the room. The rest are free for the devices inside. /24 locks 24 bits and leaves 8 free, and 8 free bits make exactly 256 addresses.',
-		'Here is the only rule you need. Each time the number goes up by one, every room is cut in half and you get twice as many rooms. /25 makes two rooms of 128, /26 makes four rooms of 64, and so on.',
-		'Two addresses in every room are spoken for. The first is the name of the room (the <b>network address</b>), and the last is for shouting to everyone inside it (the <b>broadcast address</b>). So a /24 room fits 254 devices, not 256.',
-		'[fyi] Same word, different world. The public and private rooms in your cloud [[VPC|networking/vpc]] are subnets too, written with exactly this slash. The only twist is that AWS keeps 5 addresses in every subnet instead of 2, for its own router and DNS.',
-		'Slide the number and watch the hall split into rooms. Then plan the rooms nimbus.com needs.'
+		'Think of a block of [[IP addresses|network/ip-address]] as a building, and every window is one address. The nimbus.com office owns the building 192.168.1.0, with 256 windows. Right now it is one big open hall, and everyone shares it.',
+		'One big hall gets noisy, and guest phones end up sitting right next to the finance laptops. So we put up walls and make rooms. Each room is called a <b>subnet</b>. To say how big a room is, we write a slash and a number, like 192.168.1.0/24.',
+		'The number after the slash says how big a room you get. Watch what happens when it goes up. <b>Bigger number, smaller room.</b> /25 cuts the building into two rooms of 128, /26 into four rooms of 64, and it keeps halving.',
+		'Now the other way. Each step down doubles the room, and the walls disappear by themselves. /28 rooms of 16 merge into 32, then 64, then 128, until /24 is the whole building again.',
+		'Go all the way up to /32 and the room is a single window, exactly one address. /30 is a tiny room of 4, just right for one cable joining two routers.',
+		'Go down past /24 and the room gets bigger than this building. /16 is a whole campus of 256 buildings like ours, 65,536 addresses. /8 is a city of them, about 16.7 million.',
+		'[ingat] Only one rule to remember. Bigger number, smaller room. /32 is one address, /24 is 256 (a home or an office), and every step down doubles the room. That small table is all you need on day one.',
+		"[fyi] Two windows in every room are spoken for. The first is the room's name (the network address) and the last is for shouting to everyone inside (the broadcast address). So a /24 room fits 254 devices, not 256.",
+		'[fyi] Same word, different world. In the cloud, the public and private rooms of your [[VPC|networking/vpc]] are subnets too, written with exactly this slash. The cloud just keeps a few more windows for itself.',
+		'That is subnetting, the friendly version. If you like, nudge the number yourself and watch the rooms split and merge.'
 	],
 	reactions: {
-		split:
-			'See it split? One more locked bit, half the room size, twice the rooms. Older screens show the same thing as a <b>subnet mask</b>, the row of numbers under the slider. Same idea, written another way.',
-		tiny: 'A /30 room has 4 addresses, and after the name and the broadcast only 2 are left for devices. Perfect for a single cable joining two routers, and nothing else.',
-		small:
-			'Too tight. Count the devices against the room size, someone would be left without a seat. Slide the number down to make the rooms bigger.',
-		waste:
-			'It fits, but those rooms are bigger than needed. Slide the number up and you get more rooms while everyone still fits.',
-		m1: 'Spot on. /26 gives four rooms of 62 devices, one each for staff, guests, cameras, and one spare.',
-		m2: 'Nice. /28 rooms hold 14 devices each, and you get sixteen of them, enough for every small team.',
-		done: 'Back to one big room of 254, which fits the 200 devices with space to grow. You can now read any slash you see, bigger number, smaller rooms.'
+		split: 'One step up, and every room is cut in half. Twice as many rooms, each half the size.',
+		merge: 'One step down, and neighbouring rooms join into one twice as big.',
+		one: '/32 means every room is a single window. When you see /32 in a setting, it simply means one exact address.'
 	},
-	missions: [
-		'Make rooms that fit 50 devices each, with as many rooms as possible',
-		'Each small team has 12 devices. Make the rooms as small as they can be while everyone still fits',
-		'The event hall needs one room for 200 devices'
+	steps: [
+		{
+			title: 'A block is a building',
+			body: 'A block of addresses sits together like windows in one building. Here, <b>192.168.1.0</b> up to <b>192.168.1.255</b>.'
+		},
+		{
+			title: 'Rooms are subnets',
+			body: 'Walls split the building into rooms. The slash and the number after the address say how big each room is.'
+		},
+		{
+			title: 'Bigger number',
+			body: 'Each step up cuts every room in half. More rooms, each one smaller.'
+		},
+		{
+			title: 'Smaller number',
+			body: 'Each step down merges two rooms into one. Fewer rooms, each one <b>twice</b> as big.'
+		},
+		{
+			title: 'The tiny ones',
+			body: '<b>/32</b> is one address. <b>/30</b> is 4, a classic for a link between two routers.'
+		},
+		{
+			title: 'The big ones',
+			body: '<b>/16</b> is 65,536 addresses, a campus. <b>/8</b> is about 16.7 million, a city.'
+		},
+		{
+			title: 'Bigger number, smaller room',
+			tag: 'remember',
+			body: '/32 is 1, /24 is 256, and each step down doubles. Keep this table in your pocket.'
+		},
+		{
+			title: 'Two reserved windows',
+			tag: 'by the way',
+			body: 'First address names the room, last address reaches everyone in it. The rest are for devices.'
+		},
+		{
+			title: 'Subnets in the cloud',
+			tag: 'by the way',
+			body: 'A VPC is your own building in the cloud, and you split it into public and private subnets the same way.'
+		},
+		{
+			title: 'Nudge the number',
+			tag: 'your turn',
+			body: 'Optional. Use minus and plus above and watch the walls move.'
+		}
 	],
-	missionLabel: 'Plan {n} of {total}',
-	allDone: 'Every room planned',
-	checkBtn: 'Use this size',
+	buildingLabel: 'The address building 192.168.1.0',
+	oneRoom: 'One room, {size} addresses',
+	rooms: '{n} rooms, {size} addresses each',
+	roomsSingle: '{n} rooms, one address each',
+	cheat: [
+		{ size: '1', note: 'one address' },
+		{ size: '4', note: 'a link between two routers' },
+		{ size: '256', note: 'a home or an office' },
+		{ size: '65,536', note: 'a campus' },
+		{ size: '16.7 million', note: 'a city' }
+	],
+	cheatTitle: 'Cheat sheet',
+	ruleLine: 'Bigger number, smaller room',
+	campus16: '/16 is 256 buildings like ours, 65,536 addresses',
+	campus8: '/8 is 256 campuses like this, about 16.7 million',
+	nameLabel: 'name',
+	shoutLabel: 'everyone',
+	publicLabel: 'public subnet',
+	privateLabel: 'private subnet',
 	smaller: 'Smaller number, bigger rooms',
 	bigger: 'Bigger number, smaller rooms',
-	status: {
-		ok: 'Perfect fit',
-		small: '{need} devices do not fit, a room here holds only {fit}',
-		waste: 'It fits, but smaller rooms would still fit and give you more of them'
-	},
-	roomsLabel: 'Rooms',
-	sizeLabel: 'Addresses each',
-	usableLabel: 'Devices each',
-	locked: '{n} bits lock the room name',
-	free: '{n} bits free for devices',
-	maskLabel: 'Subnet mask',
-	hallLabel: 'All 256 addresses of 192.168.1.0',
-	tapHint: 'Tap any room to look inside',
-	roomTitle: 'Room {n} of {total}',
-	rangeLabel: 'Addresses',
-	range: '{a} to {b}',
-	nameLabel: 'Room name',
-	shoutLabel: 'Broadcast',
-	devicesLabel: 'For devices',
-	legendUse: 'a device seat',
-	legendRes: 'reserved'
+	thousands: ','
 };

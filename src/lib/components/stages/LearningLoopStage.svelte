@@ -1,314 +1,291 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import type { LessonText } from '$lib/chapters/types';
+	// A guided "watch" stage for gradient descent. One knob, one hill of wrongness, one ball. The
+	// hill appears, fog rolls in so only the slope under the ball can be felt, then the ball steps
+	// downhill by itself. Later beats replay the walk with tiny steps (it crawls), giant leaps (it
+	// flies off) and the sweet spot (it settles). The only optional play is the last beat, which
+	// switches between the three step sizes.
+	import { fade } from 'svelte/transition';
+	import Guide from '$lib/components/Guide.svelte';
+	import type { StageProps } from '$lib/chapters/types';
 	import type { LearningLoopText } from '$lib/chapters/ai/learning-loop/types';
-	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: {
-		text: LessonText;
-		oncomplete?: () => void;
-		onstate?: (s: string) => void;
-	} = $props();
+	let { text, oncomplete, onstate, onshow, beat = 0 }: StageProps = $props();
 	const tx = $derived(text as LearningLoopText);
 
-	// One weight, one valley. The error is a simple bowl with its lowest point at MIN.
+	// Which scene each beat shows (ten beats, eight scenes).
+	const SCENE_OF_BEAT = [0, 0, 1, 2, 3, 4, 5, 6, 6, 7];
+
+	// One knob, one valley. The wrongness is a simple bowl with its lowest point at MIN.
 	const MIN = 0.4;
-	const HALF = 2; // the hill spans MIN - HALF to MIN + HALF
-	const START = -1.3;
-	const TOP = HALF * HALF; // the highest error on the hill
-	const FAST = 12; // reaching the bottom within this many steps counts as quick
-	const MAX_ROLL = 80;
+	const HALF = 2; // the hill spans MIN minus HALF to MIN plus HALF
+	const START = MIN - 1.7;
+	const TOP = HALF * HALF;
 	const err = (w: number) => (w - MIN) * (w - MIN);
 	const slope = (w: number) => 2 * (w - MIN);
 
-	// ---- drawing (viewBox 320 x 200) ----
-	const X0 = 34;
-	const XW = 272;
-	const Y_BASE = 172;
-	const YH = 148;
+	const TINY = 0.03;
+	const GOOD = 0.3;
+	const BIG = 1.04;
+	const RATES = [TINY, GOOD, BIG];
+	const TOKENS = ['small', 'good', 'big'];
+
+	// Drawing, viewBox 320 by 210.
+	const X0 = 30;
+	const XW = 270;
+	const Y_BASE = 176;
+	const YH = 150;
 	const BALL = 9;
 	const sx = (w: number) => X0 + ((w - (MIN - HALF)) / (2 * HALF)) * XW;
 	const sy = (e: number) => Y_BASE - (e / TOP) * YH;
-	const curve = (() => {
-		const pts: string[] = [];
-		for (let k = 0; k <= 80; k++) {
-			const w = MIN - HALF + (k / 80) * 2 * HALF;
-			pts.push(`${sx(w).toFixed(1)},${sy(err(w)).toFixed(1)}`);
-		}
-		return pts;
-	})();
+	const curve: string[] = [];
+	for (let k = 0; k <= 80; k++) {
+		const w = MIN - HALF + (k / 80) * 2 * HALF;
+		curve.push(`${sx(w).toFixed(1)},${sy(err(w)).toFixed(1)}`);
+	}
 	const hillLine = `M${curve.join(' L')}`;
-	const hillFill = `${hillLine} L${sx(MIN + HALF)},${Y_BASE + 8} L${sx(MIN - HALF)},${Y_BASE + 8} Z`;
+	const hillFill = `${hillLine} L${sx(MIN + HALF)},${Y_BASE + 30} L${sx(MIN - HALF)},${Y_BASE + 30} Z`;
 
-	// ---- state ----
+	let peek = $state<number | null>(null);
+	let reduced = $state(false);
+	let played = $state(1); // the step size picked on the try it scene
+
 	let w = $state(START);
-	let rate = $state(0.05);
 	let steps = $state(0);
-	let trail = $state<number[]>([START]);
-	let rolling = $state(false);
+	let trail = $state<number[]>([]);
 	let flown = $state(false);
-	let reached = $state(0); // steps it took to reach the bottom, 0 while not there yet
-	let saidStep = false;
-	let saidSmall = false;
-	let saidZig = false;
-	let saidBig = false;
-	let completed = false;
+	let moving = $state(false);
+	let end = $state<'none' | 'bottom' | 'far' | 'flew'>('none');
 
-	const atBottom = (v: number) => Math.abs(v - MIN) < 0.05;
-	const rateTag = $derived(
-		rate < 0.1
-			? tx.rateTags[0]
-			: rate < 0.6
-				? tx.rateTags[1]
-				: rate < 1
-					? tx.rateTags[2]
-					: tx.rateTags[3]
-	);
-	const rateTone = $derived(
-		rate < 0.1 ? 'slow' : rate < 0.6 ? 'good' : rate < 1 ? 'bouncy' : 'wild'
+	const scene = $derived(peek ?? SCENE_OF_BEAT[Math.min(beat, SCENE_OF_BEAT.length - 1)]);
+	const foggy = $derived(scene >= 1 && scene <= 2);
+	const rate = $derived(
+		scene === 4 ? TINY : scene === 5 ? BIG : scene === 7 ? RATES[played] : scene >= 2 ? GOOD : 0
 	);
 
-	// ---- the hop animation from the old spot to the new one ----
-	let anim = $state<{ from: number; to: number; p: number } | null>(null);
-	let raf = 0;
-	const reduced = () =>
-		typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-	function hop(from: number, to: number) {
-		if (typeof requestAnimationFrame === 'undefined' || reduced()) return;
-		cancelAnimationFrame(raf);
-		const t0 = performance.now();
-		const run = (t: number) => {
-			const p = Math.min(1, (t - t0) / 320);
-			anim = { from, to, p };
-			if (p < 1) raf = requestAnimationFrame(run);
-			else anim = null;
-		};
-		raf = requestAnimationFrame(run);
-	}
-
-	// where the ball is drawn right now (mid hop or resting)
-	const ball = $derived.by(() => {
-		const r = (v: number) => {
-			const c = Math.max(MIN - HALF, Math.min(MIN + HALF, v));
-			return { x: sx(c), y: sy(err(c)) - BALL };
-		};
-		if (!anim) return r(w);
-		const a = r(anim.from);
-		const b = r(anim.to);
-		// off the hill, the ball sails up and away past the edge
-		const bx = flown && anim.to === w ? sx(w) : b.x;
-		const by = flown && anim.to === w ? -20 : b.y;
-		const lift = 14 + Math.abs(bx - a.x) * 0.18;
-		return {
-			x: a.x + (bx - a.x) * anim.p,
-			y: a.y + (by - a.y) * anim.p - Math.sin(Math.PI * anim.p) * lift
-		};
-	});
-	const hidden = $derived(flown && !anim);
-
-	// the little arrow pointing downhill from where the ball rests
-	const arrow = $derived.by(() => {
-		if (flown || atBottom(w) || anim) return null;
-		const x = sx(w);
-		const y = sy(err(w));
-		// slope on screen, then a unit vector pointing toward the valley
-		const dir = w > MIN ? -1 : 1;
-		const sdy = (-slope(w) * (YH / TOP)) / (XW / (2 * HALF));
-		const len = Math.hypot(1, sdy);
-		const ux = (dir * 1) / len;
-		const uy = (dir * sdy) / len;
-		const L = 34;
-		return { x1: x + ux * 12, y1: y + uy * 12 - 4, x2: x + ux * L, y2: y + uy * L - 4 };
-	});
-
-	function finish() {
-		if (completed) return;
-		completed = true;
+	$effect(() => {
+		onshow?.(true);
 		oncomplete?.();
+		if (typeof matchMedia !== 'undefined') {
+			reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+		}
+	});
+
+	// A new beat always brings the picture back to the story.
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
+
+	const MAX_STEPS = 12;
+	type Next = { w: number; flew: boolean; done: 'none' | 'bottom' | 'far' | 'flew' };
+	function stepFrom(cur: number, r: number, n: number): Next {
+		const nw = cur - r * slope(cur);
+		if (Math.abs(nw - MIN) > HALF) return { w: nw, flew: true, done: 'flew' };
+		if (Math.abs(nw - MIN) < 0.03) return { w: nw, flew: false, done: 'bottom' };
+		if (n >= MAX_STEPS) return { w: nw, flew: false, done: 'far' };
+		return { w: nw, flew: false, done: 'none' };
 	}
 
-	/** One gradient descent step, returns false when the ball should stop. */
-	function stepOnce(): boolean {
-		if (flown || reached) return false;
-		const before = w;
-		const next = before - rate * slope(before);
-		steps++;
-		w = next;
-		trail = [...trail, next];
-		if (Math.abs(next - MIN) > HALF) {
-			flown = true;
-			hop(before, next);
-			onstate?.('flew');
-			return false;
-		}
-		hop(before, next);
-		if (atBottom(next)) {
-			reached = steps;
-			onstate?.(steps <= FAST ? 'bottom' : 'slow');
-			finish();
-			return false;
-		}
-		const crossed = before - MIN < 0 !== next - MIN < 0;
-		if (err(next) >= err(before) - 1e-9) {
-			if (!saidBig) {
-				saidBig = true;
-				onstate?.('big');
-			}
-		} else if (crossed && !saidZig) {
-			saidZig = true;
-			onstate?.('zigzag');
-		} else if (rate < 0.1 && steps >= 6 && !saidSmall) {
-			saidSmall = true;
-			onstate?.('small');
-		} else if (!saidStep) {
-			saidStep = true;
-			onstate?.('step');
-		}
-		return true;
-	}
-
-	let timer: ReturnType<typeof setInterval> | undefined;
-	function stopRoll() {
-		clearInterval(timer);
-		timer = undefined;
-		rolling = false;
-	}
-	function roll() {
-		if (rolling || flown || reached) return;
-		rolling = true;
-		let n = 0;
-		timer = setInterval(
-			() => {
-				n++;
-				if (!stepOnce() || n >= MAX_ROLL) stopRoll();
-			},
-			reduced() ? 160 : 380
-		);
-	}
-	function reset() {
-		stopRoll();
-		if (typeof cancelAnimationFrame !== 'undefined') cancelAnimationFrame(raf);
-		anim = null;
+	function resetBall() {
 		w = START;
 		steps = 0;
-		trail = [START];
+		trail = [];
 		flown = false;
-		reached = 0;
-	}
-	// changing the step size starts a fresh walk if the old one is finished
-	function setRate(v: number) {
-		rate = v;
-		if (flown || reached) reset();
+		moving = false;
+		end = 'none';
 	}
 
-	onDestroy(() => {
-		clearInterval(timer);
-		if (typeof cancelAnimationFrame !== 'undefined') cancelAnimationFrame(raf);
-	});
-
-	const errPct = $derived(
-		Math.min(100, (err(Math.max(MIN - HALF, Math.min(MIN + HALF, w))) / TOP) * 100)
-	);
-	// the path of hops so far, each one an arc over the hill
-	const hops = $derived.by(() => {
-		const out: string[] = [];
-		const pts = trail.map((v) => Math.max(MIN - HALF, Math.min(MIN + HALF, v)));
-		for (let k = 1; k < pts.length; k++) {
-			const ax = sx(pts[k - 1]);
-			const ay = sy(err(pts[k - 1]));
-			const bx = sx(pts[k]);
-			const by = sy(err(pts[k]));
-			const lift = 14 + Math.abs(bx - ax) * 0.18;
-			out.push(`M${ax},${ay} Q${(ax + bx) / 2},${Math.min(ay, by) - lift * 2} ${bx},${by}`);
+	// The walk. On the stepping scenes the ball takes one step at a time, rests at the end, and
+	// starts over from the same spot, so the picture keeps telling the same little story.
+	$effect(() => {
+		const r = rate;
+		const still = reduced;
+		resetBall();
+		if (r === 0) return;
+		if (still) {
+			// A still frame, the walk already finished.
+			let cur = START;
+			const path: number[] = [];
+			for (let n = 1; n <= MAX_STEPS + 2; n++) {
+				const nx = stepFrom(cur, r, n);
+				path.push(cur);
+				cur = nx.w;
+				if (nx.done !== 'none') {
+					steps = n;
+					flown = nx.flew;
+					end = nx.done;
+					break;
+				}
+			}
+			trail = path;
+			w = cur;
+			return;
 		}
-		return out;
+		let t: ReturnType<typeof setTimeout>;
+		const gap = r === TINY ? 650 : 950;
+		const step = () => {
+			const nx = stepFrom(w, r, steps + 1);
+			trail = [...trail, w];
+			w = nx.w;
+			steps += 1;
+			flown = nx.flew;
+			moving = true;
+			t = setTimeout(() => {
+				moving = false;
+				if (nx.done !== 'none') {
+					end = nx.done;
+					t = setTimeout(() => {
+						resetBall();
+						t = setTimeout(step, 900);
+					}, 2600);
+				} else {
+					t = setTimeout(step, gap - 550);
+				}
+			}, 550);
+		};
+		t = setTimeout(step, 1100);
+		return () => clearTimeout(t);
 	});
-	const status = $derived(
-		flown
-			? tx.flew
-			: reached
-				? tx.bottom.replace('{n}', String(reached))
-				: steps === 0
-					? tx.slopeHint
-					: tx.steps.replace('{n}', String(steps))
+
+	const ballX = $derived(flown ? sx(MIN + Math.sign(w - MIN) * HALF * 1.12) : sx(w));
+	const ballY = $derived(flown ? -40 : sy(err(w)) - BALL);
+	const errShare = $derived(flown ? 1 : Math.min(1, err(w) / TOP));
+
+	// The little arrow that shows which way is downhill, drawn along the ground under the ball.
+	const arrow = $derived.by(() => {
+		const s = -Math.sign(slope(w));
+		const px = sx(w);
+		const py = sy(err(w));
+		const vx = s * (XW / (2 * HALF));
+		const vy = s * (-(YH / TOP) * slope(w));
+		const len = Math.hypot(vx, vy) || 1;
+		const ux = vx / len;
+		const uy = vy / len;
+		const L = 30;
+		const tipX = px + ux * L;
+		const tipY = py + uy * L;
+		// arrowhead, two short wings
+		const wing = (a: number) => {
+			const c = Math.cos(a);
+			const sn = Math.sin(a);
+			const bx = -(ux * c - uy * sn) * 8;
+			const by = -(ux * sn + uy * c) * 8;
+			return `${(tipX + bx).toFixed(1)},${(tipY + by).toFixed(1)}`;
+		};
+		return {
+			x1: px,
+			y1: py,
+			x2: tipX,
+			y2: tipY,
+			head: `${wing(0.5)} ${tipX.toFixed(1)},${tipY.toFixed(1)} ${wing(-0.5)}`
+		};
+	});
+	const showArrow = $derived(
+		scene >= 1 && !flown && !moving && end !== 'bottom' && Math.abs(w - MIN) > 0.05
 	);
+
+	const status = $derived.by(() => {
+		if (rate === 0) return '';
+		if (end === 'flew') return tx.flew;
+		if (end === 'bottom') return tx.bottom.replace('{n}', String(steps));
+		if (end === 'far') return tx.far.replace('{n}', String(steps));
+		return steps > 0 ? tx.stepN.replace('{n}', String(steps)) : '';
+	});
+
+	function another() {
+		played = (played + 1) % RATES.length;
+		onstate?.(TOKENS[played]);
+	}
 </script>
 
 <div class="stage">
-	<div class="controls">
-		<div class="acts">
-			<CallToActionButton onclick={roll} disabled={rolling || flown || reached > 0}>
-				{rolling ? tx.rolling.replace('{n}', String(steps)) : tx.rollBtn}
-			</CallToActionButton>
-			<button
-				type="button"
-				class="ghost"
-				onclick={stepOnce}
-				disabled={rolling || flown || reached > 0}>{tx.stepBtn}</button
-			>
-			<button type="button" class="reset" onclick={reset}>{tx.reset}</button>
-		</div>
+	<Guide steps={tx.panels} active={scene} onselect={(i) => (peek = i)}>
+		{#snippet visual(s: number)}
+			<div class="visual">
+				{#if s === 7}
+					<div class="try" in:fade={{ duration: 250 }}>
+						<button type="button" onclick={another}>{tx.another}</button>
+						<span>{tx.sizeLabel.replace('{x}', tx.sizes[played])}</span>
+					</div>
+				{/if}
 
-		<label class="rate">
-			<span class="rhead">
-				<span class="rlabel">{tx.rateLabel}</span>
-				<span class="rtag {rateTone}">{rate.toFixed(2)} ({rateTag})</span>
-			</span>
-			<input
-				type="range"
-				min="0.02"
-				max="1.2"
-				step="0.01"
-				value={rate}
-				disabled={rolling}
-				oninput={(ev) => setRate(Number((ev.currentTarget as HTMLInputElement).value))}
-			/>
-			<span class="ends"><span>{tx.rateLow}</span><span>{tx.rateHigh}</span></span>
-		</label>
-	</div>
+				<svg viewBox="0 0 320 210" class="hill" role="img" aria-label={tx.panels[s].title}>
+					<defs>
+						<radialGradient id="ll-hole">
+							<stop offset="0.45" stop-color="black" />
+							<stop offset="1" stop-color="white" />
+						</radialGradient>
+						<mask id="ll-fog-mask">
+							<rect x="0" y="0" width="320" height="210" fill="white" />
+							<g class="glide" style="transform: translate({ballX}px, {ballY + BALL}px)">
+								<circle r="58" fill="url(#ll-hole)" />
+							</g>
+						</mask>
+					</defs>
 
-	<svg class="hill" viewBox="0 0 320 200" role="img" aria-label={`${tx.title}, ${status}`}>
-		<path class="ground" d={hillFill} />
-		<path class="line" d={hillLine} />
+					<path d={hillFill} class="ground" />
+					<path d={hillLine} class="edge" />
 
-		<!-- the bottom of the valley -->
-		<line class="flagpole" x1={sx(MIN)} y1={Y_BASE} x2={sx(MIN)} y2={Y_BASE - 22} />
-		<path class="flag" d="M{sx(MIN)},{Y_BASE - 22} l12,4 l-12,4 Z" />
-		<text class="flagtext" x={sx(MIN)} y={Y_BASE + 20}>{tx.lowest}</text>
+					<!-- the flag at the least wrong spot -->
+					<g transform="translate({sx(MIN)}, {Y_BASE})">
+						<line x1="0" y1="0" x2="0" y2="-26" class="pole" />
+						<path d="M0,-26 L14,-21 L0,-16 Z" class="flag" />
+					</g>
+					<text x={sx(MIN)} y="198" class="lowest" text-anchor="middle">{tx.lowest}</text>
 
-		<!-- every hop so far -->
-		{#each hops as d, k (k)}
-			<path class="hop" {d} opacity={0.15 + 0.5 * ((k + 1) / hops.length)} />
-		{/each}
-		{#each trail.slice(0, -1) as v, k (k)}
-			{#if Math.abs(v - MIN) <= HALF}
-				<circle class="mark" cx={sx(v)} cy={sy(err(v))} r="2.6" />
-			{/if}
-		{/each}
+					<text x="300" y="206" class="axis" text-anchor="end">{tx.axisKnob}</text>
+					<text x="14" y="20" class="axis" transform="rotate(-90 14 20)" text-anchor="end"
+						>{tx.axisError}</text
+					>
 
-		{#if arrow}
-			<line class="slope" x1={arrow.x1} y1={arrow.y1} x2={arrow.x2} y2={arrow.y2} />
-			<circle class="slopehead" cx={arrow.x2} cy={arrow.y2} r="3.2" />
-		{/if}
+					{#each trail as t, k (k)}
+						<circle cx={sx(t)} cy={sy(err(t)) - BALL} r="3" class="crumb" />
+					{/each}
 
-		{#if !hidden}
-			<circle class="ball" class:home={reached > 0} cx={ball.x} cy={ball.y} r={BALL} />
-			<circle class="shine" cx={ball.x - 3} cy={ball.y - 3} r="2.4" />
-		{/if}
+					{#if showArrow}
+						<g class="arrow" in:fade={{ duration: 300 }}>
+							<line x1={arrow.x1} y1={arrow.y1} x2={arrow.x2} y2={arrow.y2} />
+							<polyline points={arrow.head} />
+						</g>
+					{/if}
 
-		<text class="axis" x={X0 + XW / 2} y="197">{tx.axisWeight}</text>
-		<text class="axis" transform="translate(14 {Y_BASE - YH / 2}) rotate(-90)">{tx.axisError}</text>
-	</svg>
+					<g class="glide" style="transform: translate({ballX}px, {ballY}px)">
+						<circle r={BALL} class="ball" />
+						<circle r="3" cx="-3" cy="-3" class="shine" />
+					</g>
 
-	<div class="meter">
-		<span class="mlabel">{tx.errorLabel}</span>
-		<span class="track"><span class="fill" style="width:{flown ? 100 : errPct}%"></span></span>
-		<span class="status" class:good={reached > 0} class:bad={flown}>{status}</span>
-	</div>
+					<rect
+						x="0"
+						y="0"
+						width="320"
+						height="210"
+						class="fog"
+						class:on={foggy}
+						mask="url(#ll-fog-mask)"
+					/>
+				</svg>
+
+				<div class="meter">
+					<span class="meter-label">{tx.errorLabel}</span>
+					<div class="track">
+						<div
+							class="fill"
+							class:low={errShare < 0.05}
+							class:high={errShare > 0.8}
+							style="width: {Math.max(2, errShare * 100)}%"
+						></div>
+					</div>
+				</div>
+				<p class="status" class:good={end === 'bottom'} class:bad={end === 'flew'}>
+					{status}
+				</p>
+
+				{#if s === 3}
+					<p class="rule" in:fade={{ duration: 300 }}>{tx.rule}</p>
+				{/if}
+			</div>
+		{/snippet}
+	</Guide>
 </div>
 
 <style>
@@ -316,185 +293,147 @@
 		display: flex;
 		height: 100%;
 		width: 100%;
-		flex-direction: column;
-		align-items: center;
 		justify-content: center;
-		gap: 12px;
+		align-items: flex-start;
 		overflow-y: auto;
+		overflow-x: hidden;
+		padding-bottom: 16px;
 	}
-	.controls {
+	.visual {
 		display: flex;
 		width: 100%;
-		max-width: 360px;
+		max-width: 440px;
 		flex-direction: column;
-		align-items: center;
-		gap: 12px;
-	}
-	.acts {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
+		align-items: stretch;
 		gap: 8px;
 	}
-	.acts :global(.cta) {
-		padding: 10px 18px;
-		font-size: 13px;
-	}
-	.ghost {
-		border-radius: 12px;
-		border: 1.5px solid var(--color-line);
-		background: var(--color-card);
-		padding: 8px 14px;
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--color-ink);
-	}
-	.ghost:disabled {
-		opacity: 0.45;
-	}
-	.reset {
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--color-muted);
-		padding: 6px 8px;
-	}
-	.reset:hover {
-		color: var(--color-ink);
-	}
-
-	.rate {
+	.try {
 		display: flex;
-		width: 100%;
 		flex-direction: column;
+		align-items: center;
 		gap: 4px;
 	}
-	.rhead {
-		display: flex;
-		justify-content: space-between;
-		gap: 8px;
-		font-size: 12px;
-	}
-	.rlabel {
-		font-weight: 600;
-		color: var(--color-ink);
-	}
-	.rtag {
+	.try button {
+		border: 1.5px solid var(--color-brand);
+		border-radius: 999px;
+		background: var(--color-brand-soft);
+		padding: 7px 16px;
+		font-size: 13px;
 		font-weight: 700;
-		font-variant-numeric: tabular-nums;
-		transition: color 0.2s ease;
+		color: var(--color-brand);
+		transition: transform 0.15s;
 	}
-	.rtag.slow {
+	.try button:hover {
+		transform: translateY(-1px);
+	}
+	.try span {
+		font-size: 12.5px;
+		font-weight: 600;
 		color: var(--color-muted);
-	}
-	.rtag.good {
-		color: var(--color-grass);
-	}
-	.rtag.bouncy {
-		color: var(--color-amber);
-	}
-	.rtag.wild {
-		color: var(--color-danger);
-	}
-	.rate input {
-		width: 100%;
-		accent-color: var(--color-brand);
-	}
-	.ends {
-		display: flex;
-		justify-content: space-between;
-		font-size: 10.5px;
-		color: var(--color-faint);
 	}
 
 	.hill {
 		width: 100%;
-		max-width: 380px;
 		height: auto;
-		overflow: visible;
-		user-select: none;
+		overflow: hidden;
+		border: 1px solid var(--color-line);
+		border-radius: 18px;
+		background: var(--color-card);
 	}
 	.ground {
-		fill: var(--color-brand-soft);
+		fill: var(--color-grass-soft);
 	}
-	.line {
+	.edge {
 		fill: none;
-		stroke: var(--color-brand);
+		stroke: var(--color-grass);
 		stroke-width: 2.5;
 		stroke-linejoin: round;
 	}
-	.flagpole {
-		stroke: var(--color-grass);
+	.pole {
+		stroke: var(--color-muted);
 		stroke-width: 1.5;
 	}
 	.flag {
 		fill: var(--color-grass);
 	}
-	.flagtext,
+	.lowest {
+		font-size: 10px;
+		font-weight: 700;
+		fill: var(--color-grass);
+	}
 	.axis {
 		font-size: 9.5px;
 		font-weight: 600;
 		fill: var(--color-faint);
-		text-anchor: middle;
 	}
-	.hop {
+	.crumb {
+		fill: var(--color-faint);
+		opacity: 0.45;
+	}
+	.arrow line,
+	.arrow polyline {
 		fill: none;
-		stroke: var(--color-muted);
-		stroke-width: 1.2;
-	}
-	.mark {
-		fill: var(--color-muted);
-		opacity: 0.6;
-	}
-	.slope {
 		stroke: var(--color-amber);
 		stroke-width: 3;
 		stroke-linecap: round;
+		stroke-linejoin: round;
 	}
-	.slopehead {
-		fill: var(--color-amber);
+	.glide {
+		transition: transform 0.55s cubic-bezier(0.4, 0, 0.3, 1);
 	}
 	.ball {
-		fill: var(--color-ink);
-		transition: fill 0.3s ease;
-	}
-	.ball.home {
-		fill: var(--color-grass);
+		fill: var(--color-brand);
 	}
 	.shine {
-		fill: #fff;
+		fill: white;
 		opacity: 0.55;
+	}
+	.fog {
+		fill: var(--color-paper);
+		opacity: 0;
+		transition: opacity 0.8s;
 		pointer-events: none;
+	}
+	.fog.on {
+		opacity: 0.9;
 	}
 
 	.meter {
-		display: grid;
-		width: 100%;
-		max-width: 360px;
-		grid-template-columns: auto 1fr;
+		display: flex;
 		align-items: center;
-		gap: 4px 10px;
+		gap: 10px;
+		padding: 0 4px;
 	}
-	.mlabel {
+	.meter-label {
+		flex: none;
 		font-size: 12px;
-		font-weight: 600;
+		font-weight: 700;
 		color: var(--color-muted);
 	}
 	.track {
-		height: 10px;
+		flex: 1;
+		height: 8px;
 		overflow: hidden;
-		border-radius: 99px;
+		border-radius: 999px;
 		background: var(--color-line);
 	}
 	.fill {
-		display: block;
 		height: 100%;
-		border-radius: 99px;
+		border-radius: 999px;
+		background: var(--color-amber);
+		transition:
+			width 0.55s,
+			background 0.3s;
+	}
+	.fill.low {
+		background: var(--color-grass);
+	}
+	.fill.high {
 		background: var(--color-danger);
-		transition: width 0.3s ease;
 	}
 	.status {
-		grid-column: 1 / -1;
+		margin: 0;
+		min-height: 1.4em;
 		text-align: center;
 		font-size: 12.5px;
 		font-weight: 600;
@@ -506,11 +445,23 @@
 	.status.bad {
 		color: var(--color-danger);
 	}
+	.rule {
+		margin: 0;
+		text-align: center;
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--color-grass);
+	}
 
+	@media (max-width: 767px) {
+		.stage {
+			padding-bottom: 7rem;
+		}
+	}
 	@media (prefers-reduced-motion: reduce) {
-		.fill,
-		.ball,
-		.rtag {
+		.glide,
+		.fog,
+		.fill {
 			transition: none;
 		}
 	}

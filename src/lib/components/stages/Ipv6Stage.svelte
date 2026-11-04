@@ -1,420 +1,567 @@
 <script lang="ts">
-	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
+	// Guided IPv4 and IPv6 lesson. An IPv4 address, then the pool of every IPv4 address filling
+	// up by itself through the years until it runs dry, then the long IPv6 address and the IPv6
+	// space where the whole IPv4 pool shrinks into one dot. The last beat offers one optional
+	// button that hands an address to every grain of sand.
+	import { onMount } from 'svelte';
+	import { fade } from 'svelte/transition';
+	import Guide from '$lib/components/Guide.svelte';
 	import Device from '$lib/components/stages/addressing/Device.svelte';
 	import type { LessonText } from '$lib/chapters/types';
 	import type { Ipv6Text } from '$lib/chapters/network/ipv6/types';
 
 	let {
 		text,
+		beat = 0,
 		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+		onstate,
+		onshow
+	}: {
+		text: LessonText;
+		beat?: number;
+		oncomplete?: () => void;
+		onstate?: (s: string) => void;
+		onshow?: (v: boolean) => void;
+	} = $props();
 	const tx = $derived(text as Ipv6Text);
+	const LAST = $derived(tx.intro.length - 1);
 
-	// Rough number of devices that want to be online, in billions. Illustrative, not a census.
-	const ERAS = [
-		{ year: 1995, b: 0.05 },
-		{ year: 2000, b: 0.4 },
-		{ year: 2005, b: 1.2 },
-		{ year: 2010, b: 3.6 },
-		{ year: 2015, b: 10 },
-		{ year: 2020, b: 20 },
-		{ year: 2025, b: 30 }
+	const V4 = ['192', '168', '1', '20'];
+	const V6 = ['2001', '0db8', '85a3', '0000', '0000', '8a2e', '0370', '7334'];
+	const V4_SHORT = '192.168.1.20';
+	const V6_SHORT = '2001:db8:85a3::7334';
+	// How full the pool was, roughly, as the years went by (out of 100 squares).
+	const YEARS: [number, number][] = [
+		[1981, 1],
+		[1990, 3],
+		[1995, 8],
+		[2000, 24],
+		[2005, 47],
+		[2008, 72],
+		[2010, 92],
+		[2011, 100]
 	];
-	const V4_BILLION = 4.295; // 2 to the power of 32, in billions
-	const SEATS = 64;
-	const V4_TOTAL = '4294967296';
-	const V6_TOTAL = '340282366920938463463374607431768211456';
+	const CELLS = Array.from({ length: 100 }, (_, k) => k);
+	// A little heap of sand, placed by a fixed recipe so the server and browser agree.
+	const GRAINS = Array.from({ length: 34 }, (_, k) => ({
+		x: 262 + Math.cos(k * 2.4) * (2 + (k % 6) * 1.3),
+		y: 92 + Math.sin(k * 2.4) * (2 + (k % 6) * 1.3)
+	}));
 
-	let era = $state(-1);
-	let v6 = $state(false);
+	let still = $state(false);
+	let t = $state(0);
+	let peek = $state<number | null>(null);
 	let sand = $state(false);
-	let completed = false;
 
-	const now = $derived(era >= 0 ? ERAS[era] : null);
-	const filled = $derived(
-		now ? Math.min(SEATS, Math.max(1, Math.round((now.b / V4_BILLION) * SEATS))) : 0
+	onMount(() => {
+		still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+		onshow?.(true);
+		oncomplete?.();
+	});
+
+	$effect(() => {
+		void beat;
+		peek = null;
+		t = 0;
+		if (still) return;
+		const id = setInterval(() => (t += 1), 1300);
+		return () => clearInterval(id);
+	});
+
+	const yearStep = $derived(
+		still ? YEARS.length - 1 : Math.min(t % (YEARS.length + 3), YEARS.length - 1)
 	);
-	const left = $derived(now ? Math.max(0, now.b - V4_BILLION) : 0);
-	const isFull = $derived(left > 0);
 
-	function grow() {
-		if (era >= ERAS.length - 1 || v6) return;
-		era += 1;
-		const e = ERAS[era];
-		if (era === 0) onstate?.('grow');
-		else if (e.b > V4_BILLION && ERAS[era - 1].b <= V4_BILLION) onstate?.('full');
-		else if (e.b / V4_BILLION > 0.75 && e.b <= V4_BILLION) onstate?.('tight');
+	function filled(i: number) {
+		if (i === 1) return 1;
+		if (i === 2) return YEARS[yearStep][1];
+		return 100;
 	}
-	function toV6() {
-		if (v6) return;
-		v6 = true;
-		onstate?.('ipv6');
-		if (!completed) {
-			completed = true;
-			oncomplete?.();
-		}
-	}
-	function addSand() {
+
+	function giveSand() {
+		if (sand) return;
 		sand = true;
 		onstate?.('sand');
 	}
-
-	const fmtB = (n: number) =>
-		tx.billion.replace(
-			'{n}',
-			(n < 1 ? n.toFixed(2) : n % 1 ? n.toFixed(1) : String(n)).replace('.', tx.decimal)
-		);
-	const group = (s: string) => s.replace(/\B(?=(\d{3})+(?!\d))/g, tx.thousands);
-
-	const note = $derived.by(() => {
-		if (sand) return tx.notes.sand;
-		if (v6) return tx.notes.v6;
-		if (!now) return tx.notes.idle;
-		if (isFull) return tx.notes.full;
-		if (filled > SEATS * 0.75) return tx.notes.tight;
-		return tx.notes.growing;
-	});
-	const outsideIcons = $derived(Math.min(8, Math.ceil(left / 2.5)));
-	const kinds = ['phone', 'watch', 'tv', 'laptop'] as const;
 </script>
 
 <div class="wrap">
-	<div class="btns">
-		{#if !v6 && era < ERAS.length - 1}
-			<CallToActionButton onclick={grow}>
-				{tx.growBtn.replace('{year}', String(ERAS[era + 1].year))}
-			</CallToActionButton>
-		{/if}
-		{#if !v6 && isFull}
-			<CallToActionButton onclick={toV6}>
-				{tx.switchBtn}
-			</CallToActionButton>
-		{/if}
-		{#if v6}
-			<CallToActionButton onclick={addSand} disabled={sand}>
-				{tx.sandBtn}
-			</CallToActionButton>
-		{/if}
-	</div>
-
-	<div class="head">
-		<span class="year">{now ? tx.yearLabel.replace('{year}', String(now.year)) : ' '}</span>
-		{#if now}
-			<span class="want">{tx.devicesLabel.replace('{n}', fmtB(now.b))}</span>
-		{/if}
-	</div>
-
-	<div class="pool" class:six={v6}>
-		<div class="ptop">
-			<b>{v6 ? tx.poolV6 : tx.poolV4}</b>
-			<span class="bits">{tx.bits.replace('{n}', v6 ? '128' : '32')}</span>
-		</div>
-		<div class="grid">
-			{#each { length: SEATS }, i (i)}
-				<span
-					class="seat"
-					class:on={!v6 && i < filled}
-					class:last={!v6 && isFull}
-					style="transition-delay:{v6 ? 0 : Math.max(0, i - (filled - 12)) * 18}ms"
-				>
-					{#if v6 && i === 0}
-						<span class="dot"></span>
-						{#if sand}<span class="dot sand"></span>{/if}
-					{/if}
-				</span>
-			{/each}
-			{#if v6}
-				<span class="callout">
-					{tx.dotLabel}{#if sand}<br /><em>{tx.sandLabel}</em>{/if}
-				</span>
-			{/if}
-		</div>
-		<span class="hint">{v6 ? tx.scale : tx.seatHint}</span>
-	</div>
-
-	{#if !v6 && isFull}
-		<div class="outside">
-			<div class="crowd">
-				{#each { length: outsideIcons }, i (i)}
-					<span class="who" style="animation-delay:{i * 60}ms">
-						<Device kind={kinds[i % kinds.length]} size={24} tone="var(--color-danger)" />
-					</span>
-				{/each}
-			</div>
-			<span class="olabel">{tx.outside.replace('{n}', fmtB(left))}</span>
+	{#if beat >= LAST}
+		<div class="play" in:fade={{ duration: 200 }}>
+			<button type="button" class="ask" disabled={sand} onclick={giveSand}>{tx.sandBtn}</button>
 		</div>
 	{/if}
 
-	<p class="note">{note}</p>
+	<Guide steps={tx.steps} active={peek ?? beat} onselect={(k) => (peek = k)}>
+		{#snippet visual(i)}
+			<div class="scene">
+				{#if i === 0}
+					{@render v4()}
+				{:else if i <= 3}
+					{@render pool(i)}
+				{:else if i === 4}
+					{@render v6()}
+				{:else if i === 6}
+					{@render rule()}
+				{:else if i === 7}
+					{@render versions()}
+				{:else}
+					{@render field(i)}
+				{/if}
+			</div>
+		{/snippet}
+	</Guide>
+</div>
 
-	<div class="facts">
-		<div class="fact">
-			<span class="flabel">{tx.sampleLabel}</span>
-			<code>{v6 ? '2001:0db8:4f2a:91c0:0000:0000:0000:0007' : '203.0.113.7'}</code>
-		</div>
-		<div class="fact">
-			<span class="flabel">{tx.totalLabel}</span>
-			<code class="total">{group(v6 ? V6_TOTAL : V4_TOTAL)}</code>
+{#snippet v4()}
+	<div class="addr" in:fade={{ duration: 300 }}>
+		<p class="cap">{tx.v4Label}</p>
+		<div class="chips">
+			{#each V4 as n, k (k)}
+				{#if k > 0}<span class="sep dot">.</span>{/if}
+				<span class="part">
+					<span class="chip">{n}</span>
+					<span class="hint">{tx.partHint}</span>
+				</span>
+			{/each}
 		</div>
 	</div>
-</div>
+{/snippet}
+
+{#snippet pool(i: number)}
+	{@const n = filled(i)}
+	<svg viewBox="0 0 280 300" class="svg" role="img" aria-label={tx.poolLabel}>
+		<text x="140" y="16" class="head">{tx.poolLabel}</text>
+		<text x="140" y="32" class="sub">{tx.poolCount}</text>
+		{#each CELLS as k (k)}
+			<rect
+				x={20 + (k % 10) * 24}
+				y={46 + Math.floor(k / 10) * 24}
+				width="20"
+				height="20"
+				rx="4"
+				class="cell"
+				class:on={k < n}
+				class:full={n >= 100}
+			/>
+		{/each}
+		{#if i === 2}
+			<text x="140" y="294" class="year"
+				>{tx.yearLabel.replace('{year}', String(YEARS[yearStep][0]))}</text
+			>
+		{/if}
+	</svg>
+	{#if i === 3}
+		<div class="outside" in:fade={{ duration: 400 }}>
+			{#each ['phone', 'watch', 'tv', 'laptop'] as const as k (k)}
+				<span class="waiting"><Device kind={k} size={34} tone="var(--color-amber)" /></span>
+			{/each}
+			<span class="tag-amber">{tx.outsideLabel}</span>
+		</div>
+	{/if}
+{/snippet}
+
+{#snippet v6()}
+	<div class="addr" in:fade={{ duration: 300 }}>
+		<p class="cap">{tx.v6Label}</p>
+		<div class="chips six">
+			{#each V6 as g, k (k)}
+				{#if k > 0 && k !== 4}<span class="sep colon">:</span>{/if}
+				{#if k === 4}<span class="break"></span>{/if}
+				<span class="chip hex" style="animation-delay:{k * 0.12}s" class:pop={!still}>{g}</span>
+			{/each}
+		</div>
+	</div>
+{/snippet}
+
+{#snippet rule()}
+	<div class="rule" in:fade={{ duration: 300 }}>
+		<div class="rule-row">
+			<span class="badge">{tx.v4Label}</span>
+			<code class="mono"
+				>{#each V4_SHORT.split('') as c, k (k)}<span class:dot={c === '.'}>{c}</span>{/each}</code
+			>
+			<span class="hint">{tx.ruleV4}</span>
+		</div>
+		<div class="rule-row">
+			<span class="badge six">{tx.v6Label}</span>
+			<code class="mono"
+				>{#each V6_SHORT.split('') as c, k (k)}<span
+						class:colon={c === ':'}
+						class:letter={/[a-f]/.test(c)}>{c}</span
+					>{/each}</code
+			>
+			<span class="hint">{tx.ruleV6}</span>
+		</div>
+	</div>
+{/snippet}
+
+{#snippet versions()}
+	<div class="versions" in:fade={{ duration: 300 }}>
+		{#each [4, 5, 6] as v (v)}
+			<div class="ver" class:gone={v === 5}>
+				<span class="ver-n">{v}</span>
+				{#if v === 5}<span class="hint">{tx.skipped}</span>{/if}
+			</div>
+		{/each}
+	</div>
+{/snippet}
+
+{#snippet field(i: number)}
+	<svg viewBox="0 0 300 280" class="svg" role="img" aria-label={tx.fieldLabel}>
+		<text x="150" y="16" class="head">{tx.fieldLabel}</text>
+		<text x="150" y="32" class="sub">{tx.fieldCount}</text>
+		<rect x="10" y="44" width="280" height="226" rx="18" class="space" />
+		{#key i}
+			{#if !still && i === 5}
+				<g class="shrink" style="transform-origin:60px 150px">
+					{#each CELLS as k (k)}
+						<rect
+							x={10 + (k % 10) * 10}
+							y={100 + Math.floor(k / 10) * 10}
+							width="8"
+							height="8"
+							rx="2"
+							class="cell on full"
+						/>
+					{/each}
+				</g>
+			{/if}
+		{/key}
+		<circle cx="60" cy="150" r="2.6" class="speck" />
+		<path d="M64 154 L104 196" class="pointer" />
+		<text x="108" y="206" class="label">{tx.dotLabel}</text>
+		{#if sand && i === LAST}
+			<g in:fade={{ duration: 500 }}>
+				{#each GRAINS as g, k (k)}
+					<circle cx={g.x} cy={g.y} r="0.9" class="grain" />
+				{/each}
+				<path d="M256 100 L222 132" class="pointer" />
+				<text x="218" y="144" class="label end">{tx.sandLabel}</text>
+			</g>
+		{/if}
+	</svg>
+	{#if i === LAST}
+		<div class="both" in:fade={{ duration: 300 }}>
+			<Device kind="phone" size={30} />
+			<div>
+				<p class="both-t">{tx.bothLabel}</p>
+				<p class="mono small">{V4_SHORT}</p>
+				<p class="mono small">{V6_SHORT}</p>
+			</div>
+		</div>
+	{/if}
+{/snippet}
 
 <style>
 	.wrap {
 		display: flex;
 		width: 100%;
-		max-height: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 10px;
-		overflow-x: hidden;
-		overflow-y: auto;
-		padding-bottom: 12px;
+		gap: 14px;
+		padding: 8px 16px 112px;
 	}
-	.btns {
+	@media (min-width: 768px) {
+		.wrap {
+			padding-bottom: 24px;
+		}
+	}
+	.play {
 		display: flex;
-		min-height: 46px;
-		flex-wrap: wrap;
 		justify-content: center;
-		gap: 8px;
 	}
-	.btns :global(.cta) {
-		padding: 10px 18px;
-		font-size: 13px;
-	}
-	.head {
-		display: flex;
-		min-height: 1.3em;
-		align-items: baseline;
-		gap: 10px;
-	}
-	.year {
-		font-family: var(--font-display, serif);
-		font-size: 18px;
+	.ask {
+		border: 1px solid var(--color-line);
+		border-radius: 999px;
+		background: var(--color-card);
+		padding: 9px 18px;
+		font-size: 13.5px;
 		font-weight: 600;
 		color: var(--color-ink);
+		box-shadow: 0 6px 16px rgba(22, 40, 60, 0.06);
 	}
-	.want {
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-muted);
+	.ask:disabled {
+		opacity: 0.55;
 	}
-
-	.pool {
+	.scene {
 		display: flex;
-		width: min(94vw, 300px);
+		width: 100%;
+		max-width: 420px;
 		flex-direction: column;
 		align-items: center;
-		gap: 8px;
-		border-radius: 18px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 12px 14px;
-		transition: border-color 0.4s;
+		gap: 12px;
 	}
-	.pool.six {
-		border-color: var(--color-grass);
-	}
-	.ptop {
-		display: flex;
+	.svg {
 		width: 100%;
-		align-items: center;
-		justify-content: space-between;
+		height: auto;
 	}
-	.ptop b {
-		font-size: 10px;
-		font-weight: 800;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		color: var(--color-faint);
+	.head {
+		text-anchor: middle;
+		font-size: 12px;
+		font-weight: 700;
+		fill: var(--color-ink);
 	}
-	.bits {
-		border-radius: 999px;
-		background: var(--color-brand-soft);
-		color: var(--color-brand);
-		padding: 2px 8px;
-		font-size: 10px;
-		font-weight: 800;
+	.sub,
+	.year {
+		text-anchor: middle;
+		font-size: 10.5px;
+		fill: var(--color-muted);
 	}
-	.six .bits {
-		background: var(--color-grass-soft);
-		color: var(--color-grass);
+	.year {
+		font-size: 12px;
+		font-weight: 700;
+		fill: var(--color-brand);
 	}
-	.grid {
-		position: relative;
-		display: grid;
-		grid-template-columns: repeat(8, 1fr);
-		gap: 4px;
-		width: 100%;
+	.cell {
+		fill: var(--color-paper);
+		stroke: var(--color-line);
+		stroke-width: 1;
+		transition: fill 0.5s;
 	}
-	.seat {
-		position: relative;
-		aspect-ratio: 1;
-		border-radius: 5px;
-		background: var(--color-paper);
-		border: 1px solid var(--color-line);
-		transition:
-			background 0.3s ease,
-			border-color 0.3s ease;
+	.cell.on {
+		fill: var(--color-brand);
+		stroke: none;
+		opacity: 0.85;
 	}
-	.seat.on {
-		background: var(--color-brand);
-		border-color: var(--color-brand);
+	.cell.on.full {
+		fill: var(--color-amber);
 	}
-	.seat.on.last {
-		background: var(--color-danger);
-		border-color: var(--color-danger);
+	.space {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
 	}
-	.dot {
-		position: absolute;
-		top: 3px;
-		left: 3px;
-		width: 3px;
-		height: 3px;
-		border-radius: 50%;
-		background: var(--color-grass);
-		box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-grass) 25%, transparent);
-		animation: shrink 0.8s ease-out;
+	.speck {
+		fill: var(--color-amber);
 	}
-	.dot.sand {
-		left: 12px;
-		background: var(--color-amber);
-		box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-amber) 25%, transparent);
+	.grain {
+		fill: var(--color-amber);
+	}
+	.pointer {
+		stroke: var(--color-faint);
+		stroke-width: 1;
+		fill: none;
+	}
+	.label {
+		font-size: 11px;
+		font-weight: 600;
+		fill: var(--color-ink);
+	}
+	.label.end {
+		text-anchor: end;
+	}
+	.shrink {
+		animation: shrink 2.6s cubic-bezier(0.5, 0, 0.2, 1) 0.4s both;
 	}
 	@keyframes shrink {
 		from {
-			width: 200px;
-			height: 200px;
-			opacity: 0.2;
+			transform: scale(1);
+			opacity: 1;
 		}
-	}
-	.callout {
-		position: absolute;
-		top: 4px;
-		left: 15%;
-		border-radius: 8px;
-		background: var(--color-card);
-		border: 1px solid var(--color-line);
-		padding: 3px 8px;
-		font-size: 10px;
-		font-weight: 700;
-		line-height: 1.3;
-		color: var(--color-grass);
-		animation: fade 0.5s ease 0.5s both;
-	}
-	.callout em {
-		font-style: normal;
-		color: var(--color-amber);
-	}
-	@keyframes fade {
-		from {
+		80% {
+			opacity: 1;
+		}
+		to {
+			transform: scale(0.03);
 			opacity: 0;
 		}
 	}
-	.hint {
-		max-width: 270px;
-		text-align: center;
-		font-size: 10.5px;
-		line-height: 1.35;
-		color: var(--color-faint);
-	}
-	.six .hint {
-		color: var(--color-muted);
-		font-weight: 600;
-	}
-
-	.outside {
+	.addr {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 3px;
+		gap: 12px;
+		padding: 24px 0;
 	}
-	.crowd {
+	.cap {
+		margin: 0;
+		font-size: 12px;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		color: var(--color-faint);
+	}
+	.chips {
 		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		justify-content: center;
 		gap: 4px;
 	}
-	.who {
-		animation: walk 0.4s ease both;
-	}
-	@keyframes walk {
-		from {
-			opacity: 0;
-			transform: translateY(6px);
-		}
-	}
-	.olabel {
-		font-size: 11px;
-		font-weight: 700;
-		color: var(--color-danger);
-	}
-
-	.note {
-		min-height: 1.4em;
+	.chips.six {
 		max-width: 340px;
-		text-align: center;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-muted);
 	}
-	.facts {
-		display: flex;
-		width: min(94vw, 360px);
-		flex-direction: column;
-		gap: 6px;
+	.break {
+		flex-basis: 100%;
+		height: 4px;
 	}
-	.fact {
+	.part {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 2px;
+		gap: 6px;
 	}
-	.flabel {
-		font-size: 9.5px;
+	.chip {
+		border: 1.5px solid var(--color-brand);
+		border-radius: 12px;
+		background: var(--color-brand-soft);
+		padding: 10px 12px;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 22px;
+		font-weight: 700;
+		color: var(--color-ink);
+	}
+	.chip.hex {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
+		padding: 8px 9px;
+		font-size: 17px;
+	}
+	.pop {
+		animation: pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.3) both;
+	}
+	@keyframes pop {
+		from {
+			transform: translateY(8px);
+			opacity: 0;
+		}
+	}
+	.sep {
+		align-self: center;
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 22px;
 		font-weight: 800;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
+	}
+	.sep.dot,
+	.dot {
+		color: var(--color-brand);
+	}
+	.sep.colon,
+	.colon {
+		color: var(--color-grass);
+	}
+	.letter {
+		color: var(--color-grass);
+		font-weight: 800;
+	}
+	.hint {
+		font-size: 11px;
 		color: var(--color-faint);
 	}
-	code {
-		max-width: 100%;
-		border-radius: 8px;
-		background: var(--color-card);
-		border: 1px solid var(--color-line);
-		padding: 3px 8px;
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 10.5px;
-		color: var(--color-ink);
-		text-align: center;
-		overflow-wrap: anywhere;
+	.outside {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
 	}
-
+	.waiting {
+		animation: wait 2.4s ease-in-out infinite;
+	}
+	@keyframes wait {
+		50% {
+			transform: translateY(-3px);
+		}
+	}
+	.tag-amber {
+		border-radius: 999px;
+		background: var(--color-amber-soft);
+		padding: 3px 10px;
+		font-size: 11px;
+		font-weight: 700;
+		color: var(--color-amber);
+	}
+	.rule {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		gap: 14px;
+		padding: 16px 0;
+	}
+	.rule-row {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+		border: 1px solid var(--color-line);
+		border-radius: 16px;
+		background: var(--color-card);
+		padding: 14px;
+	}
+	.badge {
+		border-radius: 999px;
+		background: var(--color-brand-soft);
+		padding: 2px 10px;
+		font-size: 11px;
+		font-weight: 800;
+		color: var(--color-brand);
+	}
+	.badge.six {
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+	}
+	.mono {
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 19px;
+		font-weight: 600;
+		color: var(--color-ink);
+	}
+	.mono.small {
+		margin: 0;
+		font-size: 12px;
+	}
+	.versions {
+		display: flex;
+		gap: 18px;
+		padding: 40px 0;
+	}
+	.ver {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+	}
+	.ver-n {
+		display: grid;
+		height: 64px;
+		width: 64px;
+		place-items: center;
+		border-radius: 999px;
+		background: var(--color-brand-soft);
+		font-family: var(--font-display);
+		font-size: 28px;
+		font-weight: 700;
+		color: var(--color-brand);
+	}
+	.ver.gone .ver-n {
+		background: var(--color-paper);
+		color: var(--color-faint);
+		text-decoration: line-through;
+		box-shadow: inset 0 0 0 1px var(--color-line);
+	}
+	.both {
+		display: flex;
+		align-items: center;
+		gap: 12px;
+		border: 1px solid var(--color-line);
+		border-radius: 14px;
+		background: var(--color-card);
+		padding: 10px 16px;
+	}
+	.both-t {
+		margin: 0 0 2px;
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--color-ink);
+	}
 	@media (prefers-reduced-motion: reduce) {
-		.seat {
+		.cell {
 			transition: none;
 		}
-		.dot,
-		.callout,
-		.who {
+		.waiting,
+		.pop,
+		.shrink {
 			animation: none;
-		}
-	}
-	@media (min-width: 768px) {
-		.pool {
-			width: 340px;
-		}
-		.want,
-		.note {
-			font-size: 14px;
-		}
-		.note {
-			max-width: 460px;
-		}
-		code {
-			font-size: 12px;
-		}
-		.facts {
-			width: 440px;
 		}
 	}
 </style>

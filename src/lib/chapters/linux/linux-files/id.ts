@@ -3,60 +3,93 @@ import type { LinuxFilesText } from './types';
 export const id: LinuxFilesText = {
 	title: 'File system Linux',
 	intro: [
-		'Server nimbus.com kamu itu komputer di data center, dan kayak kebanyakan server di internet, dia jalan pakai <b>Linux</b>. Yang ini pakai <b>Ubuntu</b>, salah satu jenis Linux yang paling populer. Nggak ada desktop buat diklik, adanya cuma terminal, jadi hari ini kamu belajar jalan jalan di dalamnya pakai ngetik.',
-		'Semua file di Linux tinggal di satu pohon besar. Puncaknya namanya <b>root</b> dan ditulis cuma pakai satu garis miring, <b>/</b>. Semua folder lain tumbuh dari situ, jadi path kayak /var/log/nimbus itu artinya jalan dari puncak, masuk satu folder demi satu folder.',
-		'Ada beberapa folder yang bakal sering banget kamu datangi. <b>home</b> isinya file milik tiap user (punyamu di /home/nim), <b>etc</b> nyimpen pengaturan, dan <b>var</b> nyimpen hal yang berubah terus sepanjang hari, contohnya log.',
-		'[fyi] Windows beda caranya, tiap drive punya pohonnya sendiri, kayak drive C dan drive D. Di Linux, disk kedua atau flashdisk cuma muncul sebagai satu folder lagi di dalam pohon yang sama.',
-		'Kamu masuk ke server ini lewat SSH, pintu jarak jauh dari [[remote access|cloud/remote-access]], dan jalannya pakai perintah yang sama kayak di [[CLI vs GUI|foundations/cli-gui]]. <b>pwd</b> ngasih tau kamu lagi di mana, <b>ls</b> nampilin isi sekitar, <b>cd</b> masuk ke folder, dan <b>cat</b> nampilin isi file.',
-		'Kabar buruk, nimbus.com mati semalam. Server punya buku harian namanya <b>log</b>, jadi alasannya pasti tercatat di suatu tempat. Cari log errornya dan baca apa yang terjadi. Tap folder di pohon, atau tekan Bantu kalau bingung.'
+		'Website nimbus.com kamu tinggal di sebuah <b>server</b>, komputer di data center. Kayak kebanyakan server di internet, dia jalan pakai <b>Linux</b> (yang ini Ubuntu). Nggak ada desktop, nggak ada mouse, adanya cuma <b>terminal</b>, jendela tempat kamu ngetik perintah. Kamu masuk lewat SSH, pintu jarak jauh dari [[remote access|cloud/remote-access]].',
+		'Semua file di Linux tinggal di satu pohon folder yang besar. Puncaknya namanya <b>root</b> dan ditulis cuma pakai satu garis miring, <b>/</b>. Semua folder lain tumbuh dari situ, kayak cabang dari batang pohon.',
+		'Pertanyaan pertama di tempat baru, aku lagi di mana? Perintah <b>pwd</b> yang jawab (print working directory). Lihat Nim ngetik. Kamu ada di /home/nim, folder rumahmu sendiri.',
+		'Terus, lihat sekeliling. <b>ls</b> nampilin isi sebuah folder, idenya sama kayak di [[CLI vs GUI|foundations/cli-gui]]. Nim minta lihat puncaknya pakai <b>ls /</b>, dan cabang cabang pertama langsung nyala. home isinya user, etc isinya pengaturan, dan var isinya hal yang berubah terus, contohnya log.',
+		'Sekarang jalan. <b>cd</b> (change directory) mindahin kamu ke sebuah folder. Path kayak /var/log/nimbus artinya turun dari puncak, satu folder demi satu folder. Ikutin pinnya.',
+		'Terakhir, baca. <b>cat</b> nampilin isi file ke layar. Nim lihat isi foldernya, lalu baca error.log, dan ketemu deh alasan nimbus.com mati semalam. Disknya penuh.',
+		'[ingat] Empat perintah, empat pertanyaan kecil. <b>pwd</b> nanya aku di mana, <b>ls</b> nanya ada apa di sini, <b>cd</b> bilang ayo ke sana, <b>cat</b> bilang coba lihat isinya.',
+		'[fyi] Windows caranya beda, tiap drive punya pohonnya sendiri (C, D, dan seterusnya). Di Linux, disk kedua atau flashdisk cuma muncul sebagai satu folder lagi di pohon yang sama.',
+		'Giliranmu, dan ini kecil banget. Kamu lagi jauh di dalam /var/log/nimbus. Ketik <b>cd ~</b> buat langsung pulang. Tanda bergelombang <b>~</b> itu selalu berarti folder rumahmu.'
 	],
 	reactions: {
-		pwd: '/home/nim, itu folder rumahmu. Tiap user dapat satu di dalam /home, dan tanda <b>~</b> di prompt itu cuma cara singkat nulisnya.',
-		root: 'Nah, itu puncak pohonnya sekaligus. Program di bin dan usr, pengaturan di etc, user di home, log di var. Hampir semua server Linux di dunia susunannya sama kayak gini.',
-		varlog:
-			'Kamu udah sampai di ruang buku harian. Tiap aplikasi nulis catatannya di sini, dan nimbus.com punya dua. Coba tampilin yang error.',
-		found:
-			'Ketemu. Disknya penuh jam 03.07 dan nimbus.com berhenti. Selesaikan misi lainnya biar tur kita beres.',
-		etc: 'Selamat datang di /etc, rumahnya pengaturan. Coba <b>cat hostname</b>, file kecil itu nyimpen nama server ini.',
-		hostname:
-			'nimbus, nama mesin ini. Pengaturan di /etc itu file teks biasa kayak gini, makanya admin suka, bisa dibaca dan diubah pakai editor apa aja.',
-		access:
-			'Itu access log, satu baris buat tiap kunjungan ke nimbus.com. Berguna, tapi cerita mogoknya ada di <b>error.log</b>.',
-		notes: 'Catatanmu sendiri dari kemarin. Petunjuk bagus, log tinggalnya di /var/log.',
+		home: 'Wuss, udah pulang ke /home/nim. Lihat promptnya, ada <b>~</b> lagi. Mau nyasar sejauh apa pun di server, cd ~ selalu bawa kamu pulang.',
+		moved:
+			'Kamu pindah, dan pinnya ikut pindah. Prompt selalu nunjukin kamu lagi di mana, jadi nggak perlu nebak. Ketik <b>cd ~</b> kapan aja kamu mau pulang.',
+		looked:
+			'Itu ls nampilin isi folder ini. Folder warnanya biru, file biasa putih. Mau masuk ke salah satunya? Pakai cd.',
+		read: 'cat nampilin seluruh isi file. Log, pengaturan, catatan, di Linux hampir semuanya teks biasa yang bisa dibaca kayak gini.',
+		pwd: 'pwd ngasih tau persis kamu lagi di mana, path yang sama kayak yang ditunjuk pinnya.',
 		rootHome:
-			'Dikunci. <b>/root</b> itu folder rumah milik user bernama root, admin yang paling berkuasa, dan yang lain nggak boleh masuk. Namanya sama kayak puncak pohon, tapi tempatnya beda banget.',
+			'Dikunci. <b>/root</b> itu folder rumah milik admin yang namanya root, yang lain nggak boleh masuk. Namanya sama kayak puncak pohon, tapi tempatnya beda banget. Soal kunci ada di [[Permission dan sudo|linux/permissions]].',
 		missing:
-			'Nggak ada yang namanya itu di sana. Jalankan <b>ls</b> buat lihat isinya. Oh iya, Linux peduli huruf besar kecil, jadi Log sama log itu dua nama yang beda.',
+			'Nggak ada yang namanya itu di sana. Coba <b>ls</b> buat lihat isinya. Oh iya, Linux peduli huruf besar kecil, jadi Log sama log itu dua nama yang beda.',
 		denied:
-			'Dikunci. Ada file yang cuma boleh dibuka admin, nanti kamu belajar cara bukanya di [[Permission dan sudo|linux/permissions]].',
-		error:
-			'Server nggak kenal perintah itu. Cek lagi ejaannya, atau ketik <b>help</b> buat lihat perintah yang dia tau.',
-		done: 'Misteri terpecahkan! Jam 03.07 disknya penuh total, upload nggak bisa disimpan, dan nimbus.com berhenti. Kamu barusan jalan dari / sampai ke /var/log/nimbus dan baca lognya, dan itu hal pertama yang dilakuin admin tiap kali server bermasalah.'
+			'Dikunci, yang itu cuma buat admin. Kuncinya nanti kamu pelajari di [[Permission dan sudo|linux/permissions]].',
+		error: 'Server nggak kenal perintah itu. Cek lagi ejaannya, atau coba <b>cd ~</b>.'
 	},
-	missionsLabel: 'Misi',
-	missions: [
-		'Cari tau kamu lagi di mana',
-		'Lihat sekeliling dari puncak, /',
-		'Masuk ke /var/log/nimbus',
-		'Baca error.log'
+	panels: [
+		{
+			tag: 'Server',
+			title: 'Komputer tanpa layar',
+			body: '<b>Server</b> nyala siang malam di data center. Kamu ngobrol sama dia lewat ngetik di <b>terminal</b>, dan dia jawab pakai teks.'
+		},
+		{
+			tag: 'Root',
+			title: 'Puncak pohonnya',
+			body: 'Semuanya mulai dari <b>/</b>. Path itu daftar folder yang kamu lewati dari puncak, dipisah pakai garis miring.'
+		},
+		{
+			tag: 'pwd',
+			title: 'Aku di mana',
+			body: '<b>pwd</b> nampilin folder tempat kamu berdiri. Pin di pohon nandain tempat yang sama.'
+		},
+		{
+			tag: 'ls',
+			title: 'Ada apa di sini',
+			body: '<b>ls</b> nampilin isi folder. Di terminal, folder warnanya biru dan file biasa warnanya putih.'
+		},
+		{
+			tag: 'cd',
+			title: 'Ayo ke sana',
+			body: '<b>cd</b> ditambah path bikin kamu pindah. Promptnya ikut berubah, selalu nunjukin kamu di mana.'
+		},
+		{
+			tag: 'cat',
+			title: 'Lihat isinya',
+			body: '<b>cat</b> nampilin seluruh isi file. Log kayak gini itu teks biasa, memang dibuat buat dibaca manusia.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Empat pertanyaan',
+			body: 'pwd, aku di mana. ls, ada apa di sini. cd, ayo ke sana. cat, lihat isinya.'
+		},
+		{
+			tag: 'Info',
+			title: 'Satu pohon, bukan drive',
+			body: 'Disk tambahan gabung ke pohon sebagai folder, biasanya di <b>/mnt</b> atau <b>/media</b>. Nggak pernah ada drive C.'
+		},
+		{
+			tag: 'Giliranmu',
+			title: 'Pulang ke rumah',
+			body: 'Ketik <b>cd ~</b> lalu tekan Enter, terus lihat pinnya terbang balik ke /home/nim.'
+		}
 	],
-	hintBtn: 'Bantu',
-	doneNote: 'Semua misi beres, kamu nemu kenapa situsnya mati',
+	watchLabel: 'Nim lagi ngetik, lihat aja dulu',
+	tryLabel: 'Giliranmu, ketik',
+	tryTip: 'Tap biar Nim yang ngetik',
 	inputLabel: 'perintah',
-	termHint: '# ketik perintah kayak pwd atau ls, lalu tekan Enter',
-	hintUnknown: '# perintah itu nggak ada di sini, ketik help buat lihat daftarnya',
+	termHint: '# Nim ngetik di sini dulu, lihat aja',
+	hintUnknown: '# perintah itu nggak ada di sini',
 	didYouMean: '# mungkin maksudnya {word}',
 	hintMissing: '# nggak ada yang namanya itu, ls nampilin isi sekitar',
 	hintDenied: '# dikunci, cuma pemiliknya atau admin yang boleh buka',
-	treeLabel: 'Pohon folder',
-	hereLabel: 'kamu di sini',
-	dirNotes: {
-		bin: 'program dasar',
-		etc: 'pengaturan',
-		home: 'file milik user',
-		root: 'rumah si admin',
-		tmp: 'tempat sementara',
-		usr: 'aplikasi terpasang',
-		var: 'log dan website'
-	}
+	hereLabel: 'Kamu di',
+	cheats: [
+		{ cmd: 'pwd', means: 'aku di mana' },
+		{ cmd: 'ls', means: 'ada apa di sini' },
+		{ cmd: 'cd', means: 'ayo ke sana' },
+		{ cmd: 'cat', means: 'lihat isinya' }
+	]
 };

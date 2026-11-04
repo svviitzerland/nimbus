@@ -1,5 +1,5 @@
-// Pure helpers for the simulated RouterOS shared by the MikroTik Lab lessons (router-ip,
-// router-nat, router-firewall, router-queue, router-hotspot). No browser APIs here, so it is
+// Pure helpers for the simulated RouterOS shared by the MikroTik Lab lessons (and borrowed by
+// the Cisco Lab). No browser APIs here, so it is
 // safe on the server.
 
 export type RosCmd = { kind: 'cmd'; id: string };
@@ -113,8 +113,6 @@ export function tokenize(line: string): { words: Word[]; args: Arg[] } {
 	}
 	return { words, args };
 }
-
-export type Mission = { label: string; done: boolean; help?: () => void };
 
 // ---- Geometry of the shared office drawing (OfficeRig.svelte) ----
 export const RIG_W = 340;

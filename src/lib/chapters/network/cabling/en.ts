@@ -3,42 +3,63 @@ import type { CablingText } from './types';
 export const en: CablingText = {
 	title: 'Network cables',
 	intro: [
-		'Data travels between devices as a stream of ones and zeros. Inside a cable, those ones and zeros become pulses of <b>electricity</b> or pulses of <b>light</b>, depending on what the cable is made of.',
-		'The cable you plug into a laptop or a router is a <b>LAN cable</b>. Inside are eight thin copper wires twisted in pairs, with a clear plastic plug on each end. Copper carries electricity, and it is cheap, tough, and easy to plug in.',
-		'Electricity has a weakness though. The further it travels, the weaker it gets, and it picks up noise from other wires nearby. That is why a LAN cable officially tops out at about 100 metres.',
-		'<b>Fibre optic</b> cable is a strand of glass as thin as a hair. It carries light instead, flashing on and off billions of times a second. Light barely fades and ignores electrical noise, so one fibre can run for tens of kilometres and carry far more data.',
-		'[fyi] The twists in a LAN cable are not for looks. Twisting each pair makes outside noise hit both wires equally, so it cancels out. Tighter twists and better shielding mean a faster cable, which is what Cat5e, Cat6, and Cat6a on the label tell you.',
-		'Send the same file over copper and over fibre, and keep stretching the distance. Find where copper gives up, then see how far fibre can go.'
+		'Data travels between devices as ones and zeros. Inside a cable, those become quick pulses, of <b>electricity</b> or of <b>light</b>, depending on what the cable is made of.',
+		'The cable you plug into a laptop or a router is a <b>LAN cable</b>. Inside are eight thin copper wires twisted in pairs. Copper carries electricity, and it is cheap, tough, and easy to plug in.',
+		'Electricity has a weakness though. The further it goes, the weaker it gets, and it picks up noise from other wires along the way. So a LAN cable tops out at about 100 metres.',
+		'<b>Fibre optic</b> cable is a strand of glass as thin as a hair. It carries light instead, flashing on and off. Light barely fades and ignores electrical noise, so one fibre can run for tens of kilometres.',
+		'[ingat] Copper for the room, fibre for the road. A LAN cable reaches about the length of a football pitch, and anything longer than that, like the line coming into your house, is fibre.',
+		'[fyi] The twists in a LAN cable are not for looks. Twisting each pair makes outside noise hit both wires equally, so it cancels out. Cat5e, Cat6, and Cat6a on the label tell you how tight and how fast the cable is.',
+		'Want to stretch it? Drag the distance and watch where copper gives up while fibre keeps going.'
 	],
 	reactions: {
 		copperOk:
-			'Arrived in one piece. Over short runs a copper LAN cable is cheap, easy, and plenty fast, which is why there is one behind almost every desk.',
+			'Short again, and copper is happy. Over short runs a LAN cable is cheap, easy, and plenty fast, which is why there is one behind almost every desk.',
 		copperFail:
-			'The file broke on the way. The electricity faded and got buried in noise, so the far end could no longer tell the ones from the zeros. Past about 100 metres, copper needs a switch in between to boost the signal, or a different cable.',
-		fibreOk:
-			'Fibre handles short runs easily too, and ten times faster here. It costs more though, and the glass needs gentler handling than copper, so short hops inside a room usually stay copper.',
+			'Copper just gave up. The electricity faded and got buried in noise, so the far end could not tell the ones from the zeros. Past about 100 metres you need a switch in between to boost it, or fibre.',
 		fibreFar:
-			'Still crisp, kilometres away. Light in glass barely fades and electrical noise cannot touch it. That is why the line into your house is fibre, and so are the [[cables under the sea|cloud/cable]] that connect continents.'
+			'Kilometres away and fibre is still crisp. Light in glass barely fades, which is why the [[cables under the sea|cloud/cable]] that connect continents are fibre too.'
 	},
-	copper: { name: 'Copper', sub: 'LAN cable, electricity' },
-	fibre: { name: 'Fibre optic', sub: 'glass, light' },
-	distLabel: 'How far',
-	places: [
-		'across one room',
-		'across an office floor',
-		'down a long corridor',
-		'to the next building',
-		'across town',
-		'to the next city'
+	steps: [
+		{
+			title: 'Pulses in a cable',
+			body: 'A cable carries data as quick pulses. On, off, on, off, billions of times every second.'
+		},
+		{
+			title: 'LAN cable',
+			body: 'Eight thin <b>copper</b> wires twisted in pairs, with a clear plastic plug on each end. It carries electricity.'
+		},
+		{
+			title: 'The 100 metre limit',
+			body: 'Electricity fades and picks up noise as it travels. Past about <b>100 metres</b> the far end cannot read it anymore.'
+		},
+		{
+			title: 'Fibre optic',
+			body: 'A strand of <b>glass</b> as thin as a hair, carrying flashes of light. It barely fades, so it runs for kilometres.'
+		},
+		{
+			tag: 'Remember it',
+			title: 'Copper for the room, fibre for the road',
+			body: 'A LAN cable reaches about one football pitch (100 metres). Anything longer, like the line to your house, is fibre.'
+		},
+		{
+			tag: 'FYI',
+			title: 'Why the twists',
+			body: 'Twisting each pair makes outside noise hit both wires equally, so it cancels out. Tighter twists mean a faster cable.'
+		},
+		{
+			tag: 'Try it',
+			title: 'Stretch the cable',
+			body: 'Drag the distance above. Copper fades and then breaks, fibre stays bright.'
+		}
 	],
-	sendBtn: 'Send the file',
-	fileLabel: 'nimbus.zip (1 GB)',
+	copper: 'Copper LAN cable',
+	fibre: 'Fibre optic',
+	pairLabel: 'twisted pair',
+	glassLabel: 'light in glass',
 	youLabel: 'Your laptop',
 	farLabel: 'Server',
-	signalLabel: 'Signal left at the far end',
-	limitLabel: 'readable',
-	okNote: 'Arrived safely in {t}',
-	failNote: 'Signal too weak, the file arrived broken',
-	times: { copper: 'about 8 seconds', fibre: 'under a second' },
-	idleNote: 'Pick a cable and a distance, then send'
+	distLabel: 'Distance',
+	okTag: 'arrived',
+	brokenTag: 'unreadable',
+	limitTag: '100 m'
 };

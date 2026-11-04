@@ -5,14 +5,20 @@ import { en } from './en';
 
 export const aiApi: Lesson = {
 	id: 'ai-api',
-	mood: 'thinking',
-	moods: ['calm', 'idea', 'thinking', 'surprised', 'wink', 'excited'],
-	reactionMood: {
-		model: 'idea',
-		sent: 'happy',
-		nokey: 'worried',
-		compare: 'excited'
-	},
+	mood: 'calm',
+	moods: [
+		'calm',
+		'idea',
+		'thinking',
+		'wink',
+		'thinking',
+		'happy',
+		'surprised',
+		'idea',
+		'wink',
+		'excited'
+	],
+	reactionMood: { long: 'surprised', short: 'happy' },
 	stage: AiApiStage,
 	text: { id, en }
 };

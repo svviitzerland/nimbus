@@ -6,13 +6,9 @@ import { en } from './en';
 export const supervised: Lesson = {
 	id: 'supervised',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'idea', 'happy', 'wink', 'excited'],
+	moods: ['calm', 'thinking', 'worried', 'idea', 'surprised', 'wink', 'happy', 'excited'],
 	reactionMood: {
-		sup_guess: 'happy',
-		unsup_mode: 'thinking',
-		unsup_go: 'idea',
-		found3: 'excited',
-		foundk: 'wink'
+		again: 'happy'
 	},
 	stage: SupervisedStage,
 	text: { id, en }

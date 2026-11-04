@@ -1,473 +1,501 @@
 <script lang="ts">
-	import type { LessonText } from '$lib/chapters/types';
-	import type {
-		AiEthicsCase,
-		AiEthicsChoice,
-		AiEthicsText
-	} from '$lib/chapters/ai/ai-ethics/types';
-	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
+	// A guided "watch" stage. A phone sends a message along a line to a chatbot provider, where it
+	// may be kept, read, or trained on. Above the road stands a big billboard, and each message is
+	// put up on it for the billboard test. A public news question is stamped "send it" and flies
+	// off, a CV gets its phone number and address swapped out first, and a friend's secret is
+	// stamped "keep it out" and never leaves. The only optional play, on the last beat, replays the
+	// test for a message the learner taps.
+	import { untrack } from 'svelte';
+	import Guide from '$lib/components/Guide.svelte';
+	import type { StageProps } from '$lib/chapters/types';
+	import type { AiEthicsMsgId, AiEthicsText } from '$lib/chapters/ai/ai-ethics/types';
+	import { phaseAt, sceneClock } from './webship/clock.svelte';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as AiEthicsText);
 
-	/** The right call for each message. Language independent, so it lives here. */
-	const ANSWER: Record<AiEthicsCase, AiEthicsChoice> = {
-		news: 'send',
-		cv: 'clean',
-		key: 'clean',
-		friend: 'keep',
-		art: 'clean',
-		bank: 'keep'
-	};
-	const CHOICES: AiEthicsChoice[] = ['send', 'clean', 'keep'];
+	type Scene = 'where' | 'stored' | 'billboard' | 'news' | 'cv' | 'friend' | 'recap' | 'try';
+	const SCENES: Scene[] = ['where', 'stored', 'billboard', 'news', 'cv', 'friend', 'recap', 'try'];
+	const SCENE_OF_BEAT = [0, 1, 2, 3, 4, 5, 6, 6, 7];
+	type Verdict = 'send' | 'clean' | 'keep';
+	const VERDICT: Record<AiEthicsMsgId, Verdict> = { news: 'send', cv: 'clean', friend: 'keep' };
 
-	let idx = $state(0);
-	let answered = $state<AiEthicsChoice | null>(null);
-	let tried = $state<AiEthicsChoice[]>([]);
-	let finished = $state(false);
+	let peek = $state<number | null>(null);
+	let picked = $state<AiEthicsMsgId | null>(null);
+	let run = $state(0);
 
-	const item = $derived(tx.cases[idx]);
-	const isLast = $derived(idx === tx.cases.length - 1);
-	const went = $derived(answered === 'send' || answered === 'clean');
+	const fromBeat = $derived(SCENE_OF_BEAT[Math.min(beat, SCENE_OF_BEAT.length - 1)]);
+	const active = $derived(peek ?? fromBeat);
+	const scene = $derived(SCENES[active]);
+	const clock = sceneClock(() => [scene, picked, run]);
+	const t = $derived(clock.t);
 
-	function choose(c: AiEthicsChoice) {
-		if (answered || finished) return;
-		if (c === ANSWER[item.id]) {
-			answered = c;
-			onstate?.(item.id);
-		} else {
-			if (!tried.includes(c)) tried = [...tried, c];
-			onstate?.(`${item.id}_wrong`);
-		}
-	}
-
-	function next() {
-		if (!answered) return;
-		if (isLast) {
-			finished = true;
-			onstate?.('done');
+	$effect(() => {
+		untrack(() => {
+			onshow?.(true);
 			oncomplete?.();
-			return;
-		}
-		idx++;
-		answered = null;
-		tried = [];
-	}
+		});
+	});
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
 
-	/** Split the draft into plain and risky parts, so the risky ones can be marked. */
-	function pieces(s: string, secrets: string[]) {
-		const out: { t: string; risky: boolean }[] = [];
-		let rest = s;
-		while (rest.length) {
-			let at = -1;
-			let hit = '';
-			for (const sec of secrets) {
-				const i = rest.indexOf(sec);
-				if (i >= 0 && (at < 0 || i < at)) {
-					at = i;
-					hit = sec;
-				}
-			}
-			if (at < 0) {
-				out.push({ t: rest, risky: false });
-				break;
-			}
-			if (at > 0) out.push({ t: rest.slice(0, at), risky: false });
-			out.push({ t: hit, risky: true });
-			rest = rest.slice(at + hit.length);
+	// ---- which message is on the billboard ----
+	const msgId = $derived<AiEthicsMsgId | null>(
+		scene === 'news' || scene === 'cv' || scene === 'friend'
+			? scene
+			: scene === 'try'
+				? picked
+				: null
+	);
+	const msg = $derived(msgId ? tx.messages.find((m) => m.id === msgId) : undefined);
+	const verdict = $derived<Verdict | null>(msgId ? VERDICT[msgId] : null);
+
+	const flagged = $derived(!!msg && t > 700);
+	const stamped = $derived(!!msg && t > 1300);
+	const cleaned = $derived(verdict === 'clean' && t > 2000);
+	const blocked = $derived(verdict === 'keep' && t > 1900);
+	const ruleBoard = $derived(
+		scene === 'billboard' || scene === 'recap' || (scene === 'try' && !msg)
+	);
+
+	// ---- the envelope on the line ----
+	const FROM = 80;
+	const TO = 256;
+	const env = $derived.by((): { x: number; show: boolean } => {
+		if (scene === 'where') {
+			const { ph, p } = phaseAt(
+				[
+					{ ph: 'wait', ms: 700 },
+					{ ph: 'go', ms: 1600 },
+					{ ph: 'rest', ms: 700 }
+				],
+				t
+			);
+			if (ph === 'wait') return { x: FROM, show: true };
+			if (ph === 'go') return { x: FROM + (TO - FROM) * p, show: true };
+			return { x: TO, show: false };
 		}
-		return out;
+		if (!verdict || verdict === 'keep') return { x: FROM, show: false };
+		const start = verdict === 'send' ? 1900 : 2600;
+		if (t < start) return { x: FROM, show: t > 1300 };
+		const p = Math.min(1, (t - start) / 1300);
+		return { x: FROM + (TO - FROM) * p, show: p < 1 };
+	});
+	const arrived = $derived(
+		!!verdict && verdict !== 'keep' && t > (verdict === 'send' ? 3200 : 3900)
+	);
+
+	// what may happen over there, lit one by one on the second beat
+	const fatesOn = $derived(
+		scene === 'stored' ? Math.max(0, Math.min(3, Math.floor((t - 300) / 600) + 1)) : 0
+	);
+	const FATES = [130, 180, 230];
+
+	const top = $derived(msg ? 84 - (msg.lines.length * 18) / 2 + 6 : 0);
+	const STAMP_CLASS: Record<Verdict, string> = { send: 'go', clean: 'mid', keep: 'stop' };
+
+	function pick(id: AiEthicsMsgId) {
+		picked = id;
+		run += 1;
+		onstate?.(id);
 	}
-	const parts = $derived(pieces(item.draft, item.secrets));
 </script>
 
-<div class="stage">
-	<!-- progress through the six messages -->
-	<div
-		class="progress"
-		aria-label={tx.progress
-			.replace('{n}', String(idx + 1))
-			.replace('{total}', String(tx.cases.length))}
+{#snippet stamp(v: Verdict, x: number, y: number, small: boolean)}
+	<g transform="translate({x} {y}) rotate(-8)"
+		><g class="pop">
+			<rect
+				x={small ? -44 : -56}
+				y={small ? -12 : -15}
+				width={small ? 88 : 112}
+				height={small ? 24 : 30}
+				rx="6"
+				class="stamp {STAMP_CLASS[v]}"
+			/>
+			<text y={small ? 4 : 5} text-anchor="middle" class="stamptext {STAMP_CLASS[v]}" class:small
+				>{tx.verdicts[v]}</text
+			>
+		</g></g
 	>
-		{#each tx.cases as c, i (c.id)}
-			<span
-				class="pip"
-				class:done={i < idx || finished || (i === idx && answered)}
-				class:now={i === idx}
-			></span>
-		{/each}
-		<span class="ptext"
-			>{finished
-				? tx.doneNote
-				: tx.progress
-						.replace('{n}', String(idx + 1))
-						.replace('{total}', String(tx.cases.length))}</span
-		>
-	</div>
+{/snippet}
 
-	<!-- the three calls, or the way forward once the right one is made -->
-	<div class="actions">
-		{#if answered && !finished}
-			<CallToActionButton onclick={next}>{isLast ? tx.finishBtn : tx.nextBtn}</CallToActionButton>
-		{:else if !finished}
-			<div class="choices">
-				{#each CHOICES as c (c)}
-					<button
-						type="button"
-						class="choice {c}"
-						class:tried={tried.includes(c)}
-						disabled={tried.includes(c)}
-						onclick={() => choose(c)}
+{#snippet picture(_i: number)}
+	<div class="visual">
+		{#if scene === 'try'}
+			<div class="picks">
+				{#each tx.messages as m (m.id)}
+					<button type="button" class="act" class:on={picked === m.id} onclick={() => pick(m.id)}
+						>{m.label}</button
 					>
-						<span class="ic" aria-hidden="true">
-							<svg
-								width="15"
-								height="15"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2.2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								{#if c === 'send'}
-									<path d="M4 12 20 4l-6 16-3-7-7-1Z" />
-								{:else if c === 'clean'}
-									<path d="M4 20h16M7 16l9.5-9.5a2.1 2.1 0 0 1 3 3L10 19H7v-3Z" />
-								{:else}
-									<circle cx="12" cy="12" r="8" /><path d="m6.5 6.5 11 11" />
-								{/if}
-							</svg>
-						</span>
-						{tx.choices[c]}
-					</button>
 				{/each}
 			</div>
 		{/if}
-	</div>
+		<svg viewBox="0 0 360 330" class="pic" role="img" aria-label={tx.picture}>
+			<!-- the road and the billboard -->
+			<path d="M0 200 H360" class="ground" />
+			<g class="board" class:faded={scene === 'where' || scene === 'stored'}>
+				<rect x="96" y="146" width="8" height="54" class="post" />
+				<rect x="256" y="146" width="8" height="54" class="post" />
+				<rect x="28" y="12" width="304" height="138" rx="6" class="frame" />
+				<rect x="36" y="20" width="288" height="122" rx="3" class="face" />
 
-	<!-- the message about to be sent -->
-	{#key idx}
-		<div class="composer" class:kept={answered === 'keep'}>
-			<div class="chead">
-				<span class="cap">{tx.composerLabel}</span>
-				<span class="context">{item.context}</span>
-			</div>
-			<p class="draft" class:struck={answered === 'clean'}>
-				{#each parts as p, i (i)}{#if p.risky && answered}<mark>{p.t}</mark>{:else}{p.t}{/if}{/each}
-			</p>
-			{#if answered === 'clean'}
-				<p class="cleaned">{item.cleaned}</p>
-			{/if}
-			{#if answered}
-				<span class="stamp {answered}"
-					>{answered === 'send'
-						? tx.sentTag
-						: answered === 'clean'
-							? tx.cleanedTag
-							: tx.keptTag}</span
+				{#if msg}
+					{#key msgId}
+						<g class="fadein">
+							{#each msg.lines as line, k (k)}
+								<text x="48" y={top + k * 18} class="msg"
+									>{#each line as seg, j (j)}<tspan
+											class:secret={seg.secret && flagged && !cleaned}
+											class:removed={seg.secret && cleaned}
+											>{seg.secret && cleaned ? tx.removed : seg.t}</tspan
+										>{/each}</text
+								>
+							{/each}
+						</g>
+					{/key}
+					{#if stamped && verdict}
+						{@render stamp(verdict, 262, 124, false)}
+					{/if}
+				{:else if ruleBoard}
+					<text x="180" y="66" text-anchor="middle" class="ask">{tx.billboardAsk}</text>
+					{#if scene !== 'billboard'}
+						{@render stamp('send', 90, 106, true)}
+						{@render stamp('clean', 180, 106, true)}
+						{@render stamp('keep', 270, 106, true)}
+					{/if}
+				{:else}
+					{#each [50, 70, 90, 110] as y (y)}
+						<rect x="48" {y} width={y === 110 ? 150 : 250} height="7" rx="3.5" class="blank" />
+					{/each}
+				{/if}
+			</g>
+
+			<!-- the line from you to the provider -->
+			<path d="M78 262 H282" class="wire" class:cut={blocked} />
+			{#if blocked}
+				<g transform="translate(104 262)"
+					><g class="pop">
+						<circle r="9" class="blockdot" />
+						<path d="M-3.5 -3.5 L3.5 3.5 M3.5 -3.5 L-3.5 3.5" class="blockx" />
+					</g></g
 				>
 			{/if}
-		</div>
-	{/key}
+			{#if env.show}
+				<g transform="translate({env.x} 254)">
+					<rect width="22" height="16" rx="3" class="envbody" />
+					<path d="M1 2 L11 9 L21 2" class="envflap" />
+				</g>
+			{/if}
 
-	<!-- where a sent message travels -->
-	<ol class="journey" class:went>
-		{#each tx.journey as step, i (i)}
-			<li style="--i:{i}">{step}</li>
-		{/each}
-	</ol>
+			<!-- you -->
+			<text x="52" y="214" text-anchor="middle" class="label">{tx.youLabel}</text>
+			<rect x="26" y="220" width="52" height="98" rx="10" class="phone" />
+			<rect x="31" y="228" width="42" height="82" rx="6" class="screen" />
+			{#each [244, 254, 264] as y (y)}
+				<rect x="36" {y} width={y === 264 ? 20 : 32} height="5" rx="2.5" class="chatline" />
+			{/each}
+
+			<!-- the chatbot provider -->
+			<g class:glow={arrived}>
+				<text x="309" y="214" text-anchor="middle" class="label">{tx.providerLabel}</text>
+				<rect x="282" y="220" width="54" height="98" rx="8" class="rack" />
+				{#each [230, 252, 274, 296] as y (y)}
+					<rect x="288" {y} width="42" height="14" rx="3" class="unit" />
+					<circle cx="322" cy={y + 7} r="2.2" class="led" />
+				{/each}
+			</g>
+
+			<!-- what may happen over there -->
+			<g class="fates" class:dim={scene !== 'stored'}>
+				{#each FATES as x, k (x)}
+					<g transform="translate({x} 292)" class="fate" class:on={k < fatesOn}>
+						{#if k === 0}
+							<rect x="-9" y="-6" width="18" height="12" rx="2" class="ico" />
+							<path d="M-10 -10 H10 V-6 H-10 Z" class="ico" />
+						{:else if k === 1}
+							<path d="M-11 0 Q0 -10 11 0 Q0 10 -11 0 Z" class="ico" />
+							<circle r="3.2" class="icofill" />
+						{:else}
+							<path d="M-11 -4 L0 -9 L11 -4 L0 1 Z" class="ico" />
+							<path d="M-6 -1.5 V4 Q0 8 6 4 V-1.5" class="ico" />
+						{/if}
+						<text y="22" text-anchor="middle" class="small">{tx.fates[k]}</text>
+					</g>
+				{/each}
+			</g>
+		</svg>
+		{#if scene === 'billboard'}
+			<p class="rule">{tx.rule}</p>
+		{/if}
+	</div>
+{/snippet}
+
+<div class="stage">
+	<Guide steps={tx.panels} {active} onselect={(i) => (peek = i)} visual={picture} />
 </div>
 
 <style>
 	.stage {
 		display: flex;
+		height: 100%;
 		width: 100%;
-		flex-direction: column;
-		align-items: center;
-		gap: 12px;
-	}
-	.cap {
-		font-size: 10.5px;
-		font-weight: 700;
-		letter-spacing: 0.02em;
-		color: var(--color-faint);
-	}
-
-	.progress {
-		display: flex;
-		align-items: center;
-		gap: 5px;
-	}
-	.pip {
-		width: 9px;
-		height: 9px;
-		border-radius: 50%;
-		background: var(--color-line);
-		transition: background 0.25s ease;
-	}
-	.pip.now {
-		box-shadow: 0 0 0 2px var(--color-brand-soft);
-		background: var(--color-brand);
-	}
-	.pip.done {
-		background: var(--color-grass);
-	}
-	.ptext {
-		margin-left: 6px;
-		font-size: 11px;
-		font-weight: 700;
-		color: var(--color-muted);
-		font-variant-numeric: tabular-nums;
-	}
-
-	.actions {
-		display: flex;
-		min-height: 46px;
-		width: min(94vw, 440px);
-		align-items: center;
 		justify-content: center;
+		align-items: flex-start;
+		overflow-y: auto;
+		overflow-x: hidden;
+		padding-bottom: 16px;
 	}
-	.actions :global(.cta) {
-		padding: 10px 20px;
-		font-size: 13px;
-	}
-	.choices {
-		display: grid;
+	.visual {
+		display: flex;
 		width: 100%;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 6px;
-	}
-	.choice {
-		display: flex;
+		max-width: 440px;
 		flex-direction: column;
 		align-items: center;
-		gap: 4px;
-		border-radius: 13px;
-		border: 1.5px solid var(--color-line);
-		background: var(--color-card);
-		padding: 8px 4px;
-		font-size: 11.5px;
-		font-weight: 700;
-		line-height: 1.2;
-		text-align: center;
-		color: var(--color-ink);
-		transition:
-			border-color 0.2s ease,
-			transform 0.15s ease;
+		gap: 10px;
 	}
-	.choice:not(:disabled):hover {
-		transform: translateY(-1px);
+	.pic {
+		display: block;
+		width: 100%;
+		height: auto;
+		max-height: 60vh;
 	}
-	.ic {
-		display: grid;
-		place-items: center;
-		width: 28px;
-		height: 28px;
-		border-radius: 9px;
-		line-height: 0;
-	}
-	.send .ic {
-		background: var(--color-grass-soft);
-		color: var(--color-grass);
-	}
-	.clean .ic {
-		background: var(--color-amber-soft);
-		color: var(--color-amber);
-	}
-	.keep .ic {
-		background: var(--color-danger-soft);
-		color: var(--color-danger);
-	}
-	.send:not(:disabled):hover {
-		border-color: var(--color-grass);
-	}
-	.clean:not(:disabled):hover {
-		border-color: var(--color-amber);
-	}
-	.keep:not(:disabled):hover {
-		border-color: var(--color-danger);
-	}
-	.choice.tried {
-		opacity: 0.4;
-	}
-
-	/* composer */
-	.composer {
-		position: relative;
+	.picks {
 		display: flex;
-		width: min(94vw, 440px);
-		flex-direction: column;
-		gap: 6px;
-		border-radius: 16px;
-		border: 1.5px solid var(--color-line);
-		background: var(--color-card);
-		padding: 10px 12px 12px;
-		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.06);
-		animation: rise 0.35s ease backwards;
-	}
-	:global(.dark) .composer {
-		box-shadow: none;
-	}
-	.composer.kept {
-		background: var(--color-paper);
-	}
-	.chead {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
+		flex-wrap: wrap;
+		justify-content: center;
 		gap: 8px;
 	}
-	.context {
+	.act {
+		border: 1.5px solid var(--color-brand);
 		border-radius: 999px;
-		background: var(--color-paper);
-		padding: 1px 8px;
-		font-size: 10px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	.draft {
+		background: var(--color-card);
+		padding: 6px 14px;
 		font-size: 13px;
-		line-height: 1.5;
-		color: var(--color-ink);
-		overflow-wrap: anywhere;
+		font-weight: 700;
+		color: var(--color-brand);
 	}
-	.kept .draft {
-		color: var(--color-faint);
+	.act.on {
+		background: var(--color-brand-soft);
 	}
-	.draft mark {
-		border-radius: 4px;
-		background: var(--color-danger-soft);
-		padding: 0 2px;
-		color: var(--color-danger);
+	.rule {
+		margin: 0;
+		text-align: center;
+		font-size: 14px;
+		font-weight: 700;
+		color: var(--color-grass);
+	}
+	.ground {
+		stroke: var(--color-line);
+		stroke-width: 2;
+	}
+	.board {
+		transition: opacity 0.4s;
+	}
+	.board.faded {
+		opacity: 0.35;
+	}
+	.post {
+		fill: var(--color-faint);
+	}
+	.frame {
+		fill: var(--color-ink);
+	}
+	.face {
+		fill: var(--color-card);
+	}
+	.blank {
+		fill: var(--color-line);
+	}
+	.msg {
+		fill: var(--color-ink);
+		font-size: 12px;
 		font-weight: 600;
 	}
-	.draft.struck {
-		font-size: 11.5px;
-		color: var(--color-faint);
+	.msg tspan {
+		transition: fill 0.3s;
 	}
-	.draft.struck mark {
-		text-decoration: line-through;
+	.msg tspan.secret {
+		fill: var(--color-danger);
+		font-weight: 800;
 	}
-	.cleaned {
-		border-radius: 10px;
-		background: var(--color-grass-soft);
-		padding: 7px 9px;
-		font-size: 13px;
-		line-height: 1.5;
-		color: var(--color-ink);
-		overflow-wrap: anywhere;
-		animation: rise 0.35s ease backwards;
+	.msg tspan.removed {
+		fill: var(--color-faint);
+		font-style: italic;
+	}
+	.ask {
+		fill: var(--color-ink);
+		font-family: var(--font-display);
+		font-size: 17px;
+		font-weight: 600;
 	}
 	.stamp {
-		align-self: flex-end;
-		border-radius: 999px;
-		padding: 2px 9px;
-		font-size: 10px;
+		fill: var(--color-card);
+		stroke-width: 2.2;
+	}
+	.stamp.go {
+		stroke: var(--color-grass);
+		fill: var(--color-grass-soft);
+	}
+	.stamp.mid {
+		stroke: var(--color-amber);
+		fill: var(--color-amber-soft);
+	}
+	.stamp.stop {
+		stroke: var(--color-danger);
+		fill: var(--color-danger-soft);
+	}
+	.stamptext {
+		font-size: 12px;
 		font-weight: 800;
-		color: #fff;
-		animation: pop 0.35s cubic-bezier(0.3, 1.5, 0.5, 1) backwards;
 	}
-	.stamp.send {
-		background: var(--color-grass);
-	}
-	.stamp.clean {
-		background: var(--color-amber);
-	}
-	.stamp.keep {
-		background: var(--color-danger);
-	}
-
-	/* journey */
-	.journey {
-		display: grid;
-		width: min(94vw, 440px);
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: 14px;
-	}
-	.journey li {
-		position: relative;
-		display: grid;
-		min-height: 36px;
-		place-items: center;
-		border-radius: 10px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 4px;
+	.stamptext.small {
 		font-size: 9.5px;
-		font-weight: 600;
-		line-height: 1.2;
-		text-align: center;
-		color: var(--color-faint);
 	}
-	.journey li + li::before {
-		content: '';
-		position: absolute;
-		top: 50%;
-		left: -12px;
-		width: 10px;
-		height: 2px;
-		border-radius: 1px;
-		background: var(--color-line);
+	.stamptext.go {
+		fill: var(--color-grass);
 	}
-	.journey.went li {
-		animation: light 0.4s ease forwards;
-		animation-delay: calc(var(--i) * 0.25s);
+	.stamptext.mid {
+		fill: var(--color-amber);
 	}
-	@keyframes light {
-		to {
-			border-color: var(--color-brand);
-			background: var(--color-brand-soft);
-			color: var(--color-brand);
-		}
+	.stamptext.stop {
+		fill: var(--color-danger);
 	}
-	@keyframes rise {
+	.label {
+		fill: var(--color-muted);
+		font-size: 9.5px;
+		font-weight: 700;
+	}
+	.small {
+		fill: var(--color-muted);
+		font-size: 8.5px;
+		font-weight: 700;
+	}
+	.wire {
+		fill: none;
+		stroke: var(--color-brand);
+		stroke-width: 2.5;
+		stroke-linecap: round;
+		transition: stroke 0.3s;
+	}
+	.wire.cut {
+		stroke: var(--color-line);
+	}
+	.blockdot {
+		fill: var(--color-danger);
+	}
+	.blockx {
+		stroke: var(--color-card);
+		stroke-width: 2;
+		stroke-linecap: round;
+	}
+	.envbody {
+		fill: var(--color-amber-soft);
+		stroke: var(--color-amber);
+		stroke-width: 1.5;
+	}
+	.envflap {
+		fill: none;
+		stroke: var(--color-amber);
+		stroke-width: 1.3;
+		stroke-linejoin: round;
+	}
+	.phone {
+		fill: var(--color-card);
+		stroke: var(--color-ink);
+		stroke-width: 2;
+	}
+	.screen {
+		fill: var(--color-paper);
+	}
+	.chatline {
+		fill: var(--color-brand);
+		opacity: 0.6;
+	}
+	.rack {
+		fill: var(--color-paper);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+		transition: stroke 0.3s;
+	}
+	.glow .rack {
+		stroke: var(--color-grass);
+	}
+	.unit {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+	}
+	.led {
+		fill: var(--color-grass);
+	}
+	.fates {
+		transition: opacity 0.4s;
+	}
+	.fates.dim {
+		opacity: 0.35;
+	}
+	.fate {
+		opacity: 0.45;
+		transition: opacity 0.4s;
+	}
+	.fates.dim .fate,
+	.fate.on {
+		opacity: 1;
+	}
+	.ico {
+		fill: var(--color-card);
+		stroke: var(--color-muted);
+		stroke-width: 1.5;
+		stroke-linejoin: round;
+	}
+	.fate.on .ico {
+		stroke: var(--color-brand);
+	}
+	.icofill {
+		fill: var(--color-muted);
+	}
+	.fate.on .icofill {
+		fill: var(--color-brand);
+	}
+	.fadein {
+		animation: fadein 0.4s ease both;
+	}
+	@keyframes fadein {
 		from {
 			opacity: 0;
-			transform: translateY(5px);
 		}
+	}
+	.pop {
+		animation: pop 0.35s cubic-bezier(0.3, 1.4, 0.5, 1) both;
 	}
 	@keyframes pop {
 		from {
 			opacity: 0;
-			transform: scale(0.6);
+			transform: scale(1.4);
 		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.composer,
-		.cleaned,
-		.stamp {
-			animation: none;
-		}
-		.journey.went li {
-			animation-duration: 0s;
-			animation-delay: 0s;
-		}
-		.choice,
-		.pip {
-			transition: none;
-		}
-		.choice:not(:disabled):hover {
+		to {
+			opacity: 1;
 			transform: none;
 		}
 	}
-
-	@media (min-width: 768px) {
-		.actions,
-		.composer,
-		.journey {
-			width: min(94vw, 500px);
+	@media (max-width: 767px) {
+		.stage {
+			padding-bottom: 7rem;
 		}
-		.choice {
-			font-size: 12.5px;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.board,
+		.wire,
+		.rack,
+		.fates,
+		.fate,
+		.msg tspan {
+			transition: none;
 		}
-		.journey li {
-			font-size: 10.5px;
+		.pop,
+		.fadein {
+			animation: none;
 		}
 	}
 </style>

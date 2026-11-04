@@ -6,13 +6,21 @@ import { en } from './en';
 export const program: Lesson = {
 	id: 'program',
 	mood: 'calm',
-	moods: ['calm', 'thinking', 'surprised', 'idea', 'wink', 'thinking', 'excited'],
+	moods: [
+		'calm',
+		'idea',
+		'thinking',
+		'surprised',
+		'happy',
+		'thinking',
+		'wink',
+		'idea',
+		'wink',
+		'excited'
+	],
 	reactionMood: {
 		spill: 'surprised',
-		empty: 'thinking',
-		plain: 'worried',
-		cold: 'sad',
-		tea: 'excited'
+		fixed: 'happy'
 	},
 	stage: ProgramStage,
 	text: { id, en }

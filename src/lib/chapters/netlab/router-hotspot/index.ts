@@ -5,26 +5,23 @@ import { en } from './en';
 
 export const routerHotspot: Lesson = {
 	id: 'router-hotspot',
-	mood: 'happy',
-	moods: ['happy', 'idea', 'thinking', 'thinking', 'wink', 'happy'],
+	mood: 'thinking',
+	moods: [
+		'happy',
+		'thinking',
+		'idea',
+		'excited',
+		'happy',
+		'excited',
+		'surprised',
+		'wink',
+		'idea',
+		'happy'
+	],
 	reactionMood: {
-		setup: 'excited',
-		wizardBad: 'thinking',
-		noHotspot: 'worried',
-		portal: 'idea',
-		badLogin: 'thinking',
-		usedUp: 'wink',
-		voucher: 'happy',
-		otherLimit: 'wink',
-		noLimit: 'thinking',
-		online: 'excited',
-		onlineNoLimit: 'thinking',
-		neverEnds: 'surprised',
-		expired: 'wink',
-		active: 'happy',
-		noActive: 'thinking',
-		error: 'surprised',
-		done: 'excited'
+		users: 'happy',
+		active: 'idea',
+		error: 'thinking'
 	},
 	stage: RouterHotspotStage,
 	text: { id, en }

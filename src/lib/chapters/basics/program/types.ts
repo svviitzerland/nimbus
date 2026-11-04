@@ -1,29 +1,45 @@
 import type { LessonText } from '../../types';
 
-export type TeaStepId = 'cup' | 'boil' | 'bag' | 'pour' | 'stir';
+/** The five lines of Nim's tea recipe. */
+export type TeaStepId = 'cup' | 'bag' | 'boil' | 'pour' | 'stir';
+
+export interface GuidePanel {
+	tag?: string;
+	title: string;
+	/** May hold simple HTML like <b>. */
+	body: string;
+}
 
 export interface ProgramText extends LessonText {
-	/** Heading over the program list. */
-	programLabel: string;
-	/** Heading over the chips of steps that are not in the program yet. */
-	paletteLabel: string;
-	/** Shown when the program has no steps. */
-	emptyProgram: string;
-	/** Each step, written like a command. */
+	/** One panel per scene of the guided visual (eight scenes). */
+	panels: GuidePanel[];
+	/** Heading of the recipe card while it is still plain words. */
+	recipeTitle: string;
+	/** Heading of the same card once it is written for a computer. */
+	programTitle: string;
+	/** The recipe in plain words, one line per step. */
 	steps: Record<TeaStepId, string>;
-	run: string;
-	running: string;
-	reset: string;
-	moveUp: string;
-	moveDown: string;
-	remove: string;
-	/** Caption under the kitchen while nothing has run yet. */
-	noteIdle: string;
-	/** Caption while a line runs, template with {n}. */
-	noteLine: string;
-	/** How each run can end. */
-	notes: { spill: string; empty: string; plain: string; cold: string; tea: string };
-	/** Small tags drawn in the kitchen. */
-	cupTag: string;
-	tableTag: string;
+	/** Short labels inside the flowchart. */
+	flow: {
+		start: string;
+		cup: string;
+		bag: string;
+		hot: string;
+		boil: string;
+		pour: string;
+		sweet: string;
+		stir: string;
+		done: string;
+		yes: string;
+		no: string;
+	};
+	/** The three building blocks and the little word that gives each one away. */
+	blocks: Record<'sequence' | 'choice' | 'repetition', { name: string; word: string }>;
+	/** The small rule of thumb line under the finished flowchart. */
+	rule: string;
+	/** The optional swap on the last beat. */
+	swap: string;
+	unswap: string;
+	/** Caption under the kitchen. */
+	result: { idle: string; working: string; tea: string; spill: string };
 }

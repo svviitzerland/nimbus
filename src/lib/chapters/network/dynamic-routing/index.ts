@@ -6,19 +6,10 @@ import { en } from './en';
 export const dynamicRouting: Lesson = {
 	id: 'dynamic-routing',
 	mood: 'thinking',
-	moods: ['calm', 'worried', 'idea', 'thinking', 'idea', 'surprised', 'happy'],
+	moods: ['calm', 'worried', 'idea', 'happy', 'wink', 'thinking', 'surprised', 'worried', 'happy'],
 	reactionMood: {
-		rerouted: 'excited',
-		sameRoad: 'wink',
-		restoredLink: 'happy',
-		noPath: 'worried',
-		bgpAct: 'thinking',
-		tryOk: 'happy',
-		backbone: 'surprised',
 		withdraw: 'worried',
-		tryFail: 'sad',
-		onsite: 'thinking',
-		restored: 'happy'
+		announce: 'happy'
 	},
 	stage: DynamicRoutingStage,
 	text: { id, en }

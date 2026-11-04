@@ -6,7 +6,18 @@ import { en } from './en';
 export const aws: Lesson = {
 	id: 'aws',
 	mood: 'happy',
-	moods: ['calm', 'thinking', 'worried', 'idea', 'wink', 'excited'],
+	moods: [
+		'calm',
+		'thinking',
+		'happy',
+		'idea',
+		'thinking',
+		'happy',
+		'calm',
+		'wink',
+		'idea',
+		'excited'
+	],
 	reactionMood: {
 		dns: 'wink',
 		cdn: 'happy',

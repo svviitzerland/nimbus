@@ -1,18 +1,18 @@
 import type { LessonText } from '../../types';
+import type { GuideStepText } from '$lib/components/stages/netguide/types';
 
 export interface WifiText extends LessonText {
+	/** The side panel, one step per beat (same length as intro). */
+	steps: GuideStepText[];
 	routerLabel: string;
-	phoneLabel: string;
-	neighbourLabel: string; // template with {n}, the neighbour's router and its channel
-	/** Room names on the house plan, in order: living room, kitchen, bedroom, study, garden. */
+	neighbourLabel: string; // the neighbour's router, shown with the channels
+	/** Room names on the plan, in order: living room, kitchen, study, bedroom, garden. */
 	rooms: string[];
-	bandLabel: string; // heading over the band toggle
-	bands: { b24: { name: string; sub: string }; b5: { name: string; sub: string } };
-	channelLabel: string; // heading over the channel picker
-	channel5Note: string; // shown instead of the picker on 5 GHz
-	dragHint: string; // how to move the phone
-	noSignal: string;
-	walls: { none: string; one: string; many: string }; // many is a template with {n}
-	/** Three small goals shown as a checklist, in order: lose 5 GHz, save it with 2.4, clash. */
-	goals: string[];
+	bands: { b24: string; b5: string }; // names in the signal meter
+	noSignal: string; // shown in the meter when a band is gone
+	laneLabel: string; // heading over the channel lanes
+	clashTag: string; // two routers in one lane
+	clearTag: string; // your router in its own lane
+	toInternet: string; // the cable leaving the house
+	tapHint: string; // shown over the picture on the last beat
 }

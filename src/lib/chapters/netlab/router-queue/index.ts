@@ -6,18 +6,11 @@ import { en } from './en';
 export const routerQueue: Lesson = {
 	id: 'router-queue',
 	mood: 'thinking',
-	moods: ['worried', 'thinking', 'idea', 'thinking', 'wink', 'happy'],
+	moods: ['worried', 'thinking', 'idea', 'idea', 'excited', 'happy', 'wink', 'calm', 'happy'],
 	reactionMood: {
+		queuePrint: 'happy',
 		torch: 'idea',
-		wrongUser: 'thinking',
-		tooHarsh: 'surprised',
-		notYet: 'thinking',
-		fair: 'excited',
-		tuned: 'happy',
-		noQueue: 'thinking',
-		stats: 'happy',
-		error: 'surprised',
-		done: 'excited'
+		error: 'thinking'
 	},
 	stage: RouterQueueStage,
 	text: { id, en }

@@ -6,21 +6,19 @@ import { en } from './en';
 export const incident: Lesson = {
 	id: 'incident',
 	mood: 'worried',
-	moods: ['surprised', 'worried', 'idea', 'thinking', 'calm', 'excited'],
-	reactionMood: {
-		check: 'thinking',
-		contain: 'happy',
-		clean: 'idea',
-		recover: 'happy',
-		doneGood: 'excited',
-		doneSlow: 'wink',
-		wrongContain: 'thinking',
-		wrongClean: 'worried',
-		wrongRecover: 'sad',
-		wrongLearn: 'worried',
-		pay: 'sad',
-		hide: 'surprised'
-	},
+	moods: [
+		'surprised',
+		'wink',
+		'calm',
+		'thinking',
+		'worried',
+		'idea',
+		'happy',
+		'calm',
+		'idea',
+		'wink'
+	],
+	reactionMood: { skip: 'worried', right: 'happy' },
 	stage: IncidentStage,
 	text: { id, en }
 };

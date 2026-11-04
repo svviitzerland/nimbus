@@ -3,32 +3,61 @@ import type { DesignToCodeText } from './types';
 export const en: DesignToCodeText = {
 	title: 'Design to code',
 	intro: [
-		'Before a page is built, someone usually draws it first. A <b>designer</b> plans every screen in a design tool, and the most popular one today is <b>Figma</b>, which runs right in your browser.',
-		'A design is not just a pretty picture. Every shape in it carries exact numbers, the colour as a code like <b>#2E6FE0</b>, the corner roundness in pixels, the space inside a button, the size of the text.',
-		'A developer opens the design, taps an element, and reads those numbers in an <b>inspect</b> panel. Then they write the same numbers into [[CSS|web/css]], the language that dresses up the [[HTML|web/html]] skeleton.',
-		'[fyi] Teams often name their common values, like "brand blue" or "space 16", and keep them in one shared list called a <b>design system</b>. Then design and code always speak the same words.',
-		'Here is the nimbus.com "Start now" button as the designer drew it, and your version in code, still a bit off. Inspect the design, then tweak your CSS until the two match.'
+		'Before a page is built, someone usually draws it first. A <b>designer</b> plans every screen in a design app, and the most popular one today is <b>Figma</b>, which runs right in your browser. Watch a button appear on the canvas.',
+		'A design is not just a pretty picture. Every shape carries exact numbers. Here are the four that make this button, its colour as a code like <b>#2E6FE0</b>, how round the corners are, the space inside it, and the size of the letters.',
+		'A developer taps the button in the design and reads those numbers in the <b>inspect</b> panel. Then they type the very same numbers into [[CSS|web/css]], the language that dresses up the [[HTML|web/html]] skeleton.',
+		'Now the browser reads the CSS and draws the button. Watch it change one line at a time, first a plain grey box, then the colour, the round corners, the breathing room, and finally the letter size.',
+		'Put the two side by side. The design and the real page now look exactly the same. Turning a drawing into matching code like this is the everyday job of a frontend developer.',
+		'[fyi] Teams often give their common values a name, like brand blue or space 24, and keep them in one shared list called a <b>design system</b>. Then designers and developers say the same words and nothing drifts apart.',
+		'[ingat] Do not eyeball it, read the numbers. Colour, corners, padding, letter size, four numbers make one button.',
+		'Your turn, if you like. Leave out the padding line and see how fast the button stops looking like the design.'
 	],
 	reactions: {
-		inspect:
-			'There are the real numbers. Designers measure in pixels (tiny dots on the screen) and write colours as hex codes. Now copy them into your CSS.',
-		color:
-			'Colour matches. In CSS that is <b>background</b>. Hex codes like #2E6FE0 mix red, green, and blue, two characters for each.',
-		radius:
-			'Corners match. <b>border-radius</b> rounds them off, 0 is a sharp box and bigger numbers get softer.',
-		padding:
-			'Spacing matches. <b>padding</b> is the breathing room between the text and the edge of the button.',
-		font: 'Text size matches. <b>font-size</b> sets how big the letters are, and it is a big part of how important something feels.',
-		done: 'Pixel perfect! Your button now matches the design exactly. That is the everyday job of a frontend developer, turning a design into real code that a browser can draw.'
+		nopad:
+			'Without padding the letters touch the edges and the button shrinks into a cramped little box. One missing number, and it no longer matches the design.',
+		pad: 'Padding is back, and the button can breathe again. Design and page match once more.'
 	},
+	steps: [
+		{
+			title: 'The design',
+			body: 'A <b>designer</b> draws the screens first, often in <b>Figma</b>. Nothing is coded yet, it is a plan everyone can look at.'
+		},
+		{
+			title: 'Exact numbers',
+			body: 'Every shape has measurements. Sizes are in <b>pixels</b> (the tiny dots on a screen), and colours are written as <b>hex codes</b>.'
+		},
+		{
+			title: 'Inspect, then type',
+			body: 'The developer reads each number in <b>inspect</b> and writes it into a CSS file. One number becomes one line.'
+		},
+		{
+			title: 'The browser draws',
+			body: '<b>background</b> sets the colour, <b>border-radius</b> rounds the corners, <b>padding</b> adds room inside, and <b>font-size</b> sets the letter size.'
+		},
+		{
+			title: 'It matches',
+			body: 'When every number is copied, the page looks <b>exactly</b> like the design. Designers call this pixel perfect.'
+		},
+		{
+			title: 'Design system',
+			tag: 'By the way',
+			body: 'Shared names for shared values, like <b>brand blue</b>. Change it once in the list and both the design and the code follow.'
+		},
+		{
+			title: 'Remember it',
+			tag: 'Remember it',
+			body: 'Do not guess, <b>read the numbers</b>. Colour, corners, padding, letter size.'
+		}
+	],
 	designLabel: 'Design (Figma)',
-	pageLabel: 'Your page',
+	pageLabel: 'nimbus.com',
 	button: 'Start now',
-	inspect: 'Inspect the design',
 	specLabel: 'Inspect',
-	props: { color: 'Fill', radius: 'Corner radius', padding: 'Padding sides', font: 'Font size' },
-	inspectHint: 'Tap inspect to see the numbers',
+	props: { color: 'Fill', radius: 'Corners', padding: 'Side padding', font: 'Font size' },
+	tokens: { color: 'brand blue', radius: 'round', padding: 'space 24', font: 'text 16' },
 	codeLabel: 'style.css',
-	matched: 'Your page matches the design',
-	score: '{n} of {total} match'
+	matched: 'Matches the design',
+	mismatch: 'Does not match',
+	skipPadding: 'Leave out the padding',
+	restorePadding: 'Put the padding back'
 };

@@ -6,15 +6,22 @@ import { en } from './en';
 export const learningLoop: Lesson = {
 	id: 'learning-loop',
 	mood: 'thinking',
-	moods: ['happy', 'thinking', 'calm', 'idea', 'thinking', 'wink', 'excited'],
+	moods: [
+		'calm',
+		'thinking',
+		'thinking',
+		'idea',
+		'wink',
+		'worried',
+		'surprised',
+		'happy',
+		'idea',
+		'excited'
+	],
 	reactionMood: {
-		step: 'happy',
 		small: 'worried',
-		zigzag: 'surprised',
-		big: 'worried',
-		flew: 'surprised',
-		slow: 'thinking',
-		bottom: 'excited'
+		good: 'happy',
+		big: 'surprised'
 	},
 	stage: LearningLoopStage,
 	text: { id, en }

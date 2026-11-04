@@ -1,34 +1,31 @@
 import type { LessonText } from '../../types';
 
+/** One part of the side panel (title, one or two short sentences, an optional tag). */
+export type GuideStep = { title: string; body: string; tag?: string };
+
 export interface UiUxText extends LessonText {
-	/** The little job the learner does in both shops. */
-	task: string;
-	shopA: string;
-	shopB: string;
+	/** Side panel parts, one per beat (the last beat reuses the last part). */
+	steps: GuideStep[];
+	/** The little shop on the phone. */
+	site: string;
 	product: string;
-	/** Money template, {n} is the amount. */
-	money: string;
-	qty: string;
-	shipping: string;
-	total: string;
-	/** Shop A, the one that looks fine but is hard to use. */
-	a: {
-		cancel: string;
-		next: string;
-		confirmQ: string;
-		yes: string;
-		no: string;
-		feeNote: string;
-		pay: string;
-	};
-	/** Shop B, same look, easy to use. */
-	b: { pay: string; free: string; back: string };
-	cancelled: string;
+	price: string;
+	buy: string;
 	paid: string;
-	again: string;
-	/** Template with {n}. */
-	taps: string;
-	whyBtn: string;
-	whyLabel: string;
-	whyPoints: string[];
+	/** Callouts around the phone while UI is in focus. */
+	uiColor: string;
+	uiFont: string;
+	uiButton: string;
+	/** The messy checkout. Two look alike buttons, a confusing label, and a surprise fee. */
+	messy: { cancel: string; next: string; fee: string; total: string; flags: string[] };
+	/** The clear checkout. One honest button and the full price up front. */
+	clear: { pay: string; free: string; total: string; flags: string[] };
+	/** The Norman door picture. */
+	door: { sign: string; caption: string };
+	/** The two tags on the remember part. */
+	lookTag: string;
+	feelTag: string;
+	/** The optional toggle on the last beat. */
+	showMessy: string;
+	showClear: string;
 }

@@ -6,14 +6,11 @@ import { en } from './en';
 export const overfitting: Lesson = {
 	id: 'overfitting',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'idea', 'thinking', 'wink', 'excited'],
+	moods: ['calm', 'worried', 'happy', 'thinking', 'surprised', 'idea', 'wink', 'excited'],
 	reactionMood: {
-		practice: 'excited',
-		reveal: 'thinking',
 		under: 'worried',
 		fit: 'happy',
-		over: 'surprised',
-		done: 'excited'
+		over: 'surprised'
 	},
 	stage: OverfittingStage,
 	text: { id, en }

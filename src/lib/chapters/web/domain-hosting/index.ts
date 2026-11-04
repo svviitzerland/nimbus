@@ -6,17 +6,21 @@ import { en } from './en';
 export const domainHosting: Lesson = {
 	id: 'domain-hosting',
 	mood: 'calm',
-	moods: ['calm', 'idea', 'thinking', 'calm', 'idea', 'wink', 'excited'],
+	moods: [
+		'calm',
+		'idea',
+		'happy',
+		'thinking',
+		'worried',
+		'idea',
+		'excited',
+		'wink',
+		'calm',
+		'excited'
+	],
 	reactionMood: {
-		taken: 'sad',
-		bought: 'happy',
-		shared: 'calm',
-		vps: 'happy',
-		cloud: 'happy',
-		unreachable: 'worried',
-		wrongip: 'thinking',
-		connected: 'idea',
-		live: 'excited'
+		wrongip: 'worried',
+		fixed: 'happy'
 	},
 	stage: DomainHostingStage,
 	text: { id, en }

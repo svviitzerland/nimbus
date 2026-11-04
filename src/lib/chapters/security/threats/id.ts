@@ -3,75 +3,103 @@ import type { ThreatsText } from './types';
 export const id: ThreatsText = {
 	title: 'Threat modeling',
 	intro: [
-		'Maling yang pintar nggak pernah melawan gembok besar di pintu depan. Dia mengecek jendela kamar mandi, pagar belakang, dan kunci cadangan di bawah pot bunga.',
-		'Penyerang juga berpikir begitu. <b>Threat modeling</b> artinya melihat sistemmu sendiri lewat mata penyerang, sebelum penyerang sungguhan melakukannya, lalu menambal pintu paling lemah duluan.',
-		'Intinya cuma empat pertanyaan sederhana. Kita lagi membangun apa? Apa yang bisa salah? Apa yang akan kita lakukan? Sudah cukup bagus belum? Penulis keamanan Adam Shostack yang membuat empat pertanyaan ini terkenal.',
-		'Cerita nyata menunjukkan kenapa ini penting. Tahun 2013 jaringan toko Amerika, Target, kebobolan sekitar 40 juta nomor kartu. Penyerangnya nggak mulai dari situs toko. Mereka masuk duluan pakai akun milik perusahaan kecil jasa pemanas dan AC yang bekerja untuk Target.',
-		'[fyi] Tahun 1999, dua insinyur Microsoft, Loren Kohnfelder dan Praerit Garg, menulis daftar periksa bernama <b>STRIDE</b>, enam jenis ancaman yang perlu dicari. Sampai sekarang banyak tim di dunia masih memakainya.',
-		'Nih peta toko nimbus.com. Ketuk setiap tempat yang menurutmu bisa dicoba penyerang, lalu bandingkan daftarmu dengan daftar Nim.'
+		'Maling yang pintar nggak pernah melawan gembok besar di pintu depan. Dia ngecek jendela, pintu pagar belakang, dan kunci cadangan di bawah pot bunga.',
+		'Penyerang juga mikir begitu. <b>Threat modeling</b> artinya keliling sistem milikmu sendiri pakai kacamata penyerang, sebelum penyerang beneran datang, lalu menambal pintu yang paling lemah duluan.',
+		'Intinya empat pertanyaan sederhana. Kita bikin apa? Apa yang bisa salah? Kita mau ngapain soal itu? Udah cukup bagus belum? Penulis keamanan Adam Shostack yang bikin empat pertanyaan ini terkenal.',
+		'Buat nimbus.com, rumahnya begini. Pintu depan itu halaman login. Jendela itu software server lama yang nggak pernah diupdate. Pagar belakang itu login yang dikasih ke perusahaan rekanan. Kunci di bawah pot itu backup, salinan lengkap semua data.',
+		'Cerita nyata. Tahun 2013 jaringan toko Amerika bernama Target kehilangan sekitar 40 juta nomor kartu. Penyerangnya nggak mulai dari pintu depan. Mereka masuk duluan pakai login perusahaan kecil jasa AC dan pemanas yang bekerja untuk Target.',
+		'Dari pagar belakang itu mereka menyusup lewat jaringan Target sampai ke mesin kasir di toko toko, lalu diam diam menyalin kartu tiap kali pelanggan bayar. Gembok pintu depannya bahkan nggak disentuh sama sekali.',
+		'[ingat] <b>Rumah cuma seaman pintu terlemahnya.</b> Mikir kayak maling, ngunci kayak pemilik.',
+		'[fyi] Tahun 1999 dua insinyur Microsoft, Loren Kohnfelder dan Praerit Garg, menulis daftar cek bernama <b>STRIDE</b>, enam jenis ancaman yang perlu dicari (menyamar jadi orang lain, mengubah data, menyangkal perbuatan, membocorkan, memblokir, dan merebut kuasa lebih). Tim di seluruh dunia masih memakainya.',
+		'Mau keliling sendiri? Pencet bagian mana pun dari rumahnya buat lihat apa yang bisa salah di situ dan gimana nimbus.com menguncinya.'
 	],
 	reactions: {
-		first:
-			'Awal yang bagus. Tiap tanda itu satu pintu yang perlu dijaga. Lanjut, dan coba pikirkan juga yang di luar situsnya.',
-		vendor:
-			'Jeli banget. Persis begitu cara Target dibobol, lewat mitra yang kuncinya lebih lemah. Siapa pun yang bisa login ke sistemmu ikut jadi bagian keamananmu, termasuk teknisi AC.',
-		backup:
-			'Mantap, kebanyakan orang lupa soal backup. Backup itu salinan lengkap datamu, jadi mencurinya sama saja dengan mencuri aslinya.',
-		compareAll:
-			'Semua tempat di daftar Nim kamu temukan. Kamu sudah berpikir seperti penjaga. Tim sungguhan melakukan ini di papan tulis sebelum mulai menulis kode.',
-		compareSome:
-			'Lumayan banget. Yang warna kuning itu yang terlewat, ketuk untuk lihat kenapa penting. Kelewatan beberapa itu wajar, makanya tim memetakan ancaman bareng bareng, makin banyak mata makin banyak pintu yang ketemu.'
+		door: 'Pintu depan, halaman login. Semua orang menyerangnya duluan, jadi biasanya kuncinya paling bagus. Tapi bot yang nebak password seharian tetap bisa nemu yang lemah.',
+		window:
+			'Jendela, software lama. Celah di versi lama itu rahasia umum, dan bot memindai seluruh internet buat nyarinya tiap hari. Update itu gembok paling murah.',
+		gate: 'Pagar belakang, persis cara Target jebol. Siapa pun yang bisa login ke sistemmu itu bagian dari keamananmu, termasuk tukang AC.',
+		pot: 'Kunci di bawah pot. Banyak yang lupa sama backup, padahal backup itu salinan lengkap data, jadi mencurinya sama aja dengan mencuri yang asli.'
 	},
+	steps: [
+		{
+			tag: 'Si maling',
+			title: 'Dia lewatin gembok besar',
+			body: 'Penyerang datang ke bagian yang pertahanannya <b>paling lemah</b>, bukan yang paling kuat.'
+		},
+		{
+			tag: 'Idenya',
+			title: 'Threat modeling',
+			body: 'Lihat sistem milikmu sendiri <b>pakai kacamata penyerang</b>, sengaja, sebelum orang lain melakukannya.'
+		},
+		{
+			tag: 'Caranya',
+			title: 'Empat pertanyaan',
+			body: 'Kita bikin apa? Apa yang bisa salah? Kita mau ngapain? Udah cukup bagus belum?'
+		},
+		{
+			tag: 'nimbus.com',
+			title: 'Rumahnya itu sistemnya',
+			body: 'Pintu itu <b>login</b>, jendela itu <b>software lama</b>, pagar itu <b>login rekanan</b>, kuncinya itu <b>backup</b>.'
+		},
+		{
+			tag: 'Target, 2013',
+			title: 'Masuk lewat pagar belakang',
+			body: 'Penyerangnya pakai login <b>perusahaan jasa AC</b> kecil yang bekerja untuk Target.'
+		},
+		{
+			tag: 'Target, 2013',
+			title: 'Sampai ke kasir',
+			body: 'Begitu di dalam, mereka sampai ke <b>mesin kasir</b> dan menyalin sekitar 40 juta kartu.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Pintu terlemah',
+			body: 'Keamananmu cuma sebagus bagian yang <b>paling lemah</b>. Temukan duluan sebelum mereka.'
+		},
+		{
+			tag: 'Info',
+			title: 'STRIDE',
+			body: 'Enam jenis ancaman buat dicek, satu per huruf. Berguna kalau empat pertanyaan tadi terasa terlalu luas.'
+		},
+		{
+			tag: 'Opsional',
+			title: 'Keliling',
+			body: 'Pencet satu bagian rumah. Tiap bagian punya ancaman dan tambalannya.'
+		}
+	],
 	spots: {
-		phone: {
-			name: 'HP pelanggan',
-			threat: 'Halaman login palsu menipu pelanggan supaya mengetik password (phishing).',
-			fix: 'Tambah langkah login kedua, jadi password curian saja nggak cukup.'
+		door: {
+			name: 'Pintu depan',
+			place: 'halaman login',
+			threat: 'Bot nebak ribuan password per menit.',
+			fix: 'Batasi percobaan dan tambah langkah login kedua.'
 		},
-		wifi: {
-			name: 'WiFi kafe',
-			threat: 'Orang di WiFi yang sama ikut menguping data yang lewat.',
-			fix: 'Pakai HTTPS di mana mana, jadi yang lewat sudah terenkripsi.'
+		window: {
+			name: 'Jendela',
+			place: 'software lama',
+			threat: 'Celah terkenal di software yang nggak pernah diupdate.',
+			fix: 'Rajin update dan matikan yang nggak dipakai.'
 		},
-		login: {
-			name: 'Halaman login',
-			threat: 'Bot menebak ribuan password tiap menit.',
-			fix: 'Batasi jumlah percobaan dan perlambat kalau gagal terus.'
+		gate: {
+			name: 'Pagar belakang',
+			place: 'login rekanan',
+			threat: 'Rekanan yang keamanannya lebih lemah tetap punya login.',
+			fix: 'Kasih rekanan akun kecil terpisah dan awasi.'
 		},
-		server: {
-			name: 'Server web',
-			threat: 'Software lama dengan celah terkenal yang belum diperbarui.',
-			fix: 'Rajin update dan tutup port yang nggak dipakai.'
-		},
-		db: {
-			name: 'Database',
-			threat: 'Data pelanggan disalin keluar sekaligus.',
-			fix: 'Simpan hash password saja dan enkripsi data penting.'
-		},
-		admin: {
-			name: 'Laptop admin',
-			threat: 'Isinya kunci ke semua hal, dan kadang ditinggal di meja tanpa dikunci.',
-			fix: 'Beri tiap orang akses secukupnya, dan kunci layarnya.'
-		},
-		vendor: {
-			name: 'Akun mitra',
-			threat: 'Teknisi AC juga punya akun login, dan keamanannya mungkin lebih lemah dari kamu.',
-			fix: 'Beri mitra akun terpisah yang aksesnya kecil, lalu awasi aktivitasnya.'
-		},
-		backup: {
-			name: 'Disk backup',
-			threat: 'Salinan lengkap data, sering dijaga lebih santai daripada aslinya.',
+		pot: {
+			name: 'Kunci di bawah pot',
+			place: 'backup',
+			threat: 'Salinan lengkap data, tapi dijaga lebih santai.',
 			fix: 'Enkripsi backup dan simpan di tempat terkunci.'
 		}
 	},
-	tapHint: 'Ketuk tempat di peta untuk menandainya',
-	compareBtn: 'Bandingkan dengan daftar Nim',
-	compareNeed: 'Tandai {n} lagi untuk membandingkan',
-	score: 'Kamu menemukan {n} dari {total}',
-	missedLabel: 'Nim juga menemukan',
-	threatLabel: 'Yang bisa salah',
-	fixLabel: 'Cara menambal',
-	foundTag: 'punyamu',
-	missedTag: 'terlewat',
-	resetBtn: 'Ulangi petanya'
+	news: {
+		tag: 'Target, 2013',
+		head: 'Sekitar 40 juta nomor kartu dicuri, berawal dari login rekanan'
+	},
+	registerLabel: 'mesin kasir',
+	cardsLabel: '40 juta kartu',
+	threatLabel: 'Apa yang bisa salah',
+	fixLabel: 'Tambalannya',
+	tapHint: 'Pencet satu bagian rumah'
 };

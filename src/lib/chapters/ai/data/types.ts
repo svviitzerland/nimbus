@@ -1,23 +1,35 @@
 import type { LessonText } from '../../types';
 
+export interface GuidePanel {
+	tag?: string;
+	title: string;
+	/** May hold simple HTML like <b>. */
+	body: string;
+}
+
+/** The four kinds of mess the dataset gets cleaned of. */
+export type DataProblem = 'wrong' | 'blurry' | 'copy' | 'missing';
+
 export interface DataText extends LessonText {
-	catLabel: string; // the label "cat"
-	notLabel: string; // the label "not a cat"
-	setTitle: string; // template with {n}, the training photos still in the dataset
-	testTitle: string; // caption over the new photos the model has never seen
-	trainBtn: string;
-	retrainBtn: string;
-	reset: string;
-	score: string; // template with {n}, how many of the 6 new photos it got right
-	pickHint: string; // nothing selected yet
-	chosen: string; // template with {n} and {label}, the selected photo
-	blurChosen: string; // template with {label}, the blurry photo is selected
-	swapBtn: string;
-	removeBtn: string;
-	photo: string; // template with {n}, aria label of a training photo
-	newPhoto: string; // template with {n}, aria label of a new photo
-	lookHint: string; // nudge to tap a new photo to see the example it copied
-	copied: string; // template with {n}, the training photo a new photo was matched with
-	stale: string; // the data changed since the last training
-	guessed: string; // small caption before the model's guess on a new photo
+	/** One panel per beat of the guided visual (ten beats). */
+	panels: GuidePanel[];
+	/** File name on top of the spreadsheet. */
+	sheetName: string;
+	colPhoto: string;
+	colLabel: string;
+	cat: string; // the label "cat"
+	notCat: string; // the label "not a cat"
+	/** Short note next to a row that has a problem. */
+	problems: Record<DataProblem, string>;
+	/** Footer under the sheet, template with {n} rows. */
+	count: string;
+	/** Footer once everything is clean, template with {n} rows. */
+	cleanCount: string;
+	/** Rule of thumb under the sheet on the memory beat. */
+	rule: string;
+	/** The optional toggle on the last beat. */
+	messBtn: string;
+	cleanBtn: string;
+	/** Aria labels of the little pictures. */
+	pics: { cat: string; dog: string; blurry: string };
 }

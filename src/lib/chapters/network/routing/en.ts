@@ -3,49 +3,73 @@ import type { RoutingText } from './types';
 export const en: RoutingText = {
 	title: 'Routers and routing',
 	intro: [
-		'When you open nimbus.com, your packet almost never flies straight to the server. It hops through a chain of boxes across the city, maybe across the sea. Each of those boxes is a <b>router</b>.',
-		'Remember from [[Layers and packets|networking/layers]], every packet carries a label with its destination address. A router reads that label, then looks it up in its <b>routing table</b>, a short list that says "to reach this network, hand it to that neighbour". That neighbour is called the <b>next hop</b>.',
-		'Think of a signpost at every junction. A router does not know the whole road to nimbus.com, it only knows which way to point next. The next router does the same, hop by hop, until the packet arrives.',
-		'And if nothing in the table matches? The router simply drops the packet, it never guesses. That is why almost every router has a <b>default route</b>, one line that says "anything else, send it to the ISP". Your router at home runs on basically that one line.',
-		'[fyi] Same word, different world. A cloud network (a [[VPC|networking/vpc]]) has route tables too. You never touch a physical box there, you fill in the lines from a web console, but the idea is exactly the same.',
-		'Here Router A sits between your office laptop and the internet, and its table is still empty. Send a packet to nimbus.com, give Router A a route, then try deleting it.'
+		'When you open nimbus.com, your laptop wraps the request in a tiny envelope called a <b>packet</b> (you met it in [[Layers and packets|networking/layers]]). Look at it sitting on your laptop, ready to go.',
+		'The packet never flies straight to the server. First it hops to the box at home, a <b>router</b>. Routers sit wherever cables meet, like junctions on a road.',
+		'Now it reaches the router at your internet provider. The router reads the address on the label, and only the label. It never opens the envelope.',
+		'Beside every router stands a signpost, its <b>routing table</b>. Each arm says "for this address, take that road". The arm for nimbus.com points to the next router.',
+		'So the router passes the packet along and forgets about it. The next router reads the label, checks its own signpost, and does the same. Hop by hop, the packet arrives.',
+		'[ingat] A router is a post office sorting letters. It reads the address, drops the letter on the right road, and is done. Nobody drives the letter all the way.',
+		'And when no arm matches? The router never guesses, it throws the packet away. That is why almost every router has one arm marked "everything else", the <b>default route</b>. Your home router lives on basically that one arm.',
+		'[fyi] Same word, different world. A cloud network (a [[VPC|networking/vpc]]) has route tables too. You fill in the lines from a web page instead of touching a box, but the idea is exactly the same.',
+		'That is routing, a chain of signposts. If you are curious, knock the signpost at the provider over and watch what happens to the next packet.'
 	],
 	reactions: {
-		noRoute:
-			'Router A read the label, found nothing for 203.0.113.0/24 in its table, and dropped the packet on the spot. Routers never guess. Give it a route.',
-		added:
-			'A new line in the table. Router A now knows which neighbour gets packets for nimbus.com. Send one and see if you pointed the right way.',
-		wrongWay:
-			'Router C got the packet, but its own table only knows the office files. Nothing for nimbus.com, so it drops it too. One wrong line and the packet gets lost on the road. Point the route at Router B.',
-		delivered:
-			'It arrived! A handed it to B, B knew where the server lives, and the server got it. Each router only knew its next step, yet together they found the way. Now delete that route and send again.',
-		deleted: 'The line is gone, like a signpost knocked over. What happens to the next packet?',
-		lost: 'Lost, right where the signpost used to be. A single missing line can cut off a whole website, which is why network admins guard their routing tables so carefully.'
+		knocked:
+			'Gone. The provider router read the label, found no arm for nimbus.com, and dropped the packet right there. One missing line can cut off a whole website.',
+		fixed:
+			'Signpost back up, and the packets flow again. That is why network people guard their routing tables so carefully.'
 	},
+	steps: [
+		{
+			title: 'A packet',
+			body: 'A small envelope of data. Its label carries the destination address, here the nimbus.com server at <b>203.0.113.10</b>.'
+		},
+		{
+			title: 'A router',
+			body: 'A box that sits where networks meet. Its one job is to move each packet one step closer to where it is going.'
+		},
+		{
+			title: 'Reading the label',
+			body: 'The router looks only at the destination address. What is inside the packet does not matter to it.'
+		},
+		{
+			title: 'Routing table',
+			body: 'A short list inside the router. Each line pairs a destination with the neighbour to hand it to, called the <b>next hop</b>.'
+		},
+		{
+			title: 'Hop by hop',
+			body: 'No router knows the whole road. Each one only knows the next step, and together that is enough.'
+		},
+		{
+			tag: 'Rule of thumb',
+			title: 'Read, pick, pass',
+			body: 'Read the address, pick the arm that matches, pass the packet to the next hop. Every router does only this.'
+		},
+		{
+			title: 'Default route',
+			body: 'The catch all line. Anything the table does not know goes to the provider, which knows far more roads.'
+		},
+		{
+			title: 'Also in the cloud',
+			body: 'Cloud networks have <b>route tables</b> that work the same way. You just edit them from a web page.'
+		},
+		{
+			title: 'One missing arm',
+			body: 'Without a matching line, the packet is dropped on the spot. Routers never guess.'
+		}
+	],
 	laptopLabel: 'Your laptop',
-	routerA: 'Router A',
-	routerB: 'Router B',
-	routerC: 'Router C',
-	knowsB: 'knows nimbus.com',
-	knowsC: 'knows office files',
+	homeRouter: 'Home router',
+	ispRouter: 'Provider router',
+	nextRouter: 'Next router',
+	otherLabel: 'Other networks',
 	serverLabel: 'nimbus.com',
 	serverSub: '203.0.113.10',
-	filesLabel: 'Office files',
-	packetChip: 'to 203.0.113.10',
-	tableTitle: 'Routing table of {name}',
-	destCol: 'Destination',
-	hopCol: 'Next hop',
-	destValue: '203.0.113.0/24',
-	emptyRow: 'No routes yet',
-	pickHop: 'Add a route to nimbus.com through',
-	viaB: 'Router B',
-	viaC: 'Router C',
-	deleteBtn: 'Delete route',
-	sendBtn: 'Send a packet',
-	noteIdle: 'The packet is addressed to 203.0.113.10, the nimbus.com server',
-	noteDelivered: 'Delivered, hop by hop',
-	noteNoRoute: '{name} has no matching route, packet dropped',
-	noteWrong: '{name} has no route to nimbus.com either, packet dropped',
-	lostTag: 'dropped',
-	okTag: 'arrived'
+	packetTo: 'to 203.0.113.10',
+	signNimbus: 'nimbus.com',
+	signOther: 'others',
+	signDefault: 'everything else',
+	droppedTag: 'dropped',
+	knockBtn: 'Knock the signpost over',
+	fixBtn: 'Put the signpost back'
 };

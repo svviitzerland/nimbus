@@ -6,13 +6,20 @@ import { en } from './en';
 export const cache: Lesson = {
 	id: 'cache',
 	mood: 'calm',
-	moods: ['thinking', 'worried', 'idea', 'calm', 'happy', 'wink', 'excited'],
+	moods: [
+		'thinking',
+		'worried',
+		'idea',
+		'calm',
+		'thinking',
+		'excited',
+		'wink',
+		'surprised',
+		'happy'
+	],
 	reactionMood: {
-		slow: 'worried',
 		miss: 'thinking',
-		hit: 'excited',
-		stale: 'surprised',
-		fresh: 'happy'
+		hit: 'excited'
 	},
 	stage: CacheStage,
 	text: { id, en }

@@ -1,23 +1,24 @@
 import type { LessonText } from '../../types';
+import type { GuideStep } from '$lib/components/stages/secbasics/guided.svelte';
 
-/** The short stories, in the order the stage tells them. */
-export type HatScenarioId = 'lab' | 'wifi' | 'pentest' | 'extort' | 'warn' | 'bounty';
 export type Hat = 'white' | 'gray' | 'black';
 
 export interface HatColorsText extends LessonText {
-	askLabel: string; // the question over every story
-	legalBtn: string;
-	illegalBtn: string;
-	/** Each story, who is in it, what they do, and why it lands where it does. */
-	scenarios: Record<HatScenarioId, { who: string; story: string; why: string }>;
-	hats: Record<Hat, string>; // name of each hat
-	legalTag: string; // verdict chip, legal
-	illegalTag: string; // verdict chip, not legal
-	rightTag: string; // the learner guessed right
-	wrongTag: string; // the learner guessed wrong
-	nextBtn: string;
-	progress: string; // template with {n} and {total}
-	scoreLine: string; // template with {n} and {total}, shown at the end
-	doneLine: string; // the closing idea, shown at the end
-	again: string; // tells the stories again
+	/** The side panel, one entry per beat. */
+	steps: GuideStep[];
+	hats: Record<Hat, string>;
+	/** Captions under the props, with permission and without. */
+	permission: string;
+	noPermission: string;
+	/** The Mitnick headline and his three moments on the timeline. */
+	news: { tag: string; head: string };
+	timeline: [
+		{ year: string; label: string },
+		{ year: string; label: string },
+		{ year: string; label: string }
+	];
+	bountyLabel: string;
+	/** One short story per hat for the optional last beat. */
+	stories: Record<Hat, { who: string; story: string }>;
+	tapHint: string;
 }

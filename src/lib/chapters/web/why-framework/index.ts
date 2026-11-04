@@ -5,13 +5,9 @@ import { en } from './en';
 
 export const whyFramework: Lesson = {
 	id: 'why-framework',
-	mood: 'thinking',
-	moods: ['calm', 'worried', 'idea', 'thinking', 'wink', 'excited'],
-	reactionMood: {
-		missed: 'worried',
-		handDone: 'thinking',
-		framework: 'excited'
-	},
+	mood: 'calm',
+	moods: ['calm', 'thinking', 'worried', 'idea', 'calm', 'wink', 'happy', 'excited'],
+	reactionMood: { price: 'excited' },
 	stage: WhyFrameworkStage,
 	text: { id, en }
 };

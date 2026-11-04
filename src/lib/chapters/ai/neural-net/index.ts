@@ -6,16 +6,23 @@ import { en } from './en';
 export const neuralNet: Lesson = {
 	id: 'neural-net',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'idea', 'thinking', 'wink', 'happy', 'excited'],
+	moods: [
+		'calm',
+		'thinking',
+		'idea',
+		'thinking',
+		'idea',
+		'happy',
+		'thinking',
+		'excited',
+		'wink',
+		'happy'
+	],
 	reactionMood: {
-		input: 'happy',
 		select: 'idea',
 		tweak: 'thinking',
-		better: 'happy',
 		worse: 'surprised',
-		hand: 'excited',
-		learning: 'thinking',
-		trained: 'excited'
+		better: 'happy'
 	},
 	stage: NeuralNetStage,
 	text: { id, en }

@@ -6,21 +6,17 @@ import { en } from './en';
 export const linuxFiles: Lesson = {
 	id: 'linux-files',
 	mood: 'thinking',
-	moods: ['calm', 'idea', 'thinking', 'wink', 'happy', 'worried'],
+	moods: ['calm', 'idea', 'thinking', 'happy', 'excited', 'surprised', 'wink', 'idea', 'happy'],
 	reactionMood: {
-		pwd: 'happy',
-		root: 'idea',
-		varlog: 'excited',
-		found: 'surprised',
-		etc: 'idea',
-		hostname: 'happy',
-		access: 'thinking',
-		notes: 'wink',
+		home: 'excited',
+		moved: 'happy',
+		looked: 'idea',
+		read: 'happy',
+		pwd: 'wink',
 		rootHome: 'wink',
 		missing: 'thinking',
 		denied: 'thinking',
-		error: 'surprised',
-		done: 'excited'
+		error: 'surprised'
 	},
 	stage: LinuxFilesStage,
 	text: { id, en }

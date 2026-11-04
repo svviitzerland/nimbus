@@ -1,69 +1,69 @@
 import type { CtfText } from './types';
 
 export const id: CtfText = {
-	title: 'Apa itu CTF',
+	title: 'Capture The Flag',
+	caesar: {
+		alt: 'Patung dada Julius Caesar dari marmer di Museum Vatikan',
+		caption: 'Julius Caesar, patung Romawi'
+	},
 	intro: [
-		'Ada teka teki nih. Kalau mengetes situs orang tanpa izin itu melanggar hukum, terus orang belajar hacking di mana? Bukan di situs beneran. Mereka main game yang memang dibuat buat itu.',
-		'Game itu namanya <b>CTF</b>, singkatan dari Capture The Flag. Mirip permainan rebut bendera, kamu berburu bendera. Di sini benderanya berupa teks rahasia pendek yang disembunyikan di dalam teka teki, kira kira bentuknya nimbus{...}. Temukan, ketik, dapat poin.',
-		'Teka tekinya ada beberapa jenis. <b>Crypto</b> soal tulisan rahasia, <b>web</b> menyembunyikan sesuatu di dalam halaman, dan <b>password</b> mengetes seberapa gampang sebuah login ditebak. Tiap teka teki yang terpecahkan menambah poin di papan skor, dan tim tim saling balapan.',
-		'Kenapa di sini boleh menyerang? Karena panitianya sengaja membuat semua target buat diserang. Ikut main itu sendiri sudah jadi izinnya, sama kayak scope di [[bug bounty|security/pentest]].',
-		'[fyi] DEF CON, konferensi hacker di Las Vegas, sudah mengadakan salah satu CTF paling terkenal sejak 1996. Buat pemula ada picoCTF dari Carnegie Mellon University, gratis dan dibuat buat anak sekolah. Indonesia juga punya, misalnya Cyber Jawara.',
-		'CTF mini punyamu sudah siap, tiga teka teki yang masing masing bernilai 100 poin. Tiap bendera bentuknya nimbus{sesuatu}, dan kamu cukup mengetik bagian di dalam kurung kurawalnya.'
+		'Ini teka teki. Kalau mengetes situs asli tanpa izin itu melanggar hukum, terus orang belajar hacking di mana? Bukan di situs asli. Mereka main game yang memang dibuat untuk itu.',
+		'Game ini namanya <b>CTF</b>, singkatan dari Capture The Flag. Kayak permainan rebut bendera, kamu berburu bendera. Di sini benderanya berupa teks rahasia pendek yang disembunyikan di dalam teka teki, misalnya nimbus{...}. Temukan, ketik, dapat poin.',
+		'Kenapa menyerang di sini boleh? Karena panitianya membangun setiap target memang untuk diserang, dan ikut bermain itulah izinmu. Idenya sama dengan scope di [[bug bounty|security/pentest]], cuma lebih santai.',
+		'Yuk pecahkan satu yang kecil bareng. Ada yang meninggalkan catatan acak ini. Dia memakai <b>sandi Caesar</b>, trik yang dipakai Julius Caesar untuk surat suratnya sekitar dua ribu tahun lalu. Setiap huruf digeser beberapa langkah ke depan di alfabet, di sini tiga, jadi a berubah jadi d.',
+		'Untuk membacanya, geser setiap huruf mundur tiga langkah. Lihat. q mundur jadi n, l mundur jadi i, p mundur jadi m. Kurung kurawal bukan huruf, jadi tetap seperti aslinya.',
+		'Dan itu dia benderanya, nimbus{salad}. Caesar salad, tentu saja. Pembuat soal memang suka lelucon garing.',
+		'[fyi] DEF CON, konferensi hacker di Las Vegas, sudah menggelar salah satu CTF paling terkenal sejak 1996. Untuk pemula ada picoCTF dari Carnegie Mellon University, gratis dan dibuat untuk pelajar sekolah. Indonesia juga punya, misalnya Cyber Jawara.',
+		'[ingat] Caesar itu cuma geser alfabet, kayak kode rahasia waktu SD, a jadi d, b jadi e. Maju untuk menyembunyikan, mundur untuk membaca. Dan karena cuma ada 25 kemungkinan geseran, coba saja semuanya.',
+		'Kalau mau, giliran kamu. Ini catatan baru dengan geseran yang beda. Geser slidernya sampai pesannya masuk akal.'
 	],
 	reactions: {
-		decoded:
-			'Nah itu dia. Geser balik tiap huruf tiga langkah, dan huruf acak tadi berubah jadi kata. Itu trik Caesar dari [[kunci|security/keys]], dan sekarang kamu tahu benderanya.',
-		caesar:
-			'Bendera pertama didapat. Teka teki crypto beneran juga mulainya kayak gini, lalu makin susah, dengan kunci lebih panjang dan trik lebih aneh.',
-		peek: 'Halamannya kelihatan kosong, tapi browser cuma menampilkan sebagian dari yang dia terima. Lihat source-nya buat melihat HTML mentah yang datang.',
-		source:
-			'Bendera kedua. Komentar di [[HTML|web/html]] memang nggak tampil di layar, tapi tetap terkirim ke semua pengunjung. Developer beneran pernah membocorkan password dengan cara ini, jadi jangan pernah menyimpan rahasia di halaman.',
-		tryFail: 'Bukan. Coba yang lain, daftarnya diurutkan dari yang paling sering dipakai orang.',
-		cracked:
-			'Masuk. nimbus123 itu nama situs ditambah beberapa angka, salah satu tebakan pertama setiap penyerang. Benderanya ada di layar sambutan.',
-		password:
-			'Bendera ketiga. Password yang panjang, atau lebih baik lagi password manager, bakal bikin daftar ini nggak ada gunanya.',
-		wrongFlag: 'Hampir, tapi bukan itu benderanya. Cek ejaannya, huruf kecil semua.',
-		allFlags:
-			'Tiga bendera, 300 poin! Kamu baru saja memecahkan teka teki crypto, web, dan password. picoCTF dan kawan kawannya punya ratusan lagi, semuanya legal dan gratis.'
+		solved:
+			'Tujuh langkah, dan keluarlah nimbus{cloud}. Kamu baru saja memecahkan sandi dengan mencoba geseran satu per satu, persis cara pemain CTF.'
 	},
-	scoreLabel: 'Skor {n} dari {total}',
-	points: '{n} poin',
-	solvedTag: 'beres',
-	challenges: {
-		caesar: {
-			name: 'Rahasia kuno',
-			category: 'Crypto',
-			brief: 'Seseorang menggeser tiap huruf benderanya. Geser terus sampai terbaca jadi kata.'
+	steps: [
+		{
+			title: 'Latihan yang legal',
+			body: 'Kemampuan hacking dilatih di <b>game</b> yang memang dibuat untuk itu, bukan di situs asli.'
 		},
-		source: {
-			name: 'Halaman kosong',
-			category: 'Web',
-			brief: 'Halaman nimbus.com ini kelihatannya nggak punya apa apa. Lihat lebih teliti.'
+		{
+			title: 'Capture The Flag',
+			body: 'Benderanya berupa <b>teks rahasia</b> seperti nimbus{...}. Temukan, kirim, dapat poin.'
 		},
-		password: {
-			name: 'Login latihan',
-			category: 'Password',
-			brief:
-				'Admin di mesin latihan ini memakai password yang umum. Coba daftar password yang paling sering dipakai.'
+		{
+			title: 'Dibuat untuk diserang',
+			body: 'Panitia memiliki semua targetnya dan <b>mengundang</b> kamu membobolnya. Ikut bermain itulah izinnya.'
+		},
+		{
+			title: 'Sandi Caesar',
+			body: 'Tiap huruf bergeser <b>3 langkah</b> di alfabet. a jadi d, b jadi e, dan seterusnya.'
+		},
+		{
+			title: 'Membaca sandinya',
+			body: 'Geser mundur sebanyak langkah yang sama. Yang bukan huruf <b>tetap</b> seperti aslinya.'
+		},
+		{
+			title: 'Dapat',
+			body: 'Benderanya <b>nimbus{salad}</b>. Di CTF sungguhan, kamu tinggal menempelkannya untuk dapat poin.'
+		},
+		{
+			tag: 'Info',
+			title: 'Tempat bermain',
+			body: '<b>picoCTF</b> gratis dan dibuat untuk pemula. Indonesia punya <b>Cyber Jawara</b>.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Geser saja',
+			body: 'Maju untuk <b>sembunyi</b>, mundur untuk <b>baca</b>. Cuma 25 geseran yang perlu dicoba.'
+		},
+		{
+			tag: 'Giliranmu',
+			title: 'Cari geserannya',
+			body: 'Geser slidernya sampai catatannya terbaca seperti bendera.'
 		}
-	},
-	flagLabel: 'Benderamu',
-	flagPlaceholder: 'isi di dalam kurung',
-	submitBtn: 'Kirim',
-	wrongFlag: 'Bukan benderanya',
-	rightFlag: 'Didapat, 100 poin',
-	allSolved: 'Semua bendera sudah didapat',
-	shiftLabel: 'Geser balik {n}',
-	cipherLabel: 'Yang kamu temukan',
-	plainLabel: 'Setelah digeser',
-	pageHeading: 'Selamat datang di nimbus.com',
-	pageBody: 'Nggak ada apa apa di sini. Beneran.',
-	viewPage: 'Halaman',
-	viewSource: 'Lihat source',
-	loginTitle: 'practice.nimbus.com',
-	userLabel: 'User',
-	wordlistLabel: 'Password paling umum',
-	wrongPass: 'Password salah',
-	welcome: 'Selamat datang, admin. Benderamu adalah'
+	],
+	sign: 'Silakan diserang',
+	noteLabel: 'Catatannya',
+	stripCap: 'Tiap huruf bergeser {n} langkah',
+	shiftLabel: 'Geser mundur {n}'
 };

@@ -5,15 +5,20 @@ import { en } from './en';
 
 export const pwa: Lesson = {
 	id: 'pwa',
-	mood: 'happy',
-	moods: ['thinking', 'idea', 'calm', 'idea', 'surprised', 'excited'],
-	reactionMood: {
-		plainOffline: 'sad',
-		manifest: 'happy',
-		worker: 'idea',
-		installed: 'wink',
-		offlineApp: 'excited'
-	},
+	mood: 'calm',
+	moods: [
+		'calm',
+		'sad',
+		'idea',
+		'thinking',
+		'happy',
+		'excited',
+		'surprised',
+		'wink',
+		'idea',
+		'happy'
+	],
+	reactionMood: { offline: 'excited', online: 'happy' },
 	stage: PwaStage,
 	text: { id, en }
 };

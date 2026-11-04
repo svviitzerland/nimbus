@@ -1,84 +1,83 @@
 import type { HardeningText } from './types';
 
 export const id: HardeningText = {
-	title: 'Server hardening',
+	title: 'Server Hardening',
 	intro: [
-		'Kamu baru saja menyewa server baru buat nimbus.com. Masih segar dari pabrik, dia mirip rumah baru yang semua jendelanya dibiarkan terbuka oleh tukangnya, plus kunci cadangan di bawah keset.',
-		'Dan kamu nggak akan sendirian lama. Beberapa menit setelah online, bot otomatis mulai mengetuk, mencoba semua pintu yang mereka tahu, siang malam, dari seluruh penjuru internet.',
-		'<b>Server hardening</b> artinya menutup semua pintu yang nggak kamu butuhkan, sampai satu satunya jalan masuk adalah pintu yang kamu jaga. Update software, tutup <b>port</b> (pintu bernomor tempat server mendengarkan) yang nggak dipakai, login pakai kunci bukan password, dan beri tiap program kuasa seperlunya saja.',
-		'Melewatkan ini bisa fatal. Tahun 2017 lembaga kredit Equifax kebocoran data sekitar 147 juta orang. Lubangnya ada di Apache Struts, software di server web mereka, dan tambalannya sudah tersedia dua bulan sebelumnya. Nggak ada yang memasangnya.',
-		'[fyi] Hardening nggak cuma buat server. HP yang terus minta update dan layar kunci laptopmu juga termasuk hardening. Di cloud, provider mengamankan gedung dan mesinnya, tapi server yang kamu sewa tetap tugasmu untuk dikunci, itulah [[shared responsibility|networking/shared-responsibility]].',
-		'Ini server nimbus.com yang masih baru. Jalankan scanner untuk melihat berapa pintu yang terbuka, lalu tutup satu per satu, tapi jangan tutup pintu yang dipakai pengunjungmu.'
+		'Kamu baru saja menyewa server baru untuk nimbus.com. Begitu keluar dari kotaknya, dia kayak rumah baru yang semua pintunya dibiarkan terbuka sama tukangnya, plus kunci cadangan di bawah keset.',
+		'Dan kamu nggak bakal sendirian lama. Beberapa menit setelah online, <b>bot</b> mulai mengetuk. Bot itu program kecil yang keliling seluruh internet, mencoba semua pintu yang dia temukan, siang dan malam.',
+		'Pintu pintu itu namanya <b>port</b>. Port adalah pintu bernomor tempat sebuah program menunggu tamu, misalnya 443 untuk website atau 22 untuk login dari jauh. <b>Scanner</b> berjalan melewati tiap pintu dan melaporkan mana yang menjawab. Sekarang skornya jelek.',
+		'Langkah pertama, update. Tahun 2017 biro kredit Equifax kebobolan data pribadi sekitar 147 juta orang lewat celah di Apache Struts, software yang jalan di web servernya. Perbaikannya sudah keluar dua bulan sebelumnya. Nggak ada yang memasangnya.',
+		'Langkah kedua, tutup semua pintu yang nggak kamu perlukan. Berbagi file model lama, Telnet, database, halaman tes yang terlupa. Lihat mereka tertutup satu per satu, dan lihat skor scanner naik.',
+		'Langkah ketiga, kunci pintu yang tetap dipakai. Pintu admin (SSH) sekarang cuma bisa dibuka pakai <b>file kunci</b> yang tersimpan di laptopmu, bukan password yang bisa ditebak bot. Dan nggak ada yang login sebagai root, user yang boleh melakukan apa saja.',
+		'Satu pintu sengaja tetap terbuka, pintu website yang dipakai pengunjung. Hardening bukan mengunci semuanya, tapi memastikan satu satunya jalan masuk adalah jalan yang kamu awasi.',
+		'[fyi] Hardening bukan cuma untuk server. HP kamu yang terus minta update juga bentuk hardening. Di cloud, provider mengamankan gedung dan mesinnya, tapi server yang kamu sewa tetap urusanmu, itulah [[shared responsibility|networking/shared-responsibility]].',
+		'[ingat] Rumus keluar rumah. Pintu yang nggak dipakai, tutup. Pintu yang dipakai, gembok. Dan gemboknya jangan yang sudah karatan, alias selalu update.',
+		'Mau lihat kenapa ini penting? Buka lagi pintu Telnet, lalu lihat apa yang dilakukan bot dan scanner.'
 	],
 	reactions: {
-		scan: 'Aduh, skornya 10. Enam pintu terbuka lebar, dan bot sudah mulai mencobanya. Ketuk pintu yang merah untuk menutupnya, urutannya bebas.',
-		update:
-			'Sudah diupdate. Kebanyakan serangan memakai lubang yang sebenarnya sudah ada tambalannya, persis kasus Equifax. Menyalakan update keamanan otomatis itu perlindungan paling murah.',
-		telnet:
-			'Telnet ditutup. Ini cara login jarak jauh dari tahun 1969 yang mengirim semuanya, termasuk password, sebagai teks biasa yang bisa dibaca. SSH sudah lama menggantikannya, jadi pintu ini nggak perlu.',
-		db: 'Pintu database ditutup dari internet. Sekarang cuma server web di sebelahnya yang boleh bicara dengannya. Satu aturan [[firewall|networking/firewall]] kecil seperti ini mencegah banyak sekali kebocoran.',
-		sshkey:
-			'Password dimatikan, kunci dinyalakan. Bot bisa menebak password seharian (itu namanya [[brute force|security/brute-force]]), tapi dia nggak bisa menebak file kunci yang cuma ada di laptopmu.',
-		root: 'Aplikasi web sekarang jalan sebagai user kecilnya sendiri, bukan <b>root</b>, admin yang serba bisa. Kalau suatu hari dibobol, penyerang cuma masuk ke satu kamar kecil, bukan seluruh rumah. Namanya <b>least privilege</b>.',
-		default:
-			'Panel admin masih memakai password bawaan pabrik, admin dan admin. Bot selalu mencoba itu duluan. Password yang panjang dan unik menutup pintu paling gampang dari semuanya.',
-		web: 'Waduh, nimbus.com langsung offline. Port 443 itu pintu yang dipakai pengunjungmu untuk HTTPS. Hardening artinya menutup pintu yang nggak dibutuhkan, bukan semua pintu. Buka lagi, yuk.',
-		done: 'Skor 100. Semua pintu yang nggak perlu sudah tertutup, dan satu satunya jalan masuk adalah pintu depan yang kamu awasi. Tim sungguhan menjalankan scanner seperti ini secara rutin, karena lubang baru muncul tiap minggu.'
+		reopen:
+			'Beberapa detik kemudian bot sudah langsung menyerbu, dan skornya turun. Satu pintu yang terlupa bisa merusak banyak kerja bagus.',
+		reclose: 'Tertutup lagi. Bot cuma mental lalu pergi mencari server lain yang lebih gampang.'
 	},
-	serverLabel: 'Server nimbus.com',
-	scanBtn: 'Jalankan scanner',
-	scoreLabel: 'Skor keamanan',
-	doors: {
-		update: {
-			name: 'Software dua tahun lalu',
-			risk: 'Ada lubang terkenal yang tambalannya sudah ada',
-			fix: 'Update',
-			done: 'Terbaru, update otomatis nyala'
+	steps: [
+		{
+			title: 'Server baru',
+			body: 'Dari pabriknya, banyak program sudah nyala dan mendengarkan, masing masing di balik <b>pintu terbuka</b> sendiri.'
 		},
-		telnet: {
-			name: 'Port 23, Telnet',
-			risk: 'Login lama yang mengirim password apa adanya',
-			fix: 'Tutup',
-			done: 'Ditutup selamanya'
+		{
+			title: 'Bot mengetuk',
+			body: 'Program otomatis menyisir seluruh internet tanpa henti. Server baru biasanya ketemu dalam hitungan <b>menit</b>.'
 		},
-		db: {
-			name: 'Port 3306, database',
-			risk: 'Bisa dijangkau dari seluruh internet',
-			fix: 'Tutup',
-			done: 'Cuma server web yang bisa menjangkau'
+		{
+			title: 'Port dan scanner',
+			body: '<b>Port</b> itu pintu bernomor tempat program mendengarkan. <b>Scanner</b> mendata pintu mana yang menjawab, alat yang sama persis dengan yang dipakai penyerang.'
 		},
-		sshkey: {
-			name: 'Login SSH pakai password',
-			risk: 'Bot bisa terus menebak tanpa henti',
-			fix: 'Pakai kunci',
-			done: 'Cuma bisa login pakai kunci'
+		{
+			title: 'Update dulu',
+			body: '<b>Update</b> (disebut juga patch) menambal celah yang sudah diketahui pembuatnya. Software lama adalah pintu paling gampang.'
 		},
-		root: {
-			name: 'Aplikasi jalan sebagai root',
-			risk: 'Sekali dibobol, semuanya ikut diserahkan',
-			fix: 'Perkecil',
-			done: 'Jalan sebagai user kecil'
+		{
+			title: 'Tutup yang nggak perlu',
+			body: 'Matikan program yang nggak dipakai siapa pun. Port yang tertutup bikin bot <b>nggak punya lawan bicara</b>.'
 		},
-		default: {
-			name: 'Panel admin, admin dan admin',
-			risk: 'Password bawaan pabrik, yang pertama dicoba bot',
-			fix: 'Ganti',
-			done: 'Password panjang dan unik'
+		{
+			title: 'Kunci yang dipakai',
+			body: 'Login pakai <b>kunci</b>, bukan password, dan kasih tiap program kuasa secukupnya saja.'
+		},
+		{
+			title: 'Satu pintu diawasi',
+			body: 'Pintu website sengaja tetap terbuka. Makin sedikit pintu, makin sedikit tempat yang perlu dijaga.'
+		},
+		{
+			tag: 'Info',
+			title: 'Hardening di mana mana',
+			body: 'Update HP dan kunci layar juga hardening. Di cloud, server yang kamu sewa tetap <b>tanggung jawabmu</b>.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Tutup, gembok, update',
+			body: 'Nggak dipakai, <b>tutup</b>. Dipakai, <b>gembok</b>. Selalu <b>update</b>.'
+		},
+		{
+			tag: 'Giliranmu',
+			title: 'Buka lagi satu pintu',
+			body: 'Kalau mau, buka lagi Telnet dan lihat bot menyerbu sementara skornya turun.'
 		}
+	],
+	serverLabel: 'server nimbus.com',
+	botsLabel: 'Bot',
+	scoreLabel: 'Skor scanner',
+	software: 'Apache Struts',
+	outdated: 'lama',
+	patched: 'terbaru',
+	doors: {
+		ftp: 'Berkas',
+		ssh: 'Admin',
+		telnet: 'Telnet',
+		web: 'Website',
+		db: 'Database',
+		test: 'Halaman tes'
 	},
-	web: {
-		name: 'Port 443, HTTPS',
-		note: 'Pintu masuk pengunjungmu',
-		close: 'Tutup',
-		reopen: 'Buka lagi',
-		closedNote: 'Tertutup, nggak ada yang bisa membuka nimbus.com'
-	},
-	openTag: 'terbuka',
-	closedTag: 'tertutup',
-	neededTag: 'dibutuhkan',
-	siteUp: 'online',
-	siteDown: 'offline',
-	hintIdle: 'Server baru, masih segar dari pabrik',
-	hintScan: 'Ketuk pintu merah untuk menutupnya',
-	hintDone: 'Semua pintu yang nggak perlu sudah tertutup'
+	reopen: 'Buka lagi Telnet',
+	reclose: 'Tutup Telnet'
 };

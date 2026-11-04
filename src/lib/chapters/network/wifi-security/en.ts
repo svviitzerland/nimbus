@@ -3,53 +3,69 @@ import type { WifiSecurityText } from './types';
 export const en: WifiSecurityText = {
 	title: 'WiFi security',
 	intro: [
-		'[[WiFi|network/wifi]] is radio. Your router shouts your data into the air, and the walls of your house do not stop it. The neighbour, or someone parked outside, can catch the very same waves.',
-		'So the real question is not whether they can hear it, they can. The question is whether what they hear makes any sense. That depends on the security setting on your router.',
-		'An <b>open</b> network has no password at all. Anyone can join, and traffic that is not locked by the site itself can simply be read. That is why the free WiFi at a cafe is risky, and why a [[VPN|network/vpn]] helps there.',
-		'<b>WPA2</b> locks everything with your WiFi password. It is good, with one weakness. A snooper can record the moment a phone joins, then take it home and guess passwords against it as fast as his computer can go. An easy password falls in seconds.',
-		'<b>WPA3</b> is the newer one. That recording trick no longer works, each guess has to be tried live against the router, one by one, and the router can slow that down. Even a recorded session cannot be unlocked later.',
-		'One more habit. Give visitors a <b>guest network</b>. Their phones get internet, but they cannot see your laptop or anything else on your home network.',
-		'[fyi] WPA stands for WiFi Protected Access. Its grandparent, WEP from 1999, was so weak it could be broken in minutes, so if an old router still offers WEP, skip it.',
-		'You are the owner of this router. Try each setting, open, WPA2, and WPA3, and see what the snooper outside gets. Play with the password too.'
+		'[[WiFi|network/wifi]] is radio. Your router sends your data into the air as waves, and walls do not stop them. They spill out into the street.',
+		'So the neighbour, or a stranger parked outside, can catch the very same waves. The real question is not whether they can hear it (they can), but whether it makes any sense to them.',
+		'An <b>open</b> network has no password. Anyone can join, and anything the site itself does not lock can be read as it flies by. That is why free cafe WiFi is risky, and why a [[VPN|network/vpn]] helps there.',
+		'<b>WPA2</b> locks everything with your WiFi password, and it is the most common setting today. Its one weakness, a stranger can record the moment a phone joins, take it home, and guess passwords against it very fast. A short password falls quickly, a long one holds for years.',
+		'<b>WPA3</b> is the newer lock. That recording trick no longer works. Every guess has to knock on your router live, one at a time, so guessing becomes painfully slow.',
+		'One more good habit, a <b>guest network</b>. Visitors still get internet, but they live in a separate room of your network, so their phones cannot reach your laptop or TV.',
+		'[ingat] Bigger number, stronger lock. Open is a postcard anyone can read, WPA2 is a sealed envelope (only as strong as its password), and WPA3 is the best seal you can pick.',
+		'[fyi] WPA stands for WiFi Protected Access. Its grandparent WEP, from 1999, can be broken in minutes. If an old router still offers WEP, skip it.',
+		'If you like, switch your router between Open, WPA2 and WPA3, and see what the stranger outside gets.'
 	],
 	reactions: {
-		open: 'No password, no lock. The snooper just joined like any guest and is reading your traffic as it flies by. Fine for a park bench, never for home.',
-		wpa2weak:
-			'WPA2 was on, yet the snooper still got in. He recorded the handshake, tried a list of common passwords at home, and yours was on it. Make it longer and try again.',
-		wpa2: 'Much better. With a long password, guessing from that recording would take him years. WPA2 is fine as long as the password is not easy.',
-		wpa3: 'WPA3 shut the trick down. There is nothing useful to take home, every guess must knock on your router live, and it slows him down. This is the one to pick when your devices support it.',
-		guest:
-			'Guest network on. Your friend still gets internet, but now lives on a separate network, so your laptop and TV are out of reach for anything on their phone.'
+		open: 'Open. The stranger joined like any guest and reads whatever is not locked by the site. Fine for a park, never for home.',
+		wpa2: 'WPA2. He only sees scrambled waves, but he saved a phone joining and is guessing at home. With a long password, he will be guessing for years.',
+		wpa3: 'WPA3. Scrambled, and nothing worth taking home. Each guess must knock on your router, one by one. Pick this whenever your devices support it.'
 	},
-	routerTitle: 'Your router settings',
-	securityLabel: 'Security',
+	steps: [
+		{
+			title: 'Radio waves',
+			body: 'Your router turns data into radio waves that spread in every direction. Walls make them weaker, they do not stop them.'
+		},
+		{
+			title: 'Anyone can listen',
+			body: 'Any device in range can pick up the waves. Hearing them is easy. Understanding them depends on the lock.'
+		},
+		{
+			tag: 'Open',
+			title: 'No lock at all',
+			body: 'No password and no scrambling on the WiFi. Whatever the site itself does not lock can be read by anyone nearby.'
+		},
+		{
+			tag: 'WPA2',
+			title: 'A lock made from your password',
+			body: 'Everything is scrambled with a key built from your WiFi password. Safe with a long password, weak with an easy one.'
+		},
+		{
+			tag: 'WPA3',
+			title: 'A lock you cannot crack at home',
+			body: 'Recording a phone joining gives the stranger nothing useful. He would have to guess live against your router, very slowly.'
+		},
+		{
+			title: 'Guest network',
+			body: 'A second WiFi name on the same router. Guests get internet, but your own devices are out of their reach.'
+		},
+		{
+			tag: 'Remember it',
+			title: 'Bigger number, stronger lock',
+			body: 'Open, then WPA2, then WPA3. Pick the highest one all your devices support, and give it a long password.'
+		}
+	],
+	homeLabel: 'Your home',
+	routerLabel: 'Router',
+	laptopLabel: 'Laptop',
+	tvLabel: 'TV',
+	guestLabel: 'Guest WiFi',
+	snooperLabel: 'Stranger outside',
 	modes: { open: 'Open', wpa2: 'WPA2', wpa3: 'WPA3' },
-	modeHints: {
-		open: 'No password, anyone can join',
-		wpa2: 'Locked with your password, the common choice',
-		wpa3: 'Locked with your password, the newer and safer choice'
-	},
-	passwordLabel: 'WiFi password',
-	weakTag: 'easy to guess',
-	strongTag: 'strong',
-	guestLabel: 'Guest network for visitors',
-	applyBtn: 'Save and let the snooper try',
-	snooperLabel: 'Snooper outside your house',
-	snooperIdle: 'Waiting for your router to come online',
+	saferLabel: 'safer',
+	pickLabel: 'Router security',
 	snoop: {
-		joinOpen: '> joined the network, no password asked',
-		readPlain: '> reading your traffic, GET nimbus.com/login user=nim',
-		captured: '> recorded a phone joining the network',
-		guessing: '> guessing passwords from a list at home',
-		cracked: '> found it, the password is {pw}',
-		noLuck: '> 10 million guesses later, still nothing',
-		noise: '> all I can read is noise',
-		wpa3Live: '> nothing useful to record, every guess must go to the router',
-		wpa3Slow: '> the router keeps slowing my guesses down, giving up'
-	},
-	homeNet: 'home network',
-	guestNet: 'guest network',
-	devices: { laptop: 'Your laptop', tv: 'Smart TV', friend: "Friend's phone" },
-	noteGuestOff: "Your friend's phone sits right next to your laptop",
-	noteGuestOn: "Your friend's phone has internet, but cannot see your laptop"
+		idle: ['', ''],
+		listen: ['catching waves', 'from your house'],
+		open: ['reading it all', 'chat "see you at 7"'],
+		wpa2: ['scrambled noise', 'saved a join, guessing'],
+		wpa3: ['scrambled noise', 'nothing to take home']
+	}
 };

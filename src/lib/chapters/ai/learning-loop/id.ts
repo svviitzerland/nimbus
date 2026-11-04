@@ -3,40 +3,75 @@ import type { LearningLoopText } from './types';
 export const id: LearningLoopText = {
 	title: 'Gradient descent',
 	intro: [
-		'Masih ingat [[neural network|ai/neural-net]] payung yang belajar sendiri? Tiap langkah dia menggeser bobotnya sedikit biar makin jarang salah. Hari ini kita zoom ke gerakan itu, namanya <b>gradient descent</b>.',
-		'Bayangkan satu bobot saja. Untuk tiap nilai yang mungkin, jaringannya salah tebak sekian hari. Kalau digambar, jadinya seperti bentang alam, tinggi di tempat tebakannya jelek dan rendah di tempat tebakannya bagus. Modelnya mengincar <b>dasar lembah</b>.',
-		'Masalahnya, model nggak bisa melihat seluruh bentang alamnya. Rasanya seperti berdiri di bukit yang tertutup kabut tebal. Yang bisa kamu rasakan cuma tanah di bawah kaki dan ke arah mana miringnya. Kemiringan itu namanya <b>gradient</b>, istilah keren untuk lereng.',
-		'Jadi resepnya sederhana. Rasakan lerengnya, melangkah turun, rasakan lagi, melangkah lagi. Tebak, ukur seberapa salah, geser sedikit, lalu ulangi berkali kali. Hampir semua AI modern belajar dengan putaran ini.',
-		'Seberapa besar tiap langkah juga punya nama, <b>learning rate</b>. Langkah mini itu aman tapi lambat banget. Lompatan raksasa malah bisa melewati lembahnya dan mendarat lebih tinggi dari tempat awal.',
-		'[fyi] Jaringan sungguhan punya jutaan bahkan miliaran bobot, jadi bentang alamnya punya arah sebanyak itu sekaligus. Nggak ada yang bisa membayangkannya, tapi bolanya tetap menggelinding dengan cara yang sama, turun sedikit di semua arah bersamaan.',
-		'Ini bolaku di bukit kesalahan, lagi nangkring di bobot yang jelek. Pilih ukuran langkah, lalu melangkah sendiri atau biarkan menggelinding. Coba yang mini, yang raksasa, lalu cari yang sampai ke dasar dengan cepat.'
+		'<b>Model</b> AI itu mesin penebak yang di dalamnya ada banyak kenop kecil (namanya <b>bobot</b> atau weight, sama kayak di [[neural network|ai/neural-net]]). Awalnya kenopnya diputar asal, jadi tebakannya sering salah.',
+		'Kita ambil satu kenop aja. Tiap posisi kenop bikin modelnya salah sekian banyak. Kalau semuanya digambar, jadinya sebuah bukit. Makin tinggi berarti makin salah, dan dasar lembahnya adalah posisi terbaik.',
+		'Masalahnya, model nggak bisa melihat bukitnya. Rasanya kayak berdiri di tengah kabut tebal. Yang bisa dia rasakan cuma tanah tepat di bawahnya dan ke arah mana miringnya. Kemiringan itu disebut <b>gradient</b>, istilah keren buat lereng.',
+		'Jadi dia melakukan hal paling sederhana. Rasakan lerengnya, melangkah sedikit ke bawah, rasakan lagi, melangkah lagi. Putaran ini namanya <b>gradient descent</b> (descent artinya turun), dan hampir semua AI modern belajar dengan cara ini.',
+		'[ingat] Gradient descent itu kayak turun bukit pas kabut tebal. Lembahnya nggak kelihatan, jadi kakimu yang meraba. Miring ke mana, ke situ melangkah. Raba, langkah, ulangi.',
+		'Panjang tiap langkah juga punya nama, <b>learning rate</b>. Lihat langkah mini dulu. Aman sih, tapi bolanya merayap pelan banget, dan latihannya bisa makan waktu selamanya.',
+		'Sekarang lompatan raksasa. Tiap lompatan kelewatan lembahnya dan mendarat makin tinggi di sisi seberang, sampai bolanya terlempar keluar dari bukit. Orang bilang modelnya <b>diverged</b> (meledak), dan latihannya gagal.',
+		'Langkah yang pas ada di tengah tengah. Bolanya turun dengan cepat lalu diam di dasar. Memilih ukuran langkah ini salah satu hal pertama yang diatur engineer sebelum melatih model.',
+		'[fyi] Model sungguhan punya jutaan bahkan miliaran kenop, jadi bukitnya punya arah sebanyak itu sekaligus. Nggak ada yang bisa membayangkannya, tapi idenya persis sama, melangkah sedikit ke bawah di semua arah bersamaan.',
+		'Kalau mau, coba ganti ganti tiga ukuran langkahnya dan lihat masing masing menggelinding. Opsional kok, bukitnya nggak bakal kabur.'
 	],
 	reactions: {
-		step: 'Satu langkah! Bolanya merasakan lereng di bawahnya (panah kecil itu) lalu bergerak turun. Lihat meteran salahnya, barusan turun sedikit.',
 		small:
-			'Langkah sekecil ini memang aman, tapi lihat lambatnya merayap. Melatih AI sungguhan begini bisa makan waktu lama dan listrik yang banyak. Coba langkah yang lebih besar.',
-		zigzag:
-			'Lihat dia loncat dari sisi lembah satu ke sisi lainnya? Langkahnya agak kebesaran jadi kelewatan, tapi akhirnya tetap tenang juga.',
-		big: 'Waduh, tiap lompatan mendarat makin tinggi! Kalau learning rate kebesaran, modelnya malah makin buruk, bukan makin bagus. Geser slidernya mundur.',
-		flew: 'Bolanya terbang keluar dari bukit. Di pelatihan sungguhan inilah saat angkanya meledak dan modelnya rusak (orang bilang <b>diverge</b>). Ulangi dan pilih langkah yang lebih kalem.',
-		slow: 'Sampai juga ke dasar, walau agak lama. Berhasil sih, tapi engineer selalu mencari ukuran langkah yang lebih cepat sampai. Bisa nggak kamu sampai dalam dua belas langkah atau kurang?',
-		bottom:
-			'Dasar lembah, cuma dalam beberapa langkah! Itu titik pasnya. Jaringan payung tadi melakukan persis ini, hanya saja untuk semua bobotnya sekaligus dan ribuan kali.'
+			'Langkah mini. Aman, tapi lihat tuh merayapnya. Melatih model sungguhan begini bisa makan waktu berhari hari dan listrik yang banyak.',
+		good: 'Pas banget. Beberapa langkah mantap, lalu bolanya diam di dasar lembah. Ukuran langkah kayak gini yang dicari para engineer.',
+		big: 'Lompatan raksasa! Tiap mendarat makin tinggi, terus terlempar deh. Learning rate yang kebesaran bikin model makin buruk, bukan makin bagus.'
 	},
-	axisWeight: 'nilai bobot',
+	panels: [
+		{
+			tag: 'Bukit',
+			title: 'Kesalahan jadi bukit',
+			body: 'Kiri kanan adalah posisi kenop. Atas bawah adalah <b>seberapa salah</b> modelnya. Benderanya menandai titik paling sedikit salahnya.'
+		},
+		{
+			tag: 'Kabut',
+			title: 'Cuma lereng yang terasa',
+			body: 'Model nggak bisa melihat seluruh bukit. Panah kecil itu adalah <b>gradient</b>, kemiringan tepat di bawah bola, menunjuk ke arah turun.'
+		},
+		{
+			tag: 'Putaran',
+			title: 'Rasakan, melangkah, ulangi',
+			body: 'Tiap langkah memutar kenop sedikit ke arah turun, dan bar <b>seberapa salah</b> ikut menyusut. Melatih model itu ya putaran ini, ribuan kali.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Turun bukit dalam kabut',
+			body: 'Nggak perlu peta. Raba lerengnya pakai kaki, melangkah ke arah turun, ulangi sampai tanahnya datar.'
+		},
+		{
+			tag: 'Kekecilan',
+			title: 'Merayap',
+			body: 'Dengan <b>learning rate</b> mini, tiap langkah nyaris nggak bergerak. Nggak ada yang rusak, cuma lambat banget dan mahal.'
+		},
+		{
+			tag: 'Kebesaran',
+			title: 'Terlempar',
+			body: 'Lompatan yang kebesaran melewati lembahnya. Tiap mendarat makin tinggi dari sebelumnya, jadi modelnya makin buruk.'
+		},
+		{
+			tag: 'Pas',
+			title: 'Titik manis',
+			body: 'Cukup besar buat bergerak cepat, cukup kecil biar nggak kelewatan. Beberapa langkah saja, bolanya sudah diam di dasar.'
+		},
+		{
+			tag: 'Coba',
+			title: 'Tiga ukuran langkah',
+			body: 'Ganti ukuran langkahnya dan lihat bola yang sama merayap, berhenti di dasar, atau terlempar. Bukitnya sama, titik awalnya sama, cuma langkahnya yang beda.'
+		}
+	],
+	axisKnob: 'posisi kenop',
 	axisError: 'seberapa salah',
 	lowest: 'paling sedikit salah',
-	stepBtn: 'Melangkah sekali',
-	rollBtn: 'Biar menggelinding',
-	rolling: 'Menggelinding, langkah {n}',
-	reset: 'Ulangi',
-	rateLabel: 'Ukuran langkah (learning rate)',
-	rateLow: 'langkah mini',
-	rateHigh: 'lompatan raksasa',
-	rateTags: ['mini', 'pas', 'loncat loncat', 'kebesaran'],
 	errorLabel: 'Seberapa salah',
-	steps: '{n} langkah',
-	slopeHint: 'Panahnya menunjukkan arah turun',
-	flew: 'Bolanya terbang keluar bukit',
-	bottom: 'Sampai di dasar dalam {n} langkah'
+	stepN: 'Langkah {n}',
+	bottom: 'Sampai di dasar dalam {n} langkah',
+	far: 'Masih jauh dari dasar setelah {n} langkah',
+	flew: 'Terlempar dari bukit',
+	rule: 'Raba lerengnya, melangkah turun, ulangi.',
+	sizes: ['langkah mini', 'pas', 'lompatan raksasa'],
+	sizeLabel: 'Ukuran langkah, {x}',
+	another: 'Coba ukuran langkah lain'
 };

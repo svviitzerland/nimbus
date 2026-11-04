@@ -6,15 +6,12 @@ import { en } from './en';
 export const http: Lesson = {
 	id: 'http',
 	mood: 'calm',
-	moods: ['calm', 'thinking', 'idea', 'calm', 'thinking', 'wink', 'wink', 'excited'],
+	moods: ['calm', 'thinking', 'idea', 'calm', 'happy', 'thinking', 'wink', 'idea', 'excited'],
 	reactionMood: {
 		ok: 'happy',
-		list: 'happy',
-		created: 'excited',
+		moved: 'wink',
 		notfound: 'thinking',
-		notallowed: 'surprised',
-		broken: 'worried',
-		done: 'excited'
+		broken: 'worried'
 	},
 	stage: HttpStage,
 	text: { id, en }

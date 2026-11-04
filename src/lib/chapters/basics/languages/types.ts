@@ -1,30 +1,29 @@
 import type { LessonText } from '../../types';
 
 export type LangId = 'machine' | 'c' | 'python';
-export type JobLang = 'python' | 'js' | 'c';
+export type JobId = 'data' | 'web' | 'speed' | 'phone';
+
+export interface GuidePanel {
+	tag?: string;
+	title: string;
+	/** May hold simple HTML like <b>. */
+	body: string;
+}
 
 export interface LanguagesText extends LessonText {
+	/** One panel per scene of the guided visual (seven scenes). */
+	panels: GuidePanel[];
 	/** The one task every version of the code does. */
 	taskLabel: string;
-	/** Shown before any language is picked. */
-	pickHint: string;
-	/** The three versions of the same program. */
-	langs: Record<LangId, { name: string; sub: string; note: string }>;
-	/** Meter captions. */
-	humanMeter: string;
-	machineMeter: string;
-	/** Line count chip, template with {n}. */
-	linesLabel: string;
-	/** Opens the second part once all three were seen. */
-	toJobs: string;
-	/** Heading over the matching game, template with {n} and {total}. */
-	jobsLabel: string;
-	/** Names on the answer buttons. */
-	jobLangs: Record<JobLang, string>;
+	/** Name and a short hint for each version of the code. */
+	langs: Record<LangId, { name: string; sub: string }>;
+	/** Ends of the "easy for people versus close to the machine" arrow. */
+	people: string;
+	machine: string;
+	/** Small label on the chip drawing. */
+	cpu: string;
 	/** Each job and the language people usually reach for. */
-	jobs: { id: string; text: string; answer: JobLang }[];
-	wrongTag: string;
-	rightTag: string;
-	allDone: string;
-	backToCode: string;
+	jobs: Record<JobId, { lang: string; job: string }>;
+	/** Rule of thumb line under the toolbox. */
+	rule: string;
 }

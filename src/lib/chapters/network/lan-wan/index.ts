@@ -6,7 +6,7 @@ import { en } from './en';
 export const lanWan: Lesson = {
 	id: 'lan-wan',
 	mood: 'happy',
-	moods: ['happy', 'thinking', 'idea', 'wink', 'excited'],
+	moods: ['happy', 'calm', 'thinking', 'excited', 'wink', 'idea', 'excited'],
 	reactionMood: { lan: 'happy', wan: 'idea', internet: 'excited' },
 	stage: LanWanStage,
 	text: { id, en }

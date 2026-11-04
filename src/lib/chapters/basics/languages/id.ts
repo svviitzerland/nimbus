@@ -3,50 +3,75 @@ import type { LanguagesText } from './types';
 export const id: LanguagesText = {
 	title: 'Bahasa pemrograman',
 	intro: [
-		'Kemarin Nim nulis langkah pakai kata biasa. Masalahnya, chip di dalam komputer (CPU) sama sekali nggak bisa baca kata. Dia cuma menjalankan deretan panjang <b>0 dan 1</b>, yang disebut <b>machine code</b> (kode mesin).',
-		'Dulu orang memang pernah nulis program langsung pakai 0 dan 1. Lambat, bikin pusing, dan salah satu digit aja semuanya rusak. Jadi orang menciptakan cara yang lebih ramah buat menulis perintah.',
-		'Itulah <b>bahasa pemrograman</b>. Bentuknya agak mirip bahasa Inggris dan matematika, jadi manusia bisa baca dan nulis. Nanti ada penerjemah yang mengubahnya jadi 0 dan 1 yang beneran dijalankan mesin.',
-		'Ada ratusan bahasa, dan tiap bahasa punya untung ruginya. Ada yang gampang dibaca tapi jalannya sedikit lebih lambat. Ada yang ngebut banget tapi minta kamu menjelaskan tiap detail kecil.',
+		'Ada rahasia kecil soal semua komputer. Chip yang benar benar bekerja, namanya <b>CPU</b> (otaknya komputer), sama sekali nggak bisa baca kata. Dia cuma ngerti <b>0 dan 1</b>.',
+		'Perintah yang ditulis cuma pakai 0 dan 1 disebut <b>machine code</b> (kode mesin). Dulu orang beneran nulis program kayak gini, pakai tangan. Lambat, bikin pusing, dan salah satu digit aja semuanya rusak.',
+		'Makanya orang menciptakan cara yang lebih ramah buat menulis perintah, yaitu <b>bahasa pemrograman</b>. Kamu nulis pakai kata dan simbol, lalu penerjemah (namanya [[compiler|basics/compiler]]) mengubahnya jadi 0 dan 1 buat CPU.',
+		'Kenalan sama <b>C</b>, salah satu bahasa klasik, lahir tahun 1970an. Tugasnya sama, jumlahkan 2 dan 3 lalu tampilkan hasilnya. Masih agak rewel soal kurung dan titik koma, tapi jalannya dekat banget sama mesin, jadi cepat.',
+		'Dan ini <b>Python</b>. Tugas yang persis sama, cukup satu baris. Bacanya hampir kayak bahasa Inggris biasa, makanya banyak orang belajar Python duluan.',
+		'Perhatikan untung ruginya. Makin ke atas, makin gampang ditulis manusia. Makin ke bawah, makin dekat ke mesin, lebih cepat tapi lebih rewel. Nggak ada bahasa yang jago di semua hal.',
+		'Jadi orang memilih bahasa kayak milih alat dari kotak perkakas. Palu nggak lebih bagus dari obeng, dia cuma pas buat paku.',
 		'[fyi] Kata yang sama, dunia yang beda. Bahasa sehari hari punya tata bahasa dan bahasa gaul, bahasa pemrograman juga punya aturan, cuma jauh lebih ketat. Lupa satu kurung aja, penerjemahnya langsung nolak ngerti, sejelas apa pun maksudnya.',
-		'Jadi orang memilih bahasa yang cocok sama pekerjaannya, kayak milih alat dari kotak perkakas. Palu nggak lebih bagus dari obeng, dia cuma pas buat paku.',
-		'Ini satu tugas kecil yang sama, ditulis dalam tiga bahasa. Pencet satu per satu dan bandingkan, terus coba jodohkan bahasa dengan pekerjaan yang bikin mereka terkenal.'
+		'[ingat] Lihat kodenya tinggal di mana. JS buat web, Python buat data dan AI, C buat yang ngebut, Kotlin dan Swift buat aplikasi HP.',
+		'Gitu deh intinya. Kalau mau, pencet salah satu versi kodenya dan lihat dia nulis dirinya sendiri lagi.'
 	],
 	reactions: {
 		machine:
-			'Inilah yang sebenarnya dijalankan CPU. Tiap baris itu satu byte, delapan angka 0 dan 1. Dan ini baru menjumlahkan 2 dan 3, buat menampilkan hasilnya di layar butuh ratusan baris lagi. Nggak ada yang mau nulis ini pakai tangan.',
-		c: 'C jauh lebih ramah, tapi masih agak rewel. Kamu harus sebut library yang dipakai, membungkus kodenya di fungsi main, dan mengakhiri baris pakai titik koma. Imbalannya, dia jalan dekat banget sama mesin, jadi cepat.',
+			'Sembilan byte 0 dan 1, dan ini baru bagian menjumlahkan. Buat menampilkan hasilnya di layar butuh ratusan baris lagi. Untung sekarang nggak ada yang perlu nulis ini pakai tangan.',
+		c: 'C minta kamu menjelaskan banyak hal, library mana yang dipakai, program mulai dari mana, titik koma di tiap baris. Imbalannya, dia jalan cepat.',
 		python:
-			'Cuma satu baris! Python menyembunyikan bagian yang rewel supaya kamu fokus ke idenya. Kemudahan itu dibayar sedikit kecepatan, tapi buat kebanyakan pekerjaan nggak kerasa. Tapi ingat, belum ada yang jadi 0 dan 1, masih perlu [[compiler atau interpreter|basics/compiler]] buat menerjemahkannya.',
-		data: 'Betul, Python. Ilmuwan dan orang data suka banget karena bacanya hampir kayak catatan, dan dia punya banyak sekali alat siap pakai buat angka dan grafik.',
-		web: 'Benar, JavaScript. Cuma bahasa ini yang dimengerti semua browser, jadi apa pun yang bereaksi waktu kamu pencet di halaman web, kayak di nimbus.com, hampir pasti JavaScript.',
-		fast: 'Tepat, C. Kalau tiap milidetik itu penting, kayak mesin game atau [[sistem operasi|basics/os]] itu sendiri, orang pakai C (atau sepupunya, C++) karena jalannya dekat banget sama hardware.',
-		wrong:
-			'Sebenarnya bisa juga sih, tapi bukan pilihan yang biasa. Coba pikir kodenya jalan di mana dan apa yang paling penting di situ.'
+			'Satu baris, dan bagian yang rewel diurus Python. Tapi tetap aja, kodenya diterjemahkan dulu jadi 0 dan 1 sebelum bisa dijalankan CPU.'
 	},
-	taskLabel: 'Tugas yang sama, jumlahkan 2 dan 3 lalu tampilkan hasilnya',
-	pickHint: 'Pencet sebuah bahasa buat lihat versinya',
-	langs: {
-		machine: { name: 'Machine code', sub: 'yang dijalankan CPU', note: 'Baru bagian menjumlahkan' },
-		c: { name: 'C', sub: 'dekat dengan mesin', note: 'Cepat, agak rewel' },
-		python: { name: 'Python', sub: 'dekat dengan manusia', note: 'Gampang, sedikit lebih lambat' }
-	},
-	humanMeter: 'Gampang buat manusia',
-	machineMeter: 'Dekat dengan mesin',
-	linesLabel: '{n} baris',
-	toJobs: 'Jodohkan bahasa dengan pekerjaan',
-	jobsLabel: 'Pekerjaan {n} dari {total}, biasanya orang pilih bahasa apa?',
-	jobLangs: { python: 'Python', js: 'JavaScript', c: 'C' },
-	jobs: [
+	panels: [
 		{
-			id: 'data',
-			text: 'Mengolah spreadsheet besar berisi pengunjung nimbus.com lalu bikin grafiknya',
-			answer: 'python'
+			tag: 'Machine code',
+			title: 'Satu satunya yang dimengerti CPU',
+			body: 'CPU membaca 0 dan 1 per delapan angka (tiap kelompok disebut <b>byte</b>). Sembilan byte ini cuma menaruh 2 di sebuah kotak lalu menambahkan 3.'
 		},
-		{ id: 'web', text: 'Bikin tombol di nimbus.com bereaksi waktu dipencet', answer: 'js' },
-		{ id: 'fast', text: 'Bikin mesin game yang harus menggambar 60 frame tiap detik', answer: 'c' }
+		{
+			tag: 'C',
+			title: 'Dekat dengan mesin',
+			body: 'Kata dan simbol, bukan lagi deretan bit. Compiler mengubahnya jadi machine code sebelum dijalankan.'
+		},
+		{
+			tag: 'Python',
+			title: 'Dekat dengan manusia',
+			body: 'Tugas yang sama dalam satu baris. Python menyembunyikan detail yang rewel, bayarannya sedikit kecepatan.'
+		},
+		{
+			tag: 'Untung rugi',
+			title: 'Gampang atau cepat',
+			body: 'Bahasa yang di atas lebih gampang dibaca dan ditulis. Yang di bawah bikin mesin nggak perlu mikir banyak, jadi jalannya lebih cepat.'
+		},
+		{
+			tag: 'Kotak perkakas',
+			title: 'Satu bahasa, satu tugas',
+			body: 'Kebanyakan bahasa bisa dipakai buat hampir apa aja, tapi tiap bahasa punya tugas yang bikin dia terkenal.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Kodenya tinggal di mana?',
+			body: 'Di browser, JavaScript. Di HP, Kotlin buat Android atau Swift buat iPhone. Data dan AI, Python. Butuh ngebut, C.'
+		},
+		{
+			tag: 'Lihat lagi',
+			title: 'Satu tugas, tiga cara',
+			body: 'Pencet salah satu versi buat lihat dia nulis dirinya sendiri lagi.'
+		}
 	],
-	wrongTag: 'bukan pilihan biasa',
-	rightTag: 'cocok',
-	allDone: 'Tiga dari tiga, tiap bahasa punya tugasnya',
-	backToCode: 'Balik ke kode'
+	taskLabel: 'Tugas yang sama, jumlahkan 2 dan 3 lalu tampilkan hasilnya',
+	langs: {
+		machine: { name: 'Machine code', sub: 'yang dijalankan CPU' },
+		c: { name: 'C', sub: 'dekat dengan mesin' },
+		python: { name: 'Python', sub: 'dekat dengan manusia' }
+	},
+	people: 'Lebih gampang buat manusia',
+	machine: 'Lebih dekat ke mesin',
+	cpu: 'CPU',
+	jobs: {
+		data: { lang: 'Python', job: 'Data dan AI' },
+		web: { lang: 'JavaScript', job: 'Website' },
+		speed: { lang: 'C', job: 'Kecepatan, kayak game dan sistem operasi' },
+		phone: { lang: 'Kotlin dan Swift', job: 'Aplikasi HP' }
+	},
+	rule: 'JS buat web, Python buat data, C buat ngebut, Kotlin dan Swift buat HP.'
 };

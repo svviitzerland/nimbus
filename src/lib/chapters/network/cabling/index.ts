@@ -5,12 +5,11 @@ import { en } from './en';
 
 export const cabling: Lesson = {
 	id: 'cabling',
-	mood: 'thinking',
-	moods: ['calm', 'happy', 'worried', 'excited', 'wink', 'idea'],
+	mood: 'calm',
+	moods: ['calm', 'happy', 'worried', 'excited', 'wink', 'idea', 'excited'],
 	reactionMood: {
 		copperOk: 'happy',
 		copperFail: 'sad',
-		fibreOk: 'thinking',
 		fibreFar: 'excited'
 	},
 	stage: CablingStage,

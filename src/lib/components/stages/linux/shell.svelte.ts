@@ -117,6 +117,10 @@ export class LinuxShell {
 	readonly home = '/home/nim';
 	readonly groups = ['nim', 'sudo'];
 	vars: Record<string, string> = {};
+	/** Milliseconds per letter when a command types itself. */
+	speed = 20;
+	/** True while catching up on earlier beats, so nothing waits or animates. */
+	fast = false;
 	prompt = $derived(this.pending ? this.pending.q : `nim@nimbus:${tilde(this.cwd, this.home)}$`);
 
 	private past: string[] = [];
@@ -768,8 +772,9 @@ export class LinuxShell {
 	// ---- Time based output ----
 	private get reduced() {
 		return (
-			typeof window !== 'undefined' &&
-			!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+			this.fast ||
+			(typeof window !== 'undefined' &&
+				!!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
 		);
 	}
 	/** Run fn after a delay (right away with reduced motion). Cleared on destroy. */
@@ -868,7 +873,51 @@ export class LinuxShell {
 					}, 220)
 				);
 			}
-		}, 20);
+		}, this.speed);
+	}
+
+	/** Type several lines one after another, each waiting for the one before to finish. */
+	typeSeq(lines: string[], gap = 900) {
+		const go = (i: number) => {
+			if (i >= lines.length) return;
+			if (this.typing || this.busy) {
+				this.timers.push(setTimeout(() => go(i), 150));
+				return;
+			}
+			this.typeFor(lines[i]);
+			this.timers.push(setTimeout(() => go(i + 1), gap));
+		};
+		if (this.reduced) for (const l of lines) this.run(l);
+		else this.timers.push(setTimeout(() => go(0), 500));
+	}
+
+	/** Run lines at once, with no typing and no pauses (catching up on earlier beats). */
+	quick(lines: string[]) {
+		this.fast = true;
+		try {
+			for (const l of lines) this.run(l);
+		} finally {
+			this.fast = false;
+		}
+	}
+
+	/** Start over on a fresh file system, as if the learner had just logged in. */
+	reset(fs: FNode, cwd = this.home, date = '2026-11-03') {
+		this.destroy();
+		this.typing = false;
+		this.busy = false;
+		this.pending = null;
+		this.input = '';
+		this.fs = fs;
+		this.cwd = cwd;
+		this.date = date;
+		this.vars = {};
+		this.past = [];
+		this.recall = -1;
+		this.depth = 0;
+		this.started = false;
+		this.history = [];
+		this.seed();
 	}
 
 	destroy() {

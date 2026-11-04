@@ -6,7 +6,18 @@ import { en } from './en';
 export const gcp: Lesson = {
 	id: 'gcp',
 	mood: 'happy',
-	moods: ['calm', 'thinking', 'happy', 'surprised', 'excited'],
+	moods: [
+		'calm',
+		'thinking',
+		'happy',
+		'idea',
+		'thinking',
+		'happy',
+		'calm',
+		'wink',
+		'idea',
+		'excited'
+	],
 	reactionMood: {
 		dns: 'wink',
 		cdn: 'happy',

@@ -1,587 +1,466 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import { SvelteSet } from 'svelte/reactivity';
-	import Terminal from '$lib/components/Terminal.svelte';
-	import type { LessonText } from '$lib/chapters/types';
-	import type { RuntimeText, FeatureId } from '$lib/chapters/basics/runtime/types';
+	// Guided "watch" stage. A stack assembles itself while Nim talks, hardware and operating
+	// system at the bottom, then the runtime (the stage), then library bricks (ready made
+	// parts), with your small app.js on top. A little shop window above shows if it runs.
+	// The only optional play is taking the runtime away on the last beat.
+	import Guide from '$lib/components/Guide.svelte';
+	import type { StageProps } from '$lib/chapters/types';
+	import type { RuntimeText } from '$lib/chapters/basics/runtime/types';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as RuntimeText);
 
-	type Line = { text: string; tone?: 'cmd' | 'out' | 'ok' | 'muted' };
-	const FEATURES: FeatureId[] = ['login', 'payments', 'charts'];
-	// Real packages, with a newer major version that (in this story) changes how they are called.
-	const LIBS: Record<FeatureId, { lib: string; old: string; next: string; err: string }> = {
-		login: {
-			lib: 'passport',
-			old: '0.6.0',
-			next: '0.7.0',
-			err: 'TypeError: passport.authenticate is not a function'
-		},
-		payments: {
-			lib: 'stripe',
-			old: '14.25.0',
-			next: '16.0.0',
-			err: 'TypeError: stripe.charges.create is not a function'
-		},
-		charts: {
-			lib: 'chart.js',
-			old: '3.9.1',
-			next: '4.4.0',
-			err: 'TypeError: chart.render is not a function'
-		}
-	};
-	const BASE_LINES = 40; // the shop's own glue code
-
-	let step = $state(0);
-	let hasRuntime = $state(false);
-	let busy = $state(false);
-	let app = $state<'off' | 'up' | 'down'>('off');
-	const choice = $state<Record<FeatureId, 'scratch' | 'lib' | null>>({
-		login: null,
-		payments: null,
-		charts: null
+	$effect(() => {
+		onshow?.(true);
+		oncomplete?.();
 	});
-	let updated = $state(false);
-	let broken = $state<FeatureId | null>(null);
-	let pinned = $state(false);
-	let term = $state<Line[]>([]);
-	let timers: ReturnType<typeof setTimeout>[] = [];
-	const said = new SvelteSet<string>();
-	let completed = false;
 
-	function reduced() {
-		return (
-			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
-		);
-	}
-	function later(fn: () => void, ms: number) {
-		timers.push(setTimeout(fn, reduced() ? Math.min(ms, 200) : ms));
-	}
-	function log(...lines: Line[]) {
-		term = [...term, ...lines].slice(-5);
+	const lastBeat = $derived(tx.intro.length - 1);
+	const isPlay = $derived(beat >= lastBeat);
+
+	let peek = $state<number | null>(null);
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
+	const step = $derived(peek ?? Math.min(beat, tx.steps.length - 1));
+	const live = $derived(isPlay && peek === null);
+
+	let removed = $state(false);
+	function toggleRuntime() {
+		removed = !removed;
+		onstate?.(removed ? 'noRuntime' : 'runtime');
 	}
 
-	// ---- Step 1, the runtime ----
-	function runApp() {
-		if (busy) return;
-		log({ text: 'node app.js', tone: 'cmd' });
-		if (!hasRuntime) {
-			log({ text: 'zsh: command not found: node' });
-			onstate?.('noRuntime');
-			return;
-		}
-		log({ text: 'Shop running at http://localhost:3000', tone: 'ok' });
-		app = 'up';
-		onstate?.('runtime');
-		step = 1;
-	}
-	function installRuntime() {
-		if (busy || hasRuntime) return;
-		busy = true;
-		log({ text: tx.installing, tone: 'muted' });
-		later(() => {
-			busy = false;
-			hasRuntime = true;
-			log({ text: tx.installed, tone: 'ok' });
-		}, 900);
-	}
+	// A clock that restarts on every step, for the typing, the runtime carousel, and the lock.
+	let t = $state(0);
+	let reduced = $state(false);
+	$effect(() => {
+		void step;
+		reduced =
+			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+		t = reduced ? 1e9 : 0;
+		if (reduced) return;
+		const start = Date.now();
+		const id = setInterval(() => (t = Date.now() - start), 80);
+		return () => clearInterval(id);
+	});
 
-	// ---- Step 2, libraries or writing it yourself ----
-	const allChosen = $derived(FEATURES.every((f) => choice[f] !== null));
-	const libCount = $derived(FEATURES.filter((f) => choice[f] === 'lib').length);
-	const days = $derived(
-		FEATURES.reduce((s, f) => s + (choice[f] === 'scratch' ? tx.features[f].days : 0), 0)
+	// Step 5, the little terminal types the install command, then the third brick drops in.
+	const TYPE_MS = 65;
+	const typed = $derived(
+		step === 5 ? tx.installCmd.slice(0, Math.floor(t / TYPE_MS)) : tx.installCmd
 	);
-	const ownLines = $derived(
-		FEATURES.reduce((s, f) => s + (choice[f] === 'scratch' ? tx.features[f].lines : 0), BASE_LINES)
+	const installDoneAt = $derived(tx.installCmd.length * TYPE_MS + 500);
+	const installed = $derived(step !== 5 || t >= installDoneAt);
+
+	const runtimeOn = $derived(step >= 1 && !(live && removed));
+	const libsCount = $derived(step < 4 ? 0 : step === 4 ? 2 : step === 5 && !installed ? 2 : 3);
+	const rtIndex = $derived(step === 2 && !reduced ? Math.floor(t / 1900) % tx.runtimes.length : 0);
+	const rt = $derived(tx.runtimes[rtIndex]);
+
+	// Step 8, a loop of three moments, fine on v2, broken on v3, then locked back on v2.
+	const lockPhase = $derived(step !== 8 ? -1 : reduced ? 2 : Math.floor(t / 2200) % 3);
+	const broken = $derived(lockPhase === 1);
+
+	const floating = $derived(!runtimeOn);
+	const codeY = $derived(libsCount > 0 ? 114 : 172);
+	const appState = $derived(!runtimeOn ? 'off' : broken ? 'down' : 'up');
+	const appLabel = $derived(
+		appState === 'up' ? tx.appUp : appState === 'down' ? tx.appDown : tx.appOff
 	);
 
-	function choose(f: FeatureId, kind: 'scratch' | 'lib') {
-		if (step !== 1 || choice[f] === kind) return;
-		const firstTime = !allChosen;
-		choice[f] = kind;
-		if (kind === 'lib') {
-			log(
-				{ text: `npm install ${LIBS[f].lib}`, tone: 'cmd' },
-				{ text: 'added 1 package in 2s', tone: 'ok' }
-			);
-		}
-		if (firstTime && allChosen && !said.has('built')) {
-			said.add('built');
-			onstate?.('built');
-		} else if (!said.has(kind === 'lib' ? 'library' : 'scratch')) {
-			said.add(kind === 'lib' ? 'library' : 'scratch');
-			onstate?.(kind === 'lib' ? 'library' : 'scratch');
-		}
-	}
-
-	// ---- Step 3, everything updates at once ----
-	function updateAll() {
-		if (busy || updated) return;
-		const libs = FEATURES.filter((f) => choice[f] === 'lib');
-		const victim = (['charts', 'payments', 'login'] as FeatureId[]).find(
-			(f) => choice[f] === 'lib'
-		);
-		if (!victim) return;
-		busy = true;
-		updated = true;
-		log(
-			{ text: `npm install ${libs.map((f) => LIBS[f].lib + '@latest').join(' ')}`, tone: 'cmd' },
-			{ text: `changed ${libs.length} package${libs.length > 1 ? 's' : ''} in 3s`, tone: 'ok' }
-		);
-		later(() => {
-			log({ text: 'node app.js', tone: 'cmd' }, { text: LIBS[victim].err });
-			broken = victim;
-			app = 'down';
-			busy = false;
-			onstate?.('broke');
-		}, 900);
-	}
-	function pin() {
-		if (busy || !broken || pinned) return;
-		const b = LIBS[broken];
-		log(
-			{ text: `npm install ${b.lib}@${b.old}`, tone: 'cmd' },
-			{ text: 'node app.js', tone: 'cmd' },
-			{ text: tx.runningAgain, tone: 'ok' }
-		);
-		pinned = true;
-		app = 'up';
-		onstate?.('pinned');
-		if (!completed) {
-			completed = true;
-			oncomplete?.();
-		}
-	}
-
-	function versionOf(f: FeatureId) {
-		const l = LIBS[f];
-		if (!updated) return l.old;
-		if (pinned && broken === f) return l.old;
-		return l.next;
-	}
-
-	const appText = $derived(app === 'up' ? tx.appUp : app === 'down' ? tx.appDown : tx.appOff);
-
-	onDestroy(() => timers.forEach(clearTimeout));
+	const LIB_X = [40, 135, 230];
 </script>
 
-<div class="wrap">
-	<ol class="steps">
-		{#each tx.steps as s, i (i)}
-			<li class:cur={step === i} class:done={step > i || (i === 2 && pinned)}>
-				<span>{i + 1}</span>{s}
-			</li>
-		{/each}
-	</ol>
+{#snippet visual()}
+	<div class="w-full">
+		<svg
+			viewBox="0 0 360 390"
+			class="mx-auto block w-full max-w-[400px]"
+			role="img"
+			aria-label={tx.steps[step].title}
+		>
+			<!-- the shop window, or the terminal while installing -->
+			{#if step === 5}
+				<g>
+					<rect x="60" y="14" width="240" height="78" rx="10" style="fill:var(--color-ink)" />
+					<circle cx="76" cy="28" r="3.5" style="fill:var(--color-danger)" />
+					<circle cx="88" cy="28" r="3.5" style="fill:var(--color-amber)" />
+					<circle cx="100" cy="28" r="3.5" style="fill:var(--color-grass)" />
+					<text x="74" y="56" class="term"
+						>$ {typed}{typed.length < tx.installCmd.length ? '▍' : ''}</text
+					>
+					{#if installed}
+						<text x="74" y="78" class="term ok">{tx.installDone}</text>
+					{/if}
+				</g>
+			{:else}
+				<g>
+					<rect
+						x="80"
+						y="14"
+						width="200"
+						height="78"
+						rx="10"
+						style="fill:var(--color-card);stroke:var(--color-line)"
+						stroke-width="2"
+					/>
+					<line
+						x1="80"
+						y1="34"
+						x2="280"
+						y2="34"
+						style="stroke:var(--color-line)"
+						stroke-width="2"
+					/>
+					<circle cx="94" cy="24" r="3" style="fill:var(--color-line)" />
+					<circle cx="104" cy="24" r="3" style="fill:var(--color-line)" />
+					<circle cx="114" cy="24" r="3" style="fill:var(--color-line)" />
+					<text x="180" y="58" text-anchor="middle" class="app">{tx.appName}</text>
+					<circle cx={180 - appLabel.length * 3.4 - 9} cy="76" r="4.5" class="dot {appState}" />
+					<text x={180 - appLabel.length * 3.4 + 1} y="80" class="appst {appState}">{appLabel}</text
+					>
+				</g>
+			{/if}
 
-	<div class="acts">
-		{#if step === 0}
-			<button type="button" class="cta" onclick={runApp} disabled={busy}>{tx.runBtn}</button>
-			<button type="button" class="line-btn" onclick={installRuntime} disabled={busy || hasRuntime}
-				>{tx.installBtn}</button
+			<!-- hardware -->
+			<g>
+				<rect
+					x="40"
+					y="330"
+					width="280"
+					height="50"
+					rx="10"
+					class="slab"
+					class:dimmed={step === 6}
+				/>
+				<rect x="58" y="342" width="26" height="26" rx="4" style="fill:var(--color-line)" />
+				<rect x="64" y="348" width="14" height="14" rx="2" style="fill:var(--color-faint)" />
+				<text x="98" y="352" class="slabT">{tx.layers.hw}</text>
+				<text x="98" y="369" class="slabS">{tx.hwNote}</text>
+			</g>
+			<!-- operating system -->
+			<g>
+				<rect
+					x="40"
+					y="274"
+					width="280"
+					height="50"
+					rx="10"
+					class="slab"
+					class:dimmed={step === 6}
+				/>
+				<rect
+					x="58"
+					y="286"
+					width="26"
+					height="22"
+					rx="3"
+					style="fill:none;stroke:var(--color-faint)"
+					stroke-width="2"
+				/>
+				<line
+					x1="64"
+					y1="314"
+					x2="78"
+					y2="314"
+					style="stroke:var(--color-faint)"
+					stroke-width="2"
+				/>
+				<text x="98" y="296" class="slabT">{tx.layers.os}</text>
+				<text x="98" y="313" class="slabS">{tx.osNote}</text>
+			</g>
+			<!-- runtime, the stage -->
+			<g
+				class="move"
+				style="transform:translate({runtimeOn ? 0 : 60}px, {runtimeOn
+					? 0
+					: -30}px);opacity:{runtimeOn ? 1 : 0}"
 			>
-		{:else if step === 1}
-			<div class="features">
-				{#each FEATURES as f (f)}
-					<div class="feat">
-						<b>{tx.features[f].name}</b>
-						<div class="pick">
-							<button
-								type="button"
-								class="opt"
-								class:on={choice[f] === 'scratch'}
-								onclick={() => choose(f, 'scratch')}
-								>{tx.scratchBtn.replace('{n}', String(tx.features[f].days))}</button
-							>
-							<button
-								type="button"
-								class="opt mono"
-								class:on={choice[f] === 'lib'}
-								onclick={() => choose(f, 'lib')}>{tx.libBtn.replace('{lib}', LIBS[f].lib)}</button
-							>
-						</div>
-					</div>
+				<rect x="40" y="218" width="280" height="50" rx="10" class="rt" class:hl={step === 6} />
+				<path d="M56 256h28l-4-18H60Z" style="fill:var(--color-brand)" opacity="0.85" />
+				<path
+					d="M60 238c4-8 16-8 20 0"
+					style="fill:none;stroke:var(--color-brand)"
+					stroke-width="2"
+				/>
+				<text x="98" y="240" class="slabS brandT">{tx.layers.runtime}</text>
+				{#key rtIndex}
+					<g class="swap">
+						<text x="98" y="258" class="slabT">{rt.name}</text>
+						<text x={98 + rt.name.length * 8.6 + 8} y="258" class="slabS">{rt.note}</text>
+					</g>
+				{/key}
+			</g>
+			<!-- library bricks, ready made parts -->
+			<g class:bob={floating && !reduced}>
+				{#each tx.libs as lib, i (i)}
+					{@const on = i < libsCount}
+					{@const bad = broken && i === 2}
+					{@const locked = lockPhase === 2 && i === 2}
+					<g
+						class="move"
+						style="transform:translateY({on ? 0 : -70}px);opacity:{on
+							? 1
+							: 0};transition-delay:{step === 4 ? i * 350 : 0}ms"
+					>
+						<rect x={LIB_X[i] + 16} y="160" width="16" height="8" rx="2" class="stud" class:bad />
+						<rect x={LIB_X[i] + 58} y="160" width="16" height="8" rx="2" class="stud" class:bad />
+						<rect
+							x={LIB_X[i]}
+							y="166"
+							width="90"
+							height="46"
+							rx="7"
+							class="brick"
+							class:bad
+							class:hl={step === 6}
+						/>
+						<text x={LIB_X[i] + 45} y="194" text-anchor="middle" class="brickT" class:badT={bad}>
+							{lib}
+						</text>
+						{#if step === 8 && i === 2}
+							<g>
+								<rect
+									x={LIB_X[i] + 60}
+									y="148"
+									width="34"
+									height="18"
+									rx="9"
+									class="ver"
+									class:bad
+								/>
+								<text x={LIB_X[i] + 77} y="161" text-anchor="middle" class="verT" class:badT={bad}>
+									{bad ? tx.newVersion : tx.oldVersion}
+								</text>
+								{#if locked}
+									<g transform="translate({LIB_X[i] - 4} 146)">
+										<rect
+											x="0"
+											y="7"
+											width="14"
+											height="11"
+											rx="2"
+											style="fill:var(--color-grass)"
+										/>
+										<path
+											d="M3 7V5a4 4 0 0 1 8 0v2"
+											style="fill:none;stroke:var(--color-grass)"
+											stroke-width="2"
+										/>
+									</g>
+								{/if}
+							</g>
+						{/if}
+					</g>
 				{/each}
+			</g>
+			<!-- your code, the actor on top -->
+			<g class:bob={floating && !reduced}>
+				<g class="move" style="transform:translateY({codeY - 114}px)">
+					<path d="M125 114h96l14 12v28H125Z" class="sheet" class:mine={step === 6} />
+					<path d="M221 114v12h14" style="fill:none;stroke:var(--color-line)" stroke-width="2" />
+					<text x="137" y="139" class="code">{tx.layers.code}</text>
+					{#if floating}
+						<g>
+							<circle cx="242" cy="114" r="12" style="fill:var(--color-danger)" />
+							<text x="242" y="119.5" text-anchor="middle" class="q">?</text>
+						</g>
+					{/if}
+				</g>
+			</g>
+		</svg>
+		{#if live}
+			<div class="mt-3 flex justify-center">
+				<button type="button" class="play" class:on={removed} onclick={toggleRuntime}>
+					{removed ? tx.returnBtn : tx.removeBtn}
+				</button>
 			</div>
-			<p class="tally">
-				{days ? tx.daysLabel.replace('{n}', String(days)) : tx.secondsLabel}
-				<span>{tx.linesLabel.replace('{n}', String(ownLines))}</span>
-			</p>
-			{#if allChosen}
-				{#if libCount > 0}
-					<button type="button" class="cta" onclick={() => (step = 2)}>{tx.toUpdate}</button>
-				{:else}
-					<p class="need">{tx.needLib}</p>
-				{/if}
-			{/if}
-		{:else}
-			<button type="button" class="cta" onclick={updateAll} disabled={busy || updated}
-				>{tx.updateBtn}</button
-			>
-			{#if broken && !pinned}
-				<button type="button" class="line-btn warn" onclick={pin}
-					>{tx.pinBtn.replace('{lib}', LIBS[broken].lib).replace('{v}', LIBS[broken].old)}</button
-				>
-			{/if}
 		{/if}
 	</div>
+{/snippet}
 
-	<!-- The stack, from your code at the top down to the hardware -->
-	<div class="stack">
-		<div class="layer code">
-			<span class="lname">{tx.layers.code}</span>
-			<span class="lbody">
-				<span class="app {app}"><i></i>{tx.appName}, {appText}</span>
-				{#each FEATURES.filter((f) => choice[f] === 'scratch') as f (f)}
-					<span class="chip own">{tx.features[f].name}, {tx.wroteChip}</span>
-				{/each}
-			</span>
-		</div>
-		<div class="layer libs">
-			<span class="lname">{tx.layers.libs}</span>
-			<span class="lbody">
-				{#each FEATURES.filter((f) => choice[f] === 'lib') as f (f)}
-					<span
-						class="chip lib"
-						class:bad={broken === f && !pinned}
-						class:pinned={broken === f && pinned}>{LIBS[f].lib} {versionOf(f)}</span
-					>
-				{:else}
-					<span class="muted">{tx.noLibs}</span>
-				{/each}
-			</span>
-		</div>
-		<div class="layer rt" class:missing={!hasRuntime}>
-			<span class="lname">{tx.layers.runtime}</span>
-			<span class="lbody">
-				{#if hasRuntime}
-					<span class="chip rtchip">Node.js 22</span>
-				{:else}
-					<span class="muted">Node.js, {tx.notInstalled}</span>
-				{/if}
-			</span>
-		</div>
-		<div class="layer os">
-			<span class="lname">{tx.layers.os}</span>
-			<span class="lbody"><span class="muted">{tx.osNote}</span></span>
-		</div>
-		<div class="layer hw">
-			<span class="lname">{tx.layers.hw}</span>
-			<span class="lbody"><span class="muted">{tx.hwNote}</span></span>
-		</div>
-	</div>
-
-	{#if term.length}
-		<div class="term"><Terminal host="nimbus" prompt="$ " lines={term} /></div>
-	{/if}
+<div class="flex w-full justify-center px-1 pb-28 md:pb-6">
+	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
 </div>
 
 <style>
-	.wrap {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 12px;
-		width: min(94vw, 520px);
-		max-width: 100%;
-		max-height: 100%;
-		overflow-y: auto;
-		overflow-x: hidden;
-		padding-bottom: 6px;
-	}
-	.steps {
-		display: flex;
-		gap: 6px;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-	.steps li {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		padding: 4px 10px 4px 4px;
-		border-radius: 999px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-faint);
-	}
-	.steps li span {
-		display: grid;
-		place-items: center;
-		width: 18px;
-		height: 18px;
-		border-radius: 50%;
-		background: var(--color-paper);
-		font-size: 10.5px;
-	}
-	.steps li.cur {
-		border-color: var(--color-brand);
-		color: var(--color-ink);
-	}
-	.steps li.cur span {
-		background: var(--color-brand);
-		color: #fff;
-	}
-	.steps li.done {
-		color: var(--color-grass);
-	}
-	.steps li.done span {
-		background: var(--color-grass);
-		color: #fff;
-	}
-
-	.acts {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 8px;
-		width: 100%;
-	}
-	.cta {
-		border-radius: 12px;
-		background: var(--btn-primary);
-		color: #fff;
-		padding: 10px 18px;
-		font-size: 13px;
-		font-weight: 600;
-	}
-	.cta:enabled:hover {
-		filter: brightness(1.18);
-	}
-	.line-btn {
-		border-radius: 12px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		color: var(--color-ink);
-		padding: 9px 16px;
-		font-size: 13px;
-		font-weight: 600;
-	}
-	.line-btn:enabled:hover {
-		border-color: var(--color-ink);
-	}
-	.line-btn.warn {
-		border-color: var(--color-amber);
-		background: var(--color-amber-soft);
-	}
-	.cta:disabled,
-	.line-btn:disabled {
-		opacity: 0.5;
-	}
-
-	.features {
-		display: flex;
-		flex-direction: column;
-		gap: 6px;
-		width: 100%;
-	}
-	.feat {
-		display: flex;
-		flex-direction: column;
-		gap: 5px;
-		padding: 8px 10px;
-		border-radius: 12px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-	}
-	.feat b {
-		font-size: 13px;
-		color: var(--color-ink);
-	}
-	.pick {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 6px;
-	}
-	.opt {
-		padding: 7px 6px;
-		border-radius: 9px;
-		border: 1px solid var(--color-line);
-		background: var(--color-paper);
-		color: var(--color-muted);
-		font-size: 12px;
-		font-weight: 600;
+	.move {
 		transition:
-			border-color 0.2s ease,
-			background 0.2s ease;
+			transform 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+			opacity 0.5s;
 	}
-	.opt.mono {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 11.5px;
+	.swap {
+		animation: swapIn 0.45s ease-out;
 	}
-	.opt:hover {
-		border-color: var(--color-brand);
+	@keyframes swapIn {
+		from {
+			opacity: 0;
+			transform: translateY(4px);
+		}
 	}
-	.opt.on {
-		border-color: var(--color-brand);
-		background: var(--color-brand-soft);
-		color: var(--color-brand);
+	.bob {
+		animation: bob 2.4s ease-in-out infinite;
 	}
-	.tally {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		margin: 0;
+	@keyframes bob {
+		0%,
+		100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(-6px);
+		}
+	}
+	.slab {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 2;
+		transition: opacity 0.4s;
+	}
+	.slab.dimmed {
+		opacity: 0.55;
+	}
+	.rt {
+		fill: var(--color-brand-soft);
+		stroke: var(--color-brand);
+		stroke-width: 2;
+	}
+	.rt.hl,
+	.brick.hl {
+		stroke: var(--color-amber);
+		stroke-width: 3;
+	}
+	.slabT {
+		font-size: 14px;
+		font-weight: 700;
+		fill: var(--color-ink);
+	}
+	.slabS {
+		font-size: 11px;
+		fill: var(--color-faint);
+	}
+	.brandT {
+		fill: var(--color-brand);
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		font-size: 10px;
+	}
+	.brick,
+	.stud {
+		fill: var(--color-amber-soft);
+		stroke: var(--color-amber);
+		stroke-width: 2;
+		transition:
+			fill 0.3s,
+			stroke 0.3s;
+	}
+	.brick.bad,
+	.stud.bad {
+		fill: var(--color-danger-soft);
+		stroke: var(--color-danger);
+	}
+	.brickT {
 		font-size: 13px;
 		font-weight: 700;
-		color: var(--color-ink);
+		fill: var(--color-ink);
 	}
-	.tally span {
-		font-size: 11.5px;
-		font-weight: 600;
-		color: var(--color-faint);
+	.badT {
+		fill: var(--color-danger);
 	}
-	.need {
-		margin: 0;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-amber);
+	.ver {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
 	}
-
-	.stack {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-		width: 100%;
+	.ver.bad {
+		stroke: var(--color-danger);
 	}
-	.layer {
-		display: grid;
-		grid-template-columns: 112px 1fr;
-		align-items: center;
-		gap: 10px;
-		min-height: 38px;
-		padding: 6px 10px;
-		border-radius: 10px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		transition: opacity 0.3s ease;
-	}
-	.layer.code {
-		border-color: color-mix(in srgb, var(--color-brand) 40%, var(--color-line));
-	}
-	.layer.libs {
-		background: color-mix(in srgb, var(--color-brand-soft) 50%, var(--color-card));
-	}
-	.layer.rt {
-		background: var(--color-brand-soft);
-	}
-	.layer.rt.missing {
-		opacity: 0.55;
-		background: var(--color-card);
-	}
-	.layer.os,
-	.layer.hw {
-		background: var(--color-paper);
-	}
-	.lname {
-		font-size: 11px;
+	.verT {
+		font-size: 10.5px;
 		font-weight: 700;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		color: var(--color-faint);
+		fill: var(--color-ink);
 	}
-	.lbody {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 5px;
-		min-width: 0;
+	.sheet {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 2;
 	}
-	.muted {
-		font-size: 12px;
-		color: var(--color-faint);
+	.sheet.mine {
+		stroke: var(--color-grass);
+		stroke-width: 3;
 	}
-	.app {
-		display: inline-flex;
-		align-items: center;
-		gap: 6px;
-		font-size: 12.5px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	.app i {
-		width: 8px;
-		height: 8px;
-		border-radius: 50%;
-		background: var(--color-faint);
-	}
-	.app.up {
-		color: var(--color-grass);
-	}
-	.app.up i {
-		background: var(--color-grass);
-	}
-	.app.down {
-		color: var(--color-danger);
-	}
-	.app.down i {
-		background: var(--color-danger);
-	}
-	.chip {
-		padding: 2px 8px;
-		border-radius: 999px;
-		font-size: 11.5px;
-		font-weight: 600;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		color: var(--color-ink);
-		animation: pop 0.25s ease;
-	}
-	.chip.lib,
-	.chip.rtchip {
+	.code,
+	.term {
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		color: var(--color-brand);
-	}
-	.chip.own {
-		border-color: var(--color-amber);
-		background: var(--color-amber-soft);
-	}
-	.chip.lib.bad {
-		border-color: var(--color-danger);
-		background: var(--color-danger-soft);
-		color: var(--color-danger);
-	}
-	.chip.lib.pinned {
-		border-color: var(--color-grass);
-		background: var(--color-grass-soft);
-		color: var(--color-grass);
-	}
-	@keyframes pop {
-		from {
-			transform: scale(0.85);
-			opacity: 0;
-		}
-		to {
-			transform: scale(1);
-			opacity: 1;
-		}
+		font-size: 13px;
+		font-weight: 700;
+		fill: var(--color-ink);
 	}
 	.term {
-		width: 100%;
-		font-size: 12px;
+		font-size: 12.5px;
+		font-weight: 500;
+		fill: var(--color-paper);
 	}
-
-	@media (max-width: 400px) {
-		.layer {
-			grid-template-columns: 1fr;
-			gap: 3px;
-		}
+	.term.ok {
+		fill: var(--color-grass);
+	}
+	.q {
+		font-size: 15px;
+		font-weight: 800;
+		fill: var(--color-card);
+	}
+	.app {
+		font-family: var(--font-display);
+		font-size: 15px;
+		font-weight: 600;
+		fill: var(--color-ink);
+	}
+	.appst {
+		font-size: 12px;
+		font-weight: 600;
+		fill: var(--color-faint);
+	}
+	.appst.up {
+		fill: var(--color-grass);
+	}
+	.appst.down {
+		fill: var(--color-danger);
+	}
+	.dot {
+		fill: var(--color-faint);
+	}
+	.dot.up {
+		fill: var(--color-grass);
+	}
+	.dot.down {
+		fill: var(--color-danger);
+	}
+	.play {
+		border-radius: 999px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 9px 18px;
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--color-ink);
+		box-shadow: 0 4px 14px rgba(22, 40, 60, 0.07);
+	}
+	.play.on {
+		border-color: var(--color-brand);
+		color: var(--color-brand);
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.chip {
-			animation: none;
-		}
-		.layer,
-		.opt {
+		.move,
+		.slab,
+		.brick,
+		.stud {
 			transition: none;
+		}
+		.swap,
+		.bob {
+			animation: none;
 		}
 	}
 </style>

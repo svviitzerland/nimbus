@@ -3,90 +3,103 @@ import type { ServicesText } from './types';
 export const id: ServicesText = {
 	title: 'Service dan systemd',
 	intro: [
-		'Aplikasi nimbus.com itu program, dan program cuma kerja selama dia lagi jalan. Ditutup, situsnya hilang. Terus siapa yang nyalain dia waktu server nyala jam 3 pagi, dan siapa yang ngangkat dia lagi kalau dia mogok pas kamu tidur?',
-		'Di Linux, tugas itu punya <b>systemd</b>, program paling pertama yang jalan waktu mesin dinyalain. Dia baca resep singkat buat tiap program, nyalain semuanya dengan urutan yang benar, terus ngawasin mereka seharian.',
-		'Program yang dijagain systemd disebut <b>service</b>, dan resepnya itu file teks kecil yang namanya <b>unit</b>. Punya kita nyebutin perintah apa yang dijalanin, plus satu baris ajaib, <b>Restart=always</b>, artinya kalau dia mati, nyalain lagi.',
-		'Kamu ngobrol sama systemd pakai <b>systemctl</b>. <b>status</b> nunjukin kabar sebuah service, <b>start</b> dan <b>stop</b> ya sesuai namanya, dan <b>enable</b> artinya nyala sendiri tiap kali booting. Ngubah service itu kerjaan admin, jadi yang itu butuh sudo.',
-		'[fyi] Windows juga punya ide yang sama. Buka jendela Services, nanti kelihatan program yang diset nyala Automatically. HP kamu juga gitu, makanya aplikasi chat tetap dapat pesan habis HP direstart.',
-		'Giliran kamu. Cek service nimbus terus nyalain. Habis itu jahil dikit, bikin dia mogok, lalu reboot seluruh server, dan lihat siapa yang ngebalikin situsnya.'
+		'Semalam kamu nyalain app nimbus.com pakai tangan, terus nutup laptop. Begitu kamu logout, appnya ikut berhenti, dan situsnya gelap. Program yang dinyalain manual cuma hidup selama kamu masih di situ.',
+		'Website harus jalan siang malam tanpa ada yang nungguin. Program yang jalan diam diam di belakang layar kayak gitu namanya <b>service</b>. Di Ubuntu ada penjaga namanya <b>systemd</b> yang nyalain service, ngawasin, dan bangunin lagi kalau dia jatuh.',
+		'Kamu ngobrol sama systemd pakai <b>systemctl</b>. Pertama Nim nanya kabar appnya, <b>systemctl status nimbus</b>. Jawabannya inactive (dead). Sama sekali nggak jalan.',
+		'Jadi Nim nyalain, <b>sudo systemctl start nimbus</b> (ngatur service itu kerjaan admin, makanya pakai sudo). Lampunya hijau dan situsnya balik.',
+		'Sekarang bagian kerennya. Nim sengaja bikin appnya mati pakai <b>pkill</b>. Lampunya merah, dan sebentar kemudian systemd sadar lalu nyalain lagi sendiri. Nggak ada yang perlu bangun jam 3 pagi.',
+		'Tinggal satu masalah. Kalau seluruh server restart (update, listrik mati), appnya balik nggak? Cuma kalau kamu minta. <b>sudo systemctl enable nimbus</b> nyuruh systemd nyalain dia tiap kali server boot. Lihat saklarnya.',
+		'[ingat] <b>start</b> itu buat sekarang, <b>enable</b> itu buat tiap kali nyala. Biasanya kamu mau dua duanya. stop dan disable itu kebalikannya.',
+		'[fyi] Kata yang sama, dunia yang beda. Provider cloud jualan "managed services", dan Windows punya jendela Services sendiri. Tempatnya beda, idenya sama, program yang dijagain biar terus jalan di belakang layar.',
+		'Giliranmu. Habis ngubah app, admin biasanya restart biar versi barunya kepakai. Ketik <b>sudo systemctl restart nimbus</b> dan lihat lampunya kedip mati lalu nyala lagi.'
 	],
 	reactions: {
-		status:
-			'<b>inactive (dead)</b>, jadi nimbus.com lagi mati sekarang. Lihat juga tulisan <b>disabled</b> di baris Loaded, artinya dia juga nggak bakal nyala sendiri waktu booting.',
-		started:
-			'Aplikasinya jalan, lihat PID (nomor prosesnya) dan garis hijaunya. Pengunjung bisa buka nimbus.com lagi.',
-		startedAgain: 'Jalan lagi.',
 		restarted:
-			'Direstart, berhenti dan nyala sekaligus, dengan PID baru. Berguna habis kamu ngubah pengaturan.',
-		crashed:
-			'Duar, aplikasinya mati dan pengunjung nggak lihat apa apa. Sekarang diam aja, perhatiin kartu systemd.',
-		revived:
-			'Balik sendiri! systemd lihat programnya mati, nunggu sebentar, terus nyalain lagi pakai PID baru. Berkat Restart=always, situsnya cuma mati sekitar dua detik, bukan sampai pagi.',
-		revivedAgain: 'Balik lagi, tiap kali. Lihat angka restartnya naik.',
-		nothingToCrash: 'Nggak ada yang bisa dibikin mogok, aplikasinya belum jalan. Nyalain dulu.',
-		statusRestarting:
-			'Ketangkap pas lagi diselamatin. <b>activating (auto-restart)</b> artinya systemd sebentar lagi ngebalikin dia.',
+			'Mati dan nyala lagi sekejap. Appnya reload, situsnya hampir nggak kerasa. Begitulah admin ngeluarin versi baru.',
+		started: 'Jalan. Lampunya hijau dan pengunjung bisa buka nimbus.com lagi.',
 		stopped:
-			'Dimatiin dengan sengaja. systemd nggak bakal nyalain lagi service yang kamu matiin sendiri, Restart=always cuma buat kejadian nggak terduga.',
-		enabled:
-			'Enabled. systemd bikin link kecil yang bilang nyalain nimbus tiap booting. Sekarang coba tombol reboot.',
-		disabled:
-			'Disabled, jadi habis reboot berikutnya aplikasinya bakal tetap mati sampai ada yang nyalain.',
-		rebooting:
-			'Servernya lagi restart. Sesi SSH kamu ikut putus karena semuanya dimatiin, terus kamu login lagi.',
-		bootDown:
-			'Servernya udah balik, tapi nimbus.com nggak. Servicenya belum pernah di<b>enable</b>, jadi systemd nggak nyalain dia waktu booting. Ini persis masalah jam 3 pagi tadi. Enable dulu, terus reboot lagi.',
-		bootIdle:
-			'Servernya balik, dan aplikasinya mati, sama kayak sebelumnya. Nyalain, enable, lalu reboot biar kelihatan bedanya.',
-		boot: 'Nyala sendiri habis reboot total! Karena udah enabled, systemd nyalain aplikasinya waktu booting, bahkan sebelum kamu login lagi.',
-		bootAgain: 'Balik lagi habis reboot. Service yang enabled pasti balik.',
-		journal:
-			'Itu <b>journal</b>, buku harian systemd. Tiap nyala, mogok, dan restart dicatat di situ lengkap sama jamnya, jadi kamu bisa lihat apa yang terjadi waktu kamu nggak ada.',
-		unitFile:
-			'Itu isi unitnya. <b>ExecStart</b> perintah yang dijalanin, <b>Restart=always</b> ngebalikin dia kalau mati, dan <b>WantedBy</b> tempat enable nyantolin dia waktu booting.',
+			'Berhenti, situsnya gelap. systemd nggak bakal nyalain yang sengaja kamu matiin. Nyalain lagi pakai <b>sudo systemctl start nimbus</b>.',
+		status:
+			'status itu hal pertama yang dicek, dia ngasih tau appnya jalan atau nggak dan sejak kapan.',
+		enabled: 'Enabled. Sekarang nimbus nyala sendiri tiap kali server boot.',
+		disabled: 'Disabled. Sekarang masih jalan, tapi habis reboot berikutnya dia bakal tetap mati.',
+		crashed: 'Mati! Lihat roda giginya. systemd sadar dan nyalain appnya lagi sebentar lagi.',
+		nothingToCrash: 'Nggak ada yang bisa dimatiin, appnya lagi nggak jalan.',
 		needSudo:
-			'Ngubah service itu kerjaan admin, jadi systemd nanya kamu siapa. Taruh <b>sudo</b> di depan, kayak di [[Permission dan sudo|linux/permissions]].',
-		noUnit: 'systemd nggak punya service dengan nama itu. Yang kita urus namanya <b>nimbus</b>.',
-		missing: 'Nggak ada yang namanya itu di sini. Jalanin <b>ls</b> buat lihat isinya.',
-		denied: 'Dikunci. Yang itu butuh kuasa admin, coba pakai <b>sudo</b> di depan.',
-		error:
-			'Server nggak kenal perintah itu. Cek lagi ejaannya, atau ketik <b>help</b> buat lihat perintah yang dia tau.',
-		done: 'Semua misi beres! Kamu ngecek service, nyalain, bikin mogok terus lihat systemd ngidupin lagi, dan bikin dia selamat dari reboot total. Server beneran jalanin puluhan service kayak gini, nginx, database, SSH, dan systemd diam diam ngejagain semuanya.'
+			'systemd mau tau kamu admin atau bukan. Taruh <b>sudo</b> di depan, kayak di [[Permission dan sudo|linux/permissions]].',
+		noUnit:
+			'systemd nggak kenal service dengan nama itu di sini. Punya kita namanya <b>nimbus</b>.',
+		missing: 'Nggak ada yang namanya itu di sini. Coba <b>sudo systemctl restart nimbus</b>.',
+		denied: 'Dikunci, itu butuh admin. Taruh <b>sudo</b> di depan.',
+		error: 'Servernya nggak ngerti. Coba <b>sudo systemctl restart nimbus</b>, persis kayak gitu.'
 	},
-	missionsLabel: 'Misi',
-	missions: [
-		'Cek service nimbus',
-		'Nyalain',
-		'Bikin mogok, lihat dia balik',
-		'Bikin nyala waktu booting, lalu reboot'
+	panels: [
+		{
+			tag: 'Masalahnya',
+			title: 'Hilang waktu kamu pergi',
+			body: 'Program yang kamu nyalain manual itu milik sesimu. Logout, dan dia ikut berhenti.'
+		},
+		{
+			tag: 'Service',
+			title: 'Jalan di belakang layar',
+			body: '<b>Service</b> tetap jalan walau nggak ada yang login. <b>systemd</b> itu penjaga yang nyalain, ngawasin, dan restart dia.'
+		},
+		{
+			tag: 'status',
+			title: 'Gimana kabarnya',
+			body: '<b>systemctl status</b> nunjukin service nya jalan atau nggak, dan diset nyala waktu boot atau nggak.'
+		},
+		{
+			tag: 'start',
+			title: 'Jalanin sekarang',
+			body: '<b>sudo systemctl start nimbus</b> nyalain app di belakang layar. Lampu di rak nunjukin dia hidup.'
+		},
+		{
+			tag: 'Restart=always',
+			title: 'Bangkit lagi',
+			body: 'Satu baris di file service minta systemd nyalain app lagi tiap kali dia mati. Tiap restart juga dihitung.'
+		},
+		{
+			tag: 'enable',
+			title: 'Nyala tiap boot',
+			body: '<b>enable</b> nggak nyalain apa pun sekarang. Dia cuma nyalain saklar biar app ikut nyala tiap server boot.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Sekarang lawan selamanya',
+			body: 'start, sekarang. enable, tiap nyala. stop dan disable ngebatalin, dan restart itu stop plus start yang cepat.'
+		},
+		{
+			tag: 'Info',
+			title: 'Service di mana mana',
+			body: 'Web server, database, bahkan pintu SSH tempat kamu masuk tadi, semuanya service yang dijagain systemd.'
+		},
+		{
+			tag: 'Giliranmu',
+			title: 'Restart appnya',
+			body: 'Ketik <b>sudo systemctl restart nimbus</b> lalu tekan Enter. Lampunya kedip, situsnya tetap nyala.'
+		}
 	],
-	hintBtn: 'Bantu',
-	doneNote: 'Semua misi beres, nimbus.com bisa jaga dirinya sendiri',
+	watchLabel: 'Nim lagi ngetik, lihat aja dulu',
+	tryLabel: 'Giliranmu, ketik',
+	tryTip: 'Tap biar Nim yang ngetik',
 	inputLabel: 'perintah',
-	termHint: '# coba systemctl status nimbus, lalu tekan Enter',
-	hintUnknown: '# perintah itu nggak ada di sini, ketik help buat lihat daftarnya',
+	termHint: '# Nim ngetik di sini dulu, lihat aja',
+	hintUnknown: '# perintah itu nggak ada di sini',
 	didYouMean: '# mungkin maksudnya {word}',
-	hintMissing: '# nggak ada yang namanya itu, ls nampilin isi sekitar',
-	hintDenied: '# dikunci, coba pakai sudo di depan',
-	crashBtn: 'Bikin mogok',
-	rebootBtn: 'Reboot server',
-	serverLabel: 'Server kamu',
-	bootLabel: 'Nyala waktu booting',
-	restartsLabel: 'Restart',
-	yes: 'ya',
-	no: 'nggak',
-	visitorsLabel: 'Yang dilihat pengunjung',
-	siteUp: 'nimbus.com nyala',
-	siteDown: 'nimbus.com mati',
+	hintMissing: '# nggak ada yang namanya itu di sini',
+	hintDenied: '# dikunci, cuma admin yang boleh',
+	serverLabel: 'Server nimbus.com',
+	bootLabel: 'Nyala waktu boot',
+	siteUp: 'online',
+	siteDown: 'nggak bisa dibuka',
 	states: {
 		active: 'jalan',
-		inactive: 'berhenti',
-		dead: 'mogok',
-		restarting: 'lagi restart',
-		booting: 'server lagi reboot'
+		inactive: 'nggak jalan',
+		dead: 'mati mendadak',
+		restarting: 'lagi bangkit'
 	},
-	hintSudo: '# ngubah service butuh kuasa admin, taruh sudo di depan',
-	hintSystemctl: '# coba systemctl status nimbus',
-	hintUnit: '# nama servicenya nimbus',
-	hintKill: '# ps nunjukin program yang jalan dan PIDnya'
+	rule: 'start itu sekarang, enable itu tiap nyala.',
+	hintSudo: '# ngatur service butuh admin, taruh sudo di depan',
+	hintSystemctl: '# coba sudo systemctl restart nimbus'
 };

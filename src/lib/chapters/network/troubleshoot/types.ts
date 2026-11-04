@@ -2,17 +2,20 @@ import type { LessonText } from '../../types';
 
 export type CheckId = 'cable' | 'wifi' | 'ip' | 'gateway' | 'dns' | 'site';
 
+/** One part of the picture, explained in the side panel. */
+export type GuideStep = { title: string; body: string; tag?: string };
+
 export interface TroubleshootText extends LessonText {
-	caseLabel: string; // template with {n}
-	symptom: string; // what the learner sees, the site will not open
-	fixedSymptom: string; // once the fault is fixed
-	checkBtn: string;
-	blameBtn: string; // marks a red step as the cause
-	newCase: string; // hides a new fault
-	okTag: string;
-	failTag: string;
-	bottomLabel: string; // tag on the lowest step, where to start
-	/** One entry per step, bottom up. `how` is the action or command it runs. */
+	/** Side panel, one entry per part of the story (eight, the last one is the optional game). */
+	steps: GuideStep[];
+	pageError: string; // what the browser shows while something is broken
+	culpritTag: string; // tag on the first red floor
+	victimTag: string; // tag on red floors above it
+	startHere: string; // marker at the bottom floor
+	endHere: string; // marker at the top floor
+	playBtn: string; // starts the optional case
+	newCase: string; // hides another fault
+	/** One entry per floor, bottom up. `how` is the action or command it runs. */
 	checks: Record<CheckId, { name: string; how: string; ok: string; fail: string }>;
 	/** What was wrong and how it got fixed, per fault. */
 	fixes: Record<CheckId, string>;

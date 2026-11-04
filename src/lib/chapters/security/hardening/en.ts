@@ -1,84 +1,83 @@
 import type { HardeningText } from './types';
 
 export const en: HardeningText = {
-	title: 'Server hardening',
+	title: 'Server Hardening',
 	intro: [
-		'You just rented a brand new server for nimbus.com. Straight out of the box, it is like a new house where the builder left every window open and the spare key under the doormat.',
-		'And you will not be alone for long. Within minutes of going online, automated bots start knocking on it, trying every door they know, day and night, all over the internet.',
-		'<b>Server hardening</b> means closing every door you do not need, so the only way in is the one you watch. Update the software, shut unused <b>ports</b> (the numbered doors a server listens on), log in with keys instead of passwords, and give every program only the power it needs.',
-		'Skipping this hurts. In 2017 the credit bureau Equifax lost the data of about 147 million people. The hole was in Apache Struts, software on its web server, and the fix had been public for two months. Nobody installed it.',
-		'[fyi] Hardening is not only for servers. Your phone nagging you to update and your laptop lock screen are hardening too. In the cloud, the provider hardens the building and the machines, but the server you rent is yours to harden, that is [[shared responsibility|networking/shared-responsibility]].',
-		'Here is your fresh nimbus.com server. Run the scanner to see how many doors are open, then close them one by one, but keep the door your visitors use.'
+		'You just rented a brand new server for nimbus.com. Straight out of the box it is like a new house where the builder left every door open and the spare key under the doormat.',
+		'And you will not be alone for long. Within minutes of going online, <b>bots</b> start knocking. Bots are little programs that roam the whole internet trying every door they find, day and night.',
+		'Those doors are called <b>ports</b>. A port is a numbered door where a program waits for visitors, like 443 for the website or 22 for logging in from afar. A <b>scanner</b> walks past every door and reports which ones answer. Right now the score is bad.',
+		'Step one, update. In 2017 the credit bureau Equifax lost the personal data of about 147 million people through a hole in Apache Struts, software running on its web server. The fix had been out for two months. Nobody installed it.',
+		'Step two, close every door you do not need. Old file sharing, Telnet, the database, a forgotten test page. Watch them shut one by one, and watch the scanner score climb.',
+		'Step three, lock the doors you keep. The admin door (SSH) now opens only with a <b>key file</b> kept on your laptop, not a password a bot could guess. And nobody logs in as root, the user who is allowed to do everything.',
+		'One door stays open on purpose, the website door your visitors use. Hardening is not locking everything, it is making sure the only way in is the one you watch.',
+		'[fyi] Hardening is not only for servers. Your phone nagging you to update is hardening too. In the cloud the provider hardens the building and the machines, but the server you rent is yours to harden, that is [[shared responsibility|networking/shared-responsibility]].',
+		'[ingat] Not using it? Close it. Using it? Lock it. Either way, keep it updated.',
+		'Want to see why this matters? Open the Telnet door again and watch what the bots and the scanner do.'
 	],
 	reactions: {
-		scan: 'Ouch, a score of 10. Six doors are wide open, and bots are already trying them. Tap the red doors to close them, in any order you like.',
-		update:
-			'Updated. Most attacks use holes that already have a fix, exactly like Equifax. Turning on automatic security updates is the cheapest protection there is.',
-		telnet:
-			'Telnet is closed. It is a remote login from 1969 that sends everything, passwords included, as plain readable text. SSH replaced it long ago, so nobody needs this door.',
-		db: 'The database door is shut to the internet. Now only the web server sitting next to it may talk to it. A [[firewall|networking/firewall]] rule like this is a tiny change that stops a lot of leaks.',
-		sshkey:
-			'Passwords off, keys on. A bot can guess passwords all day long (that is [[brute force|security/brute-force]]), but it cannot guess a key file that only lives on your laptop.',
-		root: 'The web app now runs as its own small user instead of <b>root</b>, the all powerful admin. If it ever gets broken into, the attacker lands in one small room, not the whole house. That is called <b>least privilege</b>.',
-		default:
-			'The admin panel still had its factory password, admin and admin. Bots try that first, every single time. A long unique password closes the easiest door of all.',
-		web: 'Whoa, nimbus.com just went offline. Port 443 is the door your visitors use for HTTPS. Hardening means closing the doors you do not need, not every door. Open it again.',
-		done: 'Score 100. Every unneeded door is shut, and the only way in is the front door you actually watch. Real teams rerun scanners like this on a schedule, because new holes show up every week.'
+		reopen:
+			'Seconds later the bots are already at it, and the score drops. One forgotten door undoes a lot of good work.',
+		reclose: 'Shut again. The bots bounce off and wander away to find an easier server.'
 	},
-	serverLabel: 'nimbus.com server',
-	scanBtn: 'Run the scanner',
-	scoreLabel: 'Security score',
-	doors: {
-		update: {
-			name: 'Software from two years ago',
-			risk: 'Known holes with public fixes',
-			fix: 'Update',
-			done: 'Up to date, auto updates on'
+	steps: [
+		{
+			title: 'A fresh server',
+			body: 'Out of the box, lots of programs are switched on and listening, each one behind its own <b>open door</b>.'
 		},
-		telnet: {
-			name: 'Port 23, Telnet',
-			risk: 'Old login that sends passwords as plain text',
-			fix: 'Close',
-			done: 'Closed for good'
+		{
+			title: 'Bots knocking',
+			body: 'Automated programs sweep the whole internet nonstop. A new server is usually found within <b>minutes</b>.'
 		},
-		db: {
-			name: 'Port 3306, database',
-			risk: 'Reachable from the whole internet',
-			fix: 'Close',
-			done: 'Only the web server can reach it'
+		{
+			title: 'Ports and scanners',
+			body: 'A <b>port</b> is a numbered door a program listens on. A <b>scanner</b> lists which doors answer, the very same tool attackers run.'
 		},
-		sshkey: {
-			name: 'SSH login with a password',
-			risk: 'Bots can keep guessing forever',
-			fix: 'Use keys',
-			done: 'Key login only'
+		{
+			title: 'Update first',
+			body: 'An <b>update</b> (also called a patch) fixes holes the makers already know about. Old software is the easiest door of all.'
 		},
-		root: {
-			name: 'App runs as root',
-			risk: 'One break in hands over everything',
-			fix: 'Shrink it',
-			done: 'Runs as a small user'
+		{
+			title: 'Close what you do not need',
+			body: 'Switch off programs nobody uses. A closed port gives a bot <b>nothing</b> to talk to.'
 		},
-		default: {
-			name: 'Admin panel, admin and admin',
-			risk: 'The factory password, the first one bots try',
-			fix: 'Change',
-			done: 'Long unique password'
+		{
+			title: 'Lock what you keep',
+			body: 'Log in with a <b>key</b> instead of a password, and give every program only the power it truly needs.'
+		},
+		{
+			title: 'One watched door',
+			body: 'The website door stays open on purpose. Fewer doors means fewer places to keep an eye on.'
+		},
+		{
+			tag: 'By the way',
+			title: 'Hardening everywhere',
+			body: 'Phone updates and screen locks are hardening too. In the cloud, your rented server is <b>yours</b> to harden.'
+		},
+		{
+			tag: 'Remember it',
+			title: 'Close, lock, update',
+			body: 'Not used, <b>close</b> it. Used, <b>lock</b> it. Always <b>update</b>.'
+		},
+		{
+			tag: 'Your turn',
+			title: 'Reopen a door',
+			body: 'Open Telnet again, if you like, and watch the bots rush to it while the score falls.'
 		}
+	],
+	serverLabel: 'nimbus.com server',
+	botsLabel: 'Bots',
+	scoreLabel: 'Scanner score',
+	software: 'Apache Struts',
+	outdated: 'old',
+	patched: 'updated',
+	doors: {
+		ftp: 'Files',
+		ssh: 'Admin',
+		telnet: 'Telnet',
+		web: 'Website',
+		db: 'Database',
+		test: 'Test page'
 	},
-	web: {
-		name: 'Port 443, HTTPS',
-		note: 'Your visitors come in here',
-		close: 'Close',
-		reopen: 'Reopen',
-		closedNote: 'Closed, nobody can open nimbus.com'
-	},
-	openTag: 'open',
-	closedTag: 'closed',
-	neededTag: 'needed',
-	siteUp: 'online',
-	siteDown: 'offline',
-	hintIdle: 'A fresh server, straight out of the box',
-	hintScan: 'Tap a red door to close it',
-	hintDone: 'Every unneeded door is closed'
+	reopen: 'Open Telnet again',
+	reclose: 'Close Telnet'
 };

@@ -6,14 +6,9 @@ import { en } from './en';
 export const predict: Lesson = {
 	id: 'predict',
 	mood: 'thinking',
-	moods: ['calm', 'idea', 'thinking', 'wink', 'happy', 'excited'],
+	moods: ['calm', 'thinking', 'idea', 'happy', 'wink', 'surprised', 'excited'],
 	reactionMood: {
-		reg_add: 'happy',
-		reg_ask: 'idea',
-		cls_add: 'happy',
-		cls_ask: 'idea',
-		cls_flip: 'surprised',
-		both: 'excited'
+		ask: 'happy'
 	},
 	stage: PredictStage,
 	text: { id, en }

@@ -6,7 +6,7 @@ import { en } from './en';
 export const dbIndex: Lesson = {
 	id: 'db-index',
 	mood: 'thinking',
-	moods: ['calm', 'worried', 'idea', 'thinking', 'wink', 'excited'],
+	moods: ['calm', 'worried', 'idea', 'thinking', 'excited', 'wink', 'thinking', 'happy'],
 	reactionMood: {
 		small: 'calm',
 		mid: 'surprised',

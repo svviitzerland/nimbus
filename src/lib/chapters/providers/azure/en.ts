@@ -3,11 +3,16 @@ import type { AzureText } from './types';
 export const en: AzureText = {
 	title: 'Azure',
 	intro: [
-		'Microsoft has made Windows and Office for decades, and millions of office workers already sign in with a Microsoft account every morning. <b>Azure</b> is the Microsoft cloud.',
-		'It opened in 2010 as Windows Azure. In 2014 it became Microsoft Azure, and these days more of its virtual machines run Linux than Windows.',
-		'Azure leans on plain names, like Virtual Machines, Load Balancer, and Functions, plus a few brand names worth learning, like Cosmos DB and Entra ID.',
-		'[fyi] Azure keeps everything for one project in a <b>resource group</b>, like a folder. Delete the folder and every piece inside goes with it. The same ideas wear other names on [[AWS|providers/aws]] and [[Google Cloud|providers/gcp]].',
-		'Big companies often pick Azure because their staff already log in with Microsoft. Let us build nimbus.com on Azure, front door first. Pick a service tile, then drop it on the idea it stands for.'
+		'You already met every piece of a website in the cloud. A front door, a private network, servers, data, and someone keeping watch. On the board, each one is a plain tile with the idea written on it.',
+		'Microsoft has made Windows and Office for decades, and millions of office workers sign in with a Microsoft account every morning. <b>Azure</b> is the Microsoft cloud. It opened in 2010, and today more of its virtual machines run Linux than Windows.',
+		'Watch the top row flip. The front door becomes <b>Azure DNS</b>, <b>Front Door</b> (the CDN and global entrance, copies near every visitor) and <b>Load Balancer</b>, a name Azure kept perfectly plain.',
+		'Next comes the private network. <b>VNet</b>, short for Virtual Network, is your own fenced off network, and an <b>NSG</b> (Network Security Group) is the firewall that says which ports may pass.',
+		'Then the computers that run nimbus.com. <b>Virtual Machines</b> are rented servers, no nickname at all. <b>Container Apps</b> runs containers, and <b>Functions</b> runs one small piece of code when it is called.',
+		'Every website needs a place for its data. <b>Blob Storage</b> holds files, <b>Azure SQL</b> is a SQL database Microsoft looks after, and <b>Cosmos DB</b> is a NoSQL database that copies itself to many regions.',
+		'Last, the tools that keep it safe and watched. <b>Entra ID</b> is the login that decides who may do what, <b>Key Vault</b> keeps keys and passwords, and <b>Azure Monitor</b> draws the graphs and rings the alarm.',
+		'[ingat] <b>Same idea, different name tag.</b> Azure keeps most names plain, and saves a few odd ones. Here is the sticky pair, <b>Blob Storage is file storage</b>. A blob is a lump of anything, so any file at all goes in it.',
+		'[fyi] Same word, different world. The rented server is EC2 on [[AWS|providers/aws]] and Compute Engine on [[Google Cloud|providers/gcp]]. Azure also keeps every piece of one project in a <b>resource group</b>, like a folder you can delete in one go.',
+		'Watch a visitor walk through the whole board, from Azure DNS down to Azure Monitor. Want to try it yourself? Put the names back on the tiles, it is a small bonus.'
 	],
 	reactions: {
 		dns: 'Azure DNS is the [[DNS|networking/dns]], holding the records that point nimbus.com at your servers.',
@@ -34,6 +39,58 @@ export const en: AzureText = {
 		miss: 'Not that slot. Read the name once more and think about what job it does.',
 		live: 'Your visitor came through Azure DNS and Front Door, past the Load Balancer and the NSG, into a Virtual Machine, read Azure SQL and Blob Storage, and Azure Monitor watched every step. nimbus.com is live on Azure.'
 	},
+	steps: [
+		{
+			tag: 'The plain ideas',
+			title: 'A website in the cloud',
+			body: 'Five layers, from the front door down to the tools that watch it. Each tile is an idea you already know.'
+		},
+		{
+			tag: 'Since 2010',
+			title: 'Microsoft Azure',
+			body: 'The cloud of the company behind Windows and Office. Big offices often pick it because staff already sign in with Microsoft.'
+		},
+		{
+			tag: 'Layer 1',
+			title: 'Front door',
+			body: '<b>Azure DNS</b> is the DNS, <b>Front Door</b> the CDN, <b>Load Balancer</b> the load balancer.'
+		},
+		{
+			tag: 'Layer 2',
+			title: 'Private network',
+			body: '<b>VNet</b> is the private network. An <b>NSG</b> is its firewall.'
+		},
+		{
+			tag: 'Layer 3',
+			title: 'Compute',
+			body: '<b>Virtual Machines</b>, <b>Container Apps</b> for containers, <b>Functions</b> for serverless.'
+		},
+		{
+			tag: 'Layer 4',
+			title: 'Data',
+			body: '<b>Blob Storage</b> stores files, <b>Azure SQL</b> is SQL, <b>Cosmos DB</b> is NoSQL.'
+		},
+		{
+			tag: 'Layer 5',
+			title: 'Access and watch',
+			body: '<b>Entra ID</b> for logins, <b>Key Vault</b> for keys, <b>Azure Monitor</b> for graphs and alarms.'
+		},
+		{
+			tag: 'Rule of thumb',
+			title: 'Same idea, new name tag',
+			body: 'Most Azure tags are plain. Sticky pair for an odd one, <b>a blob is any file</b>.'
+		},
+		{
+			tag: 'Elsewhere',
+			title: 'Three labels, one box',
+			body: 'File storage at AWS, Google Cloud, and Azure. Only the name tag changes.'
+		},
+		{
+			tag: 'Optional',
+			title: 'One visitor, every layer',
+			body: 'The request lights up each piece on its way. Tap the button to match the names yourself.'
+		}
+	],
 	boardTitle: 'nimbus.com on Azure',
 	youLabel: 'Visitor',
 	layers: ['Front door', 'Private network', 'Compute', 'Data', 'Access and watch'],
@@ -53,12 +110,11 @@ export const en: AzureText = {
 		keys: 'Encryption keys',
 		monitor: 'Monitoring'
 	},
+	sameIdea: '{c} at each cloud',
+	playBtn: 'Match the names myself',
 	trayLabel: 'Azure services',
-	pickHint: 'Pick a service tile, then tap the idea it stands for',
+	pickHint: 'Pick a name, then tap the idea it stands for',
 	placeHint: 'Where does {s} belong?',
 	missTag: 'not here',
-	layerTag: '{n} of {t} layers',
-	liveBtn: 'Send a visitor to nimbus.com',
-	noteDone: 'Every piece is in place, time for a real visitor',
-	noteLive: 'The same ideas you know, wearing Azure names'
+	noteLive: 'All yours, the same ideas wearing Azure names'
 };

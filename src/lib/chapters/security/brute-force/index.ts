@@ -6,14 +6,21 @@ import { en } from './en';
 export const bruteForce: Lesson = {
 	id: 'brute-force',
 	mood: 'thinking',
-	moods: ['calm', 'worried', 'surprised', 'idea', 'thinking', 'excited'],
+	moods: [
+		'calm',
+		'worried',
+		'thinking',
+		'surprised',
+		'wink',
+		'idea',
+		'happy',
+		'thinking',
+		'excited'
+	],
 	reactionMood: {
-		leaked: 'sad',
-		leakedLock: 'worried',
-		fast: 'worried',
-		medium: 'thinking',
-		strong: 'excited',
-		lockOn: 'happy'
+		weak: 'worried',
+		okay: 'thinking',
+		strong: 'excited'
 	},
 	stage: BruteForceStage,
 	text: { id, en }

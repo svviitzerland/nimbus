@@ -6,12 +6,21 @@ import { en } from './en';
 export const dhcp: Lesson = {
 	id: 'dhcp',
 	mood: 'calm',
-	moods: ['wink', 'idea', 'happy', 'thinking', 'idea', 'happy', 'wink', 'excited'],
+	moods: [
+		'wink',
+		'idea',
+		'thinking',
+		'happy',
+		'happy',
+		'excited',
+		'thinking',
+		'wink',
+		'idea',
+		'happy'
+	],
 	reactionMood: {
-		dora: 'happy',
-		empty: 'worried',
-		leave: 'thinking',
-		rejoin: 'excited'
+		join: 'happy',
+		empty: 'worried'
 	},
 	stage: DhcpStage,
 	text: { id, en }

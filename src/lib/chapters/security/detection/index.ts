@@ -6,13 +6,8 @@ import { en } from './en';
 export const detection: Lesson = {
 	id: 'detection',
 	mood: 'thinking',
-	moods: ['surprised', 'thinking', 'worried', 'idea', 'sad', 'wink'],
-	reactionMood: {
-		search: 'happy',
-		innocent: 'thinking',
-		found: 'excited',
-		siem: 'wink'
-	},
+	moods: ['surprised', 'thinking', 'worried', 'idea', 'wink', 'sad', 'idea', 'excited'],
+	reactionMood: { innocent: 'calm', found: 'excited' },
 	stage: DetectionStage,
 	text: { id, en }
 };

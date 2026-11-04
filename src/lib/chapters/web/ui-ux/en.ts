@@ -3,50 +3,77 @@ import type { UiUxText } from './types';
 export const en: UiUxText = {
 	title: 'UI and UX',
 	intro: [
-		'Think of your favourite app. Part of why you like it is how it <b>looks</b>, and part of it is how <b>easy</b> it is to get things done. Those are two different jobs with two different names.',
-		'<b>UI</b> stands for user interface. It is everything you see and touch, the colours, the fonts, the buttons, the spacing. If an app were a car, UI would be the paint, the seats, and the dashboard.',
-		'<b>UX</b> stands for user experience. It is how it feels to actually use the thing. Can you find the button you need? Does it do what you expected? Do you finish without getting annoyed? In the car, UX is how it feels to drive.',
-		'[fyi] UX is not only about screens. Ever pulled a door that should have been pushed? People call those "Norman doors", after Don Norman, the designer who made the term user experience popular in the 1990s.',
-		'A beautiful page can still be painful to use, and a plain page can feel effortless. Good products need both, and in the [[next lesson|web/design-to-code]] you will see how a design turns into real [[CSS|web/css]].',
-		'Here are two nimbus.com shops that look almost the same. Your job is simple, buy one Nim mug in each shop. Count how many taps it takes, and notice how each one makes you feel.'
+		'Think of your favourite app. Part of why you like it is how it <b>looks</b>, and part of it is how <b>easy</b> it is to get things done. Those are two different jobs, and each one has its own name.',
+		'<b>UI</b> stands for user interface. It is everything you see and touch on the screen, the colours, the letters, the buttons, the space between things.',
+		'<b>UX</b> stands for user experience. It is how it feels to actually use the thing. Watch someone buy a mug. Find the button, tap it, done, nothing to think about. That smooth feeling is good UX.',
+		'Now the same shop, made carelessly. Two buttons that look exactly alike, a label that says nothing (Proceed to what?), and a fee that only shows up at the very end. The paint is fine, the experience is not.',
+		'Here it is made with care. One clear main button that says exactly what happens, and the full price shown from the start. Same colours, same letters, yet it feels completely different.',
+		'[fyi] UX is not only about screens. Ever pulled a door that should have been pushed? People call those Norman doors, after Don Norman, the designer who made the words user experience popular in the 1990s.',
+		'[ingat] UI is the shirt, UX is how comfy it is to wear. A shirt can look great and still itch all day. Good products need both, and next you will see how a design becomes real [[CSS|web/css]] in [[design to code|web/design-to-code]].',
+		'Your turn, if you like. Flip between the careless shop and the careful one, and spot what changed.'
 	],
 	reactions: {
-		trap: 'Oops, the order got cancelled. The two buttons looked exactly the same, so it was easy to tap the wrong one. That is a UX problem, not a UI one, the paint was fine.',
-		paidA:
-			'You got the mug, but it took a while, and a surprise shipping fee popped up at the very end. Nobody likes that. Now try the other shop.',
-		paidB:
-			'One tap, and you knew the full price before paying. The other shop is still waiting, give it a try too.',
-		both: 'Same colours, same fonts, same mug. The UI was almost identical, yet one shop felt smooth and the other felt like a maze. That difference is UX.',
-		why: '[fyi] Shops that hide costs until the last step lose a lot of buyers. Surprise fees are one of the most common reasons people abandon a cart online.'
+		messy:
+			'Same look, but squint at it. Which button buys the mug? And where did that extra fee come from? That confusion is a UX problem, not a UI one.',
+		clear:
+			'Back to the careful shop. One button, one honest price, nothing to guess. Your thumb knows where to go.'
 	},
-	task: 'Buy one Nim mug',
-	shopA: 'Shop A',
-	shopB: 'Shop B',
+	steps: [
+		{
+			title: 'Two jobs',
+			body: 'Every app has a <b>look</b> and a <b>feel</b>. They are made by different decisions, so they get different names.'
+		},
+		{
+			title: 'UI, the look',
+			body: '<b>User interface</b> means what you see and touch. Colours, fonts, buttons, and spacing are all UI.'
+		},
+		{
+			title: 'UX, the feel',
+			body: '<b>User experience</b> means how using it feels. Can you find things, does it do what you expect, do you finish without frowning?'
+		},
+		{
+			title: 'Careless UX',
+			body: 'Look alike buttons, vague words, and <b>surprise costs</b> make people hesitate, tap the wrong thing, or give up.'
+		},
+		{
+			title: 'Careful UX',
+			body: 'One <b>clear main action</b>, words that say what happens, and no surprises. People finish fast and feel good about it.'
+		},
+		{
+			title: 'Not just screens',
+			tag: 'By the way',
+			body: 'A door whose handle says pull while the sign says push is bad UX too. Good design tells you what to do without a sign.'
+		},
+		{
+			title: 'Remember it',
+			tag: 'Remember it',
+			body: 'UI is the <b>shirt</b>, UX is how <b>comfy</b> it is to wear. You need both.'
+		}
+	],
+	site: 'nimbus.com',
 	product: 'Nim mug',
-	money: '${n}',
-	qty: 'Qty 1',
-	shipping: 'Shipping',
-	total: 'Total',
-	a: {
+	price: '$12',
+	buy: 'Buy now',
+	paid: 'Mug on its way',
+	uiColor: 'Colour',
+	uiFont: 'Letters',
+	uiButton: 'Button',
+	messy: {
 		cancel: 'Cancel',
 		next: 'Proceed',
-		confirmQ: 'Do you want to cancel your order?',
-		yes: 'Yes',
-		no: 'No',
-		feeNote: 'A handling fee was added',
-		pay: 'Submit'
+		fee: '+ $4 handling fee',
+		total: 'Total $16',
+		flags: ['Which one buys?', 'Proceed to what?', 'Surprise fee']
 	},
-	b: { pay: 'Pay {total}', free: 'Free shipping, nothing else to add', back: 'Keep shopping' },
-	cancelled: 'Order cancelled',
-	paid: 'Mug on its way',
-	again: 'Try again',
-	taps: '{n} taps',
-	whyBtn: 'What made the difference?',
-	whyLabel: 'Same look, different feel',
-	whyPoints: [
-		'Shop A had two buttons that looked the same, Shop B had one clear main action.',
-		'Shop A said "Proceed" and "Submit", Shop B said exactly what happens, "Pay $12".',
-		'Shop A asked a confusing question where "No" meant go ahead.',
-		'Shop A hid a fee until the end, Shop B showed the full price from the start.'
-	]
+	clear: {
+		pay: 'Pay $12',
+		free: 'Free shipping',
+		total: 'Total $12',
+		flags: ['One main action', 'Says what happens', 'Price up front']
+	},
+	door: { sign: 'PUSH', caption: 'The handle says pull, the sign says push' },
+	lookTag: 'UI, the look',
+	feelTag: 'UX, the feel',
+	showMessy: 'Show the careless shop',
+	showClear: 'Show the careful shop'
 };

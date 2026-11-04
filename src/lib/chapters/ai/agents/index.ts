@@ -6,20 +6,19 @@ import { en } from './en';
 export const agents: Lesson = {
 	id: 'agents',
 	mood: 'thinking',
-	moods: ['calm', 'idea', 'thinking', 'thinking', 'wink', 'happy', 'excited'],
-	reactionMood: {
-		think: 'thinking',
-		tool: 'idea',
-		result: 'happy',
-		busy: 'surprised',
-		ask: 'wink',
-		allow: 'happy',
-		deny: 'calm',
-		email: 'excited',
-		done: 'excited',
-		done_deny: 'calm',
-		auto: 'wink'
-	},
+	moods: [
+		'calm',
+		'idea',
+		'thinking',
+		'thinking',
+		'surprised',
+		'wink',
+		'excited',
+		'wink',
+		'idea',
+		'happy'
+	],
+	reactionMood: { allow: 'happy', deny: 'calm' },
 	stage: AgentsStage,
 	text: { id, en }
 };

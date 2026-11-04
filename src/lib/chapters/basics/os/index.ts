@@ -6,8 +6,19 @@ import { en } from './en';
 export const os: Lesson = {
 	id: 'os',
 	mood: 'thinking',
-	moods: ['thinking', 'idea', 'happy', 'thinking', 'calm', 'wink', 'excited'],
-	reactionMood: { first: 'happy', more: 'excited', slow: 'worried', close: 'happy' },
+	moods: [
+		'thinking',
+		'idea',
+		'wink',
+		'calm',
+		'excited',
+		'happy',
+		'worried',
+		'calm',
+		'happy',
+		'excited'
+	],
+	reactionMood: { open: 'happy', slow: 'worried', close: 'happy' },
 	stage: OsStage,
 	text: { id, en }
 };

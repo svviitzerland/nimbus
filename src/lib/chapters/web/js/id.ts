@@ -3,37 +3,67 @@ import type { JsText } from './types';
 export const id: JsText = {
 	title: 'Apa itu JavaScript',
 	intro: [
-		'Halaman nimbus.com kamu sudah punya kerangka (HTML) dan baju (CSS). Tapi coba pencet tombolnya, nggak terjadi apa apa. Halamannya belum bisa bereaksi, cuma diam doang sambil tampil cakep.',
-		'Bereaksi itu tugasnya <b>JavaScript</b>, bahasa ketiga yang dimengerti semua browser. Isinya daftar perintah yang diikuti browser, misalnya "kalau ada yang pencet tombol ini, tambah satu ke keranjang".',
-		'Kebanyakan JavaScript di halaman itu kerjanya menunggu sesuatu terjadi, entah dipencet, ada tombol keyboard ditekan, atau halaman digulir. Kamu kasih tahu dia harus nunggu apa dan ngapain setelahnya. Nunggu lalu bereaksi inilah yang bikin halaman terasa hidup.',
-		'Sedikit kosakata. <b>let count = 0</b> bikin sebuah kotak namanya <b>variabel</b> yang menyimpan angka. <b>addEventListener</b> artinya "dengarkan ini". Kode di dalam kurung kurawal jalan tiap kali dia mendengarnya.',
-		'[fyi] Walaupun namanya mirip, JavaScript nggak ada hubungannya sama Java. Dia dibikin cuma sekitar 10 hari di tahun 1995 buat browser Netscape, dan namanya lebih ke strategi marketing, soalnya Java lagi ngetren waktu itu.',
-		'JavaScript juga galak. Kurang satu kurung aja, browser berhenti membaca seluruh script itu, jadi nggak ada isinya yang jalan. Sebentar lagi kamu lihat sendiri.',
-		'Giliran kamu! Ini toko kecil di nimbus.com. Bikin keranjangnya menghitung, ubah berapa yang ditambah tiap pencetan, lalu rusak satu baris dengan sengaja dan lihat apa yang terjadi.'
+		'Toko nimbus.com kamu sudah punya kerangka (HTML) dan baju (CSS). Tapi coba pencet tombolnya, nggak terjadi apa apa. Halamannya belum bisa bereaksi, cuma diam sambil tampil cakep.',
+		'Bereaksi itu tugasnya <b>JavaScript</b>, bahasa ketiga yang dimengerti semua browser. Isinya daftar perintah yang diikuti browser dari atas ke bawah. Nim nulis yang pertama, sebuah kotak namanya <b>variabel</b> yang mengingat angka.',
+		'Berikutnya kodenya harus menemukan bagian yang mau dia urus, tombolnya dan angka di keranjang. Anggap aja kayak menunjuk barang di halaman lalu kasih nama.',
+		'Sekarang bagian pentingnya. <b>addEventListener</b> artinya "dengarkan ini". Di sini dia mendengarkan klik, dan dua baris di dalamnya jalan tiap kali ada klik.',
+		'Lihat tombolnya dipencet. Tiap pencetan memicu klik, listenernya mendengar, menambah satu ke hitungan, lalu menulis angka barunya di halaman.',
+		'[fyi] Walaupun namanya mirip, JavaScript nggak ada hubungannya sama Java. Dia dibikin cuma sekitar sepuluh hari di tahun 1995 buat browser Netscape, dan namanya lebih ke strategi marketing, soalnya Java lagi ngetren waktu itu.',
+		'Tapi JavaScript itu galak. Nim menghapus satu kurung kecil, dan browser berhenti membaca seluruh script. Lihat, tombolnya tetap dipencet tapi nggak ada yang terhitung, dan consolenya menampilkan error.',
+		'Kurungnya dikembalikan, semuanya jalan lagi. Developer melakukan ini seharian, baca errornya, cari barisnya, betulkan.',
+		'[ingat] Hampir semua JavaScript di halaman kerjanya tiga hal, <b>cari, dengar, ubah</b>. Kayak satpam rumah, dia tahu pintu mana yang dijaga, nunggu bel bunyi, lalu bukain pintu.',
+		'Sekarang tokonya punya kamu. Pencet Tambah ke keranjang sendiri kalau mau, atau ganti jadi nambah 2 per pencetan dan lihat kodenya menulis ulang dirinya. Berikutnya, kita intip apa yang sebenarnya diubah JavaScript, namanya [[DOM|web/dom]].'
 	],
 	reactions: {
-		count:
-			'Dia menghitung! Tiap pencetan memicu event <b>click</b>, listenernya mendengar, menambah satu ke <b>count</b>, lalu menulis angka barunya di halaman.',
-		step: 'Sekarang satu pencetan nambahnya lebih banyak. Kamu cuma ganti satu angka di kode dan tombolnya berperilaku beda. Itulah inti pemrograman, perintah kecil yang bisa kamu utak atik.',
-		broken:
-			'Waduh, lihat consolenya. Browser ketemu sesuatu yang nggak bisa dia baca dan langsung berhenti di situ. Errornya bahkan kasih tahu baris mana yang harus kamu cek.',
-		dead: 'Tuh kan, tombolnya mati. Scriptnya rusak sebelum sampai ke <b>addEventListener</b>, jadi nggak ada lagi yang mendengarkan pencetanmu.',
-		fixed:
-			'Hidup lagi! Baris dibetulkan, script jalan lagi, dan listenernya kembali. Developer melakukan ini seharian, merusak sesuatu, baca errornya, lalu membetulkannya.',
-		loop: '[fyi] Nim mematikan loop di taman bermain kecil ini, jadi loop yang nggak pernah selesai nggak bisa bikin halamanmu macet. Halaman beneran pakai loop di mana mana kok.',
-		done: 'Kamu bikin halaman bereaksi, merusaknya, lalu membetulkannya lagi. Berikutnya, yuk intip apa sebenarnya yang diubah JavaScript di balik layar, namanya [[DOM|web/dom]].'
+		tap: 'Itu pencetanmu sendiri! Listenernya nggak bisa bedain kamu sama Nim, dia cuma dengar ada klik lalu menjalankan dua barisnya.',
+		step: 'Cuma satu angka di kode yang berubah, dan tombolnya sekarang berperilaku beda. Itulah inti pemrograman, perintah kecil yang bisa kamu utak atik.'
 	},
-	missionsLabel: 'Hidupkan tokonya',
-	missions: {
-		count: 'Pencet Tambah ke keranjang dan lihat hitungannya',
-		step: 'Bikin satu pencetan nambah 2',
-		broken: 'Rusak satu baris dengan sengaja',
-		fixed: 'Betulkan sampai tombolnya jalan lagi'
-	},
-	chipsLabel: 'Jalan pintas kalau ngetik ribet',
-	chips: { step: 'Bikin nambah 2', breakIt: 'Hapus satu kurung', fix: 'Kembalikan' },
+	steps: [
+		{
+			tag: 'script.js',
+			title: 'Halaman yang cuma diam',
+			body: 'HTML kasih bagian bagiannya dan CSS kasih tampilannya, tapi belum ada yang mendengarkan pencetanmu.'
+		},
+		{
+			title: 'Variabel',
+			body: '<b>let count = 0</b> bikin kotak berlabel yang menyimpan angka. Kodenya bisa membaca dan mengubahnya nanti.'
+		},
+		{
+			title: 'Mencari bagian',
+			body: '<b>querySelector</b> menemukan satu bagian halaman, di sini tombol dan angka keranjang, supaya kodenya bisa memakainya.'
+		},
+		{
+			title: 'Listener',
+			body: 'Dia menunggu <b>click</b>. Baris di dalam kurung kurawal jalan setiap kali dia mendengarnya.'
+		},
+		{
+			title: 'Jalan',
+			body: 'Tiap pencetan menambah satu ke <b>count</b>, lalu menaruh angka barunya di halaman. Perhatikan keranjangnya.'
+		},
+		{
+			title: 'Bukan Java',
+			body: 'Dua nama ini cuma mirip di atas kertas. JavaScript jalan di semua browser, Java itu bahasa lain buat urusan lain.'
+		},
+		{
+			title: 'Kurang satu kurung',
+			body: 'Browser nggak bisa membaca scriptnya, jadi nggak ada yang dijalankan. Nggak ada yang mendengarkan, dan console bilang kenapa.'
+		},
+		{
+			title: 'Beres',
+			body: 'Kurungnya kembali, seluruh script jalan lagi, listenernya kembali, dan pencetan terhitung.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Cari, dengar, ubah',
+			body: '<b>querySelector</b> mencari, <b>addEventListener</b> mendengar, dan baris di dalamnya mengubah halaman.'
+		},
+		{
+			title: 'Toko kamu',
+			body: 'Pencet tombol di preview, atau ganti berapa yang ditambah tiap pencetan. Scriptnya cuma hidup di dalam preview.'
+		}
+	],
+	comment: 'masih kosong, jadi tombolnya nggak ngapa ngapain',
 	jsLabel: 'script.js',
-	htmlLabel: 'index.html',
 	previewLabel: 'nimbus.com/shop',
 	consoleLabel: 'Console',
 	consoleEmpty: 'Nggak ada error, aman',
@@ -43,8 +73,5 @@ export const id: JsText = {
 		button: 'Tambah ke keranjang',
 		cart: 'Keranjang'
 	},
-	comment: 'Ini jalan di dalam halaman',
-	loopHint: 'Loop dimatikan di sini, jadi versi ini nggak dijalankan',
-	allDone: 'Empat misi beres, sekarang kamu bisa sedikit JavaScript',
-	reset: 'Ulang dari awal'
+	stepLabel: 'Tiap pencetan nambah'
 };

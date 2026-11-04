@@ -6,14 +6,12 @@ import { en } from './en';
 export const sql: Lesson = {
 	id: 'sql',
 	mood: 'calm',
-	moods: ['thinking', 'calm', 'idea', 'happy', 'wink', 'excited'],
+	moods: ['calm', 'thinking', 'idea', 'happy', 'thinking', 'wink', 'idea', 'wink', 'excited'],
 	reactionMood: {
 		all: 'happy',
 		pick: 'wink',
 		out: 'idea',
-		cheap: 'excited',
-		miss: 'thinking',
-		done: 'excited'
+		cheap: 'excited'
 	},
 	stage: SqlStage,
 	text: { id, en }

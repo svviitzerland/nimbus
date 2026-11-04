@@ -3,11 +3,16 @@ import type { GcpText } from './types';
 export const en: GcpText = {
 	title: 'Google Cloud',
 	intro: [
-		'Google ran Search, Gmail, and YouTube for billions of people long before it rented out a single server. <b>Google Cloud</b> lets you use that very same machinery.',
-		'It began in 2008 with App Engine, a place to run code without touching any server. Compute Engine, its plain rented servers, followed in 2012.',
-		'Google names things plainly. Cloud Storage stores, Cloud SQL is SQL. So the puzzle here is less about decoding names and more about spotting which idea each one belongs to.',
-		'[fyi] Same word, different reach. On Google Cloud one VPC can stretch across every region in the world, while on [[AWS|providers/aws]] and [[Azure|providers/azure]] each private network lives inside one region.',
-		'Let us build nimbus.com on Google Cloud, front door first. Pick a service tile, then drop it on the idea it stands for.'
+		'You already met every piece of a website in the cloud. A front door, a private network, servers, data, and someone keeping watch. On the board, each one is a plain tile with the idea written on it.',
+		'Google ran Search, Gmail, and YouTube for billions of people long before it rented out a single server. <b>Google Cloud</b> lets you use that same machinery. It began in 2008 with App Engine, and its plain rented servers followed in 2012.',
+		'Watch the top row flip. Google names things plainly, so the front door becomes <b>Cloud DNS</b>, <b>Cloud CDN</b> (copies near every visitor) and <b>Cloud Load Balancing</b>, one single address for visitors from every continent.',
+		'Next comes the private network. <b>VPC</b> is your own fenced off network, and on Google Cloud one VPC can stretch across the whole world. <b>Firewall rules</b> decide what may come in.',
+		'Then the computers that run nimbus.com. <b>Compute Engine</b> is a rented server, <b>Cloud Run</b> runs containers and shrinks to zero when nobody visits, and <b>Cloud Functions</b> runs one small function per request.',
+		'Every website needs a place for its data. <b>Cloud Storage</b> holds files, <b>Cloud SQL</b> is a SQL database Google looks after, and <b>Firestore</b> is a NoSQL database that can push changes straight to phones.',
+		'Last, the tools that keep it safe and watched. <b>IAM</b> hands out roles, <b>Cloud KMS</b> keeps the encryption keys, and <b>Cloud Monitoring</b> draws the graphs and rings the alarm.',
+		'[ingat] <b>Same idea, different name tag.</b> Google makes it easy, the name usually says the job. Cloud Storage stores, Cloud SQL is SQL. One sticky pair, <b>Compute Engine is a VM</b>, an engine that computes for you.',
+		'[fyi] Same word, different world. The rented server is EC2 on [[AWS|providers/aws]] and Virtual Machines on [[Azure|providers/azure]]. And a Google VPC spans every region, while on the other two each private network lives in one region.',
+		'Watch a visitor walk through the whole board, from Cloud DNS down to Cloud Monitoring. Want to try it yourself? Put the names back on the tiles, it is a small bonus.'
 	],
 	reactions: {
 		dns: 'Cloud DNS is the [[DNS|networking/dns]] of Google Cloud. It answers from the same worldwide network that keeps Google Search fast.',
@@ -34,6 +39,58 @@ export const en: GcpText = {
 		miss: 'Not that slot. Read the name once more and think about what job it does.',
 		live: 'Your visitor went through Cloud DNS, Cloud CDN, and the load balancer, past the firewall rules into Compute Engine, read Cloud SQL and Cloud Storage, and Cloud Monitoring saw every step. nimbus.com is live on Google Cloud.'
 	},
+	steps: [
+		{
+			tag: 'The plain ideas',
+			title: 'A website in the cloud',
+			body: 'Five layers, from the front door down to the tools that watch it. Each tile is an idea you already know.'
+		},
+		{
+			tag: 'Since 2008',
+			title: 'Google Cloud',
+			body: 'The same machinery behind Search and YouTube, rented out to everyone.'
+		},
+		{
+			tag: 'Layer 1',
+			title: 'Front door',
+			body: '<b>Cloud DNS</b>, <b>Cloud CDN</b>, and <b>Cloud Load Balancing</b>. The names already say the job.'
+		},
+		{
+			tag: 'Layer 2',
+			title: 'Private network',
+			body: '<b>VPC</b> is the private network, <b>Firewall rules</b> guard it. One VPC can span the planet.'
+		},
+		{
+			tag: 'Layer 3',
+			title: 'Compute',
+			body: '<b>Compute Engine</b> is a virtual machine, <b>Cloud Run</b> runs containers, <b>Cloud Functions</b> is serverless.'
+		},
+		{
+			tag: 'Layer 4',
+			title: 'Data',
+			body: '<b>Cloud Storage</b> stores files, <b>Cloud SQL</b> is SQL, <b>Firestore</b> is NoSQL.'
+		},
+		{
+			tag: 'Layer 5',
+			title: 'Access and watch',
+			body: '<b>IAM</b> for roles, <b>Cloud KMS</b> for keys, <b>Cloud Monitoring</b> for graphs and alarms.'
+		},
+		{
+			tag: 'Rule of thumb',
+			title: 'Same idea, new name tag',
+			body: 'At Google the name tag mostly reads like the idea. Sticky pair, <b>Compute Engine is a VM</b>.'
+		},
+		{
+			tag: 'Elsewhere',
+			title: 'Three labels, one box',
+			body: 'A virtual machine at AWS, Google Cloud, and Azure. Only the name tag changes.'
+		},
+		{
+			tag: 'Optional',
+			title: 'One visitor, every layer',
+			body: 'The request lights up each piece on its way. Tap the button to match the names yourself.'
+		}
+	],
 	boardTitle: 'nimbus.com on Google Cloud',
 	youLabel: 'Visitor',
 	layers: ['Front door', 'Private network', 'Compute', 'Data', 'Access and watch'],
@@ -53,12 +110,11 @@ export const en: GcpText = {
 		keys: 'Encryption keys',
 		monitor: 'Monitoring'
 	},
+	sameIdea: '{c} at each cloud',
+	playBtn: 'Match the names myself',
 	trayLabel: 'Google Cloud services',
-	pickHint: 'Pick a service tile, then tap the idea it stands for',
+	pickHint: 'Pick a name, then tap the idea it stands for',
 	placeHint: 'Where does {s} belong?',
 	missTag: 'not here',
-	layerTag: '{n} of {t} layers',
-	liveBtn: 'Send a visitor to nimbus.com',
-	noteDone: 'Every piece is in place, time for a real visitor',
-	noteLive: 'The same ideas you know, wearing Google names'
+	noteLive: 'All yours, the same ideas wearing Google names'
 };

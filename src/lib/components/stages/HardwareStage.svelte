@@ -1,582 +1,714 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import type { LessonText } from '$lib/chapters/types';
+	// A laptop taken apart (an exploded view), following Nim's beats. Each beat lights up one
+	// part and a small animation shows it at work, while the Guide panel explains it. On the last
+	// beat the learner may tap any part to look at it again, nothing is required.
+	import Guide from '$lib/components/Guide.svelte';
+	import type { StageProps } from '$lib/chapters/types';
 	import type { HardwareText } from '$lib/chapters/basics/hardware/types';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as HardwareText);
 
-	// stored: the game only lives in storage. loading: it travels into RAM.
-	// loaded: it sits in RAM. running: the CPU plays it. off: the plug is pulled.
-	// back: power returned, RAM starts empty again.
-	type Phase = 'stored' | 'loading' | 'loaded' | 'running' | 'off' | 'back';
-	let phase = $state<Phase>('stored');
-	let steps = $state(0);
-	let done = false;
-	let loadTimer: ReturnType<typeof setTimeout> | undefined;
-	let stepTimer: ReturnType<typeof setInterval> | undefined;
+	type Part = 'screen' | 'keyboard' | 'board' | 'cpu' | 'ram' | 'storage' | 'gpu' | 'battery';
+	type Focus =
+		| 'whole'
+		| 'board'
+		| 'cpu'
+		| 'ram'
+		| 'storage'
+		| 'flow'
+		| 'memo'
+		| 'gpu'
+		| 'power'
+		| 'io'
+		| 'all';
+	const FOCUS: Focus[] = [
+		'whole',
+		'board',
+		'cpu',
+		'ram',
+		'storage',
+		'flow',
+		'memo',
+		'gpu',
+		'power',
+		'io',
+		'all'
+	];
+	const EVERY: Part[] = ['screen', 'keyboard', 'board', 'cpu', 'ram', 'storage', 'gpu', 'battery'];
+	const LIT: Record<Focus, Part[]> = {
+		whole: EVERY,
+		all: EVERY,
+		board: ['board'],
+		cpu: ['cpu'],
+		ram: ['ram'],
+		storage: ['storage'],
+		flow: ['storage', 'ram', 'cpu'],
+		memo: ['ram', 'storage', 'screen', 'battery'],
+		gpu: ['gpu', 'screen'],
+		power: ['battery', 'board'],
+		io: ['keyboard', 'screen', 'cpu']
+	};
+	// which step a tap on a part opens
+	const STEP_OF: Record<Part, number> = {
+		board: 1,
+		cpu: 2,
+		ram: 3,
+		storage: 4,
+		gpu: 7,
+		battery: 8,
+		keyboard: 9,
+		screen: 9
+	};
 
-	const powered = $derived(phase !== 'off');
-	const inRam = $derived(phase === 'loading' || phase === 'loaded' || phase === 'running');
-	const cpuState = $derived(
-		phase === 'off' ? tx.cpuOff : phase === 'running' ? tx.cpuBusy : tx.cpuIdle
-	);
-	const note = $derived(
-		{
-			stored: tx.notes.idle,
-			loading: tx.notes.loading,
-			loaded: tx.notes.loaded,
-			running: tx.notes.running,
-			off: tx.notes.off,
-			back: tx.notes.back
-		}[phase]
-	);
-	const stepText = $derived(tx.steps.replace('{n}', steps.toLocaleString(tx.locale)));
+	const last = $derived(FOCUS.length - 1);
+	const fromBeat = $derived(Math.min(beat, last));
+	let peek = $state<number | null>(null);
+	let peekBeat = -1;
+	const active = $derived(peek !== null && peekBeat === beat ? peek : fromBeat);
+	const focus = $derived(FOCUS[active] ?? 'whole');
+	const canPeek = $derived(beat >= tx.intro.length - 1);
+	const lit = (p: Part) => LIT[focus].includes(p);
+	const showLabel = (p: Part) => focus !== 'whole' && lit(p);
 
-	function stopSteps() {
-		clearInterval(stepTimer);
-		stepTimer = undefined;
+	let reduced = $state(false);
+	$effect(() => {
+		onshow?.(true);
+		oncomplete?.();
+		if (typeof window !== 'undefined' && window.matchMedia) {
+			reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		}
+	});
+
+	// the memory trick, power goes off and on again so you can see who forgets
+	let blackout = $state(true);
+	$effect(() => {
+		if (focus !== 'memo' || reduced) return;
+		blackout = false;
+		const t = setInterval(() => (blackout = !blackout), 2600);
+		return () => clearInterval(t);
+	});
+	const off = $derived(focus === 'memo' && (reduced || blackout));
+
+	// input and output, letters typed one by one appear on the screen
+	let typed = $state(0);
+	$effect(() => {
+		if (focus !== 'io') return;
+		if (reduced) {
+			typed = tx.typed.length;
+			return;
+		}
+		typed = 0;
+		const len = tx.typed.length;
+		const t = setInterval(() => (typed = typed >= len + 3 ? 0 : typed + 1), 520);
+		return () => clearInterval(t);
+	});
+	const pressed = $derived(
+		focus === 'io' && typed > 0 && typed <= tx.typed.length
+			? (tx.typed.charCodeAt(typed - 1) * 7) % 24
+			: -1
+	);
+
+	function select(i: number) {
+		if (!canPeek) return;
+		peek = i;
+		peekBeat = beat;
+		onstate?.('peek');
 	}
-
-	function act() {
-		if (phase === 'stored' || phase === 'back') {
-			phase = 'loading';
-			clearTimeout(loadTimer);
-			loadTimer = setTimeout(() => {
-				phase = 'loaded';
-				onstate?.('load');
-			}, 1500);
-		} else if (phase === 'loaded') {
-			phase = 'running';
-			steps = 0;
-			onstate?.('run');
-			// three billion steps a second, counted in tenths of a second
-			stepTimer = setInterval(() => (steps += 300_000_000), 100);
-		} else if (phase === 'running') {
-			stopSteps();
-			phase = 'off';
-			onstate?.('unplug');
-			if (!done) {
-				done = true;
-				oncomplete?.();
-			}
-		} else if (phase === 'off') {
-			phase = 'back';
-			steps = 0;
-			onstate?.('power');
+	function tap(p: Part) {
+		select(STEP_OF[p]);
+	}
+	function key(e: KeyboardEvent, p: Part) {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			tap(p);
 		}
 	}
 
-	const btn = $derived(
-		phase === 'loaded'
-			? tx.runBtn
-			: phase === 'running'
-				? tx.unplugBtn
-				: phase === 'off'
-					? tx.powerBtn
-					: tx.loadBtn
-	);
-
-	onDestroy(() => {
-		clearTimeout(loadTimer);
-		stopSteps();
-	});
+	const steps = $derived(tx.steps);
+	const KEYS = Array.from({ length: 36 }, (_, k) => k);
+	const TRACES = [
+		'M118 252 H150',
+		'M206 256 H236',
+		'M206 272 H236',
+		'M165 310 V292',
+		'M178 236 V218 H310 V244',
+		'M277 318 V306 H192 V292'
+	];
 </script>
 
-{#snippet gameChip(tag: string)}
-	<span class="game">
-		<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-			<rect x="2.5" y="7" width="19" height="11" rx="5" stroke="currentColor" stroke-width="2" />
-			<path
-				d="M7.5 10.5v4M5.5 12.5h4"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-			/>
-			<circle cx="16" cy="11.3" r="1.2" fill="currentColor" />
-			<circle cx="17.6" cy="14" r="1.2" fill="currentColor" />
-		</svg>
-		{tx.gameName}
-		{#if tag}<em>{tag}</em>{/if}
-	</span>
+{#snippet label(p: Part, x: number, y: number, anchor: 'start' | 'middle' | 'end' = 'start')}
+	{#if showLabel(p)}
+		<text {x} {y} text-anchor={anchor} class="label">{tx.labels[p]}</text>
+	{/if}
 {/snippet}
 
-<div class="flex h-full w-full flex-col items-center justify-center gap-3">
-	<button type="button" class="cta" onclick={act} disabled={phase === 'loading'}>{btn}</button>
-	<p class="note">{note}</p>
+{#snippet laptop(_i: number)}
+	<svg viewBox="0 0 360 410" class="laptop" role="img" aria-label={tx.picture}>
+		<!-- the guide lines of the exploded view -->
+		{#each [[126, 142], [192, 210], [338, 356]] as [a, b] (a)}
+			<line x1="76" y1={a} x2="76" y2={b} class="guideline" />
+			<line x1="284" y1={a} x2="284" y2={b} class="guideline" />
+		{/each}
 
-	<div class="box" class:off={!powered}>
-		<!-- the power cord and its light -->
-		<div class="power">
-			<span class="plug" class:pulled={!powered}>
-				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-					<path
-						d="M9 3v5M15 3v5M6.5 8h11v3.5a5.5 5.5 0 0 1-11 0ZM12 17v4"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
+		<!-- display cable from the GPU to the screen, and the keyboard cable -->
+		<path
+			d="M62 252 H50 V70 H70"
+			class="cable"
+			class:hot={focus === 'gpu' || (focus === 'io' && typed > 0)}
+		/>
+		<path d="M178 192 V236" class="cable" class:hot={focus === 'io'} />
+
+		<!-- screen -->
+		<g
+			class="part"
+			class:dim={!lit('screen')}
+			class:tappable={canPeek}
+			role="button"
+			tabindex={canPeek ? 0 : -1}
+			aria-label={tx.labels.screen}
+			onclick={() => tap('screen')}
+			onkeydown={(e) => key(e, 'screen')}
+		>
+			<rect x="70" y="8" width="220" height="118" rx="10" class="bd" />
+			<rect x="80" y="18" width="200" height="96" rx="4" class="display" class:dark={off} />
+			{#if !off && focus !== 'io'}
+				<g class:paint={focus === 'gpu'}>
+					<circle cx="246" cy="44" r="12" class="sun" />
+					<path d="M80 100 Q120 64 160 92 Q200 70 240 96 Q262 84 280 90 V114 H80 Z" class="hill" />
+					<path d="M80 114 V104 Q130 86 180 106 Q230 92 280 108 V114 Z" class="hill2" />
+				</g>
+			{/if}
+			{#if focus === 'io'}
+				<text x="96" y="74" class="typed">{tx.typed.slice(0, typed)}</text>
+				<rect
+					x={96 + typed * 11.4}
+					y="58"
+					width="2.5"
+					height="20"
+					class="caret"
+					class:blink={!reduced}
+				/>
+			{/if}
+			{#if off}
+				<text x="180" y="72" text-anchor="middle" class="offtag">{tx.powerOff}</text>
+			{/if}
+			{@render label('screen', 296, 22)}
+		</g>
+
+		<!-- keyboard -->
+		<g
+			class="part"
+			class:dim={!lit('keyboard')}
+			class:tappable={canPeek}
+			role="button"
+			tabindex={canPeek ? 0 : -1}
+			aria-label={tx.labels.keyboard}
+			onclick={() => tap('keyboard')}
+			onkeydown={(e) => key(e, 'keyboard')}
+		>
+			<rect x="60" y="142" width="240" height="50" rx="8" class="bd" />
+			{#each KEYS as k (k)}
+				<rect
+					x={70 + (k % 12) * 18.6}
+					y={150 + Math.floor(k / 12) * 13}
+					width="15"
+					height="10"
+					rx="2"
+					class="key"
+					class:down={k === pressed}
+				/>
+			{/each}
+			{@render label('keyboard', 304, 171)}
+		</g>
+
+		<!-- motherboard and its traces -->
+		<g
+			class="part"
+			class:faded={!lit('board')}
+			class:tappable={canPeek}
+			role="button"
+			tabindex={canPeek ? 0 : -1}
+			aria-label={tx.labels.board}
+			onclick={() => tap('board')}
+			onkeydown={(e) => key(e, 'board')}
+		>
+			<rect x="40" y="210" width="280" height="128" rx="12" class="board" />
+			{#each TRACES as d (d)}
+				<path {d} class="trace" class:hot={focus === 'board' || focus === 'power'} />
+			{/each}
+			<rect x="304" y="244" width="12" height="10" rx="2" class="port" />
+			<rect x="304" y="262" width="12" height="10" rx="2" class="port" />
+			<rect x="270" y="318" width="14" height="10" rx="2" class="port" />
+			{@render label('board', 312, 332, 'end')}
+		</g>
+		{#if focus === 'board' && !reduced}
+			{#each TRACES as d, k (d)}
+				<circle r="3" class="car">
+					<animateMotion
+						dur="{2.2 + (k % 3) * 0.6}s"
+						begin="{k * 0.35}s"
+						repeatCount="indefinite"
+						path={d}
 					/>
-				</svg>
-			</span>
-			<span class="led" class:on={powered}></span>
-			<span class="ptext">{powered ? tx.powerOn : tx.powerOff}</span>
-		</div>
+				</circle>
+			{/each}
+		{/if}
 
-		<!-- CPU, the cook -->
-		<div class="part cpu" class:busy={phase === 'running'}>
-			<span class="icon">
-				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		<!-- GPU -->
+		<g
+			class="part"
+			class:dim={!lit('gpu')}
+			class:tappable={canPeek}
+			role="button"
+			tabindex={canPeek ? 0 : -1}
+			aria-label={tx.labels.gpu}
+			onclick={() => tap('gpu')}
+			onkeydown={(e) => key(e, 'gpu')}
+		>
+			<rect x="62" y="228" width="56" height="48" rx="4" class="chip" />
+			<rect x="74" y="238" width="32" height="28" rx="3" class="die" class:busy={focus === 'gpu'} />
+			<text x="90" y="256" text-anchor="middle" class="chiptext">GPU</text>
+		</g>
+
+		<!-- CPU -->
+		<g
+			class="part"
+			class:dim={!lit('cpu')}
+			class:tappable={canPeek}
+			role="button"
+			tabindex={canPeek ? 0 : -1}
+			aria-label={tx.labels.cpu}
+			onclick={() => tap('cpu')}
+			onkeydown={(e) => key(e, 'cpu')}
+		>
+			{#if focus === 'cpu' || focus === 'flow' || focus === 'io'}
+				<rect x="144" y="230" width="68" height="68" rx="9" class="halo" class:pulse={!reduced} />
+			{/if}
+			<rect x="150" y="236" width="56" height="56" rx="5" class="chip" />
+			<rect
+				x="160"
+				y="246"
+				width="36"
+				height="36"
+				rx="3"
+				class="die"
+				class:busy={focus === 'cpu'}
+			/>
+			<text x="178" y="268" text-anchor="middle" class="chiptext">CPU</text>
+		</g>
+
+		<!-- RAM -->
+		<g
+			class="part"
+			class:dim={!lit('ram')}
+			class:tappable={canPeek}
+			role="button"
+			tabindex={canPeek ? 0 : -1}
+			aria-label={tx.labels.ram}
+			onclick={() => tap('ram')}
+			onkeydown={(e) => key(e, 'ram')}
+		>
+			{#each [236, 256] as x, s (x)}
+				<rect {x} y="226" width="14" height="72" rx="2" class="stick" />
+				{#each [0, 1, 2, 3] as c (c)}
 					<rect
-						x="6"
-						y="6"
-						width="12"
+						x={x + 3}
+						y={231 + c * 16}
+						width="8"
 						height="12"
-						rx="2.5"
-						stroke="currentColor"
-						stroke-width="2"
-					/>
-					<rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="currentColor" />
-					<path
-						d="M9 2.5v2.5M15 2.5v2.5M9 19v2.5M15 19v2.5M2.5 9h2.5M2.5 15h2.5M19 9h2.5M19 15h2.5"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-					/>
-				</svg>
-			</span>
-			<span class="names"><b>{tx.cpu.label}</b><span>{tx.cpu.sub}</span></span>
-			<span class="spec">{tx.cpu.spec}</span>
-			<div class="slot">
-				<span class="state" class:hot={phase === 'running'}>{cpuState}</span>
-				{#if phase === 'running'}
-					<span class="count">{stepText}</span>
-				{/if}
-			</div>
-		</div>
-
-		<div class="flow" class:live={phase === 'running'}><i></i></div>
-
-		<!-- RAM, the desk -->
-		<div class="part ram" class:wiped={!powered}>
-			<span class="icon">
-				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-					<rect
-						x="2.5"
-						y="7"
-						width="19"
-						height="9"
 						rx="1.5"
-						stroke="currentColor"
-						stroke-width="2"
+						class="mem"
+						class:empty={off}
+						class:seq={focus === 'ram' && !reduced}
+						style="animation-delay:{(s * 4 + c) * 0.18}s"
 					/>
-					<path
-						d="M6.5 10v3M10 10v3M14 10v3M17.5 10v3M5 16v2.5M19 16v2.5"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-					/>
-				</svg>
-			</span>
-			<span class="names"><b>{tx.ram.label}</b><span>{tx.ram.sub}</span></span>
-			<span class="spec">{tx.ram.spec}</span>
-			<div class="slot">
-				{#if inRam}
-					<span class="arrive" class:loading={phase === 'loading'}>
-						{@render gameChip(phase === 'loading' ? tx.loadingTag : '')}
-						{#if phase === 'loading'}<span class="bar"><i></i></span>{/if}
-					</span>
-				{:else}
-					<span class="empty">{tx.ramEmpty}</span>
-				{/if}
-			</div>
-		</div>
-
-		<div class="flow" class:live={phase === 'loading'}><i></i></div>
-
-		<!-- storage, the cupboard -->
-		<div class="part disk" class:kept={!powered}>
-			<span class="icon">
-				<svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-					<rect
-						x="3"
-						y="4"
-						width="18"
-						height="16"
-						rx="2.5"
-						stroke="currentColor"
-						stroke-width="2"
-					/>
-					<path d="M3 13h18" stroke="currentColor" stroke-width="2" />
-					<circle cx="16.5" cy="16.5" r="1.2" fill="currentColor" />
-				</svg>
-			</span>
-			<span class="names"><b>{tx.storage.label}</b><span>{tx.storage.sub}</span></span>
-			<span class="spec">{tx.storage.spec}</span>
-			<div class="slot files">
-				{@render gameChip(!powered ? tx.keptTag : '')}
-				{#each tx.otherFiles as f (f)}
-					<span class="file">{f}</span>
 				{/each}
-			</div>
-		</div>
-	</div>
+			{/each}
+			{#if off}
+				<text x="253" y="222" text-anchor="middle" class="tag warn">{tx.cleared}</text>
+			{:else}
+				{@render label('ram', 287, 274, 'middle')}
+			{/if}
+		</g>
+
+		<!-- storage, an SSD stick -->
+		<g
+			class="part"
+			class:dim={!lit('storage')}
+			class:tappable={canPeek}
+			role="button"
+			tabindex={canPeek ? 0 : -1}
+			aria-label={tx.labels.storage}
+			onclick={() => tap('storage')}
+			onkeydown={(e) => key(e, 'storage')}
+		>
+			<rect x="66" y="310" width="110" height="18" rx="3" class="stick" />
+			{#each [0, 1, 2] as c (c)}
+				<rect
+					x={74 + c * 30}
+					y="313"
+					width="24"
+					height="12"
+					rx="1.5"
+					class="mem keep"
+					class:seq={focus === 'storage' && !reduced}
+					style="animation-delay:{c * 0.5}s"
+				/>
+			{/each}
+			<rect x="168" y="313" width="5" height="12" rx="1" class="pin" />
+			{#if off}
+				<text x="66" y="304" class="tag ok">{tx.kept}</text>
+			{:else}
+				{@render label('storage', 66, 304)}
+			{/if}
+		</g>
+
+		<!-- battery -->
+		<g
+			class="part"
+			class:dim={!lit('battery')}
+			class:tappable={canPeek}
+			role="button"
+			tabindex={canPeek ? 0 : -1}
+			aria-label={tx.labels.battery}
+			onclick={() => tap('battery')}
+			onkeydown={(e) => key(e, 'battery')}
+		>
+			<rect x="70" y="356" width="220" height="44" rx="8" class="bd" />
+			{#each [0, 1, 2] as c (c)}
+				<rect x={80 + c * 68} y="363" width="62" height="30" rx="5" class="cell" />
+				<rect
+					x={80 + c * 68}
+					y="363"
+					width="62"
+					height="30"
+					rx="5"
+					class="charge"
+					class:low={off}
+					class:flow={focus === 'power' && !reduced}
+					style="animation-delay:{c * 0.4}s"
+				/>
+			{/each}
+			{@render label('battery', 296, 382)}
+		</g>
+
+		<!-- moving data, each little packet is a piece of work travelling between parts -->
+		{#if !reduced}
+			{#if focus === 'flow'}
+				<rect x="-6" y="-5" width="12" height="10" rx="2" class="packet">
+					<animateMotion dur="3s" repeatCount="indefinite" path="M176 319 H243 V262 H206" />
+				</rect>
+			{:else if focus === 'power'}
+				{#each [0, 1, 2] as k (k)}
+					<circle r="3.2" class="spark">
+						<animateMotion
+							dur="1.8s"
+							begin="{k * 0.6}s"
+							repeatCount="indefinite"
+							path="M277 356 V306 H192 V292"
+						/>
+					</circle>
+				{/each}
+			{:else if focus === 'gpu'}
+				{#each [0, 1] as k (k)}
+					<circle r="3.2" class="packet">
+						<animateMotion
+							dur="1.6s"
+							begin="{k * 0.8}s"
+							repeatCount="indefinite"
+							path="M62 252 H50 V70 H70"
+						/>
+					</circle>
+				{/each}
+			{:else if focus === 'io' && typed > 0 && typed <= tx.typed.length}
+				{#key typed}
+					<circle r="3.2" class="packet">
+						<animateMotion dur="0.5s" fill="freeze" path="M178 192 V236" />
+					</circle>
+				{/key}
+			{/if}
+		{/if}
+	</svg>
+{/snippet}
+
+<div class="wrap">
+	<Guide {steps} {active} visual={laptop} onselect={canPeek ? select : undefined} />
 </div>
 
 <style>
-	.cta {
-		border-radius: 12px;
-		background: var(--btn-primary);
-		color: #fff;
-		padding: 11px 20px;
-		font-size: 13px;
-		font-weight: 600;
-		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.16);
-		transition:
-			filter 0.2s ease,
-			opacity 0.2s ease;
-	}
-	.cta:enabled:hover {
-		filter: brightness(1.18);
-	}
-	.cta:disabled {
-		opacity: 0.5;
-	}
-	.note {
-		min-height: 2.6em;
-		max-width: 320px;
-		text-align: center;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-muted);
-	}
-
-	/* the opened laptop body holding the three parts */
-	.box {
+	.wrap {
 		display: flex;
-		flex-direction: column;
-		align-items: stretch;
-		width: min(92vw, 340px);
-		border-radius: 18px;
-		border: 1px solid var(--color-line);
-		background: var(--color-paper);
-		padding: 10px 12px 12px;
-		box-shadow: 0 12px 30px rgba(22, 40, 60, 0.08);
-		transition: background 0.4s ease;
-	}
-	.power {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		margin-bottom: 8px;
-		font-size: 10px;
-		font-weight: 700;
-		color: var(--color-faint);
-	}
-	.plug {
-		display: inline-flex;
-		color: var(--color-muted);
-		transition:
-			transform 0.4s ease,
-			opacity 0.4s ease;
-	}
-	.plug.pulled {
-		transform: translateY(-6px) rotate(-18deg);
-		opacity: 0.45;
-	}
-	.led {
-		width: 7px;
-		height: 7px;
-		border-radius: 50%;
-		background: var(--color-line);
-	}
-	.led.on {
-		background: var(--color-grass);
-		box-shadow: 0 0 0 3px var(--color-grass-soft);
-	}
-
-	.part {
-		display: grid;
-		grid-template-columns: auto 1fr auto;
-		align-items: center;
-		column-gap: 9px;
-		row-gap: 7px;
-		border-radius: 13px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 9px 11px;
-		transition:
-			border-color 0.3s ease,
-			opacity 0.4s ease;
-	}
-	.icon {
-		display: flex;
-		align-items: center;
+		height: 100%;
+		width: 100%;
 		justify-content: center;
-		width: 34px;
-		height: 34px;
-		border-radius: 10px;
-		background: var(--color-brand-soft);
-		color: var(--color-brand);
+		align-items: flex-start;
+		overflow-y: auto;
+		padding-bottom: 7rem;
 	}
-	.ram .icon {
-		background: var(--color-grass-soft);
-		color: var(--color-grass);
-	}
-	.disk .icon {
-		background: var(--color-amber-soft);
-		color: var(--color-amber);
-	}
-	.names {
-		display: flex;
-		flex-direction: column;
-		line-height: 1.2;
-		min-width: 0;
-	}
-	.names b {
-		font-size: 13px;
-		font-weight: 800;
-		color: var(--color-ink);
-	}
-	.names span {
-		font-size: 10px;
-		color: var(--color-faint);
-	}
-	.spec {
-		border-radius: 999px;
-		border: 1px solid var(--color-line);
-		padding: 2px 8px;
-		font-size: 10px;
-		font-weight: 700;
-		color: var(--color-muted);
-		font-variant-numeric: tabular-nums;
-	}
-	.slot {
-		grid-column: 1 / -1;
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 6px;
-		min-height: 30px;
-		border-radius: 9px;
-		background: var(--color-paper);
-		padding: 5px 7px;
-	}
-
-	.cpu.busy {
-		border-color: var(--color-brand);
-	}
-	.cpu.busy .icon {
-		animation: think 0.6s ease-in-out infinite;
-	}
-	@keyframes think {
-		50% {
-			transform: scale(1.1);
+	@media (min-width: 768px) {
+		.wrap {
+			align-items: center;
+			padding-bottom: 1rem;
 		}
 	}
-	.state {
-		border-radius: 999px;
-		background: var(--color-card);
-		border: 1px solid var(--color-line);
-		padding: 2px 9px;
-		font-size: 10.5px;
-		font-weight: 700;
-		color: var(--color-faint);
+	.laptop {
+		width: 100%;
+		max-width: 400px;
+		max-height: min(64vh, 520px);
 	}
-	.state.hot {
-		border-color: var(--color-brand);
-		color: var(--color-brand);
-	}
-	.count {
-		font-size: 10.5px;
-		font-weight: 700;
-		color: var(--color-ink);
-		font-variant-numeric: tabular-nums;
-	}
-
-	.game {
-		display: inline-flex;
-		align-items: center;
-		gap: 5px;
-		border-radius: 8px;
-		border: 1px solid var(--color-brand);
-		background: var(--color-brand-soft);
-		padding: 3px 8px;
-		font-size: 11px;
-		font-weight: 700;
-		color: var(--color-brand);
-		white-space: nowrap;
-	}
-	.game em {
-		font-style: normal;
-		font-size: 9.5px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	.arrive {
-		display: inline-flex;
-		align-items: center;
-		gap: 8px;
-		animation: rise 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-	}
-	.arrive.loading .game {
-		opacity: 0.7;
-	}
-	@keyframes rise {
-		from {
-			transform: translateY(26px);
-			opacity: 0;
-		}
-		to {
-			transform: none;
-			opacity: 1;
+	@media (max-width: 767px) {
+		.laptop {
+			max-height: 46vh;
 		}
 	}
-	.bar {
-		position: relative;
-		width: 60px;
-		height: 6px;
-		border-radius: 999px;
-		background: var(--color-line);
-		overflow: hidden;
+	.part {
+		transition: opacity 0.4s ease;
+		outline: none;
 	}
-	.bar i {
-		position: absolute;
-		inset: 0 auto 0 0;
-		border-radius: 999px;
-		background: var(--color-grass);
-		animation: fill 1.5s linear forwards;
+	.part.dim {
+		opacity: 0.28;
 	}
-	@keyframes fill {
-		from {
-			width: 0;
-		}
-		to {
-			width: 100%;
-		}
+	.part.faded {
+		opacity: 0.55;
 	}
-	.empty {
-		font-size: 10.5px;
-		font-weight: 600;
-		color: var(--color-faint);
+	.part.tappable {
+		cursor: pointer;
 	}
-	.ram.wiped .slot {
-		animation: wipe 0.5s ease;
-	}
-	@keyframes wipe {
-		0% {
-			background: var(--color-danger-soft);
-		}
-		100% {
-			background: var(--color-paper);
-		}
-	}
-	.file {
-		border-radius: 8px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 3px 8px;
-		font-size: 11px;
-		font-weight: 600;
-		color: var(--color-muted);
-	}
-	.disk.kept {
-		border-color: var(--color-amber);
-	}
-
-	/* the short lane between two parts, lit while data moves upward */
-	.flow {
-		position: relative;
-		align-self: center;
-		width: 4px;
-		height: 18px;
-		margin: 2px 0;
-		border-radius: 2px;
-		background: var(--color-line);
-		overflow: hidden;
-	}
-	.flow i {
-		position: absolute;
-		left: 0;
-		right: 0;
-		height: 8px;
-		border-radius: 2px;
-		background: var(--color-brand);
-		opacity: 0;
-	}
-	.flow.live i {
+	.part.tappable:hover,
+	.part.tappable:focus-visible {
 		opacity: 1;
-		animation: up 0.5s linear infinite;
+		filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-brand) 45%, transparent));
 	}
-	@keyframes up {
-		from {
-			top: 100%;
-		}
-		to {
-			top: -8px;
-		}
+	.guideline {
+		stroke: var(--color-line);
+		stroke-width: 1.5;
 	}
-
-	/* no power, the box dims, CPU and RAM go dark, storage stays lit */
-	.box.off .cpu,
-	.box.off .ram {
+	.bd {
+		fill: var(--color-card);
+		stroke: var(--color-muted);
+		stroke-width: 2;
+	}
+	.display {
+		fill: var(--color-brand-soft);
+		transition: fill 0.5s ease;
+	}
+	.display.dark {
+		fill: #1d2a36;
+	}
+	.sun {
+		fill: var(--color-amber);
+	}
+	.hill {
+		fill: var(--color-grass);
+		opacity: 0.55;
+	}
+	.hill2 {
+		fill: var(--color-grass);
+	}
+	.typed {
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 19px;
+		fill: var(--color-ink);
+	}
+	.caret {
+		fill: var(--color-brand);
+	}
+	.offtag {
+		font-size: 12px;
+		font-weight: 700;
+		fill: #c9d3dc;
+	}
+	.key {
+		fill: var(--color-line);
+		transition: fill 0.15s ease;
+	}
+	.key.down {
+		fill: var(--color-brand);
+	}
+	.board {
+		fill: var(--color-grass-soft);
+		stroke: var(--color-grass);
+		stroke-width: 2;
+	}
+	.trace {
+		fill: none;
+		stroke: var(--color-grass);
+		stroke-width: 2.5;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		opacity: 0.45;
+		transition: opacity 0.4s ease;
+	}
+	.trace.hot {
+		opacity: 1;
+	}
+	.port {
+		fill: var(--color-muted);
+	}
+	.car {
+		fill: var(--color-amber);
+	}
+	.chip {
+		fill: var(--color-muted);
+	}
+	.die {
+		fill: var(--color-faint);
+		transition: fill 0.4s ease;
+	}
+	.die.busy {
+		fill: var(--color-brand);
+	}
+	.chiptext {
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		fill: var(--color-card);
+	}
+	.halo {
+		fill: none;
+		stroke: var(--color-brand);
+		stroke-width: 2;
 		opacity: 0.5;
 	}
-
-	:global(.dark) .cta {
-		color: var(--color-ink);
-		box-shadow: none;
+	.stick {
+		fill: var(--color-grass);
+		opacity: 0.85;
 	}
-	:global(.dark) .box {
-		box-shadow: none;
+	.mem {
+		fill: var(--color-brand);
+		transition: fill 0.4s ease;
+	}
+	.mem.keep {
+		fill: var(--color-amber);
+	}
+	.mem.empty {
+		fill: var(--color-card);
+	}
+	.pin {
+		fill: var(--color-amber);
+	}
+	.cell {
+		fill: var(--color-paper);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+	}
+	.charge {
+		fill: var(--color-grass);
+		opacity: 0.75;
+		transition: opacity 0.4s ease;
+	}
+	.charge.low {
+		opacity: 0.15;
+	}
+	.packet {
+		fill: var(--color-brand);
+	}
+	.spark {
+		fill: var(--color-amber);
+	}
+	.cable {
+		fill: none;
+		stroke: var(--color-line);
+		stroke-width: 3;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		transition: stroke 0.4s ease;
+	}
+	.cable.hot {
+		stroke: var(--color-brand);
+	}
+	.label {
+		font-size: 11.5px;
+		font-weight: 700;
+		fill: var(--color-ink);
+	}
+	.tag {
+		font-size: 11px;
+		font-weight: 800;
+	}
+	.tag.warn {
+		fill: var(--color-danger);
+	}
+	.tag.ok {
+		fill: var(--color-grass);
 	}
 
+	@media (prefers-reduced-motion: no-preference) {
+		.paint .sun {
+			animation: paint 4s ease infinite;
+		}
+		.paint .hill {
+			animation: paint 4s ease 0.5s infinite;
+		}
+		.paint .hill2 {
+			animation: paint 4s ease 1s infinite;
+		}
+		.pulse {
+			transform-box: fill-box;
+			transform-origin: center;
+			animation: pulse 1.6s ease-out infinite;
+		}
+		.seq {
+			animation: seq 2.4s ease-in-out infinite;
+		}
+		.flow {
+			animation: seq 1.8s ease-in-out infinite;
+		}
+		.blink {
+			animation: blink 1s steps(1) infinite;
+		}
+	}
 	@media (prefers-reduced-motion: reduce) {
-		.arrive,
-		.cpu.busy .icon,
-		.flow.live i,
-		.ram.wiped .slot {
-			animation: none;
-		}
-		.flow.live i {
-			opacity: 1;
-			top: 5px;
-		}
-		.plug {
+		.part,
+		.trace,
+		.display,
+		.mem,
+		.die,
+		.charge,
+		.cable,
+		.key {
 			transition: none;
 		}
 	}
-	@media (min-width: 768px) {
-		.box {
-			width: 400px;
-			padding: 12px 14px 14px;
+	@keyframes paint {
+		0% {
+			opacity: 0;
 		}
-		.names b {
-			font-size: 14.5px;
+		20%,
+		90% {
+			opacity: 1;
 		}
-		.names span {
-			font-size: 11.5px;
+		100% {
+			opacity: 0;
 		}
-		.spec,
-		.state,
-		.count {
-			font-size: 11.5px;
+	}
+	@keyframes pulse {
+		0% {
+			transform: scale(0.9);
+			opacity: 0.7;
 		}
-		.game,
-		.file {
-			font-size: 12px;
+		100% {
+			transform: scale(1.18);
+			opacity: 0;
 		}
-		.note {
-			font-size: 14px;
-			max-width: 420px;
+	}
+	@keyframes seq {
+		0%,
+		100% {
+			opacity: 1;
 		}
-		.cta {
-			font-size: 14px;
-			padding: 12px 22px;
+		50% {
+			opacity: 0.35;
+		}
+	}
+	@keyframes blink {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0;
 		}
 	}
 </style>

@@ -1,17 +1,33 @@
 import type { LessonText } from '../../types';
 
+export interface ImageGenPanel {
+	tag?: string;
+	title: string;
+	/** May hold simple HTML like <b>. */
+	body: string;
+}
+
 export interface ImageGenText extends LessonText {
-	promptLabel: string; // caption over the prompt chips
+	/** One panel per scene of the guided picture (nine scenes). */
+	panels: ImageGenPanel[];
+	/** Spoken description of the whole picture. */
+	picture: string;
 	/** The three prompts, in order (mountains with a cloud, an orange cat, a small house). */
 	prompts: string[];
-	pickPrompt: string; // the prompt box before anything is picked
-	stepBtn: string;
-	autoBtn: string;
-	seedBtn: string; // starts again from fresh noise
-	stepLabel: string; // template with {n} and {total}
-	noiseLabel: string; // template with {n}, percent of noise left
-	sliderLabel: string; // aria label for the step slider
-	canvasLabel: string; // aria label for the pixel canvas
-	/** A short caption under the canvas for each phase. */
-	phase: { noise: string; shapes: string; details: string; done: string };
+	/** The button drawn in the prompt bar. */
+	generate: string;
+	/** Template with {n} and {total}, the cleaning step. */
+	stepLabel: string;
+	/** Captions under the canvas. */
+	noiseCaption: string;
+	trainCaption: string;
+	shapesCaption: string;
+	detailsCaption: string;
+	/** Template with {n}, which starting noise is used. */
+	seedLabel: string;
+	/** Memory trick tag and the rule of thumb line under the picture. */
+	memo: string;
+	rule: string;
+	/** Caption over the optional prompt chips on the last beat. */
+	tryLabel: string;
 }

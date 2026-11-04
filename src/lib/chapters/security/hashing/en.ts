@@ -3,57 +3,91 @@ import type { HashingText } from './types';
 export const en: HashingText = {
 	title: 'Passwords and hashing',
 	intro: [
-		'When you sign up somewhere, the site has to keep your password so it can check it next time. The big question is how it keeps it.',
-		'The careless way is to store it exactly as you typed it. In 2009 a company called RockYou did just that, and 32 million passwords leaked as plain, readable text. The most popular one was 123456, used by about 290 thousand people.',
-		'The better way is a <b>hash</b>, a one way fingerprint. A math recipe turns your password into a long jumble of letters and numbers. The same password always gives the same jumble, but nobody can turn the jumble back into the password.',
-		'When you log in, the server hashes whatever you typed and compares the two jumbles. If they match, you are in. The server never needs to keep your real password at all.',
-		'Hashes have one weak spot though. Attackers prepare huge <b>lookup tables</b>, millions of common passwords already hashed. In 2012 about 6.5 million LinkedIn password hashes were posted online, and because they were stored without salt, a large share was cracked within days.',
-		'The fix is <b>salt</b>, a few random characters mixed into each password before hashing, different for every user. The same password now gives different jumbles, and the ready made tables stop working.',
-		"[fyi] Hashes are not only for passwords. Download pages often show a file's hash so you can check it arrived unchanged, that is the I in the [[CIA triad|security/cia]].",
-		'Your turn. Pick a password, sign up at two shops, and then let both databases leak.'
+		'When you sign up somewhere, the site has to keep your password, so it can check it the next time you log in. The big question is how it keeps it.',
+		'The careless way is to write it down exactly as you typed it. In 2009 a company called RockYou did just that, and 32 million passwords leaked as plain readable text. The most popular one was 123456, used by about 290 thousand people.',
+		'The better way is a <b>hash</b>. Picture a math blender. Your password drops in, the blender whirs, and out comes a long jumble of letters and numbers. That jumble is the hash, and it is all the site keeps.',
+		'Two magic rules. The same password always gives the very same jumble. And change just one character, sunflower1 into sunflower2, and the jumble changes completely.',
+		'[ingat] A hash is a blender. <b>You can turn fruit into a smoothie, but you can never unblend a smoothie back into fruit.</b> Nobody can turn the jumble back into your password.',
+		'So how does logging in work? The site blends whatever you just typed and compares it with the jumble it saved. Same jumble means same password, and you are in. The site never needs your real password at all.',
+		'Hashes have one weak spot. Attackers blend millions of common passwords ahead of time and keep them in a <b>lookup table</b>. In 2012 about 6.5 million LinkedIn password hashes were posted online. They had no salt, so a big share was simply looked up and cracked within days.',
+		'The fix is <b>salt</b>, a few random characters mixed in with each password before blending, different for every user. Budi and Sari both use 123456, yet their jumbles now look nothing alike, and the ready made table finds nothing.',
+		"[fyi] Real sites also pick slow blenders on purpose, like bcrypt from 1999, so every single guess costs an attacker time. Hashes are not only for passwords either. Download pages show a file's hash so you can check it arrived unchanged, that is the I in the [[CIA triad|security/cia]].",
+		'Want to try the blender? Type any password and watch the jumble jump around with every letter. Or just enjoy the whirring.'
 	],
 	reactions: {
 		typed:
-			'See the fingerprint? Change a single letter and the whole jumble changes. That is on purpose, so two similar passwords never look similar.',
-		registered:
-			'Both shops signed you up. The careless shop wrote your password down as it is, nimbus.com only kept the fingerprint. Now imagine a bad day for both of them.',
-		leaked:
-			'Ouch for the careless shop, the attacker reads your password straight away, and since people reuse passwords he will try it on your email next. From nimbus.com he only got a jumble that leads nowhere.',
-		leakedWeak:
-			'Careful. Your password is one of the most common ones, so even the hash gave it away, the attacker just looked it up in a ready made table. The next act shows the fix.',
-		lookup:
-			"Budi and Sari fell together. They use the same password, so their hashes are identical, and that hash was already in the attacker's table. Wati's long, odd password was not on any list.",
-		salted:
-			'Now nothing matches. Each user got their own salt, so even Budi and Sari look completely different and the ready made table is useless. Real sites also use slow hashes like bcrypt (from 1999), so every single guess costs the attacker time.'
+			'See? One more letter and the whole jumble changes. And it is still a one way trip, the jumble tells nobody what you typed. (Nim is not saving it anywhere, promise.)'
 	},
-	acts: ['Two shops', 'Salt'],
-	actLabel: 'Act {n}',
-	nextAct: 'On to the next act',
-	pwLabel: 'Your password',
-	pwPlaceholder: 'type a password',
-	hashLabel: 'hash',
-	tooShort: 'Type {n} more characters',
-	registerBtn: 'Sign up at both shops',
-	leakBtn: 'Both databases leak',
-	carelessName: 'Careless shop',
-	carelessSub: 'keeps passwords as they are',
-	nimbusName: 'nimbus.com',
-	nimbusSub: 'keeps only the hash',
+	steps: [
+		{
+			tag: 'Signing up',
+			title: 'Where does it go?',
+			body: 'The site keeps a <b>database</b>, a big table of its users. The question is what goes in the password column.'
+		},
+		{
+			tag: 'RockYou, 2009',
+			title: 'Plain text',
+			body: 'Passwords saved <b>as typed</b>. One leak and every single one is readable, instantly.'
+		},
+		{
+			tag: 'The fix',
+			title: 'Hash',
+			body: 'A math blender turns any password into a jumble of the same length. The site keeps <b>only the jumble</b>.'
+		},
+		{
+			tag: 'Two rules',
+			title: 'Same in, same out',
+			body: 'Same password, same hash, every time. One character different, a <b>totally different</b> hash.'
+		},
+		{
+			tag: 'Rule of thumb',
+			title: 'No way back',
+			body: 'You cannot <b>unblend a smoothie</b>. A hash only ever goes one way.'
+		},
+		{
+			tag: 'Logging in',
+			title: 'Compare the jumbles',
+			body: 'Blend what you typed just now and compare it with the saved jumble. A match means you are in.'
+		},
+		{
+			tag: 'LinkedIn, 2012',
+			title: 'Lookup table',
+			body: 'Common passwords blended in advance. A leaked hash that sits on the list gives its password away.'
+		},
+		{
+			tag: 'The fix',
+			title: 'Salt',
+			body: 'Random characters added per user before blending. Same password, <b>different</b> hash, and the table is useless.'
+		},
+		{
+			tag: 'Good to know',
+			title: 'Slow on purpose',
+			body: 'Password blenders like <b>bcrypt</b> are slow by design, so trying millions of guesses takes forever.'
+		},
+		{
+			tag: 'Optional',
+			title: 'Try the blender',
+			body: 'Type anything. The hash is the real thing (SHA256), worked out right here in your browser and never sent anywhere.'
+		}
+	],
+	examples: ['sunflower1', 'sunflower2'],
+	users: ['budi', 'sari'],
+	dbTitle: 'nimbus.com database',
 	colUser: 'user',
 	colPassword: 'password',
-	youUser: 'you',
-	emptyRow: 'nobody yet',
 	leakedTag: 'leaked',
-	attackerReads: 'The attacker reads your password',
-	attackerStuck: 'The attacker gets a jumble, no password',
-	attackerCracked: 'The attacker finds it in a lookup table',
-	lookupTitle: "The attacker's lookup table",
-	lookupSub: 'common passwords, hashed in advance',
-	runLookup: 'Run the lookup table',
-	addSalt: 'Add salt and leak again',
-	saltLabel: 'salt',
+	hashLabel: 'hash',
+	noWayBack: 'no way back',
+	savedLabel: 'saved at sign up',
+	typedLabel: 'typed just now',
+	matchTag: 'match, welcome in',
+	tableTitle: "attacker's lookup table",
+	leakedHashLabel: 'leaked hash',
 	crackedTag: 'cracked',
-	safeTag: 'safe',
-	usersTitle: 'Leaked users, no salt',
-	usersTitleSalted: 'Leaked users, with salt'
+	saltLabel: 'salt',
+	sameTag: 'same hash',
+	noMatchTag: 'nothing in the table',
+	slowTag: 'slow on purpose',
+	tryLabel: 'Type any password',
+	tryPlaceholder: 'your password here'
 };

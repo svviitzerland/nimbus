@@ -6,14 +6,9 @@ import { en } from './en';
 export const training: Lesson = {
 	id: 'training',
 	mood: 'thinking',
-	moods: ['thinking', 'idea', 'happy', 'wink', 'excited'],
+	moods: ['surprised', 'idea', 'wink', 'thinking', 'happy', 'idea', 'excited'],
 	reactionMood: {
-		label: 'happy',
-		ready: 'excited',
-		trained: 'idea',
-		right: 'happy',
-		wrong: 'surprised',
-		done: 'excited'
+		tricky: 'excited'
 	},
 	stage: TrainingStage,
 	text: { id, en }

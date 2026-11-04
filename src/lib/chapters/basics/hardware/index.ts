@@ -6,8 +6,20 @@ import { en } from './en';
 export const hardware: Lesson = {
 	id: 'hardware',
 	mood: 'happy',
-	moods: ['happy', 'idea', 'thinking', 'calm', 'idea', 'wink', 'excited'],
-	reactionMood: { load: 'happy', run: 'excited', unplug: 'surprised', power: 'calm' },
+	moods: [
+		'happy',
+		'idea',
+		'thinking',
+		'calm',
+		'calm',
+		'excited',
+		'wink',
+		'happy',
+		'calm',
+		'idea',
+		'excited'
+	],
+	reactionMood: { peek: 'happy' },
 	stage: HardwareStage,
 	text: { id, en }
 };

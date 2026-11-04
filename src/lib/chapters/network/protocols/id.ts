@@ -3,70 +3,75 @@ import type { ProtocolsText } from './types';
 export const id: ProtocolsText = {
 	title: 'Protokol jaringan',
 	intro: [
-		'Dua komputer cuma bisa kerja bareng kalau sepakat cara ngobrolnya. Siapa yang ngomong duluan, pesannya bentuknya kayak apa, gimana bilang "udah selesai". Kesepakatan itu namanya <b>protokol</b>, mirip kayak telepon yang selalu dibuka dengan "halo".',
-		'Tiap pekerjaan punya protokolnya sendiri. <b>HTTP</b> dan <b>HTTPS</b> buat ngambil halaman web, <b>SMTP</b> buat ngirim email, <b>IMAP</b> buat bacanya, <b>FTP</b> dan <b>SFTP</b> buat mindahin file, dan <b>SSH</b> buat ngetik di terminal komputer lain dari jauh.',
-		'Tiap protokol nunggu di balik pintu bernomornya sendiri di server, yaitu [[port|foundations/port]] yang udah pernah kamu kenal. HTTPS ngetuk pintu 443, SSH pintu 22. Satu alamat, banyak pintu.',
-		'Semuanya tinggal di lantai paling atas, application layer dari [[Lapisan dan paket|networking/layers]]. Di bawahnya, semua numpang di TCP dan IP yang sama, kayak surat surat beda isi yang lewat kantor pos yang sama.',
-		'[fyi] Perhatiin ada yang berpasangan, versi lama dan versi yang lebih aman, kayak HTTP dan HTTPS, atau FTP dan SFTP. Huruf S artinya obrolannya dienkripsi. Yang lama ngirim semuanya sebagai teks polos, termasuk password, jadi siapa pun di jalur bisa baca.',
-		'Giliran kamu. Ada lima pekerjaan di nimbus.com. Pilih protokol yang pas buat masing masing dan lihat pintu mana yang diketuk.'
+		'Dua komputer cuma bisa kerja bareng kalau sepakat cara ngobrolnya. Siapa yang ngomong duluan, pesannya kayak apa, gimana cara pamitnya. Kesepakatan itu namanya <b>protokol</b>, mirip kayak telepon yang selalu dibuka pakai "halo".',
+		'Lihat server nimbus.com. Alamatnya satu, tapi pintunya banyak, masing masing ada nomornya. Nomor itu namanya [[port|foundations/port]]. Tiap protokol ngetuk pintunya sendiri.',
+		'Pintu 80 itu <b>HTTP</b>, protokol buat ngambil halaman web. Browsermu ngetuk, terus halamannya dikirim balik.',
+		'Pintu 443 itu <b>HTTPS</b>, hal yang sama tapi dalam amplop terkunci. Nggak ada yang bisa baca di tengah jalan. Sekarang hampir semua website tinggal di balik pintu ini.',
+		'Pintu 22 itu <b>SSH</b>. Lewat sini kamu bisa ngetik perintah ke komputer yang jauh banget, dengan aman, seolah kamu duduk di depannya.',
+		'Pintu 53 itu <b>DNS</b>, buku alamat dari [[DNS|networking/dns]]. Sebelum laptopmu bisa buka nimbus.com, dia nanya ke sini dulu nama itu alamatnya apa.',
+		'[ingat] Hafalin empat pintu dulu aja. 80 web biasa, 443 web bergembok, 22 SSH, 53 DNS. SSH hurufnya S kembar, pintunya juga 2 kembar.',
+		'[fyi] Masih banyak yang lain. Email dikirim pakai <b>SMTP</b> dan dibaca pakai <b>IMAP</b>, file dipindah pakai <b>SFTP</b>. Huruf S hampir selalu artinya obrolannya dienkripsi. Di bawahnya, semuanya numpang di TCP dan IP yang sama dari [[Lapisan dan paket|networking/layers]].',
+		'Itulah protokol, pintu yang punya nama dan nomor. Kalau mau, ketuk sendiri pintu mana aja.'
 	],
 	reactions: {
+		http: 'Pintu 80, HTTP biasa. Halamannya nyampe, tapi siapa pun di jalan bisa ngintip. Makanya browser sekarang suka ngasih peringatan.',
 		https:
-			'HTTPS, pintu 443. Browser dan server sepakat soal gembok dulu, baru ngobrolin halamannya. Ikon gembok kecil di address bar itu persis ini.',
-		http: 'Halamannya sih bakal kebuka, tapi HTTP polos (pintu 80) bisa dibaca siapa aja yang satu WiFi sama kamu. Browser bahkan ngasih label "Not secure". Pilih versi yang bergembok.',
-		smtp: 'SMTP, Simple Mail Transfer Protocol. Aplikasi email kamu nyerahin suratnya ke server email lewat pintu 587, terus antar server email saling oper lewat pintu 25 sampai nyampe ke nim@nimbus.com.',
-		imap: 'IMAP nyimpen email kamu di server dan nunjukin salinannya, makanya HP dan laptop kamu lihat inbox yang sama. Pintu 993 itu versi terenkripsinya.',
-		sftp: 'SFTP mindahin file lewat koneksi SSH di pintu 22, semuanya dienkripsi. Fotomu nyampe dan nggak ada yang bisa ngintip di jalan.',
-		ftp: 'FTP (pintu 21) udah ada sejak 1971 dan masih jalan, tapi dia ngirim password kamu sebagai teks polos. Pilih saudaranya yang lebih aman.',
-		ssh: 'SSH, Secure Shell, di pintu 22. Sekarang kamu ngetik di terminal server langsung dari laptopmu sendiri.',
-		wrong:
-			'Protokol itu ngomong bahasa lain buat pekerjaan lain, jadi server nggak bakal ngerti di sini. Baca petunjuknya dan coba yang lain.',
-		done: 'Kelima pekerjaan beres! SSH barusan ngebuka terminal server lewat pintu 22, pintu yang sama yang dipakai SFTP. Pekerjaan beda, bahasa beda, semua di satu alamat. Itulah protokol jaringan secara singkat.'
+			'Pintu 443, HTTPS. Halamannya sama, amplopnya dikunci. Ini pintu yang kamu ketuk hampir tiap hari tanpa sadar.',
+		ssh: 'Pintu 22, SSH. Di baliknya ada terminal, jadi kamu bisa jalanin perintah di server langsung dari laptopmu.',
+		dns: 'Pintu 53, DNS. Kamu nanya nimbus.com, dapat jawaban 203.0.113.10. Tiap kunjungan dimulai dengan ketukan kayak gini.'
 	},
-	laptopLabel: 'Laptopmu',
-	serverLabel: 'nimbus.com',
-	doorsLabel: 'Port di server',
-	taskLabel: 'Pekerjaan {n} dari {total}',
-	pickLabel: 'Protokol mana yang cocok?',
-	protocols: [
-		{ id: 'http', name: 'HTTP', port: 80 },
-		{ id: 'https', name: 'HTTPS', port: 443 },
-		{ id: 'smtp', name: 'SMTP', port: 587 },
-		{ id: 'imap', name: 'IMAP', port: 993 },
-		{ id: 'ftp', name: 'FTP', port: 21 },
-		{ id: 'sftp', name: 'SFTP', port: 22 },
-		{ id: 'ssh', name: 'SSH', port: 22 }
-	],
-	tasks: [
+	steps: [
 		{
-			text: 'Buka halaman depan nimbus.com',
-			answer: 'https',
-			close: 'http',
-			hint: 'Halaman web lewat protokol yang namanya diawali HT, ambil yang bergembok'
+			title: 'Protokol',
+			body: 'Cara ngobrol yang udah disepakati. Siapa ngomong duluan, pesannya kayak apa, dan gimana pamitnya.'
 		},
 		{
-			text: 'Kirim email ke nim@nimbus.com',
-			answer: 'smtp',
-			hint: 'Ngirim email punya protokol sendiri, yang Simple Mail Transfer'
+			title: 'Satu alamat, banyak pintu',
+			body: 'Tiap pintu bernomor itu <b>port</b>. Tiap protokol punya pintu langganannya, jadi server tahu kamu mau apa.'
 		},
 		{
-			text: 'Baca balasannya di inbox',
-			answer: 'imap',
-			hint: 'Baca email yang disimpan di server itu pekerjaan beda dari ngirim'
+			tag: 'Port 80',
+			title: 'HTTP',
+			body: 'Ngambil halaman web. Isinya teks polos, jadi siapa pun di jalan bisa baca.'
 		},
 		{
-			text: 'Upload foto ke server',
-			answer: 'sftp',
-			close: 'ftp',
-			hint: 'File Transfer Protocol, yang versi aman'
+			tag: 'Port 443',
+			title: 'HTTPS',
+			body: 'Halaman web yang sama, tapi dienkripsi. S nya singkatan dari secure, alias aman.'
 		},
 		{
-			text: 'Login ke terminal server',
-			answer: 'ssh',
-			hint: 'Secure Shell, terminal di komputer lain'
+			tag: 'Port 22',
+			title: 'SSH',
+			body: 'Secure Shell. Ngetik perintah ke komputer yang jauh, seolah kamu duduk di depannya.'
+		},
+		{
+			tag: 'Port 53',
+			title: 'DNS',
+			body: 'Ngubah nama kayak nimbus.com jadi alamat kayak 203.0.113.10.'
+		},
+		{
+			tag: 'Pegangan',
+			title: 'Empat pintu wajib',
+			body: '<b>80</b> web, <b>443</b> web aman, <b>22</b> SSH, <b>53</b> DNS.'
+		},
+		{
+			title: 'Masih banyak lagi',
+			body: '<b>SMTP</b> ngirim email, <b>IMAP</b> bacanya, <b>SFTP</b> mindahin file. Ada S biasanya artinya dienkripsi.'
+		},
+		{
+			title: 'Ketuk pintunya',
+			body: 'Ketuk satu pintu, paketnya bakal jalan ke sana dan ngetuk.'
 		}
 	],
-	wrongNote: '{name} kurang cocok buat pekerjaan ini',
-	doneNote: 'Semua pekerjaan beres, lima protokol, satu server',
-	againBtn: 'Main lagi'
+	laptopLabel: 'Laptopmu',
+	serverLabel: 'nimbus.com',
+	serverSub: '203.0.113.10',
+	doors: [
+		{ name: 'HTTP', use: 'web' },
+		{ name: 'HTTPS', use: 'web aman' },
+		{ name: 'SSH', use: 'terminal jarak jauh' },
+		{ name: 'DNS', use: 'buku alamat' }
+	],
+	knockHint: 'Ketuk satu pintu',
+	doorAria: 'Ketuk pintu {port}, {name}'
 };

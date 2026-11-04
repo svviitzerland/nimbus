@@ -1,273 +1,392 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import type { LessonText } from '$lib/chapters/types';
+	// Guided on call lesson. A phone on the nightstand, a runbook on a clipboard, and an error
+	// chart. Following the beats, errors spike at night, the phone rings and gets acknowledged,
+	// the runbook ticks itself off step by step, a rollback brings the line back down, and the
+	// runbook turns into a blameless post mortem. On the last beat the learner may try the
+	// tempting restart and watch the errors come back.
+	import { untrack } from 'svelte';
+	import Guide from '$lib/components/Guide.svelte';
+	import type { StageProps } from '$lib/chapters/types';
 	import type { OnCallText } from '$lib/chapters/devops/on-call/types';
+	import { prefersReducedMotion, runSeq, type SeqStep } from './webguide/seq';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as OnCallText);
 
-	let act = $state(0);
-	let timers: ReturnType<typeof setTimeout>[] = [];
-	const at = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
-
-	// ---- Act 1, the phone buzzes ----
-	let acked = $state(false);
-	function ack() {
-		if (acked) return;
-		acked = true;
-		onstate?.('ack');
-	}
-
-	// ---- Act 2, follow the runbook ----
-	const STEP_TOKENS = ['dash', 'change', 'rollback', 'resolved'];
-	let stepDone = $state(0);
-	let rolling = $state(false);
-	let panicked = $state(false);
-	let errors = $state(38);
-	const fixed = $derived(stepDone >= STEP_TOKENS.length);
-
-	function doStep(i: number) {
-		if (i !== stepDone || rolling) return;
-		if (i === 2) {
-			rolling = true;
-			[30, 19, 8, 2, 0.3].forEach((v, k) => at(220 * (k + 1), () => (errors = v)));
-			at(1200, () => {
-				rolling = false;
-				stepDone = 3;
-				onstate?.('rollback');
-			});
-			return;
-		}
-		stepDone = i + 1;
-		onstate?.(STEP_TOKENS[i]);
-	}
-	function panic() {
-		if (rolling || errors < 1) return;
-		panicked = true;
-		onstate?.('panic');
-		errors = 0;
-		at(500, () => (errors = 38));
-	}
-
-	// ---- Act 3, the blameless post mortem ----
-	// the good answer sits on a different side each time, so it is a real choice
-	const GOOD_FIRST = [false, true, false];
-	let answered = $state<boolean[]>([false, false, false]);
-	let nope = $state(-1);
-	let done = false;
-	const pmDone = $derived(answered.every(Boolean));
-
-	function answer(qi: number, good: boolean) {
-		if (answered[qi]) return;
-		if (!good) {
-			nope = qi;
-			onstate?.('blame');
-			at(500, () => (nope = -1));
-			return;
-		}
-		answered = answered.map((a, i) => (i === qi ? true : a));
-		if (answered.every(Boolean)) {
-			onstate?.('postmortem');
-			if (!done) {
-				done = true;
-				oncomplete?.();
-			}
-		}
-	}
-
-	const note = $derived.by(() => {
-		if (act === 0) return acked ? tx.noteAcked : tx.noteAlarm;
-		if (act === 1) return fixed ? tx.noteFixed : tx.noteRunbook;
-		return pmDone ? tx.notePmDone : tx.notePm;
+	$effect(() => {
+		untrack(() => {
+			onshow?.(true);
+			oncomplete?.();
+		});
 	});
 
-	onDestroy(() => timers.forEach(clearTimeout));
+	let peek = $state<number | null>(null);
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
+	const last = $derived(tx.steps.length - 1);
+	const step = $derived(Math.max(0, Math.min(peek ?? beat, last)));
+
+	let reduce = $state(false);
+	$effect(() => {
+		reduce = prefersReducedMotion();
+	});
+
+	// ---- what the picture shows ----
+	type Phone = 'sleep' | 'ring' | 'acked' | 'resolved';
+	let phone = $state<Phone>('sleep');
+	let tnow = $state(6); // minutes after 02.50 drawn on the chart
+	let ticks = $state(0); // runbook steps done
+	let rolled = $state(false);
+	let panicAt = $state<number | null>(null);
+	let pm = $state(false);
+	let pmShown = $state(0);
+	let struck = $state(false);
+
+	const SPIKE = 8;
+	const RELEASE = 7;
+	const ROLLBACK = 20;
+	function err(m: number): number {
+		if (m < SPIKE) return 0.3;
+		if (panicAt !== null && m >= panicAt && m < panicAt + 2) return 4;
+		if (rolled && m > ROLLBACK) return m === ROLLBACK + 1 ? 12 : 0.3;
+		return 38;
+	}
+	const clock = (m: number) => {
+		const t = 50 + Math.round(m);
+		const h = t >= 60 ? '03' : '02';
+		return `${h}.${String(t % 60).padStart(2, '0')}`;
+	};
+
+	function base(o: Partial<{ phone: Phone; tnow: number; ticks: number; rolled: boolean }> = {}) {
+		phone = o.phone ?? 'sleep';
+		tnow = o.tnow ?? 6;
+		ticks = o.ticks ?? 0;
+		rolled = o.rolled ?? false;
+		panicAt = null;
+		pm = false;
+		pmShown = 0;
+		struck = false;
+	}
+	const climb = (from: number, to: number, ms: number, each?: (m: number) => void): SeqStep[] =>
+		Array.from(
+			{ length: to - from + 1 },
+			(_, k): SeqStep => [
+				ms,
+				() => {
+					tnow = from + k;
+					each?.(from + k);
+				}
+			]
+		);
+
+	// ---- the optional restart ----
+	let tried = $state(false);
+	let runId = $state(0);
+
+	function play(s: number, t: boolean, still: boolean): (() => void) | undefined {
+		if (s === 0) {
+			base();
+			return;
+		}
+		if (s === 1) {
+			base({ tnow: 12, phone: 'ring' });
+			if (still) return;
+			return runSeq(
+				[
+					[300, () => base({ tnow: 5 })],
+					...climb(6, 12, 380, (m) => {
+						if (m >= 10) phone = 'ring';
+					}),
+					[2800, () => {}]
+				],
+				true
+			);
+		}
+		if (s === 2) {
+			base({ tnow: 10, phone: 'acked' });
+			if (still) return;
+			return runSeq(
+				[
+					[2400, () => (phone = 'ring')],
+					[2800, () => (phone = 'acked')]
+				],
+				true
+			);
+		}
+		if (s === 3) {
+			base({ tnow: 11, phone: 'acked' });
+			return;
+		}
+		if (s === 4) {
+			base({ tnow: 12, phone: 'acked', ticks: 2 });
+			if (still) return;
+			return runSeq(
+				[
+					[900, () => (ticks = 0)],
+					[1600, () => (ticks = 1)],
+					[3400, () => (ticks = 2)]
+				],
+				true
+			);
+		}
+		if (s === 5) {
+			base({ tnow: 24, phone: 'resolved', ticks: 4, rolled: true });
+			if (still) return;
+			return runSeq(
+				[
+					[1200, () => base({ tnow: 12, phone: 'acked', ticks: 2 })],
+					[
+						400,
+						() => {
+							ticks = 3;
+							rolled = true;
+						}
+					],
+					...climb(13, 24, 230),
+					[
+						3200,
+						() => {
+							ticks = 4;
+							phone = 'resolved';
+						}
+					]
+				],
+				true
+			);
+		}
+		if (s === 6) {
+			base({ tnow: 24, phone: 'resolved', ticks: 4, rolled: true });
+			return;
+		}
+		if (s === 7 || s === 8) {
+			base({ tnow: 24, phone: 'resolved', ticks: 4, rolled: true });
+			pm = true;
+			pmShown = 4;
+			struck = true;
+			if (still || s === 8) return;
+			return runSeq(
+				[
+					[
+						700,
+						() => {
+							pmShown = 0;
+							struck = false;
+						}
+					],
+					[1500, () => (pmShown = 1)],
+					[900, () => (struck = true)],
+					[900, () => (pmShown = 2)],
+					[900, () => (pmShown = 3)],
+					[3600, () => (pmShown = 4)]
+				],
+				true
+			);
+		}
+		// the last beat, paused right before the rollback
+		base({ tnow: 12, phone: 'acked', ticks: 2 });
+		if (!t) return;
+		panicAt = 13;
+		if (still) {
+			tnow = 19;
+			onstate?.('panic');
+			return;
+		}
+		return runSeq([...climb(13, 19, 380), [10, () => onstate?.('panic')]]);
+	}
+
+	$effect(() => {
+		const s = step;
+		const t = s === last && tried;
+		const still = reduce;
+		void runId;
+		return untrack(() => play(s, t, still));
+	});
+
+	function restart() {
+		tried = true;
+		peek = null;
+		runId += 1;
+	}
+
+	// ---- chart geometry ----
+	const cx = (m: number) => 160 + (m / 30) * 270;
+	const cy = (v: number) => 282 - (v / 40) * 62;
+	const line = $derived(
+		Array.from({ length: tnow + 1 }, (_, m) => `${cx(m).toFixed(1)},${cy(err(m)).toFixed(1)}`).join(
+			' '
+		)
+	);
+	const nowErr = $derived(err(tnow));
+	const showRelease = $derived(ticks >= 2);
+	const book = $derived(step >= 3);
+	const spot = $derived(step === 6);
 </script>
 
-<div class="wrap">
-	<div class="tabs" role="tablist">
-		{#each tx.acts as a, i (i)}
-			<button
-				type="button"
-				role="tab"
-				aria-selected={act === i}
-				class:on={act === i}
-				disabled={(i === 1 && !acked) || (i === 2 && !fixed)}
-				onclick={() => (act = i)}>{a}</button
-			>
-		{/each}
-	</div>
-
-	{#if act === 0}
-		<div class="acts">
-			{#if !acked}
-				<button type="button" class="cta" onclick={ack}>{tx.ackBtn}</button>
-			{:else}
-				<button type="button" class="cta" onclick={() => (act = 1)}>{tx.runbookBtn}</button>
-			{/if}
-		</div>
-
-		<!-- the on call phone in the middle of the night -->
-		<div class="phone" class:buzz={!acked}>
-			<span class="notch"></span>
-			<span class="ptime">03.12</span>
-			<div class="notif" class:calm={acked}>
-				<div class="nhead">
-					<span class="napp">{tx.pagerApp}</span>
-					{#if acked}<span class="acked">{tx.ackedTag}</span>{/if}
-				</div>
-				<b>{tx.alertTitle}</b>
-				<span>{tx.alertBody}</span>
-			</div>
-			<span class="pnote">{tx.onCallNote}</span>
-			<span class="pnote faint">{tx.escalateNote}</span>
-		</div>
-	{:else if act === 1}
-		<div class="acts">
-			{#if fixed}
-				<button type="button" class="cta" onclick={() => (act = 2)}>{tx.postBtn}</button>
-			{:else}
-				<button type="button" class="line" disabled={rolling || errors < 1} onclick={panic}
-					>{tx.panicBtn}</button
-				>
-			{/if}
-		</div>
-
-		<div class="meter" class:ok={errors < 1}>
-			<span class="big">{errors}%</span>
-			<span class="mlabel">{tx.errorsLabel}</span>
-			{#if rolling}<span class="rolling">{tx.rollingTag}</span>{/if}
-		</div>
-		{#if panicked && stepDone < 3}
-			<p class="panic">{tx.panicResult}</p>
+{#snippet visual(_: number)}
+	<div class="vis">
+		{#if step === last}
+			<button type="button" class="play" onclick={restart}>{tx.panicBtn}</button>
 		{/if}
 
-		<div class="book">
-			<b class="btitle">{tx.runbookTitle}</b>
-			{#each tx.steps as s, i (i)}
-				<div class="step" class:done={i < stepDone} class:next={i === stepDone}>
-					<button
-						type="button"
-						class="sbtn"
-						disabled={i !== stepDone || rolling}
-						onclick={() => doStep(i)}
+		<svg viewBox="0 0 460 300" class="scene" role="img" aria-label={tx.runbookTitle}>
+			<!-- the phone -->
+			<g class="phone" class:ring={phone === 'ring' && !reduce}>
+				<rect x="14" y="24" width="112" height="224" rx="18" class="body" />
+				<rect x="21" y="40" width="98" height="192" rx="9" class="screen" />
+				<line x1="58" y1="32" x2="82" y2="32" class="notch" />
+				{#if phone === 'sleep'}
+					<path d="M78 70a14 14 0 1 1 -12 -16a11 11 0 0 0 12 16z" class="moon" />
+					<text x="70" y="132" text-anchor="middle" class="big">{clock(tnow)}</text>
+					<text x="70" y="154" text-anchor="middle" class="tiny">{tx.onCallNote}</text>
+				{:else if phone === 'resolved'}
+					<text x="70" y="58" text-anchor="middle" class="tiny">{clock(tnow)}</text>
+					<circle cx="70" cy="112" r="20" class="okc" />
+					<path d="M60 112l7 7l13 -14" class="okp" />
+					<text x="70" y="152" text-anchor="middle" class="oktxt">{tx.resolvedTag}</text>
+				{:else}
+					<text x="70" y="58" text-anchor="middle" class="tiny">{clock(tnow)}</text>
+					<rect x="27" y="68" width="86" height="72" rx="8" class="alert" />
+					<text x="35" y="84" class="app">{tx.pagerApp}</text>
+					<text x="35" y="104" class="atitle">{tx.alertTitle}</text>
+					<text x="35" y="120" class="abody">{tx.alertBody}</text>
+					<rect
+						x="27"
+						y="154"
+						width="86"
+						height="26"
+						rx="13"
+						class="ack"
+						class:done={phone === 'acked'}
+					/>
+					<text x="70" y="170.5" text-anchor="middle" class="acktxt"
+						>{phone === 'acked' ? tx.ackedTag : tx.ackBtn}</text
 					>
-						<span class="num">{i < stepDone ? '✓' : i + 1}</span>
-						<span>{s.label}</span>
-					</button>
-					{#if i < stepDone}<span class="sres">{s.result}</span>{/if}
-				</div>
-			{/each}
-		</div>
-	{:else}
-		<div class="doc">
-			<b class="dtitle">{tx.pmTitle}</b>
-			<span class="dlabel">{tx.timelineLabel}</span>
-			<ul class="tl">
-				{#each tx.timeline as row, i (i)}
-					<li>{row}</li>
-				{/each}
-			</ul>
-			{#each tx.questions as q, qi (qi)}
-				<div class="q" class:nope={nope === qi}>
-					<span class="qq">{q.q}</span>
-					{#if answered[qi]}
-						<span class="ans">{q.good}</span>
-					{:else}
-						<div class="opts">
-							{#each GOOD_FIRST[qi] ? [true, false] : [false, true] as good (good)}
-								<button type="button" class="opt" onclick={() => answer(qi, good)}
-									>{good ? q.good : q.bad}</button
-								>
-							{/each}
-						</div>
-						{#if nope === qi}<span class="nopetag">{tx.nopeTag}</span>{/if}
-					{/if}
-				</div>
-			{/each}
-			{#if pmDone}<span class="pmdone">{tx.pmDoneTag}</span>{/if}
-		</div>
-	{/if}
+				{/if}
+			</g>
+			{#if phone === 'ring'}
+				<g class="waves" class:still={reduce}>
+					<path d="M132 70q8 10 0 20" />
+					<path d="M140 64q13 16 0 32" />
+					<path d="M8 70q-8 10 0 20" />
+				</g>
+			{/if}
 
-	<p class="note">{note}</p>
+			<!-- the clipboard, runbook first, post mortem later -->
+			<g class="board" class:faded={!book}>
+				<rect x="146" y="22" width="300" height="170" rx="10" class="paper" />
+				<rect x="266" y="15" width="60" height="13" rx="4" class="clip" />
+				{#if !pm}
+					<text x="160" y="52" class="ptitle">{tx.runbookTitle}</text>
+					{#each tx.runbook as r, k (k)}
+						{@const y = 74 + k * 29}
+						{@const done = book && ticks > k}
+						<g
+							class="rrow"
+							class:done
+							class:next={book && ticks === k && step !== 3}
+							class:spot={spot && k === 1}
+						>
+							<rect x="160" y={y - 10} width="12" height="12" rx="3" class="cb" />
+							{#if done}<path d="M162.5 {y - 4}l3 3l5 -6" class="cbt" />{/if}
+							<text x="180" y={y + 1} class="rl">{r.label}</text>
+							{#if done}<text x="180" y={y + 13} class="rr">{r.result}</text>{/if}
+						</g>
+					{/each}
+				{:else}
+					<text x="160" y="52" class="ptitle">{tx.pmTitle}</text>
+					{#if pmShown >= 1}
+						<g class="blame">
+							<text x="160" y="80" class="pl bad">{tx.blameLine}</text>
+							{#if struck}
+								<line
+									x1="158"
+									y1="76"
+									x2={162 + tx.blameLine.length * 5.6}
+									y2="76"
+									class="strike"
+								/>
+							{/if}
+						</g>
+					{/if}
+					{#each tx.pmLines as l, k (k)}
+						{#if pmShown >= k + 2}
+							<circle cx="164" cy={110 + k * 26 - 3.5} r="3.2" class="gdot" />
+							<text x="174" y={110 + k * 26} class="pl">{l}</text>
+						{/if}
+					{/each}
+				{/if}
+			</g>
+
+			<!-- the error chart -->
+			<rect x="146" y="202" width="300" height="94" rx="10" class="paper" />
+			<text x="158" y="219" class="clbl">{tx.errorsLabel}</text>
+			<text x="434" y="219" text-anchor="end" class="cval" class:hot={nowErr > 5}
+				>{nowErr < 1 ? '0.3' : Math.round(nowErr)}%</text
+			>
+			<line x1="160" y1="282" x2="430" y2="282" class="axis" />
+			{#if showRelease}
+				<line x1={cx(RELEASE)} y1="226" x2={cx(RELEASE)} y2="282" class="rel" class:spot />
+				<text x={cx(RELEASE) - 4} y="236" text-anchor="end" class="reltxt" class:spot
+					>{tx.releaseTag}</text
+				>
+			{/if}
+			<polyline points={line} class="eline" class:hot={nowErr > 5} />
+			<text x="160" y="292" text-anchor="middle" class="tlbl">02.50</text>
+			<text x="430" y="292" text-anchor="middle" class="tlbl">03.20</text>
+		</svg>
+	</div>
+{/snippet}
+
+<div class="stage">
+	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
 </div>
 
 <style>
-	.wrap {
+	.stage {
 		display: flex;
-		width: min(94vw, 400px);
+		width: 100%;
+		max-height: 100%;
+		justify-content: center;
+		overflow-x: hidden;
+		overflow-y: auto;
+		padding-bottom: 8px;
+	}
+	@media (max-width: 767px) {
+		.stage {
+			padding-bottom: 7rem;
+		}
+	}
+	.vis {
+		display: flex;
+		width: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 11px;
+		gap: 10px;
 	}
-	.tabs {
-		display: flex;
-		gap: 4px;
-		border-radius: 12px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 3px;
+	.scene {
+		width: 100%;
+		max-width: 460px;
+		height: auto;
+		overflow: visible;
 	}
-	.tabs button {
-		border-radius: 9px;
-		padding: 6px 12px;
-		font-size: 12px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	.tabs button.on {
-		background: var(--color-ink);
-		color: var(--color-paper);
-	}
-	.tabs button:disabled {
-		opacity: 0.4;
-	}
-	.acts {
-		display: flex;
-		min-height: 38px;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 8px;
-	}
-	.cta,
-	.line {
-		border-radius: 11px;
-		padding: 9px 18px;
-		font-size: 12.5px;
-		font-weight: 700;
-	}
-	.cta {
+	.play {
+		border-radius: 999px;
 		background: var(--btn-primary);
+		padding: 8px 18px;
+		font-size: 14px;
+		font-weight: 600;
 		color: #fff;
 	}
-	.line {
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		color: var(--color-ink);
-	}
-	.line:disabled {
-		opacity: 0.45;
-	}
 
-	/* the phone, a dark screen at three in the morning */
+	/* ---- phone ---- */
 	.phone {
-		display: flex;
-		width: 210px;
-		flex-direction: column;
-		align-items: center;
-		gap: 8px;
-		border-radius: 28px;
-		border: 6px solid #16212b;
-		background: #1b2533;
-		padding: 10px 10px 18px;
-		box-shadow: 0 14px 30px rgba(22, 40, 60, 0.2);
+		transform-box: fill-box;
+		transform-origin: 50% 50%;
 	}
-	.phone.buzz {
-		animation: buzz 0.9s ease-in-out infinite;
+	.phone.ring {
+		animation: buzz 0.5s ease-in-out infinite;
 	}
 	@keyframes buzz {
 		0%,
@@ -275,301 +394,248 @@
 		100% {
 			transform: rotate(0);
 		}
-		70% {
-			transform: rotate(-2deg);
+		15% {
+			transform: rotate(-2.5deg);
 		}
-		80% {
-			transform: rotate(2deg);
+		30% {
+			transform: rotate(2.5deg);
 		}
-		90% {
-			transform: rotate(-1deg);
+		45% {
+			transform: rotate(-1.5deg);
 		}
+	}
+	.body {
+		fill: var(--color-ink);
+	}
+	.screen {
+		fill: var(--color-paper);
 	}
 	.notch {
-		width: 50px;
-		height: 5px;
-		border-radius: 999px;
-		background: #2c3746;
+		stroke: var(--color-muted);
+		stroke-width: 3;
+		stroke-linecap: round;
 	}
-	.ptime {
-		font-size: 30px;
-		font-weight: 300;
-		color: #e0dcd4;
-		font-variant-numeric: tabular-nums;
-	}
-	.notif {
-		display: flex;
-		width: 100%;
-		flex-direction: column;
-		gap: 2px;
-		border-radius: 14px;
-		background: #f6e3e0;
-		padding: 8px 10px;
-		color: #16212b;
-		transition: background 0.3s ease;
-	}
-	.notif.calm {
-		background: #e0dcd4;
-	}
-	.nhead {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-	.napp {
-		font-size: 9px;
-		font-weight: 800;
-		letter-spacing: 0.05em;
-		text-transform: uppercase;
-		color: #b8392c;
-	}
-	.acked {
-		border-radius: 999px;
-		background: #3a9c64;
-		padding: 1px 7px;
-		font-size: 9px;
-		font-weight: 800;
-		color: #fff;
-	}
-	.notif b {
-		font-size: 12px;
-	}
-	.notif span:last-child {
-		font-size: 10.5px;
-		color: #5e6b76;
-	}
-	.pnote {
-		font-size: 10px;
-		font-weight: 600;
-		color: #c9d1d9;
-		text-align: center;
-	}
-	.pnote.faint {
-		color: #8a949d;
-		font-weight: 500;
-	}
-
-	.meter {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 1px;
+	.moon {
+		fill: var(--color-amber);
+		opacity: 0.85;
 	}
 	.big {
-		font-size: 30px;
-		font-weight: 800;
-		color: var(--color-danger);
+		font-size: 25px;
+		font-weight: 700;
+		fill: var(--color-ink);
 		font-variant-numeric: tabular-nums;
-		transition: color 0.3s ease;
 	}
-	.meter.ok .big {
-		color: var(--color-grass);
-	}
-	.mlabel {
-		font-size: 10.5px;
-		color: var(--color-faint);
-	}
-	.rolling {
-		margin-top: 3px;
-		border-radius: 999px;
-		background: var(--color-amber-soft);
-		padding: 1px 9px;
-		font-size: 10px;
-		font-weight: 800;
-		color: var(--color-amber);
-	}
-	.panic {
-		max-width: 320px;
-		text-align: center;
-		font-size: 11px;
+	.tiny {
+		font-size: 8.5px;
 		font-weight: 600;
-		color: var(--color-danger);
+		fill: var(--color-muted);
 	}
-	.book,
-	.doc {
-		display: flex;
-		width: 100%;
-		flex-direction: column;
-		gap: 6px;
-		border-radius: 14px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 11px 12px;
-		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.06);
+	.alert {
+		fill: var(--color-card);
+		stroke: var(--color-danger);
+		stroke-width: 1.3;
 	}
-	.btitle,
-	.dtitle {
-		font-size: 12.5px;
-		color: var(--color-ink);
-	}
-	.step {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-	.sbtn {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		border-radius: 9px;
-		border: 1.5px solid var(--color-line);
-		background: var(--color-paper);
-		padding: 6px 9px;
-		text-align: left;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-ink);
-	}
-	.step.next .sbtn {
-		border-color: var(--color-brand);
-		background: var(--color-brand-soft);
-	}
-	.step.done .sbtn {
-		border-color: color-mix(in srgb, var(--color-grass) 45%, var(--color-line));
-		background: var(--color-card);
-	}
-	.sbtn:disabled {
-		cursor: default;
-	}
-	.step:not(.done):not(.next) .sbtn {
-		opacity: 0.5;
-	}
-	.num {
-		display: flex;
-		width: 18px;
-		height: 18px;
-		flex-shrink: 0;
-		align-items: center;
-		justify-content: center;
-		border-radius: 50%;
-		background: var(--color-line);
-		font-size: 10px;
-		font-weight: 800;
-		color: var(--color-ink);
-	}
-	.step.next .num {
-		background: var(--color-brand);
-		color: #fff;
-	}
-	.step.done .num {
-		background: var(--color-grass);
-		color: #fff;
-	}
-	.sres {
-		padding-left: 35px;
-		font-size: 10.5px;
-		color: var(--color-muted);
-		animation: pop 0.3s ease both;
-	}
-
-	.dlabel {
-		font-size: 9.5px;
+	.app {
+		font-size: 8.5px;
 		font-weight: 800;
 		letter-spacing: 0.05em;
 		text-transform: uppercase;
-		color: var(--color-faint);
+		fill: var(--color-danger);
 	}
-	.tl {
-		display: flex;
-		flex-direction: column;
-		gap: 1px;
-		margin: 0 0 4px;
-		padding: 0;
-		list-style: none;
-		font-size: 10.5px;
-		color: var(--color-muted);
-	}
-	.q {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-		border-top: 1px solid var(--color-line);
-		padding-top: 7px;
-	}
-	.q.nope {
-		animation: shake 0.4s ease;
-	}
-	.qq {
-		font-size: 11px;
-		font-weight: 800;
-		color: var(--color-ink);
-	}
-	.ans {
-		font-size: 11.5px;
-		color: var(--color-grass);
-		font-weight: 600;
-		animation: pop 0.3s ease both;
-	}
-	.opts {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
-	}
-	.opt {
-		border-radius: 9px;
-		border: 1px solid var(--color-line);
-		background: var(--color-paper);
-		padding: 6px 9px;
-		text-align: left;
-		font-size: 11.5px;
-		color: var(--color-ink);
-		transition: border-color 0.15s ease;
-	}
-	.opt:hover {
-		border-color: var(--color-brand);
-	}
-	.nopetag {
-		font-size: 10.5px;
-		font-weight: 800;
-		color: var(--color-danger);
-	}
-	.pmdone {
-		align-self: center;
-		margin-top: 4px;
-		border-radius: 999px;
-		background: var(--color-grass-soft);
-		padding: 2px 11px;
-		font-size: 11px;
-		font-weight: 800;
-		color: var(--color-grass);
-	}
-	.note {
-		min-height: 1.4em;
-		max-width: 360px;
-		text-align: center;
+	.atitle {
 		font-size: 12px;
+		font-weight: 800;
+		fill: var(--color-ink);
+	}
+	.abody {
+		font-size: 8.5px;
+		fill: var(--color-muted);
+	}
+	.ack {
+		fill: var(--color-danger);
+		transition: fill 0.3s;
+	}
+	.ack.done {
+		fill: var(--color-grass);
+	}
+	.acktxt {
+		font-size: 9.5px;
+		font-weight: 700;
+		fill: #fff;
+	}
+	.okc {
+		fill: var(--color-grass-soft);
+		stroke: var(--color-grass);
+		stroke-width: 2;
+	}
+	.okp {
+		fill: none;
+		stroke: var(--color-grass);
+		stroke-width: 3;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.oktxt {
+		font-size: 12px;
+		font-weight: 800;
+		fill: var(--color-grass);
+	}
+	.waves path {
+		fill: none;
+		stroke: var(--color-danger);
+		stroke-width: 2;
+		stroke-linecap: round;
+		animation: wave 1s ease-in-out infinite;
+	}
+	.waves.still path {
+		animation: none;
+	}
+	@keyframes wave {
+		50% {
+			opacity: 0.2;
+		}
+	}
+
+	/* ---- clipboard ---- */
+	.board {
+		transition: opacity 0.4s;
+	}
+	.board.faded {
+		opacity: 0.35;
+	}
+	.paper {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1.4;
+	}
+	.clip {
+		fill: var(--color-muted);
+	}
+	.ptitle {
+		font-size: 11.5px;
+		font-weight: 800;
+		fill: var(--color-ink);
+	}
+	.cb {
+		fill: var(--color-card);
+		stroke: var(--color-faint);
+		stroke-width: 1.3;
+		transition:
+			fill 0.3s,
+			stroke 0.3s;
+	}
+	.rrow.done .cb {
+		fill: var(--color-grass);
+		stroke: var(--color-grass);
+	}
+	.rrow.next .cb {
+		stroke: var(--color-brand);
+		stroke-width: 2;
+	}
+	.cbt {
+		fill: none;
+		stroke: #fff;
+		stroke-width: 1.8;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.rl {
+		font-size: 10.5px;
 		font-weight: 600;
-		color: var(--color-muted);
+		fill: var(--color-muted);
 	}
-	@keyframes pop {
-		from {
-			transform: translateY(-3px);
-			opacity: 0;
-		}
+	.rrow.done .rl,
+	.rrow.next .rl {
+		fill: var(--color-ink);
 	}
-	@keyframes shake {
-		25% {
-			transform: translateX(-4px);
-		}
-		75% {
-			transform: translateX(4px);
-		}
+	.rr {
+		font-size: 9px;
+		fill: var(--color-grass);
+		font-weight: 600;
 	}
+	.rrow.spot .rl,
+	.rrow.spot .rr {
+		fill: var(--color-amber);
+	}
+	.pl {
+		font-size: 10.5px;
+		font-weight: 600;
+		fill: var(--color-ink);
+	}
+	.pl.bad {
+		fill: var(--color-danger);
+	}
+	.strike {
+		stroke: var(--color-danger);
+		stroke-width: 1.6;
+	}
+	.gdot {
+		fill: var(--color-grass);
+	}
+
+	/* ---- chart ---- */
+	.clbl {
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		fill: var(--color-faint);
+	}
+	.cval {
+		font-size: 13px;
+		font-weight: 800;
+		fill: var(--color-grass);
+		font-variant-numeric: tabular-nums;
+	}
+	.cval.hot {
+		fill: var(--color-danger);
+	}
+	.axis {
+		stroke: var(--color-line);
+		stroke-width: 1.4;
+	}
+	.eline {
+		fill: none;
+		stroke: var(--color-grass);
+		stroke-width: 2.4;
+		stroke-linejoin: round;
+		stroke-linecap: round;
+		transition: stroke 0.3s;
+	}
+	.eline.hot {
+		stroke: var(--color-danger);
+	}
+	.rel {
+		stroke: var(--color-faint);
+		stroke-width: 1.4;
+	}
+	.reltxt {
+		font-size: 9px;
+		font-weight: 700;
+		fill: var(--color-faint);
+	}
+	.rel.spot {
+		stroke: var(--color-amber);
+		stroke-width: 2.2;
+	}
+	.reltxt.spot {
+		fill: var(--color-amber);
+		font-size: 10px;
+	}
+	.tlbl {
+		font-size: 8.5px;
+		fill: var(--color-faint);
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.phone.buzz,
-		.q.nope,
-		.sres,
-		.ans {
+		.phone.ring {
 			animation: none;
 		}
-	}
-	@media (min-width: 768px) {
-		.wrap {
-			width: 460px;
-		}
-		.note {
-			font-size: 13.5px;
-			max-width: 440px;
+		.board,
+		.ack,
+		.cb,
+		.eline {
+			transition: none;
 		}
 	}
 </style>

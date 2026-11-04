@@ -1,5 +1,5 @@
 // Tiny syntax highlighters and page helpers shared by the frontend lessons.
-// Tokens are rendered as plain text spans by CodePane, never as raw HTML.
+// Tokens are rendered as plain text spans by TypedCode, never as raw HTML.
 
 export type TokKind =
 	| 'txt'

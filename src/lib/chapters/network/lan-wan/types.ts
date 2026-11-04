@@ -1,20 +1,16 @@
 import type { LessonText } from '../../types';
+import type { GuideStepText } from '$lib/components/stages/netguide/types';
 
-export interface LanWanLevelText {
-	tab: string; // short name in the step row, e.g. "LAN"
-	scope: string; // how big it is, e.g. "one room"
-	hint: string; // what to tap at this level
-	done: string; // caption once the level is fully wired
-}
+export type LanWanLevel = 'lan' | 'wan' | 'net';
 
 export interface LanWanText extends LessonText {
-	levels: { lan: LanWanLevelText; wan: LanWanLevelText; net: LanWanLevelText };
-	zoomBtn: string; // moves out to the next, bigger level
-	againBtn: string; // starts over from the room
+	/** The side panel, one step per beat (same length as intro). */
+	steps: GuideStepText[];
+	/** Short names of the three zoom levels, used on the zoom buttons and the map tags. */
+	levels: Record<LanWanLevel, string>;
+	zoomLabel: string; // heading over the zoom buttons on the last beat
 	switchLabel: string; // the box in the middle of the room
-	laptopLabel: string;
-	pcLabel: string;
-	hqLabel: string; // the head office, which holds the room you just wired
+	hqLabel: string; // the head office, which holds the room
 	branchLabel: string; // template with {n}
 	/** The networks of the world level, in order. The first one is your own company. */
 	nets: string[];

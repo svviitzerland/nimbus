@@ -36,7 +36,16 @@
 	// bubble looks the same but leads with a small FYI tag. Reusable across every lesson.
 	const FYI_MARK = '[fyi]';
 	const isFyi = $derived(nim.trimStart().toLowerCase().startsWith(FYI_MARK));
-	const body = $derived(isFyi ? nim.trimStart().slice(FYI_MARK.length).trimStart() : nim);
+	// `[ingat]` marks a memory trick (an easy way to remember the idea), with a green tag.
+	const MEMO_MARK = '[ingat]';
+	const isMemo = $derived(nim.trimStart().toLowerCase().startsWith(MEMO_MARK));
+	const body = $derived(
+		isFyi
+			? nim.trimStart().slice(FYI_MARK.length).trimStart()
+			: isMemo
+				? nim.trimStart().slice(MEMO_MARK.length).trimStart()
+				: nim
+	);
 
 	// Small screens only: that is where the bubble would otherwise cover the stage, so the
 	// moderator-style auto close applies there. On desktop the bubble stays in its corner.
@@ -63,7 +72,7 @@
 	// A brief, snappy peek scaled a little to length (markup stripped), then Nim ducks out.
 	function readMs(html: string) {
 		const words = html
-			.replace(/^\s*\[fyi\]\s*/i, '')
+			.replace(/^\s*\[(fyi|ingat)\]\s*/i, '')
 			.replace(/<[^>]*>/g, '')
 			.trim()
 			.split(/\s+/)
@@ -165,6 +174,19 @@
 											d="M12 1.6l1.7 8.7 8.7 1.7-8.7 1.7L12 22.4l-1.7-8.7L1.6 12l8.7-1.7z"
 										/></svg
 									>FYI</span
+								>{/if}{#if isMemo}<span class="memo-tag"
+									><svg
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2.4"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										aria-hidden="true"
+										><path
+											d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z"
+										/></svg
+									>{$t.memoTag}</span
 								>{/if}{@html html}
 						</p>
 					{/key}
@@ -427,6 +449,27 @@
 		.term-soon .dot {
 			animation: none;
 		}
+	}
+	/* a calm green "remember it" tag at the start of a memory trick line */
+	.memo-tag {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		vertical-align: 1px;
+		margin-right: 8px;
+		border-radius: 999px;
+		background: var(--color-grass);
+		color: #fff;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		padding: 3px 9px 3px 7px;
+		animation: fyi-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.5) both;
+	}
+	.memo-tag svg {
+		width: 11px;
+		height: 11px;
 	}
 	/* a lively "by the way" tag at the start of an FYI line */
 	.fyi-tag {

@@ -1,25 +1,30 @@
 import type { LessonText } from '../../types';
 
-export interface GpuJob {
-	name: string;
-	sub: string; // one line on what the job is like
-	unit: string; // what is counted in the progress, sums or steps
+export interface GuidePanel {
+	tag?: string;
+	title: string;
+	/** May hold simple HTML like <b>. */
+	body: string;
 }
 
+/** The two jobs, a pile of independent sums, or a chain where each step needs the last. */
+export type GpuJobId = 'pile' | 'chain';
+
 export interface GpuText extends LessonText {
-	jobLabel: string; // caption over the two job cards
-	/** The two jobs, the neural net pile of sums first, then the step by step recipe. */
-	jobs: GpuJob[];
-	raceBtn: string;
-	racing: string;
-	again: string;
+	/** One panel per scene of the guided visual (six scenes). */
+	panels: GuidePanel[];
 	cpuName: string;
-	cpuSub: string; // how many cores and what they are like
+	cpuSub: string; // what its cores are like
 	gpuName: string;
 	gpuSub: string;
-	ready: string; // lane status before the race
-	progress: string; // template with {n}, {t} and {u}
-	finished: string; // template with {s}, seconds taken
-	faster: string; // template with {k}, how many times faster the winner was
-	triedBoth: string; // template with {n}, how many of the 2 jobs were raced
+	cpuNick: string; // the memory trick, a few professors
+	gpuNick: string; // the memory trick, a stadium of students
+	/** One line describing each job. */
+	jobs: Record<GpuJobId, string>;
+	ready: string; // lane status before the race starts
+	working: string; // lane status while it works
+	doneIn: string; // template with {s}, seconds taken
+	rule: string; // the rule of thumb on the remember scene
+	/** The optional button, switch to the chain, then back to the pile. */
+	switchJob: Record<GpuJobId, string>;
 }

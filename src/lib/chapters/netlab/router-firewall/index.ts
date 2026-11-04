@@ -6,18 +6,10 @@ import { en } from './en';
 export const routerFirewall: Lesson = {
 	id: 'router-firewall',
 	mood: 'thinking',
-	moods: ['worried', 'idea', 'thinking', 'thinking', 'wink', 'happy'],
+	moods: ['worried', 'idea', 'thinking', 'thinking', 'wink', 'happy', 'idea', 'surprised', 'happy'],
 	reactionMood: {
-		added: 'happy',
-		mismatch: 'thinking',
-		moved: 'idea',
-		gameOpen: 'thinking',
-		overBlock: 'surprised',
-		winboxOpen: 'worried',
-		order: 'idea',
-		lockedOut: 'surprised',
-		allPass: 'happy',
-		done: 'excited'
+		filterPrint: 'happy',
+		error: 'thinking'
 	},
 	stage: RouterFirewallStage,
 	text: { id, en }

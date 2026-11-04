@@ -5,14 +5,9 @@ import { en } from './en';
 
 export const deploySite: Lesson = {
 	id: 'deploy-site',
-	mood: 'happy',
-	moods: ['thinking', 'idea', 'calm', 'thinking', 'idea', 'wink', 'excited'],
-	reactionMood: {
-		platform: 'excited',
-		vpsWait: 'thinking',
-		vps: 'happy',
-		both: 'wink'
-	},
+	mood: 'calm',
+	moods: ['worried', 'idea', 'happy', 'thinking', 'excited', 'wink', 'calm', 'idea', 'happy'],
+	reactionMood: { push: 'excited' },
 	stage: DeploySiteStage,
 	text: { id, en }
 };

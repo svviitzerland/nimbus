@@ -6,21 +6,11 @@ import { en } from './en';
 export const routerNat: Lesson = {
 	id: 'router-nat',
 	mood: 'thinking',
-	moods: ['thinking', 'worried', 'idea', 'thinking', 'happy', 'wink', 'happy'],
+	moods: ['calm', 'thinking', 'worried', 'idea', 'excited', 'thinking', 'wink', 'idea', 'happy'],
 	reactionMood: {
-		noNet: 'worried',
-		noNetAgain: 'thinking',
-		masq: 'happy',
-		srcnat: 'wink',
-		wrongChain: 'thinking',
-		wrongOut: 'surprised',
-		wrongAction: 'thinking',
-		loaded: 'excited',
-		shared: 'happy',
+		natPrint: 'happy',
 		conntrack: 'idea',
-		noConn: 'thinking',
-		error: 'surprised',
-		done: 'excited'
+		error: 'thinking'
 	},
 	stage: RouterNatStage,
 	text: { id, en }

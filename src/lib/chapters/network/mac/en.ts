@@ -3,52 +3,73 @@ import type { MacText } from './types';
 export const en: MacText = {
 	title: 'MAC addresses and ARP',
 	intro: [
-		'Picture the nimbus.com office. A laptop, a printer, a TV, and a few phones all share one network inside the building. That small network is a <b>LAN</b> (local area network).',
-		'Each of them already has an [[IP address|network/ip-address]], like 192.168.1.20 for the printer. But inside the room, the IP is not the whole story.',
-		'Every network card is born with a second number, burned in at the factory. It is the <b>MAC address</b>, six pairs of letters and numbers, and no two cards in the world are meant to share one. Flip over a WiFi router and you will often find it printed on the sticker.',
-		'Think of the IP as the desk number on the office plan, and the MAC as the name tag of the person sitting there. Inside the room, the cable delivers by name tag. So knowing the desk number is not enough, you also need the name tag.',
-		'Your laptop knows the printer sits at 192.168.1.20, but not its name tag. So it simply asks the whole room out loud, "who has 192.168.1.20?" That question is <b>ARP</b> (Address Resolution Protocol).',
-		'A message to everyone in the room is called a <b>broadcast</b>. Everyone hears it, only the owner answers, and the laptop writes the answer in its <b>ARP table</b>, a little memory so it does not have to shout again next time.',
-		'[fyi] MAC addresses only matter inside one room. When a packet leaves through the router, its MAC labels get swapped at every stop, while the IP stays the same all the way to the end. That is the line between layer 2 and layer 3 from the [[layers lesson|networking/layers]].',
-		'You want to print nimbus.pdf. Ask the room who has the printer address, then send the job.'
+		'Picture the nimbus.com office. A laptop, a printer, a TV, and a phone all share one network inside the room. A small network like this is called a <b>LAN</b> (local area network).',
+		'Each of them got an [[IP address|network/ip-address]] when it joined, like 192.168.1.20 for the printer. Think of it as the address of the desk it sits at.',
+		'But every network card also carries a second number, put there at the factory. It is the <b>MAC address</b>, six pairs of letters and numbers, and no two cards in the world are meant to share one.',
+		'[ingat] Here is the easy way to keep them apart. The MAC is the name tag sewn into the device, it never changes. The IP is the address you are given, so it changes when you move. Watch the phone walk from the office to a cafe.',
+		'Now your laptop wants to print. It knows the printer sits at 192.168.1.20, but inside the room the cable delivers by name tag. So it asks the whole room out loud, "who has 192.168.1.20?" That question is <b>ARP</b>.',
+		'Everyone hears it (a message to everyone is a <b>broadcast</b>), but only the printer answers with its name tag. The laptop writes it down in its <b>ARP table</b>, so next time it will not need to ask.',
+		'Now the print job goes straight to that one name tag. The TV and the phone never even see it. Out comes nimbus.pdf.',
+		'[fyi] A MAC only matters inside one room. When a packet leaves through the router, its name tag labels get swapped at every stop, while the IP stays the same all the way. That is the line between layer 2 and layer 3 from the [[layers lesson|networking/layers]].',
+		'That is the whole trick, ask by IP, deliver by MAC. If you are curious, ask the room about an address nobody owns and see what happens.'
 	],
 	reactions: {
-		reply:
-			'Everyone heard the question, but only the printer said "that is me" and sent back its MAC. The others just ignored it. Your laptop wrote the answer in its ARP table.',
-		print:
-			'Now the print job goes straight to the printer name tag, no shouting needed. The TV and the phone never even see it. Try asking about a few more addresses.',
-		tv: 'The TV owns 192.168.1.30, so the TV answered this time. Another row in the table, one less shout for later.',
 		nobody:
-			'Silence. Nobody in the room owns 192.168.1.99, so no one answers. When your computer says a device is unreachable inside the LAN, a silent ARP like this is often the reason.',
-		cached:
-			'No shouting this time. The laptop already has that MAC in its ARP table, so it goes straight there. Real computers keep these rows for a few minutes, then forget and ask again.'
+			'Silence. Nobody in the room owns 192.168.1.99, so nobody answers and the laptop gives up. When a device on your LAN seems unreachable, a quiet ARP like this is often the reason.'
 	},
+	steps: [
+		{
+			title: 'One room, one LAN',
+			body: 'Devices in the same room are linked by a switch or by WiFi, and can talk to each other directly.'
+		},
+		{
+			title: 'IP address',
+			tag: 'given',
+			body: 'An address handed out by the network when a device joins. It says <b>where</b> the device is right now.'
+		},
+		{
+			title: 'MAC address',
+			tag: 'built in',
+			body: 'A name tag set at the factory, like <b>00:1B:A9:4C:22:10</b>. It says <b>who</b> the device is.'
+		},
+		{
+			title: 'Tag stays, address changes',
+			tag: 'remember',
+			body: 'Same phone, same name tag. A new network gives it a new IP.'
+		},
+		{
+			title: 'ARP, asking the room',
+			body: 'The laptop has the IP but needs the MAC, so it sends one question to every device in the room.'
+		},
+		{
+			title: 'Only the owner answers',
+			body: 'The printer replies with its MAC. The laptop saves the pair (IP and MAC) in its ARP table for a few minutes.'
+		},
+		{
+			title: 'Delivered by name tag',
+			body: 'With the MAC known, frames go to that one device only. No more shouting.'
+		},
+		{
+			title: 'Inside one room only',
+			tag: 'by the way',
+			body: 'MAC labels are local. IP addresses are what carry a packet across the internet.'
+		},
+		{
+			title: 'Ask by IP, deliver by MAC',
+			tag: 'your turn',
+			body: 'Optional. Ask about <b>192.168.1.99</b> and watch the room stay quiet.'
+		}
+	],
 	roomLabel: 'LAN at the nimbus.com office',
-	youLabel: 'Your laptop',
-	names: { printer: 'Printer', tv: 'TV', phone: 'Phone', laptop: "Dina's laptop" },
-	ipWord: 'IP',
-	macWord: 'MAC',
+	names: { you: 'Your laptop', printer: 'Printer', tv: 'TV', phone: 'Phone' },
+	officeLabel: 'Office WiFi',
+	cafeLabel: 'Cafe WiFi',
 	shout: 'who has {ip}?',
 	itsMe: 'that is me',
-	notMe: 'not me',
+	silence: 'nobody answers',
 	printed: 'printed',
-	askBtn: 'Ask who has {ip}',
-	printBtn: 'Send the print job',
-	moreLabel: 'Ask about another address',
-	askTv: 'Who has {ip}',
-	askNobody: 'Who has {ip}',
 	tableTitle: "Your laptop's ARP table",
-	tableEmpty: 'Still empty, it knows no name tags yet',
 	ipHead: 'IP',
 	macHead: 'MAC',
-	frameLabel: 'to',
-	notes: {
-		idle: 'The laptop knows the printer IP, but not its MAC',
-		shouting: 'A broadcast, every device in the room hears it',
-		answered: 'Only the owner of that IP answers',
-		printing: 'This time it goes to one MAC only',
-		printed: 'Delivered by name tag, straight to the printer',
-		cached: 'Already in the table, no need to ask the room',
-		nobody: 'No device owns that IP, so the room stays quiet'
-	}
+	ghostBtn: 'Ask who has {ip}'
 };

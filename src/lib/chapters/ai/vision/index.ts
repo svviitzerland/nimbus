@@ -6,16 +6,22 @@ import { en } from './en';
 export const vision: Lesson = {
 	id: 'vision',
 	mood: 'happy',
-	moods: ['happy', 'thinking', 'idea', 'thinking', 'wink', 'excited'],
+	moods: [
+		'happy',
+		'surprised',
+		'thinking',
+		'idea',
+		'thinking',
+		'excited',
+		'wink',
+		'idea',
+		'calm',
+		'excited'
+	],
 	reactionMood: {
-		draw: 'happy',
-		loop: 'surprised',
-		line: 'happy',
-		cross: 'happy',
-		box: 'happy',
-		ring: 'happy',
-		clear: 'calm',
-		done: 'excited'
+		cat: 'happy',
+		fish: 'happy',
+		house: 'excited'
 	},
 	stage: VisionStage,
 	text: { id, en }

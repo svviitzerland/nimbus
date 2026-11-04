@@ -6,8 +6,8 @@ import { en } from './en';
 export const vpn: Lesson = {
 	id: 'vpn',
 	mood: 'thinking',
-	moods: ['calm', 'worried', 'worried', 'idea', 'happy', 'wink', 'happy'],
-	reactionMood: { blocked: 'worried', on: 'idea', through: 'excited', off: 'thinking' },
+	moods: ['calm', 'thinking', 'worried', 'idea', 'happy', 'excited', 'wink', 'thinking', 'happy'],
+	reactionMood: { off: 'worried', on: 'happy' },
 	stage: VpnStage,
 	text: { id, en }
 };

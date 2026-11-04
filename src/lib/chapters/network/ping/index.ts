@@ -6,14 +6,13 @@ import { en } from './en';
 export const ping: Lesson = {
 	id: 'ping',
 	mood: 'thinking',
-	moods: ['worried', 'idea', 'wink', 'thinking', 'idea', 'wink', 'happy'],
+	moods: ['worried', 'idea', 'thinking', 'thinking', 'idea', 'wink', 'wink', 'happy'],
 	reactionMood: {
 		ping: 'happy',
 		pingRouter: 'idea',
 		trace: 'excited',
 		unknown: 'surprised',
-		error: 'thinking',
-		done: 'excited'
+		error: 'thinking'
 	},
 	stage: PingStage,
 	text: { id, en }

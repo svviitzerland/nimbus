@@ -3,12 +3,16 @@ import type { AwsText } from './types';
 export const en: AwsText = {
 	title: 'AWS',
 	intro: [
-		'You already know every piece of a cloud setup. Servers, load balancers, private networks, databases. Now meet the biggest shop that rents them out, <b>Amazon Web Services</b>, or AWS.',
-		'AWS grew inside Amazon itself. In 2006 the company started renting out the same kind of machines that ran its online store, first <b>S3</b> for files, then <b>EC2</b> for servers. Today it is the largest cloud in the world.',
-		'Here is the hard part for beginners. AWS has more than 200 services, and the names rarely say what they do. Route 53? CloudFront? It reads like a secret code.',
-		'The good news is that every strange name hides an idea you already met. A server is still a server, AWS just calls it EC2. Learn the map once and the AWS console stops being scary.',
-		'[fyi] The same ideas wear other names at other providers. A rented server is Compute Engine on [[Google Cloud|providers/gcp]] and Virtual Machines on [[Azure|providers/azure]]. Same thing, different label on the box.',
-		'Let us build nimbus.com on AWS, one layer at a time, from the front door down. Pick a service tile, then drop it on the idea it stands for.'
+		'You already met every piece of a website in the cloud. A front door, a private network, servers, data, and someone keeping watch. On the board, each one is a plain tile with the idea written on it.',
+		'Now meet the biggest shop that rents those pieces out, <b>Amazon Web Services</b>, or AWS. It grew inside Amazon, and in 2006 it started renting out the same kind of machines that ran the online store. Today it has more than 200 services, and the names sound like a secret code.',
+		'Watch the top row flip. The front door becomes <b>Route 53</b> (the [[DNS|networking/dns]], named after port 53), <b>CloudFront</b> (the CDN, copies near every visitor) and <b>Elastic Load Balancing</b> (it shares visitors between servers).',
+		'Next comes the private network. <b>VPC</b> is your own fenced off network inside AWS, and <b>Security Groups</b> are the firewall around each server, letting in only what you allow.',
+		'Then the computers that actually run nimbus.com. <b>EC2</b> is a rented server, <b>ECS</b> runs containers, and <b>Lambda</b> runs one small function only when someone calls it.',
+		'Every website needs a place for its data. <b>S3</b> holds files like photos and backups, <b>RDS</b> is a SQL database that AWS looks after, and <b>DynamoDB</b> is the NoSQL one built for huge traffic.',
+		'Last, the tools that keep it safe and watched. <b>IAM</b> decides who may do what, <b>KMS</b> keeps the encryption keys, and <b>CloudWatch</b> draws the graphs and rings the alarm.',
+		'[ingat] <b>Same idea, different name tag.</b> You never learn a new idea at AWS, only a new name for an old one. Start with one pair and let it stick, <b>EC2 is a VM</b> (Elastic Compute Cloud, a computer in the cloud).',
+		'[fyi] Same word, different world. The rented server is called Compute Engine on [[Google Cloud|providers/gcp]] and Virtual Machines on [[Azure|providers/azure]]. Same box, three different labels.',
+		'Watch a visitor walk through the whole board, from Route 53 down to CloudWatch. Want to try it yourself? Put the names back on the tiles, it is a small bonus.'
 	],
 	reactions: {
 		dns: 'Route 53 is the [[DNS|networking/dns]] of AWS, the phone book that turns nimbus.com into an IP address. The name is a little joke, port 53 is the door DNS has always used.',
@@ -35,6 +39,58 @@ export const en: AwsText = {
 		miss: 'Not that slot. Read the name once more and think about what job it does.',
 		live: 'Your visitor came in through Route 53, got images from CloudFront, passed ELB and the Security Group, reached EC2, read RDS and S3, and CloudWatch watched every step. That is nimbus.com on real AWS.'
 	},
+	steps: [
+		{
+			tag: 'The plain ideas',
+			title: 'A website in the cloud',
+			body: 'Five layers, from the front door down to the tools that watch it. Each tile is an idea you already know.'
+		},
+		{
+			tag: 'Since 2006',
+			title: 'Amazon Web Services',
+			body: 'The biggest cloud in the world. Its first services were <b>S3</b> for files and <b>EC2</b> for servers.'
+		},
+		{
+			tag: 'Layer 1',
+			title: 'Front door',
+			body: '<b>Route 53</b> is the DNS, <b>CloudFront</b> the CDN, <b>Elastic Load Balancing</b> the load balancer.'
+		},
+		{
+			tag: 'Layer 2',
+			title: 'Private network',
+			body: '<b>VPC</b> is the private network. <b>Security Groups</b> are the firewall on each server.'
+		},
+		{
+			tag: 'Layer 3',
+			title: 'Compute',
+			body: '<b>EC2</b> is a virtual machine, <b>ECS</b> runs containers, <b>Lambda</b> is serverless.'
+		},
+		{
+			tag: 'Layer 4',
+			title: 'Data',
+			body: '<b>S3</b> stores files, <b>RDS</b> is SQL, <b>DynamoDB</b> is NoSQL.'
+		},
+		{
+			tag: 'Layer 5',
+			title: 'Access and watch',
+			body: '<b>IAM</b> for who may do what, <b>KMS</b> for keys, <b>CloudWatch</b> for graphs and alarms.'
+		},
+		{
+			tag: 'Rule of thumb',
+			title: 'Same idea, new name tag',
+			body: 'Flip any tile and the idea underneath is one you know. Sticky pair, <b>EC2 is a VM</b>.'
+		},
+		{
+			tag: 'Elsewhere',
+			title: 'Three labels, one box',
+			body: 'A virtual machine at AWS, Google Cloud, and Azure. Only the name tag changes.'
+		},
+		{
+			tag: 'Optional',
+			title: 'One visitor, every layer',
+			body: 'The request lights up each piece on its way. Tap the button to match the names yourself.'
+		}
+	],
 	boardTitle: 'nimbus.com on AWS',
 	youLabel: 'Visitor',
 	layers: ['Front door', 'Private network', 'Compute', 'Data', 'Access and watch'],
@@ -54,12 +110,11 @@ export const en: AwsText = {
 		keys: 'Encryption keys',
 		monitor: 'Monitoring'
 	},
+	sameIdea: '{c} at each cloud',
+	playBtn: 'Match the names myself',
 	trayLabel: 'AWS services',
-	pickHint: 'Pick a service tile, then tap the idea it stands for',
+	pickHint: 'Pick a name, then tap the idea it stands for',
 	placeHint: 'Where does {s} belong?',
 	missTag: 'not here',
-	layerTag: '{n} of {t} layers',
-	liveBtn: 'Send a visitor to nimbus.com',
-	noteDone: 'Every piece is in place, time for a real visitor',
-	noteLive: 'The same ideas you know, wearing AWS names'
+	noteLive: 'All yours, the same ideas wearing AWS names'
 };

@@ -1,441 +1,455 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import { SvelteSet } from 'svelte/reactivity';
-	import Server from '$lib/components/Server.svelte';
-	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
-	import type { LessonText } from '$lib/chapters/types';
+	// Guided "watch" stage. A fresh nimbus.com server stands with six open doors (ports) while bots
+	// on the left keep knocking. Following Nim's beats the scanner gauge appears, the old software
+	// gets updated, the unneeded doors shut one by one, the admin door gets a key lock and the
+	// website door stays open on purpose, so the score climbs by itself. The only optional play,
+	// on the last beat, is opening Telnet again and watching the bots rush to it.
+	import { untrack } from 'svelte';
+	import Guide from '$lib/components/Guide.svelte';
+	import type { StageProps } from '$lib/chapters/types';
 	import type { HardenDoor, HardeningText } from '$lib/chapters/security/hardening/types';
+	import { sceneClock } from './shipit/clock.svelte';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as HardeningText);
 
-	const doors: HardenDoor[] = ['update', 'telnet', 'db', 'sshkey', 'root', 'default'];
+	$effect(() => {
+		untrack(() => {
+			onshow?.(true);
+			oncomplete?.();
+		});
+	});
 
-	let scanned = $state(false);
-	let scanning = $state(false);
-	const fixed = new SvelteSet<HardenDoor>();
-	let webOpen = $state(true);
-	let completed = false;
-	let timers: ReturnType<typeof setTimeout>[] = [];
+	let peek = $state<number | null>(null);
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
+	const last = $derived(tx.steps.length - 1);
+	const step = $derived(Math.max(0, Math.min(peek ?? beat, last)));
+	const live = $derived(beat >= tx.intro.length - 1 && peek === null);
 
-	// Ten points for a server that boots at all, fifteen for every door that is shut.
-	const score = $derived(scanned ? 10 + fixed.size * 15 : 0);
-	const allFixed = $derived(fixed.size === doors.length);
-	const tone = $derived(score >= 85 ? 'good' : score >= 50 ? 'mid' : 'bad');
-
-	function scan() {
-		if (scanned || scanning) return;
-		scanning = true;
-		timers.push(
-			setTimeout(() => {
-				scanning = false;
-				scanned = true;
-				onstate?.('scan');
-			}, 1200)
-		);
+	let reopened = $state(false);
+	function toggle() {
+		reopened = !reopened;
+		onstate?.(reopened ? 'reopen' : 'reclose');
 	}
 
-	function fix(d: HardenDoor) {
-		if (!scanned || fixed.has(d)) return;
-		fixed.add(d);
-		onstate?.(d);
-		checkDone();
+	const clock = sceneClock(() => [step, reopened]);
+
+	type Door = { k: HardenDoor; port: string; x: number; y: number };
+	const DOORS: Door[] = [
+		{ k: 'ftp', port: '21', x: 114, y: 140 },
+		{ k: 'ssh', port: '22', x: 192, y: 140 },
+		{ k: 'telnet', port: '23', x: 270, y: 140 },
+		{ k: 'web', port: '443', x: 114, y: 236 },
+		{ k: 'db', port: '3306', x: 192, y: 236 },
+		{ k: 'test', port: '8080', x: 270, y: 236 }
+	];
+	const DW = 56;
+	const DH = 62;
+	/** The doors that get shut, in the order they close on the "close" beat. */
+	const CLOSE: HardenDoor[] = ['ftp', 'telnet', 'db', 'test'];
+
+	const updated = $derived(step > 3 || (step === 3 && clock.t >= 1600));
+	const keyed = $derived(step > 5 || (step === 5 && clock.t >= 1200));
+	const guarded = $derived(step >= 6);
+	const telnetBack = $derived(live && reopened);
+
+	function isClosed(k: HardenDoor): boolean {
+		const i = CLOSE.indexOf(k);
+		if (i < 0) return false;
+		if (k === 'telnet' && telnetBack) return false;
+		if (step > 4) return true;
+		if (step === 4) return clock.t >= 1000 + i * 1400;
+		return false;
+	}
+	type DoorState = 'open' | 'closed' | 'keyed' | 'guarded';
+	function doorState(k: HardenDoor): DoorState {
+		if (k === 'ssh') return keyed ? 'keyed' : 'open';
+		if (k === 'web') return guarded ? 'guarded' : 'open';
+		return isClosed(k) ? 'closed' : 'open';
 	}
 
-	function toggleWeb() {
-		if (!scanned) return;
-		webOpen = !webOpen;
-		if (!webOpen) onstate?.('web');
-		else checkDone();
-	}
+	const showScore = $derived(step >= 2);
+	const score = $derived.by(() => {
+		const closed = CLOSE.filter(isClosed).length;
+		let s = 16 + (updated ? 22 : 0) + closed * 10 + (keyed ? 14 : 0) + (guarded ? 6 : 0);
+		if (telnetBack) s -= 16;
+		return s;
+	});
+	const scoreTone = $derived(score < 50 ? 'bad' : score < 80 ? 'mid' : 'good');
 
-	function checkDone() {
-		if (completed || fixed.size !== doors.length || !webOpen) return;
-		completed = true;
-		// Let the last fix speak first, then Nim sums it up.
-		timers.push(
-			setTimeout(() => {
-				onstate?.('done');
-				oncomplete?.();
-			}, 2600)
-		);
-	}
+	// Bots on the left, each one sends a knock to a door every couple of seconds.
+	const BOTS = [168, 248, 318];
+	const PERIOD = 2200;
+	type Knock = { x: number; y: number; o: number; hit: boolean; k: HardenDoor };
+	const knocks = $derived.by((): Knock[] => {
+		if (step < 1 || clock.reduced) return [];
+		return BOTS.map((by, b) => {
+			const time = clock.t + b * 730;
+			const cycle = Math.floor(time / PERIOD);
+			const p = (time % PERIOD) / PERIOD;
+			const door = telnetBack ? DOORS[2] : DOORS[(cycle * 5 + b * 2) % DOORS.length];
+			const dx = door.x + DW / 2;
+			const dy = door.y + DH / 2;
+			const open = doorState(door.k) === 'open';
+			const go = Math.min(p / 0.6, 1);
+			let x = 50 + (dx - 50) * go;
+			let o = 1;
+			if (p > 0.6) {
+				const r = (p - 0.6) / 0.4;
+				o = 1 - r;
+				if (!open) x = dx - 22 * r;
+			}
+			return { x, y: by + (dy - by) * go, o, hit: open && p > 0.6, k: door.k };
+		});
+	});
+	const hitDoors = $derived(new Set(knocks.filter((k) => k.hit).map((k) => k.k)));
 
-	const hint = $derived(!scanned ? tx.hintIdle : allFixed && webOpen ? tx.hintDone : tx.hintScan);
-
-	onDestroy(() => timers.forEach(clearTimeout));
+	// Semicircle gauge, drawn with pathLength 100 so the dash equals the score.
+	const ARC = 'M184 66 A36 36 0 0 1 256 66';
 </script>
 
-<div class="wrap">
-	<div class="top">
-		{#if !scanned}
-			<CallToActionButton onclick={scan} disabled={scanning}>
-				{#snippet children()}{tx.scanBtn}{/snippet}
-			</CallToActionButton>
-		{:else}
-			<div class="meter {tone}">
-				<div class="mhead">
-					<span>{tx.scoreLabel}</span>
-					<b>{score}</b>
-				</div>
-				<div class="track"><span class="fill" style="width:{score}%"></span></div>
-			</div>
+{#snippet lock(cx: number, cy: number)}
+	<g transform="translate({cx - 7} {cy - 8})" class="lock">
+		<rect x="0" y="6" width="14" height="11" rx="2" />
+		<path d="M3 6V4a4 4 0 0 1 8 0v2" />
+	</g>
+{/snippet}
+
+{#snippet visual(i: number)}
+	<div class="vis">
+		{#if live}
+			<button type="button" class="play" class:warn={!reopened} onclick={toggle}>
+				{reopened ? tx.reclose : tx.reopen}
+			</button>
 		{/if}
-	</div>
-	<p class="hint">{hint}</p>
+		<svg viewBox="0 0 360 362" class="scene" role="img" aria-label={tx.steps[i].title}>
+			<!-- the scanner gauge -->
+			{#if showScore}
+				<g class="gauge {scoreTone}">
+					<path d={ARC} class="track" pathLength="100" />
+					<path d={ARC} class="fillarc" pathLength="100" style="stroke-dasharray:{score} 100" />
+					<text x="220" y="62" text-anchor="middle" class="score">{score}</text>
+					<text x="220" y="82" text-anchor="middle" class="cap">{tx.scoreLabel}</text>
+				</g>
+			{/if}
 
-	<div class="box" class:scanning>
-		<div class="head">
-			<div class="srv"><Server slots={2} active={webOpen} /></div>
-			<div class="htxt">
-				<b>{tx.serverLabel}</b>
-				<span class="site" class:down={!webOpen}>{webOpen ? tx.siteUp : tx.siteDown}</span>
-			</div>
-			{#if scanning}<span class="beam" aria-hidden="true"></span>{/if}
-		</div>
+			<!-- the server cabinet -->
+			<rect x="96" y="92" width="248" height="246" rx="14" class="cabinet" />
+			{#if step === 2 && !clock.reduced}
+				<rect x="98" y="94" width="4" height="242" rx="2" class="sweep" />
+			{/if}
+			<rect x="114" y="102" width="212" height="24" rx="7" class="plate" />
+			<text x="124" y="118" class="soft">{tx.software}</text>
+			{#key updated}
+				<g class:pop={step === 3}>
+					<rect
+						x="252"
+						y="107"
+						width="66"
+						height="14"
+						rx="7"
+						class={updated ? 'pill good' : 'pill old'}
+					/>
+					<text x="285" y="117.5" text-anchor="middle" class="pillT"
+						>{updated ? tx.patched : tx.outdated}</text
+					>
+				</g>
+			{/key}
 
-		<ul class="rows">
-			{#each doors as d, i (d)}
-				{@const shut = fixed.has(d)}
-				<li
-					class="row"
-					class:open={scanned && !shut}
-					class:shut
-					style="--d:{i * 90}ms"
-					class:reveal={scanned}
-				>
-					<span class="lock" aria-hidden="true">
-						<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-							<rect
-								x="5"
-								y="10.5"
-								width="14"
-								height="10"
-								rx="2.2"
-								stroke="currentColor"
-								stroke-width="1.9"
-							/>
-							<path
-								d={shut ? 'M8 10.5V8a4 4 0 0 1 8 0v2.5' : 'M8 10.5V8a4 4 0 0 1 7.6-1.7'}
-								stroke="currentColor"
-								stroke-width="1.9"
-								stroke-linecap="round"
-							/>
-						</svg>
-					</span>
-					<span class="rtxt">
-						<b>{tx.doors[d].name}</b>
-						<span>{!scanned ? '?' : shut ? tx.doors[d].done : tx.doors[d].risk}</span>
-					</span>
-					{#if scanned && !shut}
-						<button type="button" class="fix" onclick={() => fix(d)}>{tx.doors[d].fix}</button>
-					{:else if shut}
-						<span class="tag ok">{tx.closedTag}</span>
+			{#each DOORS as d (d.k)}
+				{@const s = doorState(d.k)}
+				<rect x={d.x} y={d.y} width={DW} height={DH} rx="4" class="frame" />
+				{#if s === 'open' || s === 'guarded'}
+					<rect
+						x={d.x + 3}
+						y={d.y + 3}
+						width={DW - 6}
+						height={DH - 3}
+						rx="2"
+						class="dark"
+						class:hit={hitDoors.has(d.k)}
+						class:guard={s === 'guarded'}
+					/>
+					<path
+						d="M{d.x + 3} {d.y + 3}L{d.x + 17} {d.y + 9}V{d.y + DH - 6}L{d.x + 3} {d.y + DH}Z"
+						class="leaf"
+					/>
+				{:else}
+					<rect
+						x={d.x + 3}
+						y={d.y + 3}
+						width={DW - 6}
+						height={DH - 3}
+						rx="2"
+						class="panel shut"
+						class:keyed={s === 'keyed'}
+					/>
+					{#if s === 'keyed'}
+						{@render lock(d.x + DW / 2, d.y + DH / 2)}
+					{:else}
+						<circle cx={d.x + DW - 12} cy={d.y + DH / 2 + 2} r="3" class="knob" />
 					{/if}
-				</li>
-			{/each}
-			<li class="row web" class:off={!webOpen}>
-				<span class="lock" aria-hidden="true">
-					<svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-						<circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.9" />
-						<path
-							d="M3.5 12h17M12 3.5c2.4 2.4 3.6 5.2 3.6 8.5s-1.2 6.1-3.6 8.5c-2.4-2.4-3.6-5.2-3.6-8.5s1.2-6.1 3.6-8.5Z"
-							stroke="currentColor"
-							stroke-width="1.6"
-						/>
-					</svg>
-				</span>
-				<span class="rtxt">
-					<b>{tx.web.name} <span class="tag need">{tx.neededTag}</span></b>
-					<span>{webOpen ? tx.web.note : tx.web.closedNote}</span>
-				</span>
-				<button type="button" class="ghost" onclick={toggleWeb} disabled={!scanned}
-					>{webOpen ? tx.web.close : tx.web.reopen}</button
+				{/if}
+				<text x={d.x + DW / 2} y={d.y + DH + 14} text-anchor="middle" class="port">{d.port}</text>
+				<text x={d.x + DW / 2} y={d.y + DH + 26} text-anchor="middle" class="dname"
+					>{tx.doors[d.k]}</text
 				>
-			</li>
-		</ul>
+			{/each}
+			<text x="220" y="356" text-anchor="middle" class="cap">{tx.serverLabel}</text>
+
+			<!-- the bots and their knocks -->
+			{#if step >= 1}
+				<text x="34" y="140" text-anchor="middle" class="cap">{tx.botsLabel}</text>
+				{#each BOTS as by (by)}
+					<g transform="translate(34 {by})" class="bot">
+						<line x1="0" y1="-12" x2="0" y2="-18" />
+						<circle cx="0" cy="-19" r="2.2" class="tip" />
+						<rect x="-14" y="-12" width="28" height="22" rx="6" />
+						<circle cx="-5" cy="-1" r="2.6" class="eye" />
+						<circle cx="5" cy="-1" r="2.6" class="eye" />
+					</g>
+				{/each}
+				{#each knocks as k, n (n)}
+					<circle cx={k.x} cy={k.y} r="4" class="knock" style="opacity:{k.o}" />
+				{/each}
+			{/if}
+		</svg>
 	</div>
+{/snippet}
+
+<div class="stage">
+	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
 </div>
 
 <style>
-	.wrap {
-		display: flex;
-		width: min(94vw, 380px);
-		max-height: 100%;
-		flex-direction: column;
-		align-items: center;
-		gap: 8px;
-		overflow-y: auto;
-	}
-	.top {
+	.stage {
 		display: flex;
 		width: 100%;
-		min-height: 48px;
-		align-items: center;
 		justify-content: center;
+		overflow-x: hidden;
+		padding: 0 4px 8px;
 	}
-	.top :global(.cta) {
-		padding: 10px 20px;
-		font-size: 13px;
+	@media (max-width: 767px) {
+		.stage {
+			padding-bottom: 7rem;
+		}
 	}
-	.meter {
-		width: 100%;
-		border-radius: 14px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		padding: 8px 12px;
-		--tone: var(--color-danger);
-	}
-	.meter.mid {
-		--tone: var(--color-amber);
-	}
-	.meter.good {
-		--tone: var(--color-grass);
-	}
-	.mhead {
+	.vis {
 		display: flex;
-		align-items: baseline;
-		justify-content: space-between;
-		font-size: 11px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	.mhead b {
-		font-size: 20px;
-		font-weight: 800;
-		color: var(--tone);
-		font-variant-numeric: tabular-nums;
-	}
-	.track {
-		margin-top: 4px;
-		height: 8px;
-		border-radius: 999px;
-		background: var(--color-paper);
-		border: 1px solid var(--color-line);
-		overflow: hidden;
-	}
-	.fill {
-		display: block;
-		height: 100%;
-		border-radius: 999px;
-		background: var(--tone);
-		transition:
-			width 0.5s ease,
-			background 0.3s ease;
-	}
-	.hint {
-		min-height: 1.4em;
-		text-align: center;
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-muted);
-	}
-
-	.box {
 		width: 100%;
-		border-radius: 16px;
-		border: 1px solid var(--color-line);
-		background: var(--color-paper);
-		padding: 10px;
-	}
-	.head {
-		position: relative;
-		display: flex;
+		flex-direction: column;
 		align-items: center;
 		gap: 10px;
-		padding: 0 2px 8px;
-		overflow: hidden;
 	}
-	.srv :global(.server) {
-		width: 46px;
-		padding: 6px;
-		gap: 5px;
-		border-radius: 9px;
+	.scene {
+		display: block;
+		width: 100%;
+		max-width: 400px;
+		height: auto;
 	}
-	.srv :global(.server .slot) {
-		height: 9px;
-	}
-	.htxt {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-	}
-	.htxt b {
-		font-size: 13px;
-		font-weight: 800;
-		color: var(--color-ink);
-	}
-	.site {
-		align-self: flex-start;
+	.play {
 		border-radius: 999px;
-		background: var(--color-grass-soft);
-		color: var(--color-grass);
-		font-size: 10px;
-		font-weight: 800;
-		padding: 1px 8px;
-	}
-	.site.down {
-		background: var(--color-danger-soft);
-		color: var(--color-danger);
-	}
-	.beam {
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(
-			90deg,
-			transparent,
-			color-mix(in srgb, var(--color-brand) 22%, transparent),
-			transparent
-		);
-		animation: sweep 0.6s linear infinite;
-	}
-	@keyframes sweep {
-		from {
-			transform: translateX(-100%);
-		}
-		to {
-			transform: translateX(100%);
-		}
-	}
-
-	.rows {
-		display: flex;
-		flex-direction: column;
-		gap: 5px;
-	}
-	.row {
-		display: flex;
-		align-items: center;
-		gap: 9px;
-		border-radius: 11px;
 		border: 1px solid var(--color-line);
 		background: var(--color-card);
-		padding: 7px 9px;
-		color: var(--color-faint);
-		transition:
-			border-color 0.25s,
-			background 0.25s,
-			color 0.25s;
-	}
-	.row.reveal {
-		animation: flip 0.35s ease both;
-		animation-delay: var(--d);
-	}
-	@keyframes flip {
-		from {
-			opacity: 0.3;
-			transform: translateX(-6px);
-		}
-	}
-	.row.open {
-		border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-line));
-		color: var(--color-danger);
-	}
-	.row.shut {
-		color: var(--color-grass);
-	}
-	.row.web {
-		color: var(--color-brand);
-	}
-	.row.web.off {
-		border-color: var(--color-danger);
-		background: var(--color-danger-soft);
-		color: var(--color-danger);
-	}
-	.lock {
-		display: grid;
-		flex: none;
-		place-items: center;
-	}
-	.rtxt {
-		display: flex;
-		min-width: 0;
-		flex: 1;
-		flex-direction: column;
-		gap: 1px;
-	}
-	.rtxt b {
-		font-size: 12px;
-		font-weight: 800;
+		padding: 8px 18px;
+		font-size: 14px;
+		font-weight: 600;
 		color: var(--color-ink);
+		box-shadow: 0 4px 14px rgba(22, 40, 60, 0.07);
 	}
-	.rtxt > span {
+	.play.warn {
+		border-color: var(--color-danger);
+		color: var(--color-danger);
+	}
+
+	.cabinet {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 2;
+	}
+	.sweep {
+		fill: var(--color-brand);
+		opacity: 0.6;
+		animation: sweep 2.6s ease-in-out infinite;
+	}
+	.plate {
+		fill: var(--color-paper);
+		stroke: var(--color-line);
+	}
+	.soft {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-size: 10.5px;
-		line-height: 1.3;
-		color: var(--color-muted);
+		font-weight: 700;
+		fill: var(--color-ink);
 	}
-	.tag {
-		flex: none;
-		border-radius: 999px;
-		font-size: 9.5px;
+	.pill.old {
+		fill: var(--color-amber);
+	}
+	.pill.good {
+		fill: var(--color-grass);
+	}
+	.pillT {
+		font-size: 9px;
 		font-weight: 800;
-		padding: 2px 8px;
+		fill: var(--color-card);
 	}
-	.tag.ok {
-		background: var(--color-grass-soft);
-		color: var(--color-grass);
+	.frame {
+		fill: var(--color-paper);
+		stroke: var(--color-line);
+		stroke-width: 2;
 	}
-	.tag.need {
-		background: var(--color-brand-soft);
-		color: var(--color-brand);
-		vertical-align: 1px;
+	.dark {
+		fill: var(--color-ink);
+		opacity: 0.72;
+		transition: fill 0.25s;
 	}
-	.fix,
-	.ghost {
-		flex: none;
-		border-radius: 9px;
+	.dark.hit {
+		fill: var(--color-danger);
+	}
+	.dark.guard {
+		fill: var(--color-brand-soft);
+		opacity: 1;
+		stroke: var(--color-brand);
+		stroke-width: 2;
+	}
+	.leaf {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+	}
+	.panel {
+		fill: var(--color-card);
+		stroke: var(--color-grass);
+		stroke-width: 2;
+	}
+	.panel.keyed {
+		stroke: var(--color-brand);
+	}
+	.shut {
+		transform-box: fill-box;
+		transform-origin: left center;
+		animation: shut 0.5s ease-out both;
+	}
+	.knob {
+		fill: var(--color-grass);
+	}
+	.lock rect {
+		fill: var(--color-brand);
+	}
+	.lock path {
+		fill: none;
+		stroke: var(--color-brand);
+		stroke-width: 2.2;
+	}
+	.port {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-size: 11px;
 		font-weight: 800;
-		padding: 6px 11px;
+		fill: var(--color-ink);
+	}
+	.dname {
+		font-size: 9.5px;
+		font-weight: 600;
+		fill: var(--color-muted);
+	}
+	.cap {
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		fill: var(--color-faint);
+	}
+	.track {
+		fill: none;
+		stroke: var(--color-line);
+		stroke-width: 9;
+		stroke-linecap: round;
+	}
+	.fillarc {
+		fill: none;
+		stroke-width: 9;
+		stroke-linecap: round;
 		transition:
-			filter 0.2s,
-			border-color 0.2s;
+			stroke-dasharray 0.7s ease,
+			stroke 0.4s;
 	}
-	.fix {
-		background: var(--color-danger);
-		color: #fff;
+	.gauge.bad .fillarc {
+		stroke: var(--color-danger);
 	}
-	.fix:hover {
-		filter: brightness(1.08);
+	.gauge.mid .fillarc {
+		stroke: var(--color-amber);
 	}
-	.ghost {
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		color: var(--color-muted);
+	.gauge.good .fillarc {
+		stroke: var(--color-grass);
 	}
-	.ghost:enabled:hover {
-		border-color: var(--color-ink);
-		color: var(--color-ink);
+	.score {
+		font-family: var(--font-display);
+		font-size: 20px;
+		font-weight: 700;
+		fill: var(--color-ink);
 	}
-	.ghost:disabled {
-		opacity: 0.45;
+	.bot rect {
+		fill: var(--color-card);
+		stroke: var(--color-faint);
+		stroke-width: 2;
 	}
-
+	.bot line {
+		stroke: var(--color-faint);
+		stroke-width: 2;
+	}
+	.bot .tip {
+		fill: var(--color-danger);
+	}
+	.bot .eye {
+		fill: var(--color-danger);
+	}
+	.knock {
+		fill: var(--color-danger);
+	}
+	.pop {
+		transform-box: fill-box;
+		transform-origin: center;
+		animation: pop 0.45s ease-out both;
+	}
+	@keyframes sweep {
+		0%,
+		100% {
+			transform: translateX(0);
+		}
+		50% {
+			transform: translateX(236px);
+		}
+	}
+	@keyframes shut {
+		from {
+			transform: scaleX(0.25);
+		}
+		to {
+			transform: scaleX(1);
+		}
+	}
+	@keyframes pop {
+		from {
+			transform: scale(0.5);
+			opacity: 0;
+		}
+		to {
+			transform: scale(1);
+			opacity: 1;
+		}
+	}
 	@media (prefers-reduced-motion: reduce) {
-		.row.reveal,
-		.beam {
+		.sweep,
+		.shut,
+		.pop {
 			animation: none;
 		}
-		.fill {
+		.fillarc,
+		.dark {
 			transition: none;
-		}
-	}
-	@media (min-width: 768px) {
-		.wrap {
-			width: 440px;
-		}
-		.rtxt b {
-			font-size: 13px;
-		}
-		.rtxt > span {
-			font-size: 11.5px;
-		}
-		.hint {
-			font-size: 13px;
 		}
 	}
 </style>

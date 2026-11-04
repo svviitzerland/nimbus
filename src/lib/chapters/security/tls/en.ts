@@ -1,98 +1,95 @@
 import type { TlsText } from './types';
 
 export const en: TlsText = {
-	title: 'SSL, TLS, and certificates',
+	title: 'SSL and TLS',
 	intro: [
-		'Look at the address bar when you open nimbus.com. That little padlock means your connection is protected. But how do your browser and a server it has never met agree on a secret, while the whole internet can listen in?',
-		'The story starts in the mid 1990s at <b>Netscape</b>, the company behind the most popular browser of that time. People wanted to shop online, but card numbers travelled in plain sight. Netscape built <b>SSL</b> (Secure Sockets Layer) and released SSL 2.0 in 1995, then SSL 3.0 a year later.',
-		'SSL had holes. In 1999 the group that writes internet standards (the IETF) took it over, fixed it, and gave it a new name, <b>TLS</b> (Transport Layer Security). Today we use TLS 1.2 and TLS 1.3 (from 2018), and every version of SSL has been retired as unsafe.',
-		'[fyi] People still say "SSL certificate" out of habit, but the engine doing the work today is TLS. And <b>HTTPS</b> is simply HTTP, the language of the web, travelling inside a TLS tunnel.',
-		'TLS reuses what you already know. [[Asymmetric keys|security/keys]] let the two sides meet safely, then one shared symmetric key does the fast [[encryption|networking/encryption]] of the actual data.',
-		'There is a catch, though. How do you know the server really is nimbus.com and not an impostor? That is the job of a <b>certificate</b>, a digital ID card saying "this public key belongs to nimbus.com", signed by a <b>Certificate Authority</b> (CA) your browser already trusts.',
-		"For years certificates cost money and were fiddly to set up, so lots of small sites skipped HTTPS. In 2015 a nonprofit launched <b>Let's Encrypt</b>, which hands out certificates for free and renews them automatically. Since then encrypted pages went from under half of the web to the vast majority.",
-		'Let us watch it happen. First, step through the handshake between your phone and nimbus.com. Then open nimbus.com on a shady café WiFi and see what your browser does.'
+		'Look at the address bar when you open nimbus.com. That little padlock means your connection is private. But your laptop and a server it has never met have to agree on a secret, while the whole internet can listen in. How?',
+		'The story starts in 1995 at <b>Netscape</b>, the most popular browser back then. People wanted to shop online, but card numbers travelled in plain sight, so Netscape built <b>SSL</b>. It had holes, so in 1999 it was fixed and renamed <b>TLS</b>. Today we use TLS 1.3, from 2018.',
+		'[fyi] People still say "SSL certificate" out of habit, but the engine doing the work today is TLS. And <b>HTTPS</b> is simply the [[HTTP|web/http]] you know, travelling inside a TLS tunnel.',
+		'Every TLS connection opens with a short <b>handshake</b>, a few quick messages before any real data flows. First your browser says hello, and lists the ways of locking it understands.',
+		'nimbus.com answers with its <b>certificate</b>, a digital ID card. It says "this public key belongs to nimbus.com", and it is signed by a <b>Certificate Authority</b> (CA), a company your browser already trusts.',
+		'Your browser checks the ID card carefully. Is the name really nimbus.com? Is it signed by a CA it trusts? Has it expired? Only if all three pass does the handshake go on.',
+		'Now the clever part. Using the public key from that card (the open padlock from [[asymmetric keys|security/keys]]), both sides end up with the same fresh <b>session key</b>. Anyone listening sees the messages fly by but cannot work the key out.',
+		'From here on, every byte is scrambled with that one shared session key, the fast symmetric kind. The padlock lights up. All of this took a few hundredths of a second.',
+		'[ingat] <b>Meet with a padlock, talk with a shared key.</b> The certificate and its public key are for meeting safely, the session key is for the fast chat after.',
+		'Now you are on a shady café WiFi. Someone in the middle pretends to be nimbus.com and hands over a fake ID card, signed by himself. Watch the browser check it, and stop you with a warning.',
+		'That warning is TLS doing its job, so when you see one, turn back. If you like, switch between home and café WiFi and watch the handshake play out both ways.'
 	],
 	reactions: {
-		hello:
-			'Your browser opens with a hello. It lists the ways of locking it understands, and sends half of a key recipe (a key share). Anyone can see this part, and that is fine.',
-		cert: 'nimbus.com answers with its own key share and its certificate. Think of the certificate as an ID card, with the name, an expiry date, the public key, and the stamp of whoever issued it.',
-		check:
-			'Your browser checks the ID card carefully. Right name, not expired, stamped by a CA it trusts, and the server proves it holds the matching private key by signing the handshake. All four pass.',
-		key: "Here is the clever bit. Each side mixes its own secret with the other side's key share, and both land on the very same session key. The key itself never travelled the wire, so the listeners have nothing to copy.",
-		secure:
-			'Handshake done, and the padlock lights up. From here every byte is scrambled with the session key. The whole dance took only a few dozen milliseconds, faster than a blink.',
-		warn: 'Your browser stopped you. The site claims to be nimbus.com, but its certificate is stamped by itself, not by a CA the browser trusts. Anyone can print their own ID card, that proves nothing.',
-		back: 'Smart move. That is exactly what the warning is for. On a café WiFi, someone in the middle can pretend to be any site, but they cannot get a trusted CA to sign a certificate for a name they do not own.',
-		proceed:
-			'Ouch. You clicked past the warning, so your password went straight to the impostor, who can now pass it along to the real nimbus.com and read everything in between. Nearly every warning like this is worth heeding.'
+		home: 'Home WiFi. The real nimbus.com shows a real ID card, all three checks pass, and the padlock lights up.',
+		cafe: 'Café WiFi again. The impostor can print his own ID card, but no trusted CA will sign it for a name he does not own, so the check fails.'
 	},
-	acts: ['Handshake', 'Fake site'],
-	actLabel: 'Act {n}',
-	nextAct: 'On to the next act',
-	youLabel: 'Your phone',
-	serverLabel: 'nimbus.com',
-	stepBtn: 'Next handshake step',
 	steps: [
 		{
-			chip: 'hello',
+			tag: 'The question',
+			title: 'The little padlock',
+			body: 'It means nobody between you and the site can read or change what you send, not the WiFi owner, not your provider.'
+		},
+		{
+			tag: '1995 to 2018',
+			title: 'From SSL to TLS',
+			body: 'Same idea, safer versions. Every SSL version is retired now, <b>TLS 1.2</b> and <b>TLS 1.3</b> do the work.'
+		},
+		{
+			tag: 'Same word',
+			title: 'HTTPS',
+			body: 'HTTP inside a TLS tunnel. The letters inside stay the same, the tunnel just hides them.'
+		},
+		{
+			tag: 'Step 1',
 			title: 'Hello',
-			body: 'Your browser lists what it understands and sends a key share'
+			body: 'The browser opens the conversation and lists what it understands. Nothing secret yet.'
 		},
 		{
-			chip: 'certificate',
+			tag: 'Step 2',
 			title: 'Certificate',
-			body: 'The server sends its key share and its ID card'
+			body: "A digital ID card with the site name, an expiry date, and the public key, signed by a CA. Many sites get theirs free from <b>Let's Encrypt</b>."
 		},
 		{
-			chip: '',
+			tag: 'Step 3',
 			title: 'Check',
-			body: 'Your browser checks the certificate'
+			body: '<b>Right name</b>, <b>trusted signer</b>, <b>not expired</b>. One failure and the browser stops.'
 		},
 		{
-			chip: '',
+			tag: 'Step 4',
 			title: 'Session key',
-			body: 'Both sides compute the same key without sending it'
+			body: 'A brand new shared key for this one visit. The public key helps make it, and it never travels in readable form.'
 		},
 		{
-			chip: 'finished',
+			tag: 'Step 5',
 			title: 'Secure',
-			body: 'Everything after this is encrypted'
+			body: 'Everything after the handshake is scrambled with the session key, both ways.'
+		},
+		{
+			tag: 'Remember it',
+			title: 'Padlock, then key',
+			body: 'Asymmetric to <b>meet</b>, symmetric to <b>talk</b>. Slow and safe first, then fast.'
+		},
+		{
+			tag: 'Impostor',
+			title: 'A fake certificate',
+			body: 'Anyone can make an ID card, but only a trusted CA can sign one for nimbus.com. A self signed card fails the check.'
+		},
+		{
+			tag: 'Optional',
+			title: 'Home or café',
+			body: 'Switch the WiFi and watch the same handshake end with a padlock or a warning.'
 		}
 	],
-	checks: [
-		'The name is nimbus.com',
-		'Not expired',
-		'Stamped by a trusted CA',
-		'Server holds the private key'
-	],
-	cert: {
-		heading: 'Certificate',
-		subjectLabel: 'Issued to',
-		issuerLabel: 'Issued by',
-		validLabel: 'Valid until',
-		keyLabel: 'Public key',
-		subject: 'nimbus.com',
-		issuer: "Let's Encrypt",
-		valid: '30 January 2027',
-		keyValue: '04 8f 3a c1 9e 27 …'
-	},
+	youLabel: 'Your laptop',
+	serverLabel: 'nimbus.com',
+	attackerLabel: 'Impostor',
+	chips: { hello: 'hello', cert: 'ID', key: 'key' },
+	certHeading: 'Certificate',
+	checks: ['name nimbus.com', 'trusted signer', 'not expired'],
 	sessionKey: 'session key',
-	secretMsg: 'k9#Qz!f2…',
-	wifiLabel: 'Free café WiFi',
-	attackerLabel: 'Impostor on the WiFi',
-	visitBtn: 'Open nimbus.com',
-	addr: 'nimbus.com',
-	warn: {
-		title: 'Your connection is not private',
-		body: 'Someone might be trying to steal your password or messages on this site. The certificate is not trusted.',
-		back: 'Back to safety',
-		proceed: 'Proceed anyway',
-		details: 'What the site showed'
-	},
-	fakeIssuer: 'nimbus.com (itself)',
-	fakeValid: '30 January 2027',
-	fakeChecks: ['matches', 'fine', 'signed by itself', 'matches its own fake card'],
-	stolen: 'Your password was sent to the impostor',
-	safe: 'Nothing was sent, you are safe',
-	again: 'Try the fake site again'
+	warnTitle: 'Not private',
+	warnBody: 'Someone may be faking nimbus.com',
+	history: [
+		{ name: 'SSL 2', year: '1995' },
+		{ name: 'SSL 3', year: '1996' },
+		{ name: 'TLS 1.0', year: '1999' },
+		{ name: 'TLS 1.3', year: '2018' }
+	],
+	wifi: { label: 'Connect through', home: 'Home WiFi', cafe: 'Shady café WiFi' }
 };

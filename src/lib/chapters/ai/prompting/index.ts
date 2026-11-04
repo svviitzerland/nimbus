@@ -6,14 +6,14 @@ import { en } from './en';
 export const prompting: Lesson = {
 	id: 'prompting',
 	mood: 'idea',
-	moods: ['calm', 'wink', 'idea', 'thinking', 'idea', 'happy', 'excited'],
+	moods: ['calm', 'surprised', 'idea', 'happy', 'wink', 'excited', 'idea', 'wink', 'happy'],
 	reactionMood: {
-		vague: 'surprised',
-		miss_task: 'thinking',
-		miss_audience: 'thinking',
-		miss_format: 'thinking',
-		miss_example: 'wink',
-		perfect: 'excited'
+		off_task: 'surprised',
+		off_context: 'thinking',
+		off_format: 'thinking',
+		off_example: 'wink',
+		back: 'happy',
+		full: 'excited'
 	},
 	stage: PromptingStage,
 	text: { id, en }

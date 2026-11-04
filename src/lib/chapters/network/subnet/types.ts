@@ -1,32 +1,23 @@
 import type { LessonText } from '../../types';
 
 export interface SubnetText extends LessonText {
-	/** The three planning tasks, in order. They ask for 50, 12, and 200 devices per room. */
-	missions: string[];
-	missionLabel: string; // template with {n} and {total}
-	allDone: string; // shown once every plan is done
-	checkBtn: string; // locks in the current /number for the plan
+	/** What the side panel says, one entry per beat of `intro`. */
+	steps: { title: string; body: string; tag?: string }[];
+	buildingLabel: string; // accessible name of the building drawing
+	oneRoom: string; // template with {size}, caption when the whole building is one room
+	rooms: string; // template with {n} and {size}
+	roomsSingle: string; // template with {n}, when every room is a single address
+	/** The cheat sheet, one line per common size, in the order /32, /30, /24, /16, /8. */
+	cheat: { size: string; note: string }[];
+	cheatTitle: string;
+	ruleLine: string; // the rule of thumb printed on the cheat sheet
+	campus16: string; // caption under the zoomed out view, /16
+	campus8: string; // second caption, /8
+	nameLabel: string; // first address of a room, its name
+	shoutLabel: string; // last address of a room, the broadcast
+	publicLabel: string; // a VPC public subnet
+	privateLabel: string; // a VPC private subnet
 	smaller: string; // accessible label for the minus button
 	bigger: string; // accessible label for the plus button
-	status: {
-		ok: string;
-		small: string; // template with {need} and {fit}
-		waste: string;
-	};
-	roomsLabel: string;
-	sizeLabel: string; // addresses per room
-	usableLabel: string; // devices per room
-	locked: string; // template with {n}, bits locked as the room name
-	free: string; // template with {n}, bits free for devices
-	maskLabel: string;
-	hallLabel: string; // caption over the 256 address grid
-	tapHint: string;
-	roomTitle: string; // template with {n} and {total}
-	rangeLabel: string;
-	range: string; // template with {a} and {b}
-	nameLabel: string; // the network address
-	shoutLabel: string; // the broadcast address
-	devicesLabel: string; // the usable range
-	legendUse: string;
-	legendRes: string;
+	thousands: string; // thousands separator for this language
 }

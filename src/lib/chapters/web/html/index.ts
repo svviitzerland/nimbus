@@ -6,15 +6,10 @@ import { en } from './en';
 export const html: Lesson = {
 	id: 'html',
 	mood: 'calm',
-	moods: ['calm', 'thinking', 'idea', 'calm', 'happy', 'wink', 'excited'],
+	moods: ['calm', 'thinking', 'idea', 'calm', 'happy', 'happy', 'happy', 'wink', 'excited'],
 	reactionMood: {
-		heading: 'happy',
-		paragraph: 'happy',
-		button: 'excited',
-		image: 'happy',
-		link: 'wink',
-		unclosed: 'thinking',
-		done: 'excited'
+		edited: 'excited',
+		unclosed: 'thinking'
 	},
 	stage: HtmlStage,
 	text: { id, en }

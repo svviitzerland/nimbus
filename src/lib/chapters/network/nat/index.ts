@@ -6,11 +6,8 @@ import { en } from './en';
 export const nat: Lesson = {
 	id: 'nat',
 	mood: 'thinking',
-	moods: ['thinking', 'calm', 'idea', 'thinking', 'happy', 'wink', 'excited'],
+	moods: ['thinking', 'calm', 'idea', 'thinking', 'happy', 'excited', 'wink', 'idea', 'wink'],
 	reactionMood: {
-		out: 'idea',
-		back: 'happy',
-		all: 'excited',
 		stranger: 'wink'
 	},
 	stage: NatStage,

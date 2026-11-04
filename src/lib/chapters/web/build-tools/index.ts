@@ -6,13 +6,19 @@ import { en } from './en';
 export const buildTools: Lesson = {
 	id: 'build-tools',
 	mood: 'calm',
-	moods: ['calm', 'worried', 'idea', 'thinking', 'wink', 'excited'],
-	reactionMood: {
-		none: 'thinking',
-		partial: 'happy',
-		best: 'excited',
-		peek: 'surprised'
-	},
+	moods: [
+		'calm',
+		'worried',
+		'idea',
+		'happy',
+		'thinking',
+		'happy',
+		'calm',
+		'wink',
+		'idea',
+		'excited'
+	],
+	reactionMood: { off: 'worried', on: 'happy' },
 	stage: BuildToolsStage,
 	text: { id, en }
 };

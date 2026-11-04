@@ -3,70 +3,78 @@ import type { SniffingText } from './types';
 export const id: SniffingText = {
 	title: 'Sniffing dan MITM',
 	intro: [
-		'Kamu duduk di kafe, pesan kopi, lalu sambung ke WiFi gratisnya. Praktis, kan? Tapi WiFi itu ibarat satu ruangan bersama. HP kamu, orang asing di meja sebelah, dan semua pengunjung lain ngobrol lewat udara yang sama.',
-		'Gelombang radio nggak peduli ditujukan ke siapa. Siapa pun di dekatmu yang punya aplikasi yang pas bisa diam diam merekam setiap paket yang lewat. Namanya <b>sniffing</b>, kayak anjing yang mengendus semua bau di ruangan.',
-		'Biasanya nggak ada yang iseng. Tapi kalau datamu jalan sebagai teks biasa yang bisa dibaca (<b>HTTP</b> polos), si pengendus bisa membacanya seperti kartu pos, alamatnya, isinya, bahkan password kamu.',
-		'Obatnya adalah amplop yang dikunci. Dengan <b>HTTPS</b> semuanya diacak sebelum keluar dari HP kamu, jadi si pengendus cuma dapat acakan. Cara kunci itu dibuat ada di [[SSL dan TLS|security/tls]].',
-		'Ada trik yang lebih licik. Bukan cuma menguping, penyerangnya berdiri <b>di tengah</b> percakapan, misalnya dengan membuat hotspot palsu yang namanya mirip WiFi kafe. Semua yang kamu kirim lewat laptopnya dulu. Ini namanya serangan <b>man in the middle</b>, disingkat MITM.',
-		'[fyi] Kata yang sama, dunia yang beda. Merekam lalu lintas jaringan bukan cuma trik penyerang. Orang jaringan sengaja melakukannya buat membereskan masalah, pakai alat seperti [[Wireshark|network/wireshark]]. Alatnya sama, yang penting lalu lintas siapa dan apakah pemiliknya sudah setuju.',
-		'Semua di sini terjadi di kafe pura pura, nggak ada orang sungguhan yang dirugikan. Coba login ke nimbus.com lewat HTTP, lalu lewat HTTPS, dan lihat apa yang didapat si pengintip di meja sebelah.'
+		'Kamu duduk di kafe, pesan kopi, terus nyambung ke WiFi gratis. Praktis! Tapi WiFi itu satu ruangan bersama. Laptopmu, orang asing di meja sebelah, dan semua orang lain ngobrol lewat udara yang sama.',
+		'Gelombang radio nggak peduli buat siapa dia dikirim. Siapa pun di dekat situ dengan aplikasi gratis bisa diam diam merekam tiap paket data kecil yang lewat. Itu namanya <b>sniffing</b>, kayak anjing yang mengendus semua bau di ruangan.',
+		'Lihat Sari login ke nimbus.com lewat <b>HTTP</b> biasa. Loginnya jalan kayak kartu pos, jadi si pengintip bisa baca nama dan passwordnya persis seperti yang dia ketik.',
+		'Sekarang login yang sama lewat <b>HTTPS</b>. Semuanya diacak dulu sebelum keluar dari laptop, kayak amplop yang disegel. Pengintipnya tetap merekam, tapi cuma dapat acakan. Cara gembok itu dibuat ada di [[SSL dan TLS|security/tls]].',
+		'Pengintip yang lebih licik nggak cuma nguping. Dia bikin hotspot palsu dengan nama mirip WiFi kafe, jadi semua lewat laptop <b>dia</b> dulu. Itu serangan <b>man in the middle</b>. HTTPS tetap bertahan, browser ngecek siapa yang sebenarnya menjawab dan ngasih peringatan kalau itu bukan nimbus.com.',
+		'[ingat] <b>Nggak ada gembok, jangan ketik password.</b> Sebelum ngetik apa pun yang rahasia, cari gembok kecil di sebelah alamat. Nggak ada gembok, nggak usah ngetik.',
+		'[fyi] Alatnya sama, dunianya beda. Engineer jaringan sengaja merekam lalu lintas buat benerin masalah, pakai alat kayak [[Wireshark|network/wireshark]]. Alatnya sama, yang penting jaringan siapa itu. Di WiFi umum, [[VPN|network/vpn]] nambah satu gembok lagi di atasnya.',
+		'Mau lihat lagi? Ganti ganti antara HTTP dan HTTPS, terus lihat apa yang didapat si pengintip. Atau santai aja nikmatin kopinya, itu juga boleh.'
 	],
 	reactions: {
-		http: 'Aduh. Si pengintip bisa lihat username dan password kamu sebagai teks biasa, persis seperti yang kamu ketik. Siapa pun di WiFi ini yang punya aplikasi gratis bisa melakukan hal yang sama.',
+		http: 'Mode kartu pos. Si pengintip bisa baca <b>sari</b> dan <b>kopi123</b> dengan jelas. Siapa pun di WiFi ini dengan aplikasi gratis bisa melakukan hal yang sama.',
 		https:
-			'Sekarang si pengintip cuma dapat acakan. Dia masih tahu kamu buka nimbus.com dan kira kira seberapa banyak yang kamu kirim, tapi isinya sama sekali nggak kebaca. Itulah kerja HTTPS.',
-		real: 'Insting yang bagus, tanya pelayan kafe mana WiFi yang asli itu langkah paling aman. Tapi biar kelihatan triknya, coba yang satunya, yang sinyalnya kuat banget dan mencurigakan.',
-		twin: 'Kamu baru saja masuk ke hotspot milik si pengintip. Kelihatannya seperti WiFi kafe, tapi sekarang setiap paket lewat laptopnya dulu sebelum sampai ke internet. Dia bukan cuma menguping lagi, dia berdiri di tengah.',
-		mitmHttp:
-			'Lihat layarmu. Si pengintip menyelipkan kotak palsu di halaman itu yang minta nomor kartumu. Lewat HTTP polos, HP kamu nggak punya cara buat tahu halamannya sudah diubah di jalan.',
-		mitmHttps:
-			'Browsermu menolak. Si pengintip mencoba menyamar jadi nimbus.com, tapi dia nggak bisa menunjukkan sertifikat asli nimbus.com, jadi browser memberi peringatan. Balik saja, jangan pernah lanjut melewatinya. Di WiFi umum, [[VPN|network/vpn]] menambah satu kunci lagi di atasnya.'
+			'Mode amplop. Si pengintip tahu Sari buka nimbus.com, tapi semua isinya cuma acakan. Itu HTTPS lagi kerja.'
 	},
-	acts: ['Sniffing', 'Man in the middle'],
-	actLabel: 'Babak {n}',
-	nextAct: 'Lanjut ke babak berikutnya',
-	youLabel: 'Kamu',
-	serverLabel: 'nimbus.com',
+	steps: [
+		{
+			tag: 'Di kafe',
+			title: 'WiFi bersama',
+			body: 'WiFi umum itu <b>satu ruangan bersama</b>. Semua orang di kafe ngobrol lewat kotak dan udara yang sama.'
+		},
+		{
+			tag: 'Menguping',
+			title: 'Sniffing',
+			body: 'Diam diam <b>merekam</b> paket yang lewat. Nggak perlu membobol apa pun, cukup berada di dekat situ.'
+		},
+		{
+			tag: 'Kartu pos',
+			title: 'HTTP biasa',
+			body: 'Data jalan sebagai <b>teks yang bisa dibaca</b>. Siapa pun yang merekamnya bisa baca passwordnya kata per kata.'
+		},
+		{
+			tag: 'Amplop',
+			title: 'HTTPS',
+			body: 'Data <b>diacak</b> sebelum berangkat. Cuma nimbus.com yang punya kunci buat membukanya lagi.'
+		},
+		{
+			tag: 'Di tengah',
+			title: 'Man in the middle',
+			body: 'Hotspot palsu menaruh si pengintip <b>di tengah jalan</b>. HTTPS tetap bertahan, dan browser ngasih peringatan kalau ada yang pura pura jadi nimbus.com.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Nggak ada gembok, jangan ketik',
+			body: 'Cari <b>gembok</b> di sebelah alamat sebelum ngetik apa pun yang rahasia.'
+		},
+		{
+			tag: 'Sekilas',
+			title: 'Alat sama, tangan beda',
+			body: 'Engineer merekam lalu lintas di jaringan <b>milik sendiri</b> buat benerin masalah. Izin yang membedakan.'
+		},
+		{
+			tag: 'Opsional',
+			title: 'Coba dua duanya',
+			body: 'Ganti antara HTTP dan HTTPS, lalu lihat layar si pengintip.'
+		}
+	],
+	youLabel: 'Laptop Sari',
 	routerLabel: 'WiFi kafe',
+	serverLabel: 'nimbus.com',
 	snooperLabel: 'Pengintip di meja sebelah',
-	twinLabel: 'Hotspot si pengintip',
-	sendHttp: 'Login lewat HTTP',
-	sendHttps: 'Login lewat HTTPS',
-	loginTitle: 'Login',
-	userLabel: 'Username',
-	passLabel: 'Password',
+	twinLabel: 'Hotspot palsu',
+	engineerLabel: 'Engineer, jaringan sendiri',
+	notSecure: 'Tidak aman',
 	loginBtn: 'Masuk',
-	loggedIn: 'Selamat datang, Sari',
-	captureTitle: 'Yang dilihat si pengintip',
-	captureEmpty: 'Menunggu ada yang lewat',
-	readableTag: 'kebaca',
-	scrambledTag: 'teracak',
-	pickWifi: 'Pilih jaringan WiFi',
-	wifiReal: 'Nimbus Cafe',
-	wifiTwin: 'Nimbus Cafe Free',
-	strongSignal: 'sinyal paling kuat',
-	openHttp: 'Buka nimbus.com lewat HTTP',
-	openHttps: 'Buka nimbus.com lewat HTTPS',
-	blankPage: 'Belum tersambung',
-	pageWelcome: 'Selamat datang di nimbus.com',
-	tamperedTitle: 'Cek keamanan',
-	tamperedBody: 'Masukkan nomor kartumu untuk lanjut',
-	tamperedTag: 'diselipkan si pengintip',
-	warnTitle: 'Koneksimu tidak privat',
-	warnBody: 'Ada yang mungkin sedang menyamar jadi nimbus.com',
-	warnBack: 'Kembali ke tempat aman',
-	capture: {
-		swapped: 'halaman diubah, kotak kartu diselipkan',
-		refused: 'sertifikat palsu, browser menolak'
+	snoop: {
+		title: 'Tertangkap',
+		waiting: 'Menunggu',
+		recording: 'Merekam paket',
+		readable: 'terbaca',
+		noise: 'teracak'
 	},
-	notes: {
-		idle: 'Kafe yang sama, WiFi yang sama, pengintip yang sama. Cuma kuncinya yang beda',
-		http: 'Lewat HTTP, login kamu lewat seperti kartu pos yang bisa dibaca',
-		https: 'Lewat HTTPS, login kamu lewat seperti amplop yang disegel',
-		pick: 'Dua jaringan dengan nama hampir sama. Yang mana WiFi kafenya?',
-		real: 'WiFi kafe yang asli, yang disebut pelayan tadi',
-		twin: 'Sekarang setiap paket mampir ke si pengintip dulu',
-		mitmHttp: 'Halamannya sampai, tapi bukan halaman yang dikirim nimbus.com',
-		mitmHttps: 'Browser menangkap si penyamar sebelum ada yang terkirim'
-	}
+	rule: 'Nggak ada gembok, jangan ketik password',
+	pickLabel: 'Kirim login lewat',
+	modes: { http: 'HTTP', https: 'HTTPS' }
 };

@@ -3,42 +3,79 @@ import type { DhcpText } from './types';
 export const id: DhcpText = {
 	title: 'Apa itu DHCP',
 	intro: [
-		'Masuk ke kafe, sambung ke WiFi nya, sedetik kemudian HP mu sudah online. Kamu nggak pernah mengetik [[alamat IP|network/ip-address]]. Terus siapa yang kasih?',
-		'Router kafe menjalankan layanan kecil bernama <b>DHCP</b> (Dynamic Host Configuration Protocol). Tugasnya cuma satu, membagikan alamat ke siapa pun yang bergabung.',
-		'Bayangkan meja resepsionis hotel dengan papan berisi kunci kamar. Kamu datang, minta kunci, dapat satu, lalu mengembalikannya waktu pergi. Alamatnya cuma dipinjamkan, bukan diberikan selamanya.',
-		'Pinjaman itu namanya <b>lease</b> (sewa), dan ada batas waktunya, biasanya beberapa jam atau sehari. HP yang tetap di sana terus memperpanjangnya. HP yang pergi berhenti memperpanjang, dan begitu waktunya habis alamatnya kembali ke papan.',
-		'Minta alamat butuh empat pesan singkat, gampang diingat sebagai <b>DORA</b>. Discover (ada yang bagi bagi alamat?), Offer (nih, pakai yang ini), Request (oke, aku mau yang itu), dan Acknowledge (sekarang punyamu).',
-		'Selain alamat, HP juga diberi tahu jalan keluar dari jaringan (<b>gateway</b>, biasanya router itu sendiri) dan server [[DNS|networking/dns]] mana yang ditanya soal nama. Semua yang dia butuhkan untuk online.',
-		'[fyi] Nanti di lab MikroTik, kamu bikin server DHCP sendiri dan memilih pool serta lama lease nya dengan tangan. Itu ada di [[IP address dan DHCP server|netlab/router-ip]].',
-		'Kafenya buka. Routernya cuma punya 6 alamat untuk dipinjamkan. Persilakan pelanggan masuk satu per satu, dan lihat apa yang terjadi waktu papannya kosong.'
+		'Masuk ke kafe, sambung ke WiFi nya, dan sedetik kemudian HP mu sudah online. Kamu nggak pernah mengetik [[alamat IP|network/ip-address]]. Jadi siapa yang memberinya?',
+		'Di dalam router kafe ada pembantu kecil bernama <b>DHCP</b> (Dynamic Host Configuration Protocol). Bayangkan resepsionis di balik meja, dengan papan kunci di dinding. Tiap kunci itu satu alamat yang masih kosong.',
+		'HP mu masuk tanpa alamat sama sekali, jadi dia memanggil ke seluruh ruangan, "ada yang bagi bagi alamat?" Pesan pertama ini namanya <b>Discover</b>.',
+		'Resepsionis mendengarnya, mengambil satu kunci kosong dari papan, lalu menyodorkannya. "Gimana kalau 192.168.1.12?" Itu namanya <b>Offer</b>.',
+		'HP menjawab, "oke, aku mau yang itu." Itu namanya <b>Request</b>. (Dia bilang keras keras, siapa tahu ada resepsionis lain yang juga menawarkan.)',
+		'Resepsionis mencatatnya di buku dan menyerahkan kuncinya. Itu namanya <b>Ack</b> (singkatan dari acknowledge). Bersama kuncinya ada secarik catatan, jalan keluarnya (<b>gateway</b>) dan server [[DNS|networking/dns]] mana yang ditanya soal nama.',
+		'Kuncinya cuma dipinjamkan, bukan diberikan selamanya. Pinjaman ini namanya <b>lease</b> dan ada batas waktunya. Kalau HP pergi dan berhenti memperpanjang, waktunya habis dan kunci kembali ke papan untuk tamu berikutnya.',
+		'[ingat] DHCP itu resepsionis yang meminjamkan kunci kamar. Datang, dapat kunci, kembalikan waktu pergi. Empat langkahnya gampang diingat, <b>DORA</b>, kayak Dora si penjelajah. Discover, Offer, Request, Ack.',
+		'[fyi] Nanti di lab MikroTik, kamu sendiri yang jadi resepsionisnya dan memilih papan kunci serta lama pinjamannya. Itu ada di [[alamat IP dan server DHCP|netlab/router-ip]].',
+		'Cuma itu kerjanya DHCP, diam diam, tiap kali kamu sambung ke jaringan. Kalau mau, biarkan tamu lain masuk dan lihat apa yang terjadi kalau kuncinya habis.'
 	],
 	reactions: {
-		dora: 'Empat pesan singkat dan HP nya sudah punya alamat, gateway, dan server DNS, tanpa ada yang mengetik apa pun. Begitulah DHCP bekerja.',
+		join: 'Tamu lagi, DORA kilat lagi, satu kunci lagi diambil dari papan. Resepsionis mencatat siapa pegang kunci yang mana.',
 		empty:
-			'Papannya kosong. Pelanggan baru sudah teriak Discover, tapi nggak ada kunci yang bisa ditawarkan. HP nya menampilkan "terhubung, tanpa internet" dan diam diam memberi dirinya alamat 169.254 yang nggak bisa ke mana mana. Kosongkan satu kunci.',
-		leave:
-			'Pelanggannya sudah pergi, tapi kuncinya nggak langsung kembali. Router menunggu sampai lease nya habis, siapa tahu HP itu balik lagi.',
-		rejoin:
-			'Lease nya habis, kuncinya kembali ke papan, dan pelanggan yang menunggu langsung dapat. Dipinjamkan, dikembalikan, dipinjamkan lagi, begitulah segelintir alamat bisa melayani pelanggan seharian.'
+			'Papannya kosong, jadi tamu ini nggak dapat alamat dan nggak bisa online. Jaringan sungguhan menghindarinya dengan papan yang lebih besar atau lease yang lebih pendek, biar kunci cepat kembali.'
 	},
-	routerLabel: 'Router kafe',
-	routerSub: 'server DHCP nya',
-	boardLabel: 'Pool alamat',
-	keyFree: 'kosong',
-	keyLent: 'dipinjam',
-	keyCooling: 'lease berakhir',
-	arriveBtn: 'Pelanggan masuk',
-	guestLabel: 'Tamu {n}',
-	doorLabel: 'Di pintu',
-	noAddress: 'tanpa alamat',
-	tapToLeave: 'Ketuk pelanggan untuk menyuruhnya pulang',
 	steps: [
-		{ name: 'Discover', say: 'Ada yang bagi bagi alamat?' },
-		{ name: 'Offer', say: 'Nih, pakai yang ini' },
-		{ name: 'Request', say: 'Oke, aku mau yang itu' },
-		{ name: 'Ack', say: 'Sekarang punyamu' }
+		{
+			title: 'Belum punya alamat',
+			body: 'Perangkat yang baru sambung belum punya alamat IP. Dia belum bisa bicara dengan siapa pun sampai dapat satu.'
+		},
+		{
+			title: 'Server DHCP',
+			body: 'Layanan kecil, biasanya ada di dalam router. Dia menyimpan <b>pool</b> alamat kosong, si papan kunci.'
+		},
+		{
+			title: 'Discover',
+			tag: 'D',
+			body: 'HP mengirim satu pesan ke semua yang ada di jaringan, minta alamat.'
+		},
+		{
+			title: 'Offer',
+			tag: 'O',
+			body: 'Server memilih satu alamat kosong dan menawarkannya ke HP.'
+		},
+		{ title: 'Request', tag: 'R', body: 'HP menyebut tawaran mana yang dia terima.' },
+		{
+			title: 'Ack',
+			tag: 'A',
+			body: 'Server mengiyakan. HP sekarang punya alamat, gateway, server DNS, dan waktu lease.'
+		},
+		{
+			title: 'Lease',
+			body: 'Tiap alamat dipinjamkan sementara. Kalau tetap di sini, HP memperpanjangnya. Kalau pergi, alamatnya kembali ke pool.'
+		},
+		{
+			title: 'Resepsionis yang meminjamkan kunci',
+			tag: 'cara ingat',
+			body: '<b>D</b>iscover, <b>O</b>ffer, <b>R</b>equest, <b>A</b>ck. Datang, dapat kunci, kembalikan.'
+		},
+		{
+			title: 'Server DHCP milikmu',
+			tag: 'info',
+			body: 'Di router sungguhan kamu memilih pool nya (kunci yang mana) dan lease nya (berapa lama).'
+		},
+		{
+			title: 'Tamu lain',
+			tag: 'giliranmu',
+			body: 'Opsional. Ketuk tombolnya untuk membiarkan tamu lain masuk.'
+		}
 	],
-	slipTitle: 'Yang diterima tamu {n}',
+	sceneLabel: 'Kafe dengan router yang jadi resepsionis',
+	routerLabel: 'Router',
+	routerSub: 'server DHCP',
+	boardLabel: 'Alamat kosong',
+	noAddress: 'belum ada alamat',
+	dora: [
+		{ name: 'Discover', say: 'ada yang bagi alamat?' },
+		{ name: 'Offer', say: 'gimana kalau .12?' },
+		{ name: 'Request', say: 'oke, aku mau .12' },
+		{ name: 'Ack', say: 'sekarang punyamu' }
+	],
+	slipTitle: 'Yang diterima HP',
 	slip: {
 		address: 'Alamat',
 		gateway: 'Gateway',
@@ -46,12 +83,7 @@ export const id: DhcpText = {
 		lease: 'Lease',
 		leaseValue: '1 jam'
 	},
-	notes: {
-		idle: 'Enam kunci di papan, belum ada tamu',
-		asking: 'Pendatang baru minta alamat ke seisi ruangan',
-		joined: 'Sudah duduk dan online',
-		empty: 'Kunci habis, pendatang baru menunggu di pintu',
-		cooling: 'Kuncinya kembali setelah lease nya habis',
-		rejoin: 'Kunci yang kembali dipinjamkan lagi'
-	}
+	leaving: 'lease hampir habis',
+	arriveBtn: 'Biarkan tamu lain masuk',
+	emptyLabel: 'kunci habis'
 };

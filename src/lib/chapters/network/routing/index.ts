@@ -6,14 +6,10 @@ import { en } from './en';
 export const routing: Lesson = {
 	id: 'routing',
 	mood: 'thinking',
-	moods: ['calm', 'idea', 'thinking', 'idea', 'wink', 'happy'],
+	moods: ['calm', 'idea', 'thinking', 'idea', 'happy', 'wink', 'thinking', 'idea', 'happy'],
 	reactionMood: {
-		noRoute: 'surprised',
-		added: 'happy',
-		wrongWay: 'thinking',
-		delivered: 'excited',
-		deleted: 'wink',
-		lost: 'sad'
+		knocked: 'surprised',
+		fixed: 'happy'
 	},
 	stage: RoutingStage,
 	text: { id, en }

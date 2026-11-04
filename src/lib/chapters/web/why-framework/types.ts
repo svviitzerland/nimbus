@@ -1,25 +1,20 @@
 import type { LessonText } from '../../types';
 
+/** One part of the side panel (title, one or two short sentences, an optional tag). */
+export type GuideStep = { title: string; body: string; tag?: string };
+
 export interface WhyFrameworkText extends LessonText {
-	/** The two ways to work, shown as tabs. */
-	modes: { hand: string; framework: string };
-	/** Instruction for each mode. */
-	handHint: string;
-	frameworkHint: string;
-	/** Names of the ten places the price shows up. */
-	places: string[];
+	/** Side panel parts, one per beat (the last beat reuses the last part). */
+	steps: GuideStep[];
+	/** Names of the six pages of nimbus.com that all show the mug price. */
+	pages: string[];
 	/** Money template, {n} is the amount. */
 	money: string;
-	/** Publish button for the by hand mode. */
-	publish: string;
-	/** Result lines after publishing, {n} is how many places were missed. */
-	publishedOk: string;
-	publishedMissed: string;
-	/** Template with {n}, how many edits it took. */
-	edits: string;
-	/** Labels for the price stepper in framework mode. */
-	priceLabel: string;
-	cheaper: string;
-	pricier: string;
-	reset: string;
+	/** Label on the one place the price lives in the framework picture. */
+	storeLabel: string;
+	/** Warning when one page was missed. */
+	bugNote: string;
+	/** The optional button on the last beat. */
+	lower: string;
+	raise: string;
 }

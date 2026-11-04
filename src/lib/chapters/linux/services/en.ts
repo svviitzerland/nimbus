@@ -3,89 +3,102 @@ import type { ServicesText } from './types';
 export const en: ServicesText = {
 	title: 'Services and systemd',
 	intro: [
-		'The nimbus.com app is a program, and a program only works while it is running. Close it and the site is gone. So who starts it when the server boots at 3 in the morning, and who picks it back up when it crashes while you sleep?',
-		'On Linux that job belongs to <b>systemd</b>, the very first program that starts when the machine boots. It reads a short recipe for every program, starts them in the right order, and keeps an eye on them all day long.',
-		'A program systemd looks after is called a <b>service</b>, and its recipe is a small text file called a <b>unit</b>. Ours says which command to run, plus one magic line, <b>Restart=always</b>, which means if it ever dies, start it again.',
-		'You talk to systemd with <b>systemctl</b>. <b>status</b> shows how a service is doing, <b>start</b> and <b>stop</b> do what they say, and <b>enable</b> means start it by itself at every boot. Changing services is admin work, so those need sudo.',
-		'[fyi] Windows has the same idea. Open its Services window and you will see programs set to start Automatically. Your phone does it too, which is why your chat app still gets messages right after a restart.',
-		'Your turn. Check on the nimbus service and start it. Then be a little mean, crash it, and reboot the whole server, and watch who brings the site back.'
+		'Last night you started the nimbus.com app by hand, then closed your laptop. The moment you logged out, the app stopped too, and the site went dark. Programs started by hand live only as long as you stay.',
+		'Websites need to run day and night with nobody watching. A program that runs quietly in the background like that is called a <b>service</b>. On Ubuntu, a caretaker named <b>systemd</b> starts the services, watches them, and wakes them up again when they fall over.',
+		'You talk to systemd with <b>systemctl</b>. First Nim asks how the app is doing, <b>systemctl status nimbus</b>. The answer is inactive (dead). Not running at all.',
+		'So Nim starts it, <b>sudo systemctl start nimbus</b> (changing services is admin work, hence sudo). The lamp turns green and the site is back.',
+		'Now the clever part. Nim crashes the app on purpose with <b>pkill</b>. The lamp goes red, and a moment later systemd notices and brings it back by itself. Nobody had to wake up at 3 in the morning.',
+		'One problem left. If the whole server restarts (an update, a power cut), will the app come back? Only if you ask. <b>sudo systemctl enable nimbus</b> tells systemd to start it at every boot. Watch the switch.',
+		'[ingat] <b>start</b> is for right now, <b>enable</b> is for every boot. You usually want both. And stop and disable are their opposites.',
+		'[fyi] Same word, different world. Cloud providers sell "managed services", and Windows has its own Services window. Different places, same idea, a program kept running for you in the background.',
+		'Your turn. After changing the app, admins restart it so the new version loads. Type <b>sudo systemctl restart nimbus</b> and watch the lamp blink off and on again.'
 	],
 	reactions: {
-		status:
-			'<b>inactive (dead)</b>, so nimbus.com is down right now. Also look at <b>disabled</b> on the Loaded line, that means it will not start by itself at boot either.',
-		started:
-			'The app is running, see the PID (its process number) and the green strip. Visitors can reach nimbus.com again.',
-		startedAgain: 'Running again.',
 		restarted:
-			'Restarted, it stopped and started in one go, with a fresh PID. Handy after you change a setting.',
-		crashed:
-			'Boom, the app is dead and visitors see nothing. Now do nothing at all, just watch the systemd card.',
-		revived:
-			'Back by itself! systemd saw the program die, waited a moment, and started it again with a new PID. Thanks to Restart=always the site was down for about two seconds instead of until morning.',
-		revivedAgain: 'Back again, every single time. Look at the restarts counter climb.',
-		nothingToCrash: 'Nothing to crash, the app is not running. Start it first.',
-		statusRestarting:
-			'Caught it mid rescue. <b>activating (auto-restart)</b> means systemd is about to bring it back.',
+			'Off and on again in a blink. The app reloaded and the site barely noticed. That is how admins roll out a new version.',
+		started: 'Running. The lamp is green and visitors can reach nimbus.com again.',
 		stopped:
-			'Stopped on purpose. systemd does not restart a service you stopped yourself, Restart=always is only for surprises.',
-		enabled:
-			'Enabled. systemd made a little link that says start nimbus at every boot. Now try the reboot button.',
-		disabled: 'Disabled, so after the next reboot the app will stay off until someone starts it.',
-		rebooting:
-			'The server is restarting. Your SSH session drops too, because everything shuts down, then you log back in.',
-		bootDown:
-			'The server is back, but nimbus.com is not. The service was never <b>enabled</b>, so systemd did not start it at boot. This is exactly the 3 in the morning problem. Enable it, then reboot again.',
-		bootIdle:
-			'The server is back, and the app is off, the same as before. Start it, enable it, then reboot to see the difference.',
-		boot: 'Up by itself after a full reboot! Because it is enabled, systemd started the app during boot, before you even logged back in.',
-		bootAgain: 'Back after the reboot again. Enabled services just come back.',
-		journal:
-			"That is the <b>journal</b>, systemd's diary. Every start, crash, and restart is written there with the time, so you can see what happened while you were away.",
-		unitFile:
-			'That is the whole unit. <b>ExecStart</b> is the command to run, <b>Restart=always</b> brings it back when it dies, and <b>WantedBy</b> is what enable hooks it into at boot.',
+			'Stopped, and the site is dark. systemd does not bring back what you stopped on purpose. Start it again with <b>sudo systemctl start nimbus</b>.',
+		status: 'status is the first thing to check, it tells you whether the app runs and since when.',
+		enabled: 'Enabled. Now nimbus starts by itself every time the server boots.',
+		disabled: 'Disabled. It still runs now, but after the next reboot it would stay off.',
+		crashed: 'Crashed! Watch the gear. systemd notices and brings the app back in a moment.',
+		nothingToCrash: 'Nothing to stop there, the app is not running right now.',
 		needSudo:
-			'Changing services is admin work, so systemd asks who you are. Put <b>sudo</b> in front, like in [[Permissions and sudo|linux/permissions]].',
-		noUnit: 'systemd has no service by that name. The one we care about is called <b>nimbus</b>.',
-		missing: 'Nothing with that name here. Run <b>ls</b> to see what is around.',
-		denied: 'Locked. That one needs admin power, so try <b>sudo</b> in front.',
+			'systemd wants to know you are the admin. Put <b>sudo</b> in front, like in [[Permissions and sudo|linux/permissions]].',
+		noUnit: 'systemd knows no service by that name here. Ours is called <b>nimbus</b>.',
+		missing: 'Nothing with that name here. Try <b>sudo systemctl restart nimbus</b>.',
+		denied: 'Locked, that needs the admin. Put <b>sudo</b> in front.',
 		error:
-			'The server does not know that command. Check the spelling, or type <b>help</b> to see what it knows.',
-		done: 'All missions done! You checked a service, started it, crashed it and watched systemd revive it, and made it survive a full reboot. Real servers run dozens of services like this, nginx, databases, SSH, and systemd quietly babysits every one of them.'
+			'The server did not understand that. Try <b>sudo systemctl restart nimbus</b>, exactly like that.'
 	},
-	missionsLabel: 'Missions',
-	missions: [
-		'Check the nimbus service',
-		'Start it',
-		'Crash it, watch it come back',
-		'Make it start at boot, then reboot'
+	panels: [
+		{
+			tag: 'The problem',
+			title: 'Gone when you leave',
+			body: 'A program you start by hand belongs to your session. Log out, and it stops with you.'
+		},
+		{
+			tag: 'Service',
+			title: 'Runs in the background',
+			body: 'A <b>service</b> runs with nobody logged in. <b>systemd</b> is the caretaker that starts, watches, and restarts it.'
+		},
+		{
+			tag: 'status',
+			title: 'How is it doing',
+			body: '<b>systemctl status</b> shows whether a service runs, and whether it is set to start at boot.'
+		},
+		{
+			tag: 'start',
+			title: 'Run it now',
+			body: '<b>sudo systemctl start nimbus</b> starts the app in the background. The lamp on the rack shows it is alive.'
+		},
+		{
+			tag: 'Restart=always',
+			title: 'Back on its feet',
+			body: 'A line in the service file asks systemd to bring the app back whenever it dies. It counts every restart too.'
+		},
+		{
+			tag: 'enable',
+			title: 'Start at every boot',
+			body: '<b>enable</b> does not start anything now. It only flips the switch so the app starts whenever the server boots.'
+		},
+		{
+			tag: 'Remember',
+			title: 'Now versus forever',
+			body: 'start, now. enable, every boot. stop and disable undo them, and restart is a quick stop plus start.'
+		},
+		{
+			tag: 'Good to know',
+			title: 'Services everywhere',
+			body: 'Web servers, databases, even the SSH door you came in through are all services that systemd looks after.'
+		},
+		{
+			tag: 'Your turn',
+			title: 'Restart the app',
+			body: 'Type <b>sudo systemctl restart nimbus</b> and press Enter. The lamp blinks, and the site stays up.'
+		}
 	],
-	hintBtn: 'Help',
-	doneNote: 'All missions done, nimbus.com takes care of itself',
+	watchLabel: 'Nim is typing, just watch',
+	tryLabel: 'Your turn, type',
+	tryTip: 'Tap to let Nim type it',
 	inputLabel: 'command',
-	termHint: '# try systemctl status nimbus, then press Enter',
-	hintUnknown: '# that command does not exist here, type help to see the list',
-	didYouMean: '# maybe you meant {word}',
-	hintMissing: '# nothing with that name here, ls shows what is around',
-	hintDenied: '# locked, try sudo in front',
-	crashBtn: 'Crash the app',
-	rebootBtn: 'Reboot server',
-	serverLabel: 'Your server',
+	termHint: '# Nim types here first, just watch',
+	hintUnknown: '# that command does not exist here',
+	didYouMean: '# did you mean {word}',
+	hintMissing: '# nothing with that name here',
+	hintDenied: '# locked, only the admin may do that',
+	serverLabel: 'nimbus.com server',
 	bootLabel: 'Starts at boot',
-	restartsLabel: 'Restarts',
-	yes: 'yes',
-	no: 'no',
-	visitorsLabel: 'What visitors see',
-	siteUp: 'nimbus.com is up',
-	siteDown: 'nimbus.com is down',
+	siteUp: 'online',
+	siteDown: 'cannot connect',
 	states: {
 		active: 'running',
-		inactive: 'stopped',
+		inactive: 'not running',
 		dead: 'crashed',
-		restarting: 'restarting',
-		booting: 'server rebooting'
+		restarting: 'coming back'
 	},
-	hintSudo: '# changing services needs admin power, put sudo in front',
-	hintSystemctl: '# try systemctl status nimbus',
-	hintUnit: '# the service is called nimbus',
-	hintKill: '# ps shows running programs and their PID'
+	rule: 'start is now, enable is every boot.',
+	hintSudo: '# changing services needs the admin, put sudo in front',
+	hintSystemctl: '# try sudo systemctl restart nimbus'
 };

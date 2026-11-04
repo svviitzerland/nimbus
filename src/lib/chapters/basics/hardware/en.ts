@@ -1,49 +1,93 @@
 import type { HardwareText } from './types';
 
 export const en: HardwareText = {
-	title: 'CPU, RAM, and storage',
+	title: 'Computer components',
 	intro: [
-		'Every computer, from the phone in your pocket to the biggest server, is built from the same three main parts. To meet them, picture something you already know well, a kitchen.',
-		'The <b>CPU</b> (central processing unit) is the cook. It does all the thinking, adding numbers, drawing your screen, deciding what happens next. It is unbelievably quick, billions of tiny steps every second, and deep down it only understands on and off ([[bits|basics/binary]]).',
-		'A cook needs a counter to work on. That is <b>RAM</b> (random access memory), the desk where everything you are using right now sits within easy reach. It is very fast, but it forgets everything the moment the power goes out.',
-		'Then there is the cupboard, <b>storage</b> (an SSD or a hard disk). Your photos, apps, and games live there, and they stay put even when the computer is off. It is much bigger than RAM, but slower to reach into.',
-		'So when you open a game, the computer carries it from the cupboard onto the desk, and the CPU plays it from there. That is why a game makes you wait a moment while it loads, then runs smoothly.',
-		'[fyi] When a shop lists a laptop as "8 GB RAM, 512 GB SSD", those are exactly the desk and the cupboard. And careful with phones, many people call storage "memory" there, but the real memory is RAM. A [[server|foundations/server]] is built from the very same three parts, just bigger.',
-		'Here is a laptop with its insides showing. Load the game from storage into RAM, let the CPU play it, then pull the plug and see who remembers what.'
+		'Remember how computers kept getting smaller? Today a whole one fits inside a thin laptop. Let us gently take one apart and lay every piece out, so you can see who does what.',
+		'The big board everything sits on is the <b>motherboard</b>. Think of it as the streets of a tiny city. Every part lives on it, and thin copper roads carry messages from one part to another.',
+		'In the middle sits the <b>CPU</b> (central processing unit), the brain. It reads instructions one after another and follows them, billions of tiny steps every second. Deep down it only understands on and off ([[bits|basics/binary]]).',
+		'Right next to it are the <b>RAM</b> sticks (random access memory). RAM is the desk, where everything you are using right now is laid out within easy reach. Very fast, but it forgets everything when the power goes off.',
+		'That small stick is <b>storage</b>, an SSD (older computers use a spinning hard disk). Storage is the cupboard. Your photos, apps, and games stay in there even when the computer is off.',
+		'Watch what happens when you open a game. It is carried out of the cupboard onto the desk, and the CPU works on it from there. That little wait while a game loads is exactly this trip.',
+		'[ingat] RAM is the desk, storage is the cupboard. Power off clears the desk, the cupboard stays full. That is why you press save, saving means putting your work back in the cupboard.',
+		'This chip is the <b>GPU</b> (graphics processing unit). It draws everything you see, millions of tiny dots on the screen, many times every second. Games and videos keep it very busy.',
+		'Down at the bottom is the <b>battery</b>. It feeds power to every part through the motherboard. A desktop computer has a power supply plugged into the wall instead, same job.',
+		'And this is how you and the computer talk. The <b>keyboard</b> is <b>input</b>, it sends your presses in. The <b>screen</b> is <b>output</b>, it shows you the result. Press a key, the CPU hears it, and a letter appears.',
+		'That is the whole team. Even a big [[server|foundations/server]] is built from the very same parts. Tap any part if you want to see it again, then let us find out how the CPU thinks in nothing but 0 and 1.'
 	],
 	reactions: {
-		load: 'There it goes, from the cupboard onto the desk. That little wait is storage being slower than RAM. Now the game sits right next to the CPU, ready to play.',
-		run: 'The CPU grabs the game from RAM and works through it, step after step, billions of times a second. While playing it never reaches into the cupboard, the desk is so much quicker.',
-		unplug:
-			'Power gone. RAM forgot everything instantly, the game on the desk simply vanished. But look at storage, the game is still sitting safe in the cupboard. That is why you save your work, saving means writing it to storage.',
-		power:
-			'Back on, and RAM starts out empty, like a fresh desk every morning. The game is still in storage though, so you can load it again whenever you like.'
+		peek: 'There it is again. Look around as long as you like, the picture does not mind.'
 	},
-	locale: 'en-US',
-	cpu: { label: 'CPU', sub: 'the cook, does all the thinking', spec: '3 GHz' },
-	ram: { label: 'RAM', sub: 'the desk, what you use right now', spec: '8 GB' },
-	storage: { label: 'Storage', sub: 'the cupboard, keeps things for good', spec: '512 GB' },
-	gameName: 'Nimbus Racer',
-	otherFiles: ['Photos', 'Homework'],
-	powerOn: 'Plugged in',
-	powerOff: 'Unplugged',
-	loadBtn: 'Load the game into RAM',
-	runBtn: 'Play the game',
-	unplugBtn: 'Pull the plug',
-	powerBtn: 'Plug it back in',
-	ramEmpty: 'empty',
-	loadingTag: 'loading',
-	cpuIdle: 'resting',
-	cpuBusy: 'working',
-	cpuOff: 'off',
-	steps: '{n} steps done',
-	keptTag: 'still here',
-	notes: {
-		idle: 'The game sits in storage, waiting to be opened',
-		loading: 'Copying the game from storage into RAM',
-		loaded: 'The game is on the desk, right next to the CPU',
-		running: 'The CPU is playing the game straight from RAM',
-		off: 'No power, so RAM is wiped clean while storage keeps its files',
-		back: 'A fresh start, RAM is empty and storage still has everything'
-	}
+	steps: [
+		{
+			tag: 'Laptop',
+			title: 'A laptop, taken apart',
+			body: 'From top to bottom, the <b>screen</b>, the <b>keyboard</b>, the <b>motherboard</b> with its chips, and the <b>battery</b>. Phones, desktops, and servers have the same kinds of parts.'
+		},
+		{
+			tag: 'Motherboard',
+			title: 'The city streets',
+			body: 'A large circuit board covered in thin copper lines called <b>traces</b>. They carry electricity and data between the parts, like roads between houses.'
+		},
+		{
+			tag: 'CPU',
+			title: 'The brain',
+			body: 'Follows instructions one at a time, extremely fast. Its speed is written in GHz, and <b>3 GHz</b> means about three billion tiny steps every second.'
+		},
+		{
+			tag: 'RAM',
+			title: 'The desk',
+			body: 'Holds the apps and files open right now, so the CPU can grab them instantly. It needs power to remember. <b>8 GB RAM</b> on a shop label tells you how big the desk is.'
+		},
+		{
+			tag: 'Storage',
+			title: 'The cupboard',
+			body: 'Keeps files for good, even with no power. Much bigger than RAM, but slower to reach. <b>512 GB SSD</b> on a label is the size of the cupboard.'
+		},
+		{
+			tag: 'Loading',
+			title: 'Storage, then RAM, then CPU',
+			body: 'Files are copied from storage into RAM, and the CPU reads them from RAM. It almost never reaches into storage directly, that would be far too slow.'
+		},
+		{
+			tag: 'Remember it',
+			title: 'The desk and the cupboard',
+			body: 'Power off clears the desk (RAM), the cupboard (storage) keeps everything. Rule of thumb, if you did not save it, it only lived in RAM.'
+		},
+		{
+			tag: 'GPU',
+			title: 'The painter',
+			body: 'A chip built to do thousands of small drawing jobs at the same time, colouring every dot (<b>pixel</b>) of the screen. In many laptops it lives inside the same chip as the CPU.'
+		},
+		{
+			tag: 'Power',
+			title: 'The battery',
+			body: 'Stores energy and sends it through the motherboard to every part. No power, no work, and RAM empties.'
+		},
+		{
+			tag: 'Input and output',
+			title: 'Keyboard in, screen out',
+			body: '<b>Input</b> brings things in (keyboard, mouse, touch, microphone). <b>Output</b> sends results out (screen, speakers). The CPU sits in between.'
+		},
+		{
+			tag: 'The team',
+			title: 'Every part together',
+			body: 'Tap any part in the picture to look at it again. Nothing here is required, it is just for a second look.'
+		}
+	],
+	labels: {
+		screen: 'Screen',
+		keyboard: 'Keyboard',
+		board: 'Motherboard',
+		cpu: 'CPU',
+		ram: 'RAM',
+		storage: 'SSD',
+		gpu: 'GPU',
+		battery: 'Battery'
+	},
+	powerOff: 'Power off',
+	cleared: 'empty',
+	kept: 'still here',
+	typed: 'hello',
+	picture: 'A laptop taken apart, with its screen, keyboard, motherboard, and battery laid out'
 };

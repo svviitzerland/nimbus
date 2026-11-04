@@ -6,14 +6,11 @@ import { en } from './en';
 export const evaluation: Lesson = {
 	id: 'evaluation',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'worried', 'idea', 'wink', 'excited'],
+	moods: ['calm', 'thinking', 'surprised', 'worried', 'idea', 'wink', 'happy', 'wink', 'excited'],
 	reactionMood: {
-		lazy: 'surprised',
-		low: 'worried',
-		catch_all: 'happy',
-		miss: 'sad',
-		best_acc: 'thinking',
-		done: 'excited'
+		catch: 'happy',
+		noisy: 'worried',
+		miss: 'sad'
 	},
 	stage: EvaluationStage,
 	text: { id, en }

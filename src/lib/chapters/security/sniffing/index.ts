@@ -6,14 +6,10 @@ import { en } from './en';
 export const sniffing: Lesson = {
 	id: 'sniffing',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'worried', 'idea', 'surprised', 'wink', 'excited'],
+	moods: ['calm', 'thinking', 'worried', 'happy', 'surprised', 'idea', 'wink', 'excited'],
 	reactionMood: {
-		http: 'sad',
-		https: 'happy',
-		real: 'wink',
-		twin: 'worried',
-		mitmHttp: 'surprised',
-		mitmHttps: 'excited'
+		http: 'worried',
+		https: 'happy'
 	},
 	stage: SniffingStage,
 	text: { id, en }

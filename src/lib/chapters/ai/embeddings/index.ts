@@ -6,15 +6,12 @@ import { en } from './en';
 export const embeddings: Lesson = {
 	id: 'embeddings',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'idea', 'wink', 'thinking', 'excited'],
+	moods: ['thinking', 'idea', 'happy', 'calm', 'excited', 'idea', 'wink', 'happy'],
 	reactionMood: {
-		select: 'idea',
-		wrong: 'thinking',
 		puppy: 'happy',
 		queen: 'happy',
-		noodles: 'happy',
-		nimbus: 'wink',
-		all: 'excited'
+		noodles: 'wink',
+		nimbus: 'excited'
 	},
 	stage: EmbeddingsStage,
 	text: { id, en }

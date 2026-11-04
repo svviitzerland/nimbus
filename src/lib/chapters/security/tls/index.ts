@@ -6,16 +6,22 @@ import { en } from './en';
 export const tls: Lesson = {
 	id: 'tls',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'worried', 'wink', 'idea', 'thinking', 'happy', 'excited'],
+	moods: [
+		'calm',
+		'thinking',
+		'wink',
+		'happy',
+		'idea',
+		'thinking',
+		'surprised',
+		'excited',
+		'wink',
+		'worried',
+		'happy'
+	],
 	reactionMood: {
-		hello: 'happy',
-		cert: 'thinking',
-		check: 'idea',
-		key: 'surprised',
-		secure: 'excited',
-		warn: 'worried',
-		back: 'happy',
-		proceed: 'sad'
+		home: 'happy',
+		cafe: 'worried'
 	},
 	stage: TlsStage,
 	text: { id, en }

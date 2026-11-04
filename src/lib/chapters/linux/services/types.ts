@@ -1,21 +1,14 @@
-import type { LinuxLabText } from '$lib/components/stages/linux/text';
+import type { LinuxGuideText } from '$lib/components/stages/linux/text';
 
-export interface ServicesText extends LinuxLabText {
-	// missions, in order: status, start, crash and come back, start at boot then reboot
-	crashBtn: string; // kills the app on purpose
-	rebootBtn: string; // restarts the whole server
+export interface ServicesText extends LinuxGuideText {
 	serverLabel: string; // under the server rack
-	bootLabel: string; // "starts at boot" row in the systemd card
-	restartsLabel: string; // how many times systemd revived the app
-	yes: string;
-	no: string;
-	visitorsLabel: string; // over the uptime strip
-	siteUp: string;
+	bootLabel: string; // next to the "starts at boot" switch
+	siteUp: string; // inside the browser while the app runs
 	siteDown: string;
-	states: { active: string; inactive: string; dead: string; restarting: string; booting: string };
+	/** The app's state, in the chip under the picture. */
+	states: { active: string; inactive: string; dead: string; restarting: string };
+	rule: string; // rule of thumb line on the memory beat
 	// Muted "#" lines the terminal prints to help
 	hintSudo: string;
 	hintSystemctl: string;
-	hintUnit: string;
-	hintKill: string;
 }

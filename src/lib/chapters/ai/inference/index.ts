@@ -6,13 +6,9 @@ import { en } from './en';
 export const inference: Lesson = {
 	id: 'inference',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'idea', 'happy', 'wink', 'excited'],
+	moods: ['calm', 'thinking', 'idea', 'happy', 'excited', 'wink', 'wink', 'excited'],
 	reactionMood: {
-		training: 'thinking',
-		trained: 'happy',
-		ask: 'excited',
-		typed: 'wink',
-		rush: 'excited'
+		ask: 'excited'
 	},
 	stage: InferenceStage,
 	text: { id, en }

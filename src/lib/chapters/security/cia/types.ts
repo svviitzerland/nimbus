@@ -1,18 +1,20 @@
 import type { LessonText } from '../../types';
+import type { GuideStep } from '$lib/components/stages/secbasics/guided.svelte';
 
 /** The three letters of the triad. */
 export type CiaLetter = 'c' | 'i' | 'a';
-/** Every incident card, in the order the stage deals them. */
-export type CiaCardId = 'yahoo' | 'laptop' | 'ap' | 'price' | 'dyn' | 'power';
 
 export interface CiaText extends LessonText {
-	/** The three buckets, the big letter is drawn by the stage. */
-	buckets: Record<CiaLetter, { name: string; sub: string }>;
-	pickHint: string; // tells the learner to tap a letter for the card shown
-	/** Each incident, a small source tag (year or nimbus.com) and a headline. */
-	cards: Record<CiaCardId, { tag: string; head: string }>;
-	progress: string; // template with {n} and {total}
-	missTag: string; // flashes on a wrong bucket
-	allDone: string; // shown once every card is sorted
-	again: string; // deals the cards again
+	/** The side panel, one entry per beat. */
+	steps: GuideStep[];
+	/** Each letter, a short everyday word (the memory trick) and its real name. */
+	letters: Record<CiaLetter, { short: string; name: string }>;
+	/** The diary in the picture, its title, one line, and the amount before and after the edit. */
+	diary: { title: string; line: string; amount: string; amountBad: string };
+	/** The real incident told on each tale beat, a small tag (who and when) and a headline. */
+	news: Record<CiaLetter, { tag: string; head: string }>;
+	/** The tool that guards each letter, shown under the badges on the tools beat. */
+	tools: Record<CiaLetter, string>;
+	/** Hint over the visual on the last beat (tap a letter to replay its story). */
+	pickHint: string;
 }

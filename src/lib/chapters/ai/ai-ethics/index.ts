@@ -6,22 +6,8 @@ import { en } from './en';
 export const aiEthics: Lesson = {
 	id: 'ai-ethics',
 	mood: 'calm',
-	moods: ['happy', 'thinking', 'worried', 'thinking', 'wink', 'idea'],
-	reactionMood: {
-		news: 'happy',
-		news_wrong: 'wink',
-		cv: 'happy',
-		cv_wrong: 'thinking',
-		key: 'happy',
-		key_wrong: 'worried',
-		friend: 'happy',
-		friend_wrong: 'worried',
-		art: 'idea',
-		art_wrong: 'thinking',
-		bank: 'happy',
-		bank_wrong: 'surprised',
-		done: 'excited'
-	},
+	moods: ['calm', 'thinking', 'wink', 'happy', 'idea', 'worried', 'thinking', 'idea', 'happy'],
+	reactionMood: { news: 'happy', cv: 'idea', friend: 'worried' },
 	stage: AiEthicsStage,
 	text: { id, en }
 };

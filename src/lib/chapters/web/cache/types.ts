@@ -1,40 +1,36 @@
 import type { LessonText } from '../../types';
 
-export interface CacheProduct {
-	name: string;
-	price: number;
+export interface CachePanel {
+	tag?: string;
+	title: string;
+	/** May hold simple HTML like <b>. */
+	body: string;
 }
 
 export interface CacheText extends LessonText {
+	/** One panel per scene of the guided visual (nine scenes). */
+	panels: CachePanel[];
 	locale: string;
-	/** Redis key prefix, the product id is appended (no spaces). */
-	keyPrefix: string;
 	currency: string;
-	/** The three product pages a visitor can open, ids come from their position. */
-	products: CacheProduct[];
-	/** Template with {name}, the button that opens a product page. */
-	openBtn: string;
-	cacheLabel: string;
-	cacheOn: string;
-	cacheOff: string;
-	youLabel: string;
-	appLabel: string;
+	/** The Redis key the answer is saved under (no spaces). */
+	keyName: string;
+	/** The product page every visitor opens, and its price after it goes on sale. */
+	product: { name: string; price: number; salePrice: number };
+	serverLabel: string;
 	redisLabel: string;
 	redisSub: string; // in memory
 	dbLabel: string;
 	dbSub: string; // on disk
 	emptyCache: string;
-	loading: string;
-	idleScreen: string;
-	visitsLabel: string;
+	/** Template with {n}, how often the database had to answer. */
+	asked: string;
 	ms: string;
 	hitTag: string;
 	missTag: string;
-	directTag: string; // a visit with the cache switched off
+	directTag: string; // a visit with no cache at all
 	staleTag: string;
-	/** Template with {name}, puts a product on sale in the database. */
-	saleBtn: string;
-	/** Template with {key}, deletes one key from Redis. */
-	clearBtn: string;
-	saleNote: string;
+	saleTag: string;
+	rule: string;
+	/** The optional button on the last scene. */
+	open: string;
 }

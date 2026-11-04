@@ -1,469 +1,333 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import type { LessonText } from '$lib/chapters/types';
-	import type { ResponsiveText, ResponsiveMissionId } from '$lib/chapters/web/responsive/types';
-	import Missions from './frontend/Missions.svelte';
+	// Guided responsive design. The real nimbus.com page runs in a sandboxed iframe whose width
+	// the stage animates by itself, so the media queries inside it actually fire and the page
+	// truly reflows. Nim's beats rewrite style.css from a fixed 960 pixel page to phone first
+	// with two breakpoints. The only play is optional, a width slider on the last beat.
+	import { onDestroy, untrack } from 'svelte';
+	import type { StageProps } from '$lib/chapters/types';
+	import type { ResponsiveText } from '$lib/chapters/web/responsive/types';
+	import Guide from '../Guide.svelte';
+	import TypedCode from './frontend/TypedCode.svelte';
 	import { NIM_DATA, esc, pageDoc } from './frontend/code';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: {
-		text: LessonText;
-		oncomplete?: () => void;
-		onstate?: (s: string) => void;
-	} = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as ResponsiveText);
 
-	// ---- Width and the responsive switch ----
-	const MIN = 320;
-	const MAX = 1280;
-	const PRESETS = { phone: 375, tablet: 768, laptop: 1280 } as const;
-	const TABLET = 600;
-	const LAPTOP = 900;
-	let width = $state(1280);
-	let responsive = $state(true);
-	let touched = $state(false);
+	$effect(() => {
+		untrack(() => {
+			onshow?.(true);
+			oncomplete?.();
+		});
+	});
 
-	type Zone = 'phone' | 'tablet' | 'laptop';
-	const zone = $derived<Zone>(width < TABLET ? 'phone' : width < LAPTOP ? 'tablet' : 'laptop');
-	const layoutName = $derived(responsive ? tx.layouts[zone] : tx.layouts.fixed);
+	let view = $state(0);
+	$effect(() => {
+		view = beat;
+	});
+	const last = $derived(tx.steps.length - 1);
 
-	// ---- The page. The HTML never changes, only which CSS applies ----
-	const body = $derived(
+	// ---- The stylesheet Nim writes, beat by beat ----
+	const FIXED = [
+		'body {',
+		'  width: 960px;',
+		'}',
+		'.cards {',
+		'  grid-template-columns: 1fr 1fr 1fr;',
+		'}',
+		''
+	].join('\n');
+	const PHONE = ['.cards {', '  grid-template-columns: 1fr;', '}', ''].join('\n');
+	const TABLET =
+		PHONE +
 		[
-			'<nav>',
-			'<span class="brand">nimbus.com</span>',
-			`<span class="links">${tx.page.links.map((l) => `<a>${esc(l)}</a>`).join('')}</span>`,
-			`<button class="menu">${esc(tx.page.menu)}</button>`,
-			'</nav>',
-			'<section class="hero">',
-			`<img src="${NIM_DATA}" alt="">`,
-			`<div><h1>${esc(tx.page.heroTitle)}</h1><p>${esc(tx.page.heroText)}</p><button class="cta">${esc(tx.page.cta)}</button></div>`,
-			'</section>',
-			'<section class="cards">',
-			tx.page.cards
-				.map((c) => `<div class="card"><h2>${esc(c.title)}</h2><p>${esc(c.text)}</p></div>`)
-				.join(''),
-			'</section>'
-		].join('')
-	);
+			'',
+			'@media (min-width: 600px) {',
+			'  .cards {',
+			'    grid-template-columns: 1fr 1fr;',
+			'  }',
+			'}',
+			''
+		].join('\n');
+	const LAPTOP =
+		TABLET +
+		[
+			'',
+			'@media (min-width: 900px) {',
+			'  .cards {',
+			'    grid-template-columns: 1fr 1fr 1fr;',
+			'  }',
+			'  .links { display: flex; }',
+			'  .menu { display: none; }',
+			'}',
+			''
+		].join('\n');
+	const code = $derived(view <= 1 ? FIXED : view === 2 ? PHONE : view === 3 ? TABLET : LAPTOP);
+	let settled = $state(untrack(() => code));
+
+	// The look of the page stays hidden, only the layout rules are shown in the editor.
 	const BASE = [
 		'*{box-sizing:border-box}',
-		'html{background:#faf9f6;color:#16212b}',
+		'html{background:#fff;color:#16212b}',
 		'body{margin:0;font:15px/1.45 system-ui,sans-serif}',
-		'nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px;background:#fff;border-bottom:1px solid #e8e2d8}',
-		'.brand{font-weight:700;color:#2e6fe0}',
-		'.links{display:none;gap:18px;color:#5e6b76}',
-		'.menu{font:inherit;padding:4px 12px;border:1px solid #e8e2d8;border-radius:8px;background:#fff}',
-		'.hero{padding:20px 16px}',
-		'.hero img{display:block;height:64px}',
-		'.hero h1{margin:8px 0 4px;font-size:24px;line-height:1.2}',
-		'.hero p{margin:0 0 12px;color:#5e6b76}',
-		'.cta{font:inherit;font-weight:600;padding:8px 16px;border:0;border-radius:999px;background:#2e6fe0;color:#fff}',
-		'.cards{display:grid;grid-template-columns:1fr;gap:12px;padding:0 16px 20px}',
-		'.card{padding:14px;border:1px solid #e8e2d8;border-radius:12px;background:#fff}',
-		'.card h2{margin:0 0 2px;font-size:16px}',
-		'.card p{margin:0;color:#5e6b76}'
+		'.nav{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid #e8e2d8}',
+		'.logo{display:flex;align-items:center;gap:8px;font-weight:800}',
+		'.logo img{height:26px}',
+		'.links{display:none;gap:18px;color:#5e6b76;font-weight:600}',
+		'.menu{padding:5px 12px;border:1px solid #e8e2d8;border-radius:999px;font-weight:600;font-size:13px}',
+		'.hero{padding:22px 18px 12px}',
+		'h1{margin:0 0 6px;font-size:26px;line-height:1.15}',
+		'.hero p{margin:0;color:#5e6b76}',
+		'.cards{display:grid;gap:12px;padding:10px 18px 22px}',
+		'.card{border:1px solid #e8e2d8;border-radius:14px;padding:14px;background:#faf9f6}',
+		'.card b{display:block;color:#2e6fe0}',
+		'.card span{color:#5e6b76;font-size:14px}'
 	].join('');
-	const TABLET_CSS =
-		'.cards{grid-template-columns:1fr 1fr}.hero{display:flex;align-items:center;gap:18px}.hero img{height:88px}';
-	const LAPTOP_CSS =
-		'.links{display:flex}.menu{display:none}.cards{grid-template-columns:repeat(3,1fr)}.hero h1{font-size:32px}';
-	const css = $derived(
-		responsive
-			? `${BASE}@media (min-width:${TABLET}px){${TABLET_CSS}}@media (min-width:${LAPTOP}px){${LAPTOP_CSS}}`
-			: `${BASE}body{width:960px}${TABLET_CSS}${LAPTOP_CSS}`
+	const body = $derived(
+		'<div class="nav">' +
+			`<span class="logo"><img src="${NIM_DATA}" alt="">nimbus.com</span>` +
+			`<span class="links">${tx.page.links.map((l) => `<span>${esc(l)}</span>`).join('')}</span>` +
+			`<span class="menu">${esc(tx.page.menu)}</span>` +
+			'</div>' +
+			`<div class="hero"><h1>${esc(tx.page.heroTitle)}</h1><p>${esc(tx.page.heroText)}</p></div>` +
+			'<div class="cards">' +
+			tx.page.cards
+				.map((c) => `<div class="card"><b>${esc(c.title)}</b><span>${esc(c.text)}</span></div>`)
+				.join('') +
+			'</div>'
 	);
-	const srcdoc = $derived(pageDoc({ css, body }));
+	const srcdoc = $derived(pageDoc({ css: BASE + settled, body }));
 
-	// ---- Scaling: the frame really is `width` pixels wide, then shrunk to fit the stage ----
-	let boxW = $state(360);
-	const H = 250;
-	const scale = $derived(Math.min(1, boxW / width));
-
-	// ---- Missions: a layout counts once the screen settles in it for a moment ----
-	let done = $state<Record<ResponsiveMissionId, boolean>>({
-		phone: false,
-		tablet: false,
-		laptop: false,
-		fixed: false
-	});
-	const ORDER: ResponsiveMissionId[] = ['phone', 'tablet', 'laptop', 'fixed'];
-	const allDone = $derived(ORDER.every((m) => done[m]));
-	let finished = false;
-	let settle: ReturnType<typeof setTimeout> | undefined;
+	// ---- The screen width, driven by the beat ----
+	const FULL = 960;
+	const PHONE_W = 360;
+	const TABLET_W = 640;
+	let width = $state(FULL);
+	let loop: ReturnType<typeof setInterval> | undefined;
+	function reduced() {
+		return (
+			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+		);
+	}
+	function play(v: number) {
+		clearInterval(loop);
+		if (v === 0 || v === 4) width = FULL;
+		else if (v === 1 || v === 2) width = PHONE_W;
+		else if (v === 3) width = TABLET_W;
+		else if (v >= 5 && v < last) {
+			const seq = [PHONE_W, TABLET_W, FULL, TABLET_W];
+			let k = 0;
+			width = seq[0];
+			if (!reduced())
+				loop = setInterval(() => {
+					k = (k + 1) % seq.length;
+					width = seq[k];
+				}, 2400);
+		} else width = TABLET_W;
+	}
 	$effect(() => {
-		const key: ResponsiveMissionId | null = responsive ? zone : zone === 'phone' ? 'fixed' : null;
-		clearTimeout(settle);
-		if (!key || !touched) return;
-		settle = setTimeout(() => {
-			if (done[key]) return;
-			done[key] = true;
-			if (ORDER.every((m) => done[m]) && !finished) {
-				finished = true;
-				onstate?.('done');
-				oncomplete?.();
-			} else onstate?.(key);
-		}, 450);
+		const v = view;
+		untrack(() => play(v));
 	});
-	onDestroy(() => clearTimeout(settle));
+	onDestroy(() => clearInterval(loop));
 
-	function setWidth(w: number) {
-		touched = true;
-		width = Math.max(MIN, Math.min(MAX, Math.round(w)));
+	let dragged = false;
+	let dragging = $state(false);
+	function onDrag() {
+		dragging = true;
+		if (!dragged) {
+			dragged = true;
+			onstate?.('drag');
+		}
 	}
-	function onSlide(e: Event) {
-		setWidth(Number((e.currentTarget as HTMLInputElement).value));
-	}
-	function toggle() {
-		touched = true;
-		responsive = !responsive;
-	}
-	const pct = (w: number) => ((w - MIN) / (MAX - MIN)) * 100;
+
+	// ---- Scale everything so a 960 pixel screen fits the column ----
+	let cw = $state(420);
+	const scale = $derived(Math.max(0.2, Math.min(1, cw / FULL)));
+	const VIEW_H = 230;
+	const size = $derived(
+		width < 600 ? tx.sizes.phone : width < 900 ? tx.sizes.tablet : tx.sizes.laptop
+	);
+	const spill = $derived(view <= 1 && width < FULL);
 </script>
 
-<div class="wrap">
-	<Missions
-		label={tx.missionsLabel}
-		items={ORDER.map((m) => ({ id: m, text: tx.missions[m], done: done[m] }))}
-	/>
+<div class="h-full w-full overflow-y-auto">
+	<div class="mx-auto flex w-full justify-center pb-28 md:pb-6">
+		<Guide steps={tx.steps} active={view} onselect={(k) => (view = k)}>
+			{#snippet visual()}
+				<div class="flex w-full max-w-[460px] flex-col gap-3">
+					<div class="stagewrap" bind:clientWidth={cw}>
+						<div class="frame" class:spill class:still={dragging} style="width:{width * scale}px">
+							<div class="addr"><span class="url">{tx.previewLabel}</span></div>
+							<div class="viewport" style="height:{VIEW_H}px">
+								<iframe
+									title={tx.previewLabel}
+									sandbox=""
+									{srcdoc}
+									class:still={dragging}
+									style="width:{width}px;height:{VIEW_H / scale}px;transform:scale({scale})"
+								></iframe>
+							</div>
+						</div>
 
-	<div class="controls">
-		<div class="presets" role="group" aria-label={tx.widthLabel}>
-			{#each Object.entries(PRESETS) as [k, w] (k)}
-				<button type="button" class="preset" class:on={zone === k} onclick={() => setWidth(w)}
-					>{tx.presets[k as Zone]}</button
-				>
-			{/each}
-		</div>
-		<button
-			type="button"
-			class="switch"
-			class:off={!responsive}
-			role="switch"
-			aria-checked={responsive}
-			onclick={toggle}
-		>
-			<span class="knob" aria-hidden="true"></span>
-			{tx.toggleLabel}
-			<b>{responsive ? tx.on : tx.off}</b>
-		</button>
+						<!-- The ruler with the two breakpoints and the current width -->
+						<div class="ruler" aria-hidden="true">
+							<span class="track"></span>
+							{#each [600, 900] as bp (bp)}
+								<span class="tick" class:on={width >= bp && view >= 3} style="left:{bp * scale}px"
+									><i>{bp}</i></span
+								>
+							{/each}
+							<span class="mark" class:still={dragging} style="left:{width * scale}px"></span>
+						</div>
+						<p class="wlabel">
+							{tx.widthLabel.replace('{n}', String(Math.round(width)))} ({size})
+						</p>
+					</div>
+
+					{#if view >= last}
+						<label class="slider">
+							<span>{tx.sliderLabel}</span>
+							<input
+								type="range"
+								min="320"
+								max={FULL}
+								step="10"
+								bind:value={width}
+								oninput={onDrag}
+								onchange={() => (dragging = false)}
+							/>
+						</label>
+					{/if}
+
+					<TypedCode {code} lang="css" label={tx.cssLabel} onsettled={(c) => (settled = c)} />
+				</div>
+			{/snippet}
+		</Guide>
 	</div>
-
-	<div class="slider">
-		<div class="sl">
-			<span>{tx.widthLabel}</span>
-			<b>{width}px</b>
-		</div>
-		<div class="track">
-			<input
-				type="range"
-				min={MIN}
-				max={MAX}
-				step="5"
-				value={width}
-				oninput={onSlide}
-				aria-label={tx.widthLabel}
-			/>
-			<span class="mark" style:left="{pct(TABLET)}%" aria-hidden="true">{TABLET}</span>
-			<span class="mark" style:left="{pct(LAPTOP)}%" aria-hidden="true">{LAPTOP}</span>
-		</div>
-	</div>
-
-	<div class="stagebox" bind:clientWidth={boxW}>
-		<div class="device" style:width="{width * scale}px" style:height="{H}px">
-			<div class="addr">
-				<span class="led" class:on={responsive}></span>
-				<span class="url">{tx.previewLabel}</span>
-			</div>
-			<div class="viewport" style:height="{H - 30}px">
-				<iframe
-					title={tx.previewLabel}
-					sandbox=""
-					{srcdoc}
-					style:width="{width}px"
-					style:height="{(H - 30) / scale}px"
-					style:transform="scale({scale})"
-				></iframe>
-			</div>
-		</div>
-		<p class="layout" class:bad={!responsive}>{layoutName}</p>
-	</div>
-
-	<div class="rules">
-		<p class="cap">{tx.rulesLabel}</p>
-		<div class="mq">
-			<code class:live={responsive && width >= TABLET} class:dead={!responsive}
-				>@media (min-width: {TABLET}px)</code
-			>
-			<code class:live={responsive && width >= LAPTOP} class:dead={!responsive}
-				>@media (min-width: {LAPTOP}px)</code
-			>
-		</div>
-	</div>
-
-	{#if allDone}
-		<p class="win" role="status">{tx.allDone}</p>
-	{/if}
 </div>
 
 <style>
-	.wrap {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 10px;
-		width: min(94vw, 720px);
+	.stagewrap {
+		width: 100%;
+	}
+	.frame {
 		max-width: 100%;
-		max-height: 100%;
-		overflow-y: auto;
-		overflow-x: hidden;
-		padding-bottom: 6px;
-	}
-	.controls {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 8px;
-	}
-	.presets {
-		display: inline-flex;
-		padding: 3px;
-		border-radius: 999px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-	}
-	.preset {
-		padding: 5px 12px;
-		border-radius: 999px;
-		font-size: 12.5px;
-		font-weight: 600;
-		color: var(--color-muted);
-		transition:
-			background 0.2s ease,
-			color 0.2s ease;
-	}
-	.preset.on {
-		background: var(--color-brand);
-		color: #fff;
-	}
-	.switch {
-		display: inline-flex;
-		align-items: center;
-		gap: 7px;
-		padding: 5px 12px 5px 6px;
-		border-radius: 999px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		font-size: 12.5px;
-		color: var(--color-ink);
-	}
-	.switch b {
-		color: var(--color-grass);
-	}
-	.switch.off b {
-		color: var(--color-danger);
-	}
-	.knob {
-		position: relative;
-		width: 28px;
-		height: 16px;
-		border-radius: 999px;
-		background: var(--color-grass);
-		transition: background 0.2s ease;
-	}
-	.knob::after {
-		content: '';
-		position: absolute;
-		top: 2px;
-		left: 14px;
-		width: 12px;
-		height: 12px;
-		border-radius: 50%;
-		background: #fff;
-		transition: left 0.2s ease;
-	}
-	.switch.off .knob {
-		background: var(--color-line);
-	}
-	.switch.off .knob::after {
-		left: 2px;
-	}
-
-	.slider {
-		width: 100%;
-		max-width: 520px;
-	}
-	.sl {
-		display: flex;
-		justify-content: space-between;
-		font-size: 12px;
-		color: var(--color-muted);
-	}
-	.sl b {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		color: var(--color-ink);
-	}
-	.track {
-		position: relative;
-		padding-bottom: 14px;
-	}
-	.track input {
-		width: 100%;
-		accent-color: var(--color-brand);
-	}
-	.mark {
-		position: absolute;
-		bottom: 0;
-		transform: translateX(-50%);
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 10px;
-		color: var(--color-faint);
-	}
-	.mark::before {
-		content: '';
-		position: absolute;
-		left: 50%;
-		top: -6px;
-		width: 1px;
-		height: 6px;
-		background: var(--color-faint);
-	}
-
-	.stagebox {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 6px;
-		width: 100%;
-	}
-	.device {
-		max-width: 100%;
-		display: flex;
-		flex-direction: column;
 		border-radius: 14px;
 		border: 1px solid var(--color-line);
 		background: var(--color-card);
 		overflow: hidden;
 		box-shadow: 0 8px 22px rgba(22, 40, 60, 0.07);
-		transition: width 0.15s ease;
+		transition:
+			width 1.2s cubic-bezier(0.45, 0, 0.2, 1),
+			border-color 0.4s;
+	}
+	.frame.spill {
+		border-color: var(--color-danger);
 	}
 	.addr {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		height: 30px;
-		padding: 0 10px;
+		padding: 6px 8px;
 		border-bottom: 1px solid var(--color-line);
-		font-size: 11.5px;
-		color: var(--color-muted);
-	}
-	.led {
-		flex: none;
-		width: 7px;
-		height: 7px;
-		border-radius: 50%;
-		background: var(--color-danger);
-	}
-	.led.on {
-		background: var(--color-grass);
+		font-size: 11px;
 	}
 	.url {
-		flex: 1;
-		min-width: 0;
-		padding: 2px 10px;
+		display: block;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		padding: 2px 8px;
 		border-radius: 999px;
 		background: var(--color-paper);
 		color: var(--color-ink);
 		font-weight: 600;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
 	}
 	.viewport {
 		position: relative;
 		overflow: hidden;
-		background: #faf9f6;
+		background: #fff;
 	}
 	iframe {
 		display: block;
 		border: 0;
+		background: #fff;
 		transform-origin: 0 0;
-		background: #faf9f6;
+		transition: width 1.2s cubic-bezier(0.45, 0, 0.2, 1);
 	}
-	.layout {
-		margin: 0;
-		padding: 3px 12px;
-		border-radius: 999px;
-		background: var(--color-brand-soft);
+	.still {
+		transition: none !important;
+	}
+
+	.ruler {
+		position: relative;
+		height: 26px;
+		margin-top: 10px;
+	}
+	.track {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 6px;
+		height: 2px;
+		border-radius: 2px;
+		background: var(--color-line);
+	}
+	.tick {
+		position: absolute;
+		top: 1px;
+		width: 2px;
+		height: 12px;
+		margin-left: -1px;
+		background: var(--color-faint);
+	}
+	.tick i {
+		position: absolute;
+		top: 13px;
+		left: 50%;
+		transform: translateX(-50%);
+		font-style: normal;
+		font-size: 10.5px;
+		font-weight: 700;
+		color: var(--color-faint);
+	}
+	.tick.on {
+		background: var(--color-brand);
+	}
+	.tick.on i {
 		color: var(--color-brand);
+	}
+	.mark {
+		position: absolute;
+		top: 1px;
+		width: 12px;
+		height: 12px;
+		margin-left: -6px;
+		border-radius: 50%;
+		background: var(--color-brand);
+		box-shadow: 0 0 0 3px var(--color-brand-soft);
+		transition: left 1.2s cubic-bezier(0.45, 0, 0.2, 1);
+	}
+	.wlabel {
+		margin: 4px 0 0;
 		font-size: 12px;
-		font-weight: 700;
-	}
-	.layout.bad {
-		background: var(--color-danger-soft);
-		color: var(--color-danger);
-	}
-
-	.rules {
-		width: 100%;
-		max-width: 520px;
-	}
-	.cap {
-		margin: 0 0 6px;
-		text-align: center;
-		font-size: 11px;
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--color-faint);
-	}
-	.mq {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 6px;
-	}
-	.mq code {
-		padding: 4px 10px;
-		border-radius: 8px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		color: var(--color-faint);
-		font-size: 12px;
-		transition:
-			background 0.2s ease,
-			color 0.2s ease,
-			border-color 0.2s ease;
-	}
-	.mq code.live {
-		border-color: var(--color-grass);
-		background: var(--color-grass-soft);
-		color: var(--color-grass);
 		font-weight: 600;
+		color: var(--color-muted);
 	}
-	.mq code.dead {
-		text-decoration: line-through;
+	.slider {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
 	}
-
-	.win {
-		margin: 0;
-		padding: 6px 14px;
-		border-radius: 999px;
-		background: var(--color-grass-soft);
-		color: var(--color-grass);
-		font-size: 12.5px;
-		font-weight: 700;
+	.slider input {
+		flex: 1;
+		min-width: 0;
+		accent-color: var(--color-brand);
 	}
-
 	@media (prefers-reduced-motion: reduce) {
-		.preset,
-		.knob,
-		.knob::after,
-		.device,
-		.mq code {
+		.frame,
+		iframe,
+		.mark {
 			transition: none;
 		}
 	}

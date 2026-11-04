@@ -6,15 +6,22 @@ import { en } from './en';
 export const cia: Lesson = {
 	id: 'cia',
 	mood: 'thinking',
-	moods: ['calm', 'idea', 'thinking', 'wink', 'worried', 'excited'],
+	moods: [
+		'calm',
+		'surprised',
+		'worried',
+		'thinking',
+		'wink',
+		'worried',
+		'surprised',
+		'sad',
+		'idea',
+		'excited'
+	],
 	reactionMood: {
-		yahoo: 'worried',
-		laptop: 'thinking',
-		ap: 'surprised',
-		price: 'wink',
-		dyn: 'sad',
-		power: 'idea',
-		miss: 'thinking'
+		c: 'thinking',
+		i: 'wink',
+		a: 'idea'
 	},
 	stage: CiaStage,
 	text: { id, en }

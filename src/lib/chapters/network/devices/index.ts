@@ -5,15 +5,9 @@ import { en } from './en';
 
 export const devices: Lesson = {
 	id: 'devices',
-	mood: 'thinking',
-	moods: ['calm', 'idea', 'thinking', 'happy', 'wink', 'excited'],
+	mood: 'calm',
+	moods: ['calm', 'idea', 'happy', 'happy', 'wink', 'idea', 'thinking', 'excited'],
 	reactionMood: {
-		modem: 'idea',
-		router: 'happy',
-		switch: 'happy',
-		ap: 'wink',
-		wrong: 'thinking',
-		built: 'excited',
 		noModem: 'worried',
 		noRouter: 'sad',
 		noSwitch: 'surprised',

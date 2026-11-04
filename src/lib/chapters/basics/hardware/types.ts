@@ -1,39 +1,36 @@
 import type { LessonText } from '../../types';
 
-/** One of the three main parts, drawn as a card inside the opened laptop. */
-export interface HardwarePart {
-	label: string; // e.g. "CPU"
-	sub: string; // the everyday picture, e.g. "the cook, does the thinking"
-	spec: string; // a typical size printed on a shop label, e.g. "8 GB"
+/** One step of the guided dissection, shown in the side panel. */
+export interface HardwareStep {
+	tag: string; // small pill above the title
+	title: string;
+	body: string; // one or two plain sentences, <b> allowed
 }
 
 export interface HardwareText extends LessonText {
-	/** Number formatting for the step counter, e.g. "id-ID" or "en-US". */
-	locale: string;
-	cpu: HardwarePart;
-	ram: HardwarePart;
-	storage: HardwarePart;
-	gameName: string; // the game the learner loads and plays
-	otherFiles: string[]; // other things that live in storage, never moved
-	powerOn: string; // power light caption while plugged in
-	powerOff: string; // power light caption once the plug is pulled
-	loadBtn: string;
-	runBtn: string;
-	unplugBtn: string;
-	powerBtn: string;
-	ramEmpty: string; // shown in RAM while nothing is loaded
-	loadingTag: string; // shown on the game while it travels into RAM
-	cpuIdle: string;
-	cpuBusy: string;
-	cpuOff: string;
-	steps: string; // template with {n}, the CPU's running step counter
-	keptTag: string; // small tag on storage after the power cut, the files are still there
-	notes: {
-		idle: string;
-		loading: string;
-		loaded: string;
-		running: string;
-		off: string;
-		back: string;
+	/**
+	 * Eleven steps, one per beat, in this order: the whole laptop, motherboard, CPU, RAM,
+	 * storage, loading (storage to RAM to CPU), the memory trick, GPU, battery, input and output,
+	 * and the whole team again.
+	 */
+	steps: HardwareStep[];
+	/** Short labels drawn next to each part in the picture. */
+	labels: {
+		screen: string;
+		keyboard: string;
+		board: string;
+		cpu: string;
+		ram: string;
+		storage: string;
+		gpu: string;
+		battery: string;
 	};
+	/** Small tags for the memory trick, when the power goes off. */
+	powerOff: string;
+	cleared: string; // on RAM, it forgot everything
+	kept: string; // on storage, it still has the files
+	/** The word typed on the screen during the input and output step. */
+	typed: string;
+	/** Accessible label for the whole picture. */
+	picture: string;
 }

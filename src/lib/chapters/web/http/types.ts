@@ -1,44 +1,20 @@
 import type { LessonText } from '../../types';
 
-export type HttpMissionId = 'read' | 'send' | 'missing' | 'broken';
-export type HttpPath = '/' | '/about' | '/messages' | '/pricing' | '/report';
+/** The four kinds of answer the stage can show, one per first digit of the status code. */
+export type HttpKind = 'ok' | 'moved' | 'notfound' | 'broken';
 
 export interface HttpText extends LessonText {
-	/** Heading over the mission list. */
-	missionsLabel: string;
-	/** One line per mission, in order. */
-	missions: Record<HttpMissionId, string>;
-	/** Labels over the method switch, the path chips, and the message box. */
-	methodLabel: string;
-	pathLabel: string;
-	bodyLabel: string;
-	/** What the message box holds at the start. */
-	bodyDefault: string;
-	/** Short description under each path chip. */
-	pathHints: Record<HttpPath, string>;
-	/** The send button, and its label while a request is in flight. */
-	send: string;
-	sending: string;
+	/** The side panel, one entry per beat (title, a short plain explanation, a small tag). */
+	steps: { tag: string; title: string; body: string }[];
 	youLabel: string;
 	serverLabel: string;
-	/** Captions over the raw request and response. */
-	requestLabel: string;
-	responseLabel: string;
-	/** Shown in the response card before anything came back. */
-	waiting: string;
-	/** What the phone screen shows for each answer. */
+	/** What the browser screen shows while waiting, and for each kind of answer. */
 	screen: {
-		home: string;
-		about: string;
-		aboutText: string;
-		messages: string;
-		created: string;
-		notFound: string;
-		broken: string;
-		notAllowed: string;
+		loading: string;
+		results: Record<HttpKind, { title: string; text: string }>;
 	};
-	/** One line explaining the first digit of the status code. */
-	statusNotes: { ok: string; client: string; server: string };
-	/** Shown once every mission is done. */
-	allDone: string;
+	/** The rule of thumb row, one short label per first digit (2, 3, 4, 5). */
+	legend: [string, string, string, string];
+	/** Caption over the optional page buttons on the last beat. */
+	pagesLabel: string;
 }

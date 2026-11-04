@@ -1,527 +1,396 @@
 <script lang="ts">
-	import type { LessonText } from '$lib/chapters/types';
+	// Guided "watch" stage. One desk scene follows Nim's beats. A Figma frame draws a button, the
+	// inspect panel lights up its four numbers, a CSS file types those numbers line by line, and
+	// a browser redraws the button one property at a time until it matches the design. The only
+	// optional play is leaving out the padding line on the last beat.
+	import { fade } from 'svelte/transition';
+	import Guide from '$lib/components/Guide.svelte';
+	import type { StageProps } from '$lib/chapters/types';
 	import type { DesignToCodeText, DesignProp } from '$lib/chapters/web/design-to-code/types';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: {
-		text: LessonText;
-		oncomplete?: () => void;
-		onstate?: (s: string) => void;
-	} = $props();
+	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as DesignToCodeText);
 
-	// What the designer drew. The learner's CSS starts a little off on every value.
-	const TARGET = { color: '#2E6FE0', radius: 12, padding: 28, font: 18 };
-	const SWATCHES = ['#16212B', '#3A9C64', '#DD9E36', '#2E6FE0'];
-	const RANGES = {
-		radius: { min: 0, max: 24, step: 2 },
-		padding: { min: 8, max: 40, step: 4 },
-		font: { min: 12, max: 24, step: 1 }
-	};
-
-	let inspected = $state(false);
-	let color = $state('#3A9C64');
-	let radius = $state(2);
-	let padding = $state(12);
-	let font = $state(14);
-
-	const ok = $derived<Record<DesignProp, boolean>>({
-		color: color === TARGET.color,
-		radius: radius === TARGET.radius,
-		padding: padding === TARGET.padding,
-		font: font === TARGET.font
-	});
-	const ORDER: DesignProp[] = ['color', 'radius', 'padding', 'font'];
-	const count = $derived(ORDER.filter((p) => ok[p]).length);
-	const allOk = $derived(count === ORDER.length);
-
-	const reported = new Set<DesignProp>();
-	let finished = false;
 	$effect(() => {
-		const now = ok;
-		const fresh = ORDER.filter((p) => now[p] && !reported.has(p));
-		if (!fresh.length) return;
-		fresh.forEach((p) => reported.add(p));
-		if (ORDER.every((p) => now[p])) {
-			if (!finished) {
-				finished = true;
-				onstate?.('done');
-				oncomplete?.();
-			}
-			return;
-		}
-		onstate?.(fresh[fresh.length - 1]);
+		onshow?.(true);
+		oncomplete?.();
 	});
 
-	function inspect() {
-		if (inspected) return;
-		inspected = true;
-		onstate?.('inspect');
+	const lastBeat = $derived(tx.intro.length - 1);
+	const isPlay = $derived(beat >= lastBeat);
+
+	let peek = $state<number | null>(null);
+	$effect(() => {
+		void beat;
+		peek = null;
+	});
+	const step = $derived(peek ?? Math.min(beat, tx.steps.length - 1));
+	const live = $derived(isPlay && peek === null);
+
+	let noPad = $state(false);
+	function toggle() {
+		noPad = !noPad;
+		onstate?.(noPad ? 'nopad' : 'pad');
 	}
 
-	function nudge(prop: 'radius' | 'padding' | 'font', dir: 1 | -1) {
-		const r = RANGES[prop];
-		const cur = prop === 'radius' ? radius : prop === 'padding' ? padding : font;
-		const next = Math.min(r.max, Math.max(r.min, cur + dir * r.step));
-		if (prop === 'radius') radius = next;
-		else if (prop === 'padding') padding = next;
-		else font = next;
-	}
+	const PROPS: DesignProp[] = ['color', 'radius', 'padding', 'font'];
+	const VALUES: Record<DesignProp, string> = {
+		color: '#2E6FE0',
+		radius: '12',
+		padding: '24',
+		font: '16'
+	};
+	// Real CSS, shown as is. Line i + 1 holds PROPS[i].
+	const CSS = [
+		'.start {',
+		'  background: #2E6FE0;',
+		'  border-radius: 12px;',
+		'  padding: 11px 24px;',
+		'  font-size: 16px;',
+		'}'
+	];
 
-	const specs = $derived([
-		{ k: 'color' as DesignProp, v: TARGET.color },
-		{ k: 'radius' as DesignProp, v: `${TARGET.radius}px` },
-		{ k: 'padding' as DesignProp, v: `${TARGET.padding}px` },
-		{ k: 'font' as DesignProp, v: `${TARGET.font}px` }
-	]);
+	// One clock, restarted on every step.
+	let t = $state(0);
+	let reduced = $state(false);
+	$effect(() => {
+		void step;
+		reduced =
+			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+		t = 0;
+		if (reduced) return;
+		const start = Date.now();
+		const id = setInterval(() => (t = Date.now() - start), 80);
+		return () => clearInterval(id);
+	});
+
+	// Which inspect row glows on the numbers part.
+	const hiInspect = $derived(step === 1 && !reduced ? Math.floor(t / 1100) % 4 : -1);
+	// How many CSS lines are typed on the typing part (loops with a pause).
+	const typed = $derived(step === 2 && !reduced ? Math.min(4, Math.floor((t % 6200) / 1000)) : 4);
+	// How many properties the browser has applied on the drawing part (loops with a pause).
+	const applied = $derived(
+		step === 3 && !reduced ? Math.min(4, Math.floor((t % 6600) / 1100)) : step >= 3 ? 4 : 0
+	);
+	const padOff = $derived(live && noPad);
+	const hiLine = $derived(step === 2 ? typed - 1 : step === 3 ? applied - 1 : padOff ? 2 : -1);
+
+	type Btn = { x: number; y: number; w: number; h: number; r: number; fs: number; on: boolean };
+	function btn(cx: number, cy: number, has: (p: DesignProp) => boolean): Btn {
+		const fs = has('font') ? 16 : 12;
+		const px = has('padding') ? 24 : 3;
+		const py = has('padding') ? 11 : 2;
+		const w = tx.button.length * fs * 0.56 + px * 2;
+		const h = fs * 1.25 + py * 2;
+		return { x: cx - w / 2, y: cy - h / 2, w, h, r: has('radius') ? 12 : 0, fs, on: has('color') };
+	}
+	const designBtn = $derived(btn(132, 112, () => true));
+	const pageBtn = $derived(
+		btn(298, 318, (p) => {
+			const i = PROPS.indexOf(p);
+			if (i >= applied) return false;
+			return !(p === 'padding' && padOff);
+		})
+	);
+	const matches = $derived(step >= 4 && !padOff);
 </script>
 
-{#snippet stepper(prop: 'radius' | 'padding' | 'font', value: number)}
-	<span class="step">
-		<button
-			type="button"
-			aria-label="smaller"
-			disabled={!inspected || value <= RANGES[prop].min}
-			onclick={() => nudge(prop, -1)}
-		>
-			<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"
-				><path d="M2.5 6h7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" /></svg
-			>
-		</button>
-		<span class="num">{value}px</span>
-		<button
-			type="button"
-			aria-label="bigger"
-			disabled={!inspected || value >= RANGES[prop].max}
-			onclick={() => nudge(prop, 1)}
-		>
-			<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"
-				><path
-					d="M2.5 6h7M6 2.5v7"
-					stroke="currentColor"
-					stroke-width="1.8"
-					stroke-linecap="round"
-				/></svg
-			>
-		</button>
-	</span>
+{#snippet button(b: Btn)}
+	<rect x={b.x} y={b.y} width={b.w} height={b.h} rx={b.r} class="btn" class:on={b.on} />
+	<text
+		x={b.x + b.w / 2}
+		y={b.y + b.h / 2 + b.fs * 0.35}
+		text-anchor="middle"
+		class="btnT"
+		class:on={b.on}
+		style="font-size:{b.fs}px">{tx.button}</text
+	>
 {/snippet}
 
-{#snippet tick(on: boolean)}
-	<span class="tick" class:on aria-hidden="true">
-		{#if on}
-			<svg width="10" height="10" viewBox="0 0 12 12"
-				><path
-					d="m2.5 6.3 2.3 2.3 4.7-5"
-					stroke="currentColor"
-					stroke-width="1.9"
-					fill="none"
-					stroke-linecap="round"
-					stroke-linejoin="round"
-				/></svg
-			>
-		{/if}
-	</span>
-{/snippet}
+{#snippet visual()}
+	<div class="w-full">
+		<svg
+			viewBox="0 0 400 432"
+			class="mx-auto block w-full max-w-[440px]"
+			role="img"
+			aria-label={tx.steps[step].title}
+		>
+			<!-- the design frame -->
+			<rect
+				x="8"
+				y="8"
+				width="384"
+				height="176"
+				rx="12"
+				style="fill:var(--color-card);stroke:var(--color-line)"
+				stroke-width="2"
+			/>
+			<text x="22" y="30" class="cap">{tx.designLabel}</text>
+			<rect x="16" y="40" width="238" height="136" rx="8" style="fill:var(--color-paper)" />
+			{#key step === 0}
+				<g class:grow={step === 0} style="transform-origin:132px 112px">
+					{@render button(designBtn)}
+				</g>
+			{/key}
 
-<div class="flex h-full w-full flex-col items-center justify-center gap-3">
-	<div class="wrap">
-		<!-- the designer's frame -->
-		<div class="frame design">
-			<div class="cap">
-				<span class="fig" aria-hidden="true"><i></i><i></i><i></i></span>
-				{tx.designLabel}
-				{#if !inspected}
-					<button type="button" class="inspect" onclick={inspect}>{tx.inspect}</button>
-				{/if}
-			</div>
-			<div class="canvas">
-				<span class="sel" class:on={inspected}>
-					<span
-						class="demo"
-						style="background:{TARGET.color};border-radius:{TARGET.radius}px;padding:12px {TARGET.padding}px;font-size:{TARGET.font}px"
-						>{tx.button}</span
-					>
-					{#if inspected}
-						<i class="h tl"></i><i class="h tr"></i><i class="h bl"></i><i class="h br"></i>
-					{/if}
-				</span>
-			</div>
-			{#if inspected}
-				<div class="specs">
-					{#each specs as s (s.k)}
-						<span class="spec">
-							<span>{tx.props[s.k]}</span>
-							<b>
-								{#if s.k === 'color'}<i class="sw" style="background:{s.v}"></i>{/if}
-								{s.v}
-							</b>
-						</span>
-					{/each}
-				</div>
-			{:else}
-				<p class="hint">{tx.inspectHint}</p>
+			<!-- measuring marks on the numbers part -->
+			{#if hiInspect === 0}
+				<rect
+					x={designBtn.x - 5}
+					y={designBtn.y - 5}
+					width={designBtn.w + 10}
+					height={designBtn.h + 10}
+					rx="16"
+					class="mark"
+				/>
+			{:else if hiInspect === 1}
+				<circle cx={designBtn.x + 4} cy={designBtn.y + 4} r="9" class="mark" />
+			{:else if hiInspect === 2}
+				<rect
+					x={designBtn.x}
+					y={designBtn.y + 6}
+					width="22"
+					height={designBtn.h - 12}
+					class="padmark"
+				/>
+				<rect
+					x={designBtn.x + designBtn.w - 22}
+					y={designBtn.y + 6}
+					width="22"
+					height={designBtn.h - 12}
+					class="padmark"
+				/>
+			{:else if hiInspect === 3}
+				<line
+					x1={designBtn.x + 24}
+					y1={designBtn.y + designBtn.h + 8}
+					x2={designBtn.x + designBtn.w - 24}
+					y2={designBtn.y + designBtn.h + 8}
+					class="mark"
+				/>
 			{/if}
-		</div>
 
-		<!-- the learner's page, drawn from their CSS -->
-		<div class="frame page" class:match={allOk}>
-			<div class="cap">
-				<span class="led" class:on={allOk}></span>
-				{tx.pageLabel}
-				<span class="score">{tx.score.replace('{n}', String(count)).replace('{total}', '4')}</span>
-			</div>
-			<div class="canvas plain">
-				<span
-					class="demo"
-					style="background:{color};border-radius:{radius}px;padding:12px {padding}px;font-size:{font}px"
-					>{tx.button}</span
-				>
-			</div>
-		</div>
+			<!-- the inspect panel -->
+			{#if step >= 1}
+				<g in:fade={{ duration: 300 }}>
+					<rect x="262" y="40" width="122" height="136" rx="8" style="fill:var(--color-paper)" />
+					<text x="272" y="60" class="cap">{tx.specLabel}</text>
+					{#each PROPS as p, i (p)}
+						{@const y = 84 + i * 24}
+						{@const lit = hiInspect === i || (step === 2 && typed - 1 === i)}
+						<rect x="266" y={y - 14} width="114" height="20" rx="5" class="row" class:lit />
+						<text x="272" {y} class="pname">{tx.props[p]}</text>
+						{#if step === 5}
+							<text x="376" {y} text-anchor="end" class="token">{tx.tokens[p]}</text>
+						{:else}
+							<text x="376" {y} text-anchor="end" class="pval">{VALUES[p]}</text>
+						{/if}
+					{/each}
+				</g>
+			{/if}
 
-		<!-- the CSS, with the values as live controls -->
-		<div class="code" class:locked={!inspected}>
-			<div class="fname">{tx.codeLabel}</div>
-			<div class="lines">
-				<div class="ln"><span class="selr">.start</span> <span class="pun">{'{'}</span></div>
-				<div class="ln in">
-					{@render tick(ok.color)}
-					<span class="prop">background</span><span class="pun">:</span>
-					<span class="swatches">
-						{#each SWATCHES as s (s)}
-							<button
-								type="button"
-								class="swb"
-								class:cur={color === s}
-								style="background:{s}"
-								aria-label={s}
-								disabled={!inspected}
-								onclick={() => (color = s)}
-							></button>
-						{/each}
-					</span>
-					<span class="val">{color}</span>
-				</div>
-				<div class="ln in">
-					{@render tick(ok.radius)}
-					<span class="prop">border-radius</span><span class="pun">:</span>
-					{@render stepper('radius', radius)}
-				</div>
-				<div class="ln in">
-					{@render tick(ok.padding)}
-					<span class="prop">padding</span><span class="pun">:</span>
-					<span class="val">12px</span>
-					{@render stepper('padding', padding)}
-				</div>
-				<div class="ln in">
-					{@render tick(ok.font)}
-					<span class="prop">font-size</span><span class="pun">:</span>
-					{@render stepper('font', font)}
-				</div>
-				<div class="ln"><span class="pun">{'}'}</span></div>
-			</div>
-		</div>
+			<!-- the CSS file -->
+			{#if step >= 2}
+				<g in:fade={{ duration: 300 }}>
+					<rect x="8" y="200" width="190" height="224" rx="12" style="fill:var(--color-ink)" />
+					<text x="20" y="222" class="cap dark">{tx.codeLabel}</text>
+					{#each CSS as line, i (i)}
+						{@const k = i - 1}
+						{@const shown = k < 0 || k >= 4 || k < typed}
+						{@const struck = padOff && k === 2}
+						{#if k === hiLine}
+							<rect x="12" y={234 + i * 26} width="182" height="20" rx="4" class="hl" />
+						{/if}
+						{#if shown}
+							<text x="18" y={248 + i * 26} class="code" class:struck>{line}</text>
+							{#if struck}
+								<line
+									x1="18"
+									y1={244 + i * 26}
+									x2="160"
+									y2={244 + i * 26}
+									style="stroke:var(--color-danger)"
+									stroke-width="1.5"
+								/>
+							{/if}
+						{/if}
+					{/each}
+				</g>
+			{/if}
 
-		{#if allOk}
-			<p class="win">{tx.matched}</p>
+			<!-- the browser -->
+			{#if step >= 3}
+				<g in:fade={{ duration: 300 }}>
+					<rect
+						x="206"
+						y="200"
+						width="186"
+						height="224"
+						rx="12"
+						style="fill:var(--color-card);stroke:var(--color-line)"
+						stroke-width="2"
+					/>
+					<line
+						x1="206"
+						y1="226"
+						x2="392"
+						y2="226"
+						style="stroke:var(--color-line)"
+						stroke-width="2"
+					/>
+					<circle cx="220" cy="213" r="3" style="fill:var(--color-line)" />
+					<circle cx="230" cy="213" r="3" style="fill:var(--color-line)" />
+					<circle cx="240" cy="213" r="3" style="fill:var(--color-line)" />
+					<text x="254" y="217" class="url">{tx.pageLabel}</text>
+					{@render button(pageBtn)}
+					{#if step >= 4}
+						<g in:fade={{ duration: 250 }}>
+							<circle cx={298 - 52} cy="386" r="7" class:okdot={matches} class:baddot={!matches} />
+							<text x={298 - 40} y="390" class="badge" class:good={matches}>
+								{matches ? tx.matched : tx.mismatch}
+							</text>
+						</g>
+					{/if}
+				</g>
+			{/if}
+		</svg>
+		{#if live}
+			<div class="mt-3 flex justify-center">
+				<button type="button" class="play" class:on={noPad} onclick={toggle}>
+					{noPad ? tx.restorePadding : tx.skipPadding}
+				</button>
+			</div>
 		{/if}
 	</div>
+{/snippet}
+
+<div class="flex w-full justify-center px-1 pb-28 md:pb-6">
+	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
 </div>
 
 <style>
-	.wrap {
-		display: flex;
-		flex-direction: column;
-		align-items: stretch;
-		gap: 8px;
-		width: min(94vw, 400px);
-	}
-	.frame {
-		border-radius: 14px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		overflow: hidden;
-		box-shadow: 0 8px 22px rgba(22, 40, 60, 0.07);
-		transition: border-color 0.3s ease;
-	}
-	.frame.match {
-		border-color: var(--color-grass);
-	}
 	.cap {
-		display: flex;
-		align-items: center;
-		gap: 7px;
-		padding: 6px 10px;
-		border-bottom: 1px solid var(--color-line);
-		font-size: 11.5px;
-		font-weight: 600;
-		color: var(--color-muted);
-	}
-	.fig {
-		display: inline-flex;
-		gap: 2px;
-	}
-	.fig i {
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-		background: var(--color-amber);
-	}
-	.fig i:nth-child(2) {
-		background: var(--color-brand);
-	}
-	.fig i:nth-child(3) {
-		background: var(--color-grass);
-	}
-	.inspect {
-		margin-left: auto;
-		border-radius: 999px;
-		background: var(--color-ink);
-		color: var(--color-paper);
-		padding: 4px 11px;
 		font-size: 11px;
 		font-weight: 700;
-		animation: nudge 1.8s ease-in-out infinite;
+		fill: var(--color-faint);
 	}
-	@keyframes nudge {
-		0%,
-		100% {
-			box-shadow: 0 0 0 0 rgba(46, 111, 224, 0);
-		}
-		50% {
-			box-shadow: 0 0 0 4px rgba(46, 111, 224, 0.2);
-		}
+	.cap.dark {
+		fill: var(--color-faint);
 	}
-	.score {
-		margin-left: auto;
-		font-size: 11px;
-		color: var(--color-faint);
-		font-variant-numeric: tabular-nums;
+	.btn {
+		fill: var(--color-line);
+		transition: fill 0.35s;
 	}
-	.led {
-		width: 7px;
-		height: 7px;
-		border-radius: 50%;
-		background: var(--color-faint);
+	.btn.on {
+		fill: var(--color-brand);
 	}
-	.led.on {
-		background: var(--color-grass);
-	}
-	.canvas {
-		display: grid;
-		place-items: center;
-		min-height: 78px;
-		padding: 12px;
-		background-color: var(--color-paper);
-		background-image: radial-gradient(var(--color-line) 1px, transparent 1px);
-		background-size: 12px 12px;
-	}
-	.canvas.plain {
-		background-image: none;
-		background-color: #fff;
-	}
-	.demo {
-		display: inline-block;
-		color: #fff;
+	.btnT {
 		font-weight: 700;
-		line-height: 1.2;
-		white-space: nowrap;
-		transition:
-			background 0.2s ease,
-			border-radius 0.2s ease,
-			padding 0.2s ease,
-			font-size 0.2s ease;
+		fill: var(--color-ink);
+		transition: fill 0.35s;
 	}
-	.sel {
-		position: relative;
-		display: inline-block;
-		outline: 1.5px solid transparent;
-		outline-offset: 3px;
+	.btnT.on {
+		fill: var(--color-card);
 	}
-	.sel.on {
-		outline-color: var(--color-brand);
+	.grow {
+		animation: grow 0.9s ease-out both;
 	}
-	.h {
-		position: absolute;
-		width: 7px;
-		height: 7px;
-		background: #fff;
-		border: 1.5px solid var(--color-brand);
+	.mark {
+		fill: none;
+		stroke: var(--color-amber);
+		stroke-width: 2.5;
+		stroke-linecap: round;
 	}
-	.tl {
-		top: -7px;
-		left: -7px;
+	.padmark {
+		fill: var(--color-amber);
+		opacity: 0.45;
 	}
-	.tr {
-		top: -7px;
-		right: -7px;
+	.row {
+		fill: transparent;
+		transition: fill 0.25s;
 	}
-	.bl {
-		bottom: -7px;
-		left: -7px;
+	.row.lit {
+		fill: var(--color-amber-soft);
 	}
-	.br {
-		bottom: -7px;
-		right: -7px;
+	.pname {
+		font-size: 10px;
+		fill: var(--color-muted);
 	}
-	.specs {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 4px 10px;
-		padding: 8px 10px;
-		border-top: 1px solid var(--color-line);
-	}
-	.spec {
-		display: flex;
-		justify-content: space-between;
-		gap: 6px;
-		font-size: 11px;
-		color: var(--color-muted);
-	}
-	.spec b {
-		display: inline-flex;
-		align-items: center;
-		gap: 4px;
+	.pval {
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		color: var(--color-ink);
+		font-size: 10.5px;
+		font-weight: 700;
+		fill: var(--color-ink);
 	}
-	.sw {
-		width: 9px;
-		height: 9px;
-		border-radius: 3px;
+	.token {
+		font-size: 10px;
+		font-weight: 700;
+		fill: var(--color-brand);
 	}
-	.hint {
-		margin: 0;
-		padding: 7px 10px;
-		border-top: 1px solid var(--color-line);
-		font-size: 11px;
-		color: var(--color-faint);
-		text-align: center;
-	}
-
 	.code {
-		border-radius: 14px;
-		border: 1px solid var(--color-line);
-		background: var(--color-paper);
-		overflow: hidden;
-		transition: opacity 0.3s ease;
-	}
-	.code.locked {
-		opacity: 0.55;
-	}
-	.fname {
-		padding: 6px 10px;
-		border-bottom: 1px solid var(--color-line);
-		background: var(--color-card);
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 11.5px;
-		font-weight: 600;
-		color: var(--color-muted);
+		font-size: 10.5px;
+		fill: var(--color-paper);
+		white-space: pre;
 	}
-	.lines {
-		padding: 8px 10px;
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 12px;
-		color: var(--color-ink);
-	}
-	.ln {
-		display: flex;
-		align-items: center;
-		flex-wrap: wrap;
-		gap: 5px;
-		min-height: 28px;
-	}
-	.ln.in {
-		padding-left: 2px;
-	}
-	.selr {
-		color: var(--color-amber);
-		font-weight: 600;
-	}
-	.prop {
-		color: var(--color-brand);
-		font-weight: 600;
-	}
-	.pun {
-		color: var(--color-faint);
-	}
-	.val {
-		color: var(--color-grass);
-	}
-	.tick {
-		display: grid;
-		place-items: center;
-		width: 14px;
-		height: 14px;
-		border-radius: 50%;
-		border: 1.5px solid var(--color-line);
-		color: #fff;
-	}
-	.tick.on {
-		border-color: var(--color-grass);
-		background: var(--color-grass);
-	}
-	.swatches {
-		display: inline-flex;
-		gap: 5px;
-	}
-	.swb {
-		width: 20px;
-		height: 20px;
-		border-radius: 6px;
-		border: 2px solid transparent;
-		box-shadow: 0 0 0 1px var(--color-line);
-	}
-	.swb.cur {
-		border-color: var(--color-card);
-		box-shadow: 0 0 0 2px var(--color-ink);
-	}
-	.step {
-		display: inline-flex;
-		align-items: center;
-		gap: 4px;
-	}
-	.step button {
-		display: grid;
-		place-items: center;
-		width: 24px;
-		height: 24px;
-		border-radius: 7px;
-		border: 1px solid var(--color-line);
-		background: var(--color-card);
-		color: var(--color-ink);
-	}
-	.step button:disabled {
+	.code.struck {
 		opacity: 0.4;
 	}
-	.num {
-		min-width: 38px;
-		text-align: center;
-		color: var(--color-grass);
-		font-variant-numeric: tabular-nums;
+	.hl {
+		fill: var(--color-brand);
+		opacity: 0.35;
 	}
-	.win {
-		align-self: center;
-		margin: 0;
-		padding: 6px 14px;
-		border-radius: 999px;
-		background: var(--color-grass-soft);
-		color: var(--color-grass);
-		font-size: 12.5px;
+	.url {
+		font-size: 10px;
+		font-weight: 600;
+		fill: var(--color-faint);
+	}
+	.badge {
+		font-size: 12px;
 		font-weight: 700;
+		fill: var(--color-danger);
+	}
+	.badge.good {
+		fill: var(--color-grass);
+	}
+	.okdot {
+		fill: var(--color-grass);
+	}
+	.baddot {
+		fill: var(--color-danger);
+	}
+	.play {
+		border-radius: 999px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 9px 18px;
+		font-size: 14px;
+		font-weight: 600;
+		color: var(--color-ink);
+		box-shadow: 0 4px 14px rgba(22, 40, 60, 0.07);
+	}
+	.play.on {
+		border-color: var(--color-grass);
+		color: var(--color-grass);
+	}
+	@keyframes grow {
+		from {
+			transform: scale(0.3);
+			opacity: 0;
+		}
+		to {
+			transform: scale(1);
+			opacity: 1;
+		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.demo,
-		.frame,
-		.code {
-			transition: none;
-		}
-		.inspect {
+		.grow {
 			animation: none;
+		}
+		.btn,
+		.btnT,
+		.row {
+			transition: none;
 		}
 	}
 </style>

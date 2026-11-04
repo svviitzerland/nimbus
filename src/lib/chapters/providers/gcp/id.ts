@@ -3,11 +3,16 @@ import type { GcpText } from './types';
 export const id: GcpText = {
 	title: 'Google Cloud',
 	intro: [
-		'Google sudah menjalankan Search, Gmail, dan YouTube untuk miliaran orang jauh sebelum menyewakan satu server pun. <b>Google Cloud</b> membuka mesin yang sama itu buat kamu pakai.',
-		'Awalnya tahun 2008 lewat App Engine, tempat menjalankan kode tanpa menyentuh server sama sekali. Compute Engine, server sewaan biasanya, menyusul tahun 2012.',
-		'Google suka nama yang lugas. Cloud Storage ya buat menyimpan, Cloud SQL ya SQL. Jadi tantangannya bukan menebak arti nama, tapi menentukan tiap layanan itu masuk ke ide yang mana.',
-		'[fyi] Kata yang sama, jangkauan beda. Di Google Cloud satu VPC bisa membentang ke semua region di dunia, sedangkan di [[AWS|providers/aws]] dan [[Azure|providers/azure]] tiap jaringan privat tinggal di satu region saja.',
-		'Yuk bangun nimbus.com di Google Cloud, mulai dari pintu depan. Pilih satu kartu layanan, lalu taruh di ide yang diwakilinya.'
+		'Kamu sudah kenal semua bagian sebuah website di cloud. Pintu depan, jaringan privat, server, data, dan yang berjaga. Di papan ini, tiap bagian jadi satu kartu polos bertuliskan idenya.',
+		'Google sudah menjalankan Search, Gmail, dan YouTube buat miliaran orang jauh sebelum menyewakan satu server pun. <b>Google Cloud</b> membuat mesin yang sama itu bisa kamu pakai. Mulainya tahun 2008 dengan App Engine, lalu server sewaan polosnya menyusul tahun 2012.',
+		'Lihat baris paling atas membalik. Google memberi nama apa adanya, jadi pintu depan jadi <b>Cloud DNS</b>, <b>Cloud CDN</b> (salinan dekat tiap pengunjung) dan <b>Cloud Load Balancing</b>, satu alamat buat pengunjung dari semua benua.',
+		'Berikutnya jaringan privat. <b>VPC</b> itu jaringan berpagar milikmu, dan di Google Cloud satu VPC bisa membentang ke seluruh dunia. <b>Firewall rules</b> menentukan apa yang boleh masuk.',
+		'Lalu komputer yang menjalankan nimbus.com. <b>Compute Engine</b> itu server sewaan, <b>Cloud Run</b> menjalankan container dan menyusut sampai nol waktu sepi, dan <b>Cloud Functions</b> menjalankan satu fungsi kecil tiap ada permintaan.',
+		'Tiap website butuh tempat buat datanya. <b>Cloud Storage</b> menyimpan file, <b>Cloud SQL</b> itu database SQL yang diurus Google, dan <b>Firestore</b> itu database NoSQL yang bisa langsung mengirim perubahan ke HP.',
+		'Terakhir, alat yang menjaga dan mengawasi. <b>IAM</b> membagi peran, <b>Cloud KMS</b> menyimpan kunci enkripsi, dan <b>Cloud Monitoring</b> menggambar grafik dan membunyikan alarm.',
+		'[ingat] <b>Idenya sama, cuma ganti papan nama.</b> Google bikin gampang, namanya biasanya sudah menyebut kerjanya. Cloud Storage ya menyimpan, Cloud SQL ya SQL. Satu pasang buat diingat, <b>Compute Engine itu VM</b>, mesin yang menghitung buatmu.',
+		'[fyi] Satu kata, beda dunia. Server sewaan disebut EC2 di [[AWS|providers/aws]] dan Virtual Machines di [[Azure|providers/azure]]. Satu VPC Google juga bisa mencakup semua region, sementara di dua cloud lain tiap jaringan privat tinggal di satu region.',
+		'Lihat satu pengunjung berjalan melewati seluruh papan, dari Cloud DNS sampai Cloud Monitoring. Mau coba sendiri? Pasang lagi nama namanya ke kartu, ini cuma bonus.'
 	],
 	reactions: {
 		dns: 'Cloud DNS itu [[DNS|networking/dns]] milik Google Cloud. Dia menjawab dari jaringan sedunia yang sama yang bikin Google Search ngebut.',
@@ -34,6 +39,58 @@ export const id: GcpText = {
 		miss: 'Bukan di situ. Baca lagi namanya, lalu pikirkan kerjanya apa.',
 		live: 'Pengunjungmu lewat Cloud DNS, Cloud CDN, dan load balancer, melewati firewall rules masuk ke Compute Engine, baca Cloud SQL dan Cloud Storage, dan Cloud Monitoring melihat semua langkahnya. nimbus.com sudah hidup di Google Cloud.'
 	},
+	steps: [
+		{
+			tag: 'Ide polos',
+			title: 'Website di cloud',
+			body: 'Lima lapis, dari pintu depan sampai alat yang mengawasi. Tiap kartu itu ide yang sudah kamu kenal.'
+		},
+		{
+			tag: 'Sejak 2008',
+			title: 'Google Cloud',
+			body: 'Mesin yang sama di balik Search dan YouTube, disewakan ke semua orang.'
+		},
+		{
+			tag: 'Lapis 1',
+			title: 'Pintu depan',
+			body: '<b>Cloud DNS</b>, <b>Cloud CDN</b>, dan <b>Cloud Load Balancing</b>. Namanya sudah menyebut kerjanya.'
+		},
+		{
+			tag: 'Lapis 2',
+			title: 'Jaringan privat',
+			body: '<b>VPC</b> itu jaringan privat, <b>Firewall rules</b> menjaganya. Satu VPC bisa membentang sedunia.'
+		},
+		{
+			tag: 'Lapis 3',
+			title: 'Komputasi',
+			body: '<b>Compute Engine</b> itu virtual machine, <b>Cloud Run</b> menjalankan container, <b>Cloud Functions</b> itu serverless.'
+		},
+		{
+			tag: 'Lapis 4',
+			title: 'Data',
+			body: '<b>Cloud Storage</b> menyimpan file, <b>Cloud SQL</b> itu SQL, <b>Firestore</b> itu NoSQL.'
+		},
+		{
+			tag: 'Lapis 5',
+			title: 'Akses dan pantau',
+			body: '<b>IAM</b> buat peran, <b>Cloud KMS</b> buat kunci, <b>Cloud Monitoring</b> buat grafik dan alarm.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Ide sama, papan nama baru',
+			body: 'Di Google papan namanya kebanyakan terbaca seperti idenya. Pasangan paling gampang, <b>Compute Engine itu VM</b>.'
+		},
+		{
+			tag: 'Di tempat lain',
+			title: 'Tiga label, satu kotak',
+			body: 'Virtual machine di AWS, Google Cloud, dan Azure. Yang berubah cuma papan namanya.'
+		},
+		{
+			tag: 'Opsional',
+			title: 'Satu pengunjung, semua lapis',
+			body: 'Permintaannya menyalakan tiap bagian yang dilewati. Ketuk tombolnya kalau mau mencocokkan sendiri.'
+		}
+	],
 	boardTitle: 'nimbus.com di Google Cloud',
 	youLabel: 'Pengunjung',
 	layers: ['Pintu depan', 'Jaringan privat', 'Komputasi', 'Data', 'Akses dan pantau'],
@@ -53,12 +110,11 @@ export const id: GcpText = {
 		keys: 'Kunci enkripsi',
 		monitor: 'Monitoring'
 	},
+	sameIdea: '{c} di tiap cloud',
+	playBtn: 'Cocokkan sendiri',
 	trayLabel: 'Layanan Google Cloud',
-	pickHint: 'Pilih satu kartu layanan, lalu ketuk ide yang diwakilinya',
+	pickHint: 'Pilih satu nama, lalu ketuk ide yang diwakilinya',
 	placeHint: '{s} masuk ke mana?',
 	missTag: 'bukan di sini',
-	layerTag: '{n} dari {t} lapis',
-	liveBtn: 'Kirim pengunjung ke nimbus.com',
-	noteDone: 'Semua bagian sudah di tempatnya, saatnya pengunjung sungguhan',
-	noteLive: 'Ide yang sama yang kamu kenal, pakai nama Google'
+	noteLive: 'Beres, ide yang sama dengan nama Google'
 };

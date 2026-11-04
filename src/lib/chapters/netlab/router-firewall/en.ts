@@ -3,67 +3,77 @@ import type { RouterFirewallText } from './types';
 export const en: RouterFirewallText = {
 	title: 'Firewall filters',
 	intro: [
-		'The office is online, and that brings new problems. Sari spends half the day on an online game, and anyone in the office could open Winbox and start changing the router.',
-		'Remember the [[firewall|networking/firewall]], the guard with a guest list? On MikroTik that guard is the <b>firewall filter</b>, a list of rules read from top to bottom. The first rule that matches decides, and anything no rule mentions is let through.',
-		'Rules live in <b>chains</b>. Traffic passing <i>through</i> the router (a laptop going to a website) goes through the <b>forward</b> chain. Traffic going <i>to</i> the router itself (someone opening Winbox, which knocks on port 8291) goes through the <b>input</b> chain.',
-		'Each rule says who it is about (the source address), where the traffic is headed (an address or a port), and what to do. <b>Accept</b> lets it through, <b>drop</b> quietly throws it away.',
-		'[fyi] Locking yourself out is a rite of passage for router admins. Drop all input before allowing your own laptop, and your Winbox goes dark mid click. That is why Winbox has a <b>Safe Mode</b> button that rolls everything back if you lose the connection.',
-		'Today we click, like in Winbox, and the window shows the command it types for you. Build the rules, mind their order, then run the tests until all four pass.'
+		'The office is online, and that brings new problems. Sari spends half the day on an online game, and anyone in the office can open Winbox and start changing the router. Watch both packets get through.',
+		'Remember the [[firewall|networking/firewall]], the guard with a guest list? On MikroTik that guard is the <b>firewall filter</b>, a list of rules the router checks for every single packet.',
+		'Rules live in <b>chains</b>. Traffic passing <i>through</i> the router (a laptop going to a website) is the <b>forward</b> chain. Traffic going <i>to</i> the router itself (someone opening Winbox, which knocks on port 8291) is the <b>input</b> chain.',
+		'First, the game. The game server is out on the internet, so Sari’s game passes through the router, chain forward. Watch the terminal write a rule with her address, the game server’s address, and what to do.',
+		'Every rule ends with an action. <b>accept</b> lets the packet through, <b>drop</b> quietly throws it away, no reply at all. Look at Sari’s game now, it waits and waits, then gives up.',
+		'Now protect the router itself. Two input rules, first accept Winbox from Budi (he is the admin), then drop Winbox from everyone else. Watch the rule list light up as each packet is checked.',
+		'[ingat] Rules are read from top to bottom and the first match wins, like a guard who stops reading the guest list the moment he finds your name. So the exception (Budi may) always sits above the general rule (nobody may).',
+		'[fyi] Locking yourself out is a rite of passage for router admins. Add the drop before your own accept and your Winbox goes dark mid click. That is why Winbox has a <b>Safe Mode</b> button that rolls everything back if you lose the connection.',
+		'Your turn. See the whole list, in order, with <b>/ip firewall filter print</b>.'
 	],
 	reactions: {
-		added:
-			'Rule added at the bottom of the list. Look at the command under the window, that is exactly what Winbox sends to the router. Run the tests whenever you like.',
-		mismatch:
-			'That rule will never match anything. Game traffic passes <i>through</i> the router (forward), while Winbox traffic goes <i>to</i> the router (input). Check the chain.',
-		moved:
-			'Order changed. The router reads from the top and stops at the first match, so position matters as much as the rule itself.',
-		gameOpen:
-			'Sari is still playing. Add a <b>forward</b> rule with her address and the game server as the destination, action drop.',
-		overBlock:
-			'Oops, Sari cannot open nimbus.com anymore either. A rule that drops everything from her is too wide. Point it at the game server only.',
-		winboxOpen:
-			'Sari can still open Winbox on the router. Traffic to the router itself is the <b>input</b> chain, drop tcp port 8291 there.',
-		order:
-			'Budi has an accept rule, but a drop rule above it catches him first. First match wins, so move the accept above the drop.',
-		lockedOut:
-			'You just locked the admin out too, nobody can open Winbox now. In real life you would be driving to the office. Add an accept rule for Budi above the drop.',
-		allPass: 'All four tests still pass. Your rules are solid.',
-		done: 'All four pass! The game is blocked for Sari, nimbus.com still works, and only Budi can manage the router. Accept the few, drop the rest, and always mind the order.'
+		filterPrint:
+			'Three rules, numbered from 0. The router walks down this list for every packet and stops at the first match. Swap 1 and 2 and Budi would be locked out too.',
+		error:
+			'RouterOS did not get that one. Check the spelling, or tap the suggestion and watch it get typed.'
 	},
-	missionsLabel: 'Tests',
-	missions: [
-		'Sari cannot reach the game server',
-		'Sari can still open nimbus.com',
-		'Sari cannot open Winbox',
-		'Budi (admin) can still open Winbox'
+	steps: [
+		{
+			title: 'Two problems',
+			body: 'Sari’s game eats her day, and anyone can reach the router’s settings. Right now nothing stops either.'
+		},
+		{
+			tag: 'filter',
+			title: 'The guard’s list',
+			body: 'The <b>firewall filter</b> is a numbered list of rules. Every packet is checked against it.'
+		},
+		{
+			tag: 'chain',
+			title: 'Through or to',
+			body: '<b>forward</b> is traffic passing through the router. <b>input</b> is traffic meant for the router itself.'
+		},
+		{
+			tag: 'forward',
+			title: 'Block the game',
+			body: '<b>src-address</b> is who sends (Sari), <b>dst-address</b> is where it goes (the game server).'
+		},
+		{
+			tag: 'action',
+			title: 'Accept or drop',
+			body: '<b>accept</b> lets it pass. <b>drop</b> throws it away without a word, so the game just times out.'
+		},
+		{
+			tag: 'input',
+			title: 'Guard the router',
+			body: 'Winbox knocks on <b>tcp port 8291</b>. Budi’s address is accepted, everyone else is dropped.'
+		},
+		{
+			tag: 'Remember it',
+			title: 'First match wins',
+			body: 'Top to bottom, stop at the first match. Special cases on top, the general rule below.'
+		},
+		{
+			tag: 'Safe Mode',
+			title: 'Do not lock yourself out',
+			body: 'Always add the rule that lets <b>you</b> in before the one that keeps everyone out.'
+		},
+		{
+			title: 'Your turn',
+			body: 'The number in front of each rule is its place in line. Lower numbers are checked first.'
+		}
 	],
-	hintBtn: 'Help',
-	doneNote: 'Every test passes',
 	ispLabel: 'ISP',
+	gameLabel: 'Game server',
+	tagGame: 'game',
+	tagWinbox: 'Winbox',
+	rulesLabel: 'Filter rules',
+	rules: ['Sari to the game, drop', 'Budi to Winbox, accept', 'Anyone to Winbox, drop'],
 	inputLabel: 'command',
-	termHint: '# every rule you add shows up here as a command',
-	hintUnknown: '# that command does not exist',
+	tryLabel: 'Try this',
+	termHint: '# your turn, type the command and press Enter',
+	hintTry: '# try {cmd}',
 	didYouMean: '# maybe you meant {word}',
-	runBtn: 'Run the tests',
-	running: 'Testing',
-	staffName: 'Sari',
-	adminName: 'Budi (admin)',
-	netLabel: 'internet',
-	builderTitle: 'New Firewall Rule',
-	chainLabel: 'Chain',
-	srcLabel: 'From',
-	targetLabel: 'Going to',
-	actionLabel: 'Action',
-	anyone: 'any',
-	targets: { game: 'game server', winbox: 'Winbox (8291)', any: 'anything' },
-	actions: { accept: 'accept', drop: 'drop' },
-	addBtn: 'Add rule',
-	rulesTitle: 'Filter Rules',
-	emptyRules: 'No rules yet, so everything is let through.',
-	defaultRow: 'Anything no rule matches is accepted.',
-	packetsLabel: 'hits',
-	upLabel: 'Move up',
-	downLabel: 'Move down',
-	removeLabel: 'Remove',
-	logTitle: 'Terminal'
+	hintOrder: '# read from the top, the first rule that matches decides'
 };

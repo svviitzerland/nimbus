@@ -6,14 +6,8 @@ import { en } from './en';
 export const rendering: Lesson = {
 	id: 'rendering',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'idea', 'idea', 'wink', 'excited'],
-	reactionMood: {
-		csr: 'worried',
-		ssr: 'happy',
-		ssg: 'excited',
-		all: 'idea',
-		fast: 'wink'
-	},
+	moods: ['calm', 'thinking', 'worried', 'happy', 'excited', 'wink', 'idea', 'happy'],
+	reactionMood: { csr: 'worried', ssr: 'happy', ssg: 'excited' },
 	stage: RenderingStage,
 	text: { id, en }
 };

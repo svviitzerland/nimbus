@@ -1,17 +1,9 @@
-import type { LinuxLabText } from '$lib/components/stages/linux/text';
+import type { LinuxGuideText } from '$lib/components/stages/linux/text';
 
-export interface ShellScriptText extends LinuxLabText {
-	// missions, in order: back up by hand, write backup.sh, make it runnable, run it
-	termTab: string; // tab that shows the terminal (the other tab is nano backup.sh)
-	editorEmpty: string; // the empty file, before any line is placed
-	poolLabel: string; // heading over the lines you can tap into the file
-	saveBtn: string; // writes the file
-	editorHint: string; // small note next to Save
-	/** Shown under the file when the order would break the script. */
-	orderNotes: { shebang: string; day: string; mkdir: string };
+export interface ShellScriptText extends LinuxGuideText {
+	byHand: string; // shown before the script card appears
+	runnableChip: string; // on the script card once it may run
 	emptyShelf: string; // ~/backups before anything is in it
-	nextDayBtn: string; // jumps to the next night
-	days: string[]; // short weekday names, Sunday first
-	nightLine: string; // muted terminal line when a new night starts, template with {day}
-	hintNano: string; // nano on any other file
+	rule: string; // rule of thumb line on the memory beat
+	nightLine: string; // muted terminal line on the learner's turn, template with {day}
 }

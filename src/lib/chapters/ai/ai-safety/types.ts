@@ -1,36 +1,41 @@
 import type { LessonText } from '../../types';
 
-/** The defenses the learner can switch on in act two. `caps` is the decoy that does nothing. */
-export type AiSafetyDefense = 'mark' | 'strip' | 'limit' | 'caps';
+export interface AiSafetyPanel {
+	tag?: string;
+	title: string;
+	/** May hold simple HTML like <b>. */
+	body: string;
+}
 
 export interface AiSafetyText extends LessonText {
-	acts: [string, string]; // short names of the two acts, shown as tabs
-	you: string; // label on the learner's chat bubble
-	bot: string; // label on the bot's chat bubble
-	// act one, the made up answer
+	/** One panel per scene of the guided picture (eight scenes). */
+	panels: AiSafetyPanel[];
+	/** Spoken description of the whole picture. */
+	picture: string;
+	/** The chat window header. */
+	botName: string;
+	/** Part 1, the made up answer. */
 	question: string;
-	/** The bot's answer, one sentence each. The stage knows the third one is made up. */
-	claims: string[];
+	claimTrue: string;
+	claimFake: string;
 	sourceTitle: string;
-	sourceLines: string[];
-	tapHint: string;
-	okTag: string; // badge on a sentence the source backs up
-	fakeTag: string; // badge on the made up sentence
-	nextAct: string;
-	// act two, the hidden instruction
-	task: string; // what the learner asks the bot to do with the document
-	docTitle: string;
-	docLines: string[]; // the review as people see it
-	docHidden: string; // the instruction hidden in white text
+	/** The real help page, the first line backs the true claim, the second one contradicts the fake. */
+	sourceLines: [string, string];
+	/** Part 2, the hidden order. */
+	ask: string;
+	fileName: string;
+	review: string;
+	hidden: string;
 	hiddenTag: string;
-	revealBtn: string;
-	hideBtn: string;
-	runBtn: string;
-	thinking: string;
-	defensesTitle: string;
-	defenses: { id: AiSafetyDefense; name: string; sub: string }[];
-	hijackedReply: string;
+	hijacked: string;
 	safeReply: string;
-	hijackedTag: string;
-	safeTag: string;
+	/** The three layers of defense, short labels under three shields. */
+	shields: [string, string, string];
+	/** Memory trick stamp over the chat. */
+	memo: string;
+	/** The rule of thumb line under the picture. */
+	rule: string;
+	/** The optional switch on the last beat. */
+	offBtn: string;
+	onBtn: string;
 }

@@ -1,17 +1,34 @@
 import type { LessonText } from '../../types';
 
-/** The zones on the board, from outside (not AI) to the innermost ring. */
-export type AiRing = 'out' | 'ai' | 'ml' | 'dl' | 'gen';
+/** The circles, from the biggest to the smallest. */
+export type AiRing = 'ai' | 'ml' | 'dl' | 'gen';
 
-/** The everyday things the learner sorts. Which ring each belongs to lives in the stage. */
-export type AiCardId = 'chat' | 'calc' | 'face' | 'spam' | 'chess' | 'image' | 'price';
+/** The everyday examples that drop into the picture. Where each one lives is set in the stage. */
+export type AiThingId = 'calc' | 'chess' | 'spam' | 'face' | 'chat' | 'image';
+
+export interface GuidePanel {
+	tag?: string;
+	title: string;
+	/** May hold simple HTML like <b>. */
+	body: string;
+}
 
 export interface WhatIsAiText extends LessonText {
-	/** Label for every zone on the board. */
+	/** One panel per beat of the guided visual (nine beats). */
+	panels: GuidePanel[];
+	/** The name written inside each circle. */
 	rings: Record<AiRing, string>;
-	/** The cards, in the order they sit in the tray. */
-	cards: { id: AiCardId; name: string; sub: string }[];
-	pickHint: string; // nothing selected yet
-	ringHint: string; // template with {name}, a card is selected
-	doneNote: string; // every card placed
+	/** Short name under each example. */
+	things: Record<AiThingId, string>;
+	/** Turing's famous question, shown big on the history beat. */
+	quote: string;
+	/** Small line under the quote (who asked it, and when). */
+	quoteBy: string;
+	photo: { alt: string; caption: string };
+	/** Rule of thumb under the picture on the first memory beat. */
+	rule: string;
+	/** Rule of thumb on the second memory beat, about the nesting. */
+	nest: string;
+	/** Hint on the last beat, the examples can be tapped. */
+	tapHint: string;
 }

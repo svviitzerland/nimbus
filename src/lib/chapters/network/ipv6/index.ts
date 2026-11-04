@@ -6,12 +6,8 @@ import { en } from './en';
 export const ipv6: Lesson = {
 	id: 'ipv6',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'surprised', 'idea', 'wink', 'happy', 'excited'],
+	moods: ['calm', 'thinking', 'surprised', 'sad', 'idea', 'excited', 'wink', 'wink', 'happy'],
 	reactionMood: {
-		grow: 'happy',
-		tight: 'worried',
-		full: 'sad',
-		ipv6: 'excited',
 		sand: 'surprised'
 	},
 	stage: Ipv6Stage,

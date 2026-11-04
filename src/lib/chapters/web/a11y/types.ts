@@ -1,40 +1,28 @@
 import type { LessonText } from '../../types';
 
-export type A11yMissionId = 'alt' | 'label' | 'button' | 'contrast';
-export type A11yFixId = 'alt' | 'label' | 'button';
-
 export interface A11yText extends LessonText {
-	/** Heading over the mission list. */
-	missionsLabel: string;
-	/** One line per mission, in order. */
-	missions: Record<A11yMissionId, string>;
-	/** Controls over the page. */
-	blindfold: string;
-	next: string;
-	restart: string;
-	voice: string;
-	/** Language for the optional spoken voice, like en-US. */
-	voiceLang: string;
-	/** The reader panel. */
+	/** One side panel step per intro beat, in the same order. */
+	steps: { title: string; body: string; tag?: string }[];
+	/** File name over the code and the address bar over the page. */
+	htmlLabel: string;
+	previewLabel: string;
+	/** The caption strip that shows what the screen reader says. */
 	readerLabel: string;
 	readerIdle: string;
-	/** Shown over the page while the blindfold is on. */
-	cover: string;
-	/** Words a screen reader adds after each piece. */
 	roles: { image: string; heading: string; editText: string; button: string };
 	blank: string;
+	/** Shown when the reader jumps past a clickable box that is not a real button. */
 	skipped: string;
 	endOfPage: string;
+	/** BCP 47 voice for the optional read aloud while blindfolded. */
+	voiceLang: string;
 	/** Words on the signup page. */
 	page: { heading: string; tagline: string; email: string; subscribe: string; alt: string };
-	/** The fix button, and what each fix does. */
-	fixLabel: string;
-	fixes: Record<A11yFixId, string>;
-	/** The contrast checker, with {n} for the ratio. */
+	/** The contrast meter, `ratio` is a template with {n}. */
 	contrastLabel: string;
 	ratio: string;
 	need: string;
-	darker: string;
-	/** Shown once every mission is done. */
-	allDone: string;
+	/** The optional blindfold on the last beat. */
+	blindfold: string;
+	cover: string;
 }

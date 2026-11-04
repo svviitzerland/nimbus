@@ -5,18 +5,9 @@ import { en } from './en';
 
 export const release: Lesson = {
 	id: 'release',
-	mood: 'thinking',
-	moods: ['calm', 'worried', 'idea', 'thinking', 'wink', 'happy'],
-	reactionMood: {
-		bigbang: 'sad',
-		slowBack: 'worried',
-		flipped: 'surprised',
-		flipBack: 'happy',
-		canary: 'thinking',
-		canaryBig: 'worried',
-		canaryBack: 'happy',
-		both: 'excited'
-	},
+	mood: 'calm',
+	moods: ['calm', 'worried', 'idea', 'thinking', 'happy', 'excited', 'wink', 'calm', 'happy'],
+	reactionMood: { bigbang: 'sad', canary: 'happy' },
 	stage: ReleaseStage,
 	text: { id, en }
 };

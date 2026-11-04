@@ -1,30 +1,38 @@
 import type { LessonText } from '../../types';
+import type { GuideStep } from '$lib/components/stages/secbasics/guided.svelte';
 
-/** What nimbus.com may ask Google for. Name and email are always needed. */
-export type SsoScope = 'name' | 'email' | 'photo' | 'contacts' | 'drive';
+export type SsoScope = 'name' | 'email' | 'photo';
 
 export interface SsoText extends LessonText {
-	signInTitle: string; // the nimbus.com login page
-	googleBtn: string; // the "sign in with Google" button
-	orPassword: string; // the greyed out alternative, yet another password
-	googleTitle: string; // Google's own sign in page
+	/** The side panel, one entry per beat. */
+	steps: GuideStep[];
+	/** The five sites that fall like dominoes on the first beat. */
+	sites: [string, string, string, string, string];
+	signInTitle: string;
+	googleBtn: string;
+	orPassword: string;
+	emailField: string;
+	passwordField: string;
+	/** The old, bad way (a site asking for your email password). */
+	badTitle: string;
+	badField: string;
+	badSub: string;
+	googleTitle: string;
 	googleSub: string;
 	googleEmail: string;
-	passwordField: string;
 	nextBtn: string;
-	consentTitle: string; // "nimbus.com wants to"
+	consentTitle: string;
 	scopes: Record<SsoScope, string>;
-	requiredTag: string; // marks the scopes that cannot be switched off
 	allowBtn: string;
-	returning: string; // shown while the phone heads back to nimbus.com
 	welcomeTitle: string;
 	welcomeSub: string;
-	gotTitle: string; // heading over what nimbus.com received
-	tokenChip: string; // the access token itself
-	passwordRow: string; // your Google password
-	neverTag: string; // the password was never shared
-	notSharedTag: string; // a scope you kept back
+	gotTitle: string;
+	tokenChip: string;
+	passwordRow: string;
+	neverTag: string;
+	/** The office apps that open after one login (the fyi beat). */
+	apps: [string, string, string];
 	revokeBtn: string;
+	revokedTitle: string;
 	revokedNote: string;
-	hints: { start: string; google: string; consent: string; done: string };
 }

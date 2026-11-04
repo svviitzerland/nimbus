@@ -1,527 +1,536 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
-	import type { LessonText } from '$lib/chapters/types';
+	// A guided "watch" stage. Nim narrates, and a chart of songs (tempo and energy) follows the
+	// beats by itself: tagged songs appear, a new song takes the tag of its nearest neighbours
+	// (supervised), then the tags fade away and three markers group the songs on their own,
+	// grabbing the nearest songs and sliding to the middle until nothing moves (clustering). The
+	// only optional play is on the last beat, shuffling the markers and grouping again.
+	import { fade } from 'svelte/transition';
+	import Guide from '$lib/components/Guide.svelte';
+	import type { StageProps } from '$lib/chapters/types';
 	import type { SupervisedText } from '$lib/chapters/ai/supervised/types';
-	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
+	import { runSeq, type SeqStep } from './webguide/seq';
 
-	let {
-		text,
-		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+	let { text, oncomplete, onstate, onshow, beat = 0 }: StageProps = $props();
 	const tx = $derived(text as SupervisedText);
 
-	// One pile of songs. x is tempo, y is energy (both 0 to 10), g is the tag people gave it
-	// (0 chill, 1 dance, 2 rock). The unsupervised side never looks at g.
-	const SONGS = [
-		{ x: 1.5, y: 2, g: 0 },
-		{ x: 2.5, y: 1.4, g: 0 },
-		{ x: 2, y: 3, g: 0 },
-		{ x: 3, y: 2.4, g: 0 },
-		{ x: 1.2, y: 1.2, g: 0 },
-		{ x: 2.8, y: 3.2, g: 0 },
-		{ x: 7.5, y: 7, g: 1 },
-		{ x: 8.5, y: 8, g: 1 },
-		{ x: 8.8, y: 6.8, g: 1 },
-		{ x: 7.2, y: 8.2, g: 1 },
-		{ x: 8, y: 6.2, g: 1 },
-		{ x: 9.2, y: 7.8, g: 1 },
-		{ x: 4, y: 8.5, g: 2 },
-		{ x: 5, y: 9, g: 2 },
-		{ x: 4.6, y: 7.6, g: 2 },
-		{ x: 3.6, y: 7.8, g: 2 },
-		{ x: 5.4, y: 8, g: 2 },
-		{ x: 4.2, y: 9.3, g: 2 }
+	const LAST = 7;
+	type P = [number, number]; // [tempo, energy], both 0 to 1
+	// Eighteen songs, six chill (slow and calm), six dance (fast), six rock (loud).
+	const SONGS: { p: P; tag: number }[] = [
+		...(
+			[
+				[0.15, 0.2],
+				[0.22, 0.3],
+				[0.12, 0.35],
+				[0.28, 0.18],
+				[0.2, 0.12],
+				[0.3, 0.32]
+			] as P[]
+		).map((p) => ({ p, tag: 0 })),
+		...(
+			[
+				[0.62, 0.62],
+				[0.72, 0.7],
+				[0.68, 0.55],
+				[0.78, 0.62],
+				[0.65, 0.75],
+				[0.75, 0.5]
+			] as P[]
+		).map((p) => ({ p, tag: 1 })),
+		...(
+			[
+				[0.35, 0.85],
+				[0.45, 0.9],
+				[0.3, 0.78],
+				[0.42, 0.75],
+				[0.5, 0.82],
+				[0.38, 0.95]
+			] as P[]
+		).map((p) => ({ p, tag: 2 }))
 	];
-	// where the searching rings start, deliberately in the middle so you can watch them travel
-	const STARTS = [
-		{ x: 3, y: 5 },
-		{ x: 7, y: 5 },
-		{ x: 5, y: 2.5 },
-		{ x: 5, y: 8 }
+	const NEW_SONGS: P[] = [
+		[0.25, 0.25],
+		[0.7, 0.64],
+		[0.42, 0.84]
 	];
-	const COLORS = [
-		'var(--color-brand)',
-		'var(--color-grass)',
-		'var(--color-amber)',
-		'var(--color-danger)'
+	// Starting spots for the three markers. Each one settles on the same three groups.
+	const STARTS: P[][] = [
+		[
+			[0.5, 0.45],
+			[0.15, 0.6],
+			[0.85, 0.3]
+		],
+		[
+			[0.1, 0.9],
+			[0.9, 0.9],
+			[0.55, 0.1]
+		],
+		[
+			[0.3, 0.55],
+			[0.6, 0.3],
+			[0.7, 0.95]
+		]
 	];
+	const TAG_COLOURS = ['var(--color-brand)', 'var(--color-amber)', 'var(--color-danger)'];
+	const GROUP_COLOURS = ['var(--color-grass)', 'var(--color-brand)', 'var(--color-amber)'];
 
-	// chart frame, SVG viewBox 220 x 196
-	const L = 30;
-	const R = 212;
-	const T = 10;
-	const B = 160;
-	const sx = (v: number) => L + (v / 10) * (R - L);
-	const sy = (v: number) => B - (v / 10) * (B - T);
-	const d2 = (a: { x: number; y: number }, b: { x: number; y: number }) =>
-		(a.x - b.x) ** 2 + (a.y - b.y) ** 2;
+	const SX = (t: number) => 40 + t * 280;
+	const SY = (e: number) => 240 - e * 220;
+	const dist = (a: P, b: P) => (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2;
 
-	let mode = $state<'sup' | 'unsup'>('sup');
-	let didSup = false;
-	let didUnsup = false;
-	let saidUnsupMode = false;
-	let completed = false;
-	function check() {
-		if (didSup && didUnsup && !completed) {
-			completed = true;
-			oncomplete?.();
-		}
-	}
-
-	function setMode(m: 'sup' | 'unsup') {
-		mode = m;
-		if (m === 'unsup' && !saidUnsupMode) {
-			saidUnsupMode = true;
-			onstate?.('unsup_mode');
-		}
-	}
-
-	// ---- supervised: a new song takes the most common tag of its three nearest songs ----
-	let svg = $state<SVGSVGElement>();
-	let drop = $state<{ x: number; y: number; g: number; near: number[] } | null>(null);
-	function tag(p: { x: number; y: number }) {
-		const near = SONGS.map((s, i) => ({ i, d: d2(s, p) }))
-			.sort((a, b) => a.d - b.d)
-			.slice(0, 3)
-			.map((n) => n.i);
-		const votes = [0, 0, 0];
-		for (const i of near) votes[SONGS[i].g]++;
-		const top = Math.max(...votes);
-		// a three way tie goes to the very closest song
-		const g = top === 1 ? SONGS[near[0]].g : votes.indexOf(top);
-		return { g, near };
-	}
-	function place(e: MouseEvent) {
-		if (mode !== 'sup' || !svg) return;
-		const box = svg.getBoundingClientRect();
-		const px = ((e.clientX - box.left) / box.width) * 220;
-		const py = ((e.clientY - box.top) / box.height) * 196;
-		if (px < L - 4 || px > R + 4 || py < T - 4 || py > B + 4) return;
-		const p = {
-			x: Math.max(0, Math.min(10, ((px - L) / (R - L)) * 10)),
-			y: Math.max(0, Math.min(10, ((B - py) / (B - T)) * 10))
-		};
-		drop = { ...p, ...tag(p) };
-		onstate?.('sup_guess');
-		didSup = true;
-		check();
-	}
-
-	// ---- unsupervised: k means, rings grab their closest songs then move to the middle ----
-	let k = $state(3);
-	let centres = $state<{ x: number; y: number }[]>([]);
-	let assign = $state<number[] | null>(null);
-	let rounds = $state(0);
-	let running = $state(false);
-	let settled = $state(false);
-	let timer: ReturnType<typeof setInterval> | undefined;
-
-	function nearestCentre(s: { x: number; y: number }, cs: { x: number; y: number }[]) {
-		let best = 0;
-		for (let i = 1; i < cs.length; i++) if (d2(s, cs[i]) < d2(s, cs[best])) best = i;
-		return best;
-	}
-	function assignStep() {
-		const next = SONGS.map((s) => nearestCentre(s, centres));
-		const same = assign !== null && next.every((v, i) => v === assign![i]);
-		assign = next;
-		return same;
-	}
-	function moveStep() {
-		centres = centres.map((c, i) => {
-			const mine = SONGS.filter((_, j) => assign![j] === i);
-			if (mine.length === 0) return c;
-			return {
-				x: mine.reduce((s, p) => s + p.x, 0) / mine.length,
-				y: mine.reduce((s, p) => s + p.y, 0) / mine.length
-			};
-		});
-	}
-	function finish() {
-		clearInterval(timer);
-		timer = undefined;
-		running = false;
-		settled = true;
-		// three groups that match the tags people gave, in some order
-		const matches =
-			k === 3 &&
-			[0, 1, 2].every((g) => {
-				const ids = SONGS.map((s, j) => (s.g === g ? assign![j] : -1)).filter((v) => v >= 0);
-				return ids.every((v) => v === ids[0]);
+	/** Every frame of the clustering, from markers dropped in to nothing moving anymore. */
+	function cluster(start: P[]) {
+		const frames: { c: P[]; a: number[] | null }[] = [{ c: start, a: null }];
+		let c = start;
+		for (let round = 0; round < 10; round++) {
+			const a = SONGS.map(({ p }) => {
+				let best = 0;
+				c.forEach((q, k) => {
+					if (dist(p, q) < dist(p, c[best])) best = k;
+				});
+				return best;
 			});
-		onstate?.(matches ? 'found3' : 'foundk');
-		didUnsup = true;
-		check();
+			frames.push({ c, a });
+			const next = c.map((q, k) => {
+				const mine = SONGS.filter((_, i) => a[i] === k);
+				if (!mine.length) return q;
+				return [
+					mine.reduce((s, { p }) => s + p[0], 0) / mine.length,
+					mine.reduce((s, { p }) => s + p[1], 0) / mine.length
+				] as P;
+			});
+			const moved = next.some((q, k) => dist(q, c[k]) > 1e-9);
+			c = next;
+			if (!moved) break;
+			frames.push({ c, a });
+		}
+		return frames;
 	}
-	function find() {
-		if (running) return;
-		clearInterval(timer);
-		centres = STARTS.slice(0, k).map((c) => ({ ...c }));
-		assign = null;
-		rounds = 0;
-		settled = false;
-		running = true;
-		onstate?.('unsup_go');
-		const reduced =
-			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-		if (reduced) {
-			for (let r = 0; r < 30; r++) {
-				rounds++;
-				if (assignStep()) break;
-				moveStep();
-			}
-			finish();
+	function nearest3(p: P) {
+		return SONGS.map((s, i) => ({ i, d: dist(s.p, p), tag: s.tag }))
+			.sort((x, y) => x.d - y.d)
+			.slice(0, 3);
+	}
+
+	let peek = $state<number | null>(null);
+	let reduced = $state(false);
+	let newIdx = $state(-1); // the new song on the chart right now
+	let newStep = $state<'drop' | 'look' | 'tag'>('drop');
+	let run = $state(0); // which starting spots the markers use
+	let frame = $state(0);
+	let shuffles = $state(0);
+
+	$effect(() => {
+		onshow?.(true);
+		oncomplete?.();
+		if (typeof matchMedia !== 'undefined') {
+			reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+		}
+	});
+
+	// A new beat always brings the picture back to the story.
+	$effect(() => {
+		void beat;
+		peek = null;
+		run = 0;
+		shuffles = 0;
+	});
+
+	const scene = $derived(peek ?? Math.min(beat, LAST));
+	const frames = $derived(cluster(STARTS[run]));
+	const labelled = $derived(scene <= 1);
+
+	// Beat 2, new songs arrive one at a time and borrow the tag of their neighbours.
+	$effect(() => {
+		if (scene !== 1) {
+			newIdx = -1;
 			return;
 		}
-		let half = 0;
-		timer = setInterval(() => {
-			if (half % 2 === 0) {
-				rounds++;
-				if (assignStep() || rounds > 30) {
-					finish();
-					return;
-				}
-			} else moveStep();
-			half++;
-		}, 650);
-	}
-	function pickK(n: number) {
-		if (running) return;
-		k = n;
-		centres = [];
-		assign = null;
-		settled = false;
-		rounds = 0;
-	}
+		if (reduced) {
+			newIdx = 0;
+			newStep = 'tag';
+			return;
+		}
+		const steps: SeqStep[] = [];
+		NEW_SONGS.forEach((_, k) => {
+			steps.push(
+				[1200, () => ((newIdx = k), (newStep = 'drop'))],
+				[1500, () => (newStep = 'look')],
+				[2400, () => (newStep = 'tag')]
+			);
+		});
+		return runSeq(steps, true);
+	});
 
-	function reset() {
-		clearInterval(timer);
-		timer = undefined;
-		running = false;
-		drop = null;
-		pickK(3);
-	}
+	// Beat 4 (and the shuffle on the last beat), the markers group the songs frame by frame.
+	$effect(() => {
+		const sc = scene;
+		const all = frames.length;
+		void shuffles;
+		if (sc < 3) {
+			frame = 0;
+			return;
+		}
+		const animate = sc === 3 || (sc === LAST && shuffles > 0);
+		if (!animate || reduced) {
+			frame = all - 1;
+			return;
+		}
+		const steps: SeqStep[] = [[900, () => (frame = 0)]];
+		for (let k = 1; k < all; k++) steps.push([1300, () => (frame = k)]);
+		if (sc === 3) steps.push([2600, () => {}]);
+		return runSeq(steps, sc === 3);
+	});
 
-	onDestroy(() => clearInterval(timer));
+	const current = $derived(frames[Math.min(frame, frames.length - 1)]);
+	const settled = $derived(scene >= 4 && frame === frames.length - 1);
 
-	const songColor = (i: number) => {
-		if (mode === 'sup') return COLORS[SONGS[i].g];
-		if (assign) return COLORS[assign[i]];
+	function colourOf(i: number) {
+		if (labelled) return TAG_COLOURS[SONGS[i].tag];
+		if (scene >= 3 && current.a) return GROUP_COLOURS[current.a[i]];
 		return 'var(--color-faint)';
-	};
+	}
+
+	const newSong = $derived(newIdx >= 0 ? NEW_SONGS[newIdx] : null);
+	const near = $derived(newSong ? nearest3(newSong) : []);
+	const newTag = $derived.by(() => {
+		const count = [0, 0, 0];
+		near.forEach((n) => (count[n.tag] += 1));
+		return count.indexOf(Math.max(...count));
+	});
+
+	function shuffle() {
+		run = (run + 1) % STARTS.length;
+		shuffles += 1;
+		onstate?.('again');
+	}
 </script>
 
-{#snippet note(x: number, y: number, color: string, big: boolean)}
-	<g transform="translate({sx(x)} {sy(y)}) scale({big ? 1.4 : 1})" class="note">
-		<line x1="2.6" y1="1.6" x2="2.6" y2="-6.5" style="stroke:{color}" />
-		<path d="M2.6 -6.5 q3 1 3.6 3.6" style="stroke:{color}" class="flag" />
-		<ellipse cx="0" cy="2" rx="3.2" ry="2.5" transform="rotate(-20 0 2)" style="fill:{color}" />
+{#snippet note(x: number, y: number, colour: string, delay = 0)}
+	<g transform="translate({x} {y})">
+		<g class="note" style="--c:{colour}; transition-delay:{delay}ms">
+			<ellipse cx="-2.5" cy="4" rx="4.2" ry="3.1" transform="rotate(-20 -2.5 4)" />
+			<path d="M1.2 3.5 V-8 Q5 -6.5 6 -3" class="stem" />
+		</g>
 	</g>
 {/snippet}
 
 <div class="stage">
-	<div class="tabs" role="tablist">
-		<button
-			type="button"
-			role="tab"
-			aria-selected={mode === 'sup'}
-			class:on={mode === 'sup'}
-			onclick={() => setMode('sup')}>{tx.modeSup}</button
-		>
-		<button
-			type="button"
-			role="tab"
-			aria-selected={mode === 'unsup'}
-			class:on={mode === 'unsup'}
-			onclick={() => setMode('unsup')}>{tx.modeUnsup}</button
-		>
-	</div>
+	<Guide steps={tx.panels} active={scene} onselect={(i) => (peek = i)}>
+		{#snippet visual(i: number)}
+			<div class="visual">
+				{#if i === LAST}
+					<button type="button" class="act" onclick={shuffle} in:fade={{ duration: 300 }}>
+						{tx.againBtn}
+					</button>
+				{/if}
+				<div class="card">
+					<div class="meta">
+						<span class="badge" class:off={!labelled}>
+							<svg viewBox="0 0 20 12" aria-hidden="true">
+								<circle cx="5" cy="6" r="3.6" />
+								<path d="M8.6 6 H18 M15 6 V9.5 M17.5 6 V8.5" />
+							</svg>
+							{labelled ? tx.withKey : tx.withoutKey}
+						</span>
+						<span class="legend">
+							{#if labelled}
+								{#each tx.genres as g, k (g)}
+									<span class="chip" style="--c:{TAG_COLOURS[k]}"><i></i>{g}</span>
+								{/each}
+							{:else if settled}
+								{#each [0, 1, 2] as k (k)}
+									<span class="chip" style="--c:{GROUP_COLOURS[k]}" in:fade={{ duration: 300 }}>
+										<i></i>{tx.groupName.replace('{n}', String(k + 1))}
+									</span>
+								{/each}
+							{/if}
+						</span>
+					</div>
+					<svg viewBox="0 0 340 270" class="chart" aria-hidden="true">
+						<path d="M40 20 V240 H320" class="axis" />
+						<text x="44" y="16" class="axis-name">{tx.yAxis}</text>
+						<text x="320" y="258" class="axis-name" style="text-anchor:end">{tx.xAxis}</text>
 
-	<div class="control">
-		{#if mode === 'sup'}
-			{#if drop}
-				<p class="answer" style="color:{COLORS[drop.g]}">
-					{tx.supAnswer.replace('{label}', tx.genres[drop.g])}
+						<!-- the lines from each song to the marker that grabbed it -->
+						{#if scene >= 3 && current.a && !settled}
+							{#each SONGS as s, k (k)}
+								{@const q = current.c[current.a[k]]}
+								<line
+									x1={SX(s.p[0])}
+									y1={SY(s.p[1])}
+									x2={SX(q[0])}
+									y2={SY(q[1])}
+									class="grab"
+									style="--c:{GROUP_COLOURS[current.a[k]]}"
+								/>
+							{/each}
+						{/if}
+
+						<!-- a new song asks its three nearest neighbours -->
+						{#if newSong && newStep !== 'drop'}
+							{#each near as n (n.i)}
+								<line
+									x1={SX(newSong[0])}
+									y1={SY(newSong[1])}
+									x2={SX(SONGS[n.i].p[0])}
+									y2={SY(SONGS[n.i].p[1])}
+									pathLength="1"
+									class="ask"
+									class:draw={!reduced}
+								/>
+							{/each}
+						{/if}
+
+						{#each SONGS as s, k (k)}
+							<g class:pop={scene === 0 && !reduced} style="animation-delay:{k * 90}ms">
+								{@render note(SX(s.p[0]), SY(s.p[1]), colourOf(k), scene === 2 ? k * 60 : 0)}
+							</g>
+						{/each}
+
+						{#if newSong}
+							{#key newIdx}
+								<g class:pop={!reduced}>
+									<circle cx={SX(newSong[0])} cy={SY(newSong[1])} r="14" class="halo" />
+									{@render note(
+										SX(newSong[0]),
+										SY(newSong[1]),
+										newStep === 'tag' ? TAG_COLOURS[newTag] : 'var(--color-ink)'
+									)}
+								</g>
+							{/key}
+						{/if}
+
+						<!-- the three markers -->
+						{#if scene >= 3}
+							{#each current.c as q, k (k)}
+								<g
+									class="marker"
+									style="transform: translate({SX(q[0])}px, {SY(q[1])}px); --c:{GROUP_COLOURS[k]}"
+								>
+									<g class:pop={frame === 0 && !reduced}>
+										<circle r="13" />
+										<path d="M-5 0 H5 M0 -5 V5" />
+									</g>
+								</g>
+							{/each}
+						{/if}
+					</svg>
+				</div>
+				<p class="caption" class:rule={i === 5}>
+					{#if i === 5}
+						<span in:fade={{ duration: 300 }}>{tx.rule}</span>
+					{:else if newSong && newStep === 'tag'}
+						{#key newIdx}
+							<span in:fade={{ duration: 250 }} style="color:{TAG_COLOURS[newTag]}">
+								{tx.tagged.replace('{label}', tx.genres[newTag])}
+							</span>
+						{/key}
+					{/if}
 				</p>
-			{/if}
-			<p class="hint">{tx.supHint}</p>
-		{:else}
-			<div class="krow">
-				<span class="klabel">{tx.groups}</span>
-				{#each [2, 3, 4] as n (n)}
-					<button
-						type="button"
-						class="kbtn"
-						class:on={k === n}
-						disabled={running}
-						aria-pressed={k === n}
-						onclick={() => pickK(n)}>{n}</button
-					>
-				{/each}
-				<CallToActionButton onclick={find} disabled={running}>{tx.findBtn}</CallToActionButton>
 			</div>
-			<p class="hint">
-				{running
-					? tx.round.replace('{n}', String(rounds))
-					: settled
-						? tx.found.replace('{k}', String(k)).replace('{n}', String(rounds))
-						: tx.unsupHint}
-			</p>
-		{/if}
-	</div>
-
-	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
-	<svg
-		bind:this={svg}
-		class="chart"
-		class:tap={mode === 'sup'}
-		viewBox="0 0 220 196"
-		role="img"
-		aria-label={tx.title}
-		onclick={place}
-	>
-		<rect x={L} y={T} width={R - L} height={B - T} class="frame" />
-		<text class="axis" x={(L + R) / 2} y="178">{tx.xAxis}</text>
-		<text class="axis" transform="translate(14 {(T + B) / 2}) rotate(-90)">{tx.yAxis}</text>
-
-		{#if mode === 'sup' && drop}
-			{#each drop.near as i (i)}
-				<line
-					class="vote"
-					x1={sx(drop.x)}
-					y1={sy(drop.y)}
-					x2={sx(SONGS[i].x)}
-					y2={sy(SONGS[i].y)}
-				/>
-			{/each}
-		{/if}
-
-		{#each SONGS as s, i (i)}
-			{@render note(s.x, s.y, songColor(i), false)}
-		{/each}
-
-		{#if mode === 'sup' && drop}
-			<circle
-				class="new ring"
-				cx={sx(drop.x)}
-				cy={sy(drop.y)}
-				r="11"
-				style="stroke:{COLORS[drop.g]}"
-			/>
-			{@render note(drop.x, drop.y, COLORS[drop.g], true)}
-		{/if}
-
-		{#if mode === 'unsup'}
-			{#each centres as c, i (i)}
-				<g class="centre" style="transform:translate({sx(c.x)}px, {sy(c.y)}px)">
-					<circle r="12" style="stroke:{COLORS[i]}" class="ring" />
-					<path d="M-4 0 H4 M0 -4 V4" style="stroke:{COLORS[i]}" />
-				</g>
-			{/each}
-		{/if}
-	</svg>
-
-	<div class="legend">
-		{#if mode === 'sup'}
-			{#each tx.genres as g, i (i)}
-				<span><i style="background:{COLORS[i]}"></i>{g}</span>
-			{/each}
-		{:else if settled}
-			{#each centres as _, i (i)}
-				<span
-					><i style="background:{COLORS[i]}"></i>{tx.groupName.replace('{n}', String(i + 1))}</span
-				>
-			{/each}
-		{/if}
-		{#if (mode === 'sup' && drop) || (mode === 'unsup' && (settled || assign))}
-			<button type="button" class="ghost" onclick={reset}>{tx.reset}</button>
-		{/if}
-	</div>
+		{/snippet}
+	</Guide>
 </div>
 
 <style>
 	.stage {
 		display: flex;
+		height: 100%;
 		width: 100%;
+		justify-content: center;
+		align-items: flex-start;
+		overflow-y: auto;
+		overflow-x: hidden;
+		padding-bottom: 16px;
+	}
+	.visual {
+		display: flex;
+		width: 100%;
+		max-width: 440px;
 		flex-direction: column;
 		align-items: center;
 		gap: 10px;
-		padding-bottom: 8px;
 	}
-	.tabs {
-		display: flex;
-		gap: 4px;
-		border-radius: 12px;
-		background: var(--color-paper);
-		border: 1.5px solid var(--color-line);
-		padding: 3px;
-	}
-	.tabs button {
-		border-radius: 9px;
-		padding: 6px 14px;
-		font-size: 12.5px;
-		font-weight: 600;
-		color: var(--color-muted);
-	}
-	.tabs button.on {
-		background: var(--color-card);
-		color: var(--color-ink);
-		box-shadow: 0 1px 4px rgba(22, 40, 60, 0.1);
-	}
-	.control {
-		display: flex;
-		min-height: 72px;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 6px;
-	}
-	.answer {
-		font-size: 14px;
-		font-weight: 700;
-		text-align: center;
-	}
-	.hint {
-		font-size: 12px;
-		color: var(--color-faint);
-		text-align: center;
-	}
-	.krow {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-	}
-	.krow :global(.cta) {
-		margin-left: 6px;
-		padding: 9px 16px;
-		font-size: 13px;
-	}
-	.klabel {
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-muted);
-	}
-	.kbtn {
-		display: grid;
-		place-items: center;
-		width: 30px;
-		height: 30px;
-		border-radius: 9px;
-		border: 1.5px solid var(--color-line);
-		background: var(--color-card);
-		font-size: 13px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	.kbtn.on {
-		border-color: var(--color-brand);
+	.act {
+		border: 1.5px solid var(--color-brand);
+		border-radius: 999px;
 		background: var(--color-brand-soft);
+		padding: 7px 16px;
+		font-size: 13px;
+		font-weight: 700;
 		color: var(--color-brand);
+		transition: transform 0.15s;
 	}
-	.kbtn:disabled {
-		opacity: 0.5;
+	.act:hover {
+		transform: translateY(-1px);
 	}
-
-	.chart {
+	.card {
 		width: 100%;
-		max-width: 360px;
-		height: auto;
-		overflow: visible;
-		user-select: none;
+		border: 1px solid var(--color-line);
+		border-radius: 18px;
+		background: var(--color-card);
+		padding: 10px 10px 4px;
 	}
-	.chart.tap {
-		cursor: crosshair;
-	}
-	.frame {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.2;
-	}
-	.axis {
-		font-size: 9.5px;
-		font-weight: 600;
-		fill: var(--color-muted);
-		text-anchor: middle;
-	}
-	.note line,
-	.note .flag {
-		fill: none;
-		stroke-width: 1.3;
-		stroke-linecap: round;
-	}
-	.note ellipse,
-	.note line {
-		transition:
-			fill 0.35s ease,
-			stroke 0.35s ease;
-	}
-	.vote {
-		stroke: var(--color-ink);
-		stroke-opacity: 0.3;
-		stroke-width: 1.2;
-	}
-	.ring {
-		fill: none;
-		stroke-width: 2;
-	}
-	.ring.new {
-		stroke-opacity: 0.5;
-	}
-	.centre {
-		transition: transform 0.55s cubic-bezier(0.3, 0.7, 0.2, 1);
-	}
-	.centre path {
-		stroke-width: 2;
-		stroke-linecap: round;
-	}
-	.centre .ring {
-		fill: var(--color-card);
-		fill-opacity: 0.4;
-	}
-
-	.legend {
+	.meta {
 		display: flex;
-		min-height: 28px;
+		min-height: 24px;
 		flex-wrap: wrap;
 		align-items: center;
-		justify-content: center;
-		gap: 12px;
-		font-size: 11.5px;
-		font-weight: 600;
-		color: var(--color-muted);
+		justify-content: space-between;
+		gap: 6px 10px;
+		padding: 0 4px;
 	}
-	.legend span {
+	.badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--color-grass);
+		transition: color 0.4s;
+	}
+	.badge svg {
+		height: 12px;
+		width: 20px;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.6;
+		stroke-linecap: round;
+	}
+	.badge.off {
+		color: var(--color-faint);
+	}
+	.legend {
 		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+	.chip {
+		display: inline-flex;
 		align-items: center;
 		gap: 5px;
-	}
-	.legend i {
-		width: 10px;
-		height: 10px;
-		border-radius: 50%;
-	}
-	.ghost {
-		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-muted);
-		padding: 4px 6px;
-	}
-	.ghost:hover {
+		font-size: 11.5px;
+		font-weight: 700;
 		color: var(--color-ink);
 	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.centre,
-		.note ellipse,
-		.note line {
-			transition: none;
-		}
+	.chip i {
+		height: 8px;
+		width: 8px;
+		border-radius: 999px;
+		background: var(--c);
+	}
+	.chart {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	.axis {
+		fill: none;
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+	}
+	.axis-name {
+		fill: var(--color-faint);
+		font-size: 11px;
+		font-weight: 700;
 	}
 
-	@media (min-width: 768px) {
-		.chart {
-			max-width: 440px;
+	.note ellipse {
+		fill: var(--c);
+		transition: fill 0.8s;
+		transition-delay: inherit;
+	}
+	.note .stem {
+		fill: none;
+		stroke: var(--c);
+		stroke-width: 1.6;
+		stroke-linecap: round;
+		transition: stroke 0.8s;
+		transition-delay: inherit;
+	}
+	.halo {
+		fill: none;
+		stroke: var(--color-ink);
+		stroke-width: 1.2;
+		opacity: 0.35;
+	}
+	.ask {
+		stroke: var(--color-ink);
+		stroke-width: 1.2;
+		opacity: 0.4;
+	}
+	.grab {
+		stroke: var(--c);
+		stroke-width: 1;
+		opacity: 0.35;
+	}
+	.marker {
+		transition: transform 1s cubic-bezier(0.35, 0.8, 0.3, 1);
+	}
+	.marker circle {
+		fill: color-mix(in srgb, var(--c) 12%, transparent);
+		stroke: var(--c);
+		stroke-width: 2.2;
+	}
+	.marker path {
+		stroke: var(--c);
+		stroke-width: 1.8;
+		stroke-linecap: round;
+	}
+	.pop {
+		animation: pop 0.5s cubic-bezier(0.3, 1.4, 0.5, 1) both;
+	}
+	@keyframes pop {
+		from {
+			opacity: 0;
+			transform: translateY(-14px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+	.draw {
+		stroke-dasharray: 1;
+		stroke-dashoffset: 1;
+		animation: draw 0.7s ease forwards;
+	}
+	@keyframes draw {
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+	.caption {
+		min-height: 20px;
+		margin: 0;
+		text-align: center;
+		font-size: 13px;
+		font-weight: 700;
+		color: var(--color-muted);
+	}
+	.caption.rule {
+		font-weight: 600;
+		color: var(--color-grass);
+	}
+
+	@media (max-width: 767px) {
+		.stage {
+			padding-bottom: 7rem;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.note ellipse,
+		.note .stem,
+		.marker,
+		.badge,
+		.act {
+			transition: none;
+		}
+		.pop,
+		.draw {
+			animation: none;
+			stroke-dashoffset: 0;
 		}
 	}
 </style>

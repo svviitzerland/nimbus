@@ -6,16 +6,10 @@ import { en } from './en';
 export const ddos: Lesson = {
 	id: 'ddos',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'worried', 'surprised', 'wink', 'idea'],
+	moods: ['calm', 'thinking', 'worried', 'surprised', 'idea', 'happy', 'wink', 'excited', 'calm'],
 	reactionMood: {
-		flood: 'worried',
-		rateWin: 'happy',
-		rateLose: 'thinking',
-		cdnWin: 'happy',
-		cdnLose: 'thinking',
-		down: 'worried',
-		holding: 'wink',
-		saved: 'excited'
+		shieldOff: 'worried',
+		shieldOn: 'excited'
 	},
 	stage: DdosStage,
 	text: { id, en }

@@ -3,73 +3,90 @@ import type { ShellScriptText } from './types';
 export const id: ShellScriptText = {
 	title: 'Shell script',
 	intro: [
-		'Tiap malam sebelum tidur, kamu backup nimbus.com secara manual. Bikin folder, bungkus seluruh website jadi satu file arsip, cek filenya udah ada. Tiga perintah, tiap malam tanpa absen. Lupa satu malam aja, pasti malam itu juga disknya rusak.',
-		'<b>Shell script</b> nyelesaiin masalah ini. Isinya cuma file teks berisi perintah perintahmu, ditulis berurutan, satu per baris. Jalanin filenya, dan shell bakal ngetikin semuanya buat kamu, dari atas ke bawah, persis sama tiap kali.',
-		'Ada dua tambahan kecil yang bikin script kerasa pintar. Baris pertama, <b>#!/bin/bash</b> (orang nyebutnya shebang), ngasih tau program mana yang harus baca filenya. Terus <b>variabel</b> kayak DAY=$(date +%F) nyimpen tanggal hari ini, jadi tiap backup dapat nama sendiri.',
-		'[fyi] Gabungin script sama <b>cron</b>, jam weker punya Linux, dan dia bakal jalan jam 2 pagi waktu kamu tidur. Begitulah server beneran ngelakuin [[backup|devops/backup]] tiap malam.',
-		'Giliran kamu. Lakuin backup malam ini secara manual sekali, biar kerasa capeknya. Habis itu tulis langkahnya ke backup.sh, bikin bisa dijalanin kayak di [[Permission dan sudo|linux/permissions]], terus jalankan.'
+		'Tiap malam kamu nyimpen salinan nimbus.com, jaga jaga. Lihat Nim ngerjain pakai tangan. Bikin folder backups, terus bungkus seluruh situs jadi satu file pakai <b>tar</b> (mirip nge zip). Sekarang bayangin ngetik itu tiap malam.',
+		'Komputer suka kerjaan membosankan, jadi kita serahin aja. <b>Shell script</b> itu file teks biasa isinya perintah, persis yang biasa kamu ketik. Nim nampilin backup.sh pakai <b>cat</b>, dan kartunya nulis dirinya sendiri.',
+		'Baris paling pertama itu spesial. <b>#!/bin/bash</b> (orang nyebutnya shebang) ngasih tau Linux program mana yang harus baca file ini. Di sini bash, shell yang sama tempat kamu ngetik.',
+		'Baris kedua bikin <b>variabel</b>, kotak bernama buat nyimpen nilai. DAY nyimpen tanggal hari ini, dan di bawahnya <b>$DAY</b> nuangin isinya ke nama file. Jadi tiap malam backupnya dapat nama baru, nggak ada yang ketimpa.',
+		'Script itu program, jadi dia butuh saklar run, persis kayak di [[Permission dan sudo|linux/permissions]]. Nim ngetik <b>chmod +x backup.sh</b>, dan kartunya bilang boleh jalan.',
+		'Sekarang <b>./backup.sh</b>. Bash baca barisnya dari atas ke bawah, persis kayak resep di [[Program dan algoritma|basics/program]], dan satu kotak baru mendarat di rak. Satu perintah pendek ngerjain semua ketikan tadi.',
+		'[ingat] Script itu resep buat terminal. Tulis sekali, <b>chmod +x</b> sekali, terus <b>./</b> jalanin sesering yang kamu mau. Gampangnya, tulis, izinin, jalan.',
+		'[fyi] Pasangin script sama <b>cron</b>, jam weker nya Linux, dan dia jalan jam 2 pagi waktu kamu tidur. Begitulah server beneran ngerjain [[backup|devops/backup]] tiap malam.',
+		'Giliranmu. Udah malam berikutnya nih. Ketik <b>./backup.sh</b> dan lihat kotak baru dengan tanggal baru mendarat di rak.'
 	],
 	reactions: {
-		mkdir:
-			'Foldernya jadi. Sekarang yang panjang, bungkus /var/www/nimbus jadi arsip dengan tanggal hari ini di namanya.',
-		hand: 'Backup malam ini beres, tapi lihat betapa panjangnya baris tar tadi, tanggalnya juga diketik manual. Sekarang tulis ke script biar kamu nggak perlu ngetik itu lagi. Ketik <b>nano backup.sh</b> atau buka tab nano.',
-		handAgain: 'Malam lain, baris panjang lain yang diketik manual. Inilah gunanya script.',
-		write:
-			'Kesimpan! backup.sh sekarang nyimpen semua langkah, dengan urutan yang benar. Tapi sekarang dia masih file teks biasa.',
-		saved: 'Kesimpan lagi.',
-		order:
-			'Kesimpan, tapi urutan itu bakal bikin kesandung. Lihat catatan kuning di editor, terus benerin barisnya dan simpan lagi. Atau jalanin aja dan lihat apa yang salah.',
-		chmod: 'backup.sh sekarang bisa dijalanin, saklar x yang sama kayak di pelajaran permission.',
-		exec: 'backup.sh sekarang bisa dijalanin, saklar x yang sama kayak di pelajaran permission. Jalankan pakai <b>./backup.sh</b>.',
-		runDenied:
-			'Permission denied, file baru nggak pernah dapat saklar x dengan sendirinya. Kasih pakai <b>chmod +x backup.sh</b>.',
-		brokenRun:
-			'Dia jalan baris demi baris, tapi ada yang aneh. Script ngelakuin persis apa yang ditulis, dengan urutan persis segitu, jadi benerin urutannya di nano lalu simpan lagi.',
-		emptyDay:
-			'Lihat arsip bernama nimbus-.tar.gz itu? Baris tar jalan sebelum DAY diisi, jadi tanggalnya kosong. Variabel harus diisi dulu sebelum dipakai.',
+		ran: 'Malam baru, kotak baru, dan kamu cuma ngetik satu perintah pendek. Jalanin lagi kalau mau, tiap kali jalan itu malam berikutnya.',
 		bashRun:
-			'Itu bisa, bash baca filenya terus jalanin. Sekarang coba cara yang benar, <b>./backup.sh</b>, habis ngasih saklar x.',
-		ran: 'Satu perintah, dan seluruh backup kejadian, folder, arsip, plus pesan ramah. Tekan Malam berikutnya buat lihat untung beneran.',
-		run: 'Satu perintah, dan seluruh backup kejadian, folder, arsip, plus pesan ramah.',
-		again:
-			'Malam baru, tetap satu perintah pendek, dan arsip barunya dapat tanggal sendiri secara otomatis. Itulah sihirnya script.',
-		nextDay: 'Malam baru udah datang. Jalanin <b>./backup.sh</b> lagi, satu perintah, bukan tiga.',
-		nextDayHand:
-			'Malam baru, dan backupnya harus dilakuin lagi. Kalau manual, tiga perintah, tiap malam, selamanya.',
-		missing: 'Nggak ada yang namanya itu di sini. Jalanin <b>ls</b> buat lihat isinya.',
-		denied: 'Dikunci. Cek huruf permissionnya pakai <b>ls -l</b>.',
-		error:
-			'Server nggak kenal perintah itu. Cek lagi ejaannya, atau ketik <b>help</b> buat lihat perintah yang dia tau.',
-		done: 'Semua misi beres! Kamu ngubah tiga perintah ngebosenin jadi satu file yang ngerjain semuanya dengan sempurna tiap kali, lengkap sama tanggal yang benar. Script kayak gini dipakai buat backup, deploy website, sampai nyiapin server utuh, dan ini langkah pertama buat ngotomatisasi semuanya.'
+			'Itu juga bisa. <b>bash backup.sh</b> nyuruh bash baca filenya, jadi malah nggak butuh saklar run.',
+		chmod: 'Saklar run nya nyala. Sekarang <b>./backup.sh</b> bisa jalanin dia.',
+		chmodOff:
+			'Kamu nyabut saklar run nya, jadi ./backup.sh bakal ditolak. Pasang lagi pakai <b>chmod +x backup.sh</b>.',
+		read: 'Itu seluruh scriptnya, lima baris biasa. Nggak ada sulap, cuma perintah yang tadinya kamu ketik sendiri.',
+		runDenied:
+			'Permission denied, scriptnya belum punya saklar run. Kasih pakai <b>chmod +x backup.sh</b>.',
+		missing:
+			'Nggak ada yang namanya itu di sini. Scriptnya ada di folder rumahmu, jadi ketik <b>./backup.sh</b>.',
+		denied: 'Dikunci, cuma pemiliknya atau admin yang boleh.',
+		error: 'Servernya nggak ngerti. Coba <b>./backup.sh</b>, titik dan garis miringnya ikut.'
 	},
-	missionsLabel: 'Misi',
-	missions: [
-		'Backup malam ini secara manual',
-		'Tulis langkahnya ke backup.sh',
-		'Bikin backup.sh bisa dijalanin',
-		'Jalankan pakai ./backup.sh'
+	panels: [
+		{
+			tag: 'Manual',
+			title: 'Baris yang sama tiap malam',
+			body: '<b>mkdir</b> bikin folder, <b>tar</b> bungkus banyak file jadi satu. Sekali sih oke, tiap malam capek, dan gampang salah ketik tengah malam.'
+		},
+		{
+			tag: 'Script',
+			title: 'Perintah dalam file',
+			body: '<b>Shell script</b> itu file teks berisi perintah. Jalanin script sama aja kayak ngetik tiap barisnya sendiri, berurutan.'
+		},
+		{
+			tag: 'Shebang',
+			title: 'Siapa yang baca file ini',
+			body: '<b>#!/bin/bash</b> ditaruh di baris satu. Dia nyebut program yang jalanin sisanya, di sini bash.'
+		},
+		{
+			tag: 'Variabel',
+			title: 'Kotak bernama',
+			body: '<b>DAY=</b> nyimpen nilai, <b>$DAY</b> makai nilainya. <b>$(date +%F)</b> jalanin date dan masukin jawabannya, kayak 2026 11 03.'
+		},
+		{
+			tag: 'chmod +x',
+			title: 'Boleh jalan',
+			body: 'Tanpa saklar run, Linux nolak jalanin filenya. Satu chmod dan dia dianggap program.'
+		},
+		{
+			tag: './backup.sh',
+			title: 'Dari atas ke bawah',
+			body: '<b>./</b> artinya file yang ada di sini. Bash baca tiap baris berurutan, dan sorotannya ikut jalan.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Tulis, izinin, jalan',
+			body: 'Tulis resepnya sekali, kasih saklar run sekali, lalu satu baris pendek ngerjain semuanya.'
+		},
+		{
+			tag: 'Info',
+			title: 'Biar jalan sendiri',
+			body: '<b>cron</b> nyalain perintah sesuai jadwal, tiap malam, tiap jam, tiap Senin. Script dan cron itu pasangan.'
+		},
+		{
+			tag: 'Giliranmu',
+			title: 'Backup malam ini',
+			body: 'Ketik <b>./backup.sh</b> lalu tekan Enter. Tiap jalan itu malam baru, jadi tiap jalan nambah satu kotak.'
+		}
 	],
-	hintBtn: 'Bantu',
-	doneNote: 'Semua misi beres, backupnya jalan sendiri',
+	watchLabel: 'Nim lagi ngetik, lihat aja dulu',
+	tryLabel: 'Giliranmu, ketik',
+	tryTip: 'Tap biar Nim yang ngetik',
 	inputLabel: 'perintah',
-	termHint: '# mulai dengan mkdir -p ~/backups, lalu tekan Enter',
-	hintUnknown: '# perintah itu nggak ada di sini, ketik help buat lihat daftarnya',
+	termHint: '# Nim ngetik di sini dulu, lihat aja',
+	hintUnknown: '# perintah itu nggak ada di sini',
 	didYouMean: '# mungkin maksudnya {word}',
 	hintMissing: '# nggak ada yang namanya itu, ls nampilin isi sekitar',
-	hintDenied: '# permission denied, script baru butuh chmod +x',
-	termTab: 'Terminal',
-	editorEmpty: 'File kosong, tap baris di bawah sesuai urutan jalannya',
-	poolLabel: 'Tap baris buat nambahin',
-	saveBtn: 'Simpan',
-	editorHint: 'Tap baris di file buat ngeluarin',
-	orderNotes: {
-		shebang: 'Shebang, #!/bin/bash, harus jadi baris paling pertama',
-		day: 'DAY dipakai sebelum diisi, jadi tanggalnya bakal kosong',
-		mkdir: 'tar jalan sebelum folder backups ada'
-	},
-	emptyShelf: 'Belum ada backup, nimbus.com belum terlindungi',
-	nextDayBtn: 'Malam berikutnya',
-	days: ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
-	nightLine: '# malam baru, {day}',
-	hintNano: '# script yang mau diedit itu backup.sh, coba nano backup.sh'
+	hintDenied: '# dikunci, filenya butuh saklar run',
+	byHand: 'Malam ini, pakai tangan',
+	runnableChip: 'boleh jalan',
+	emptyShelf: 'masih kosong',
+	rule: 'Tulis sekali, chmod +x sekali, ./ selamanya.',
+	nightLine: '# malam berikutnya, {day}'
 };

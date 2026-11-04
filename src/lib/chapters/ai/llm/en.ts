@@ -1,112 +1,94 @@
-import type { LlmText } from './types';
+import type { Guess, LlmText } from './types';
 
-const end = (): [string, number][] => [
-	['.', 60],
-	['and', 25],
-	['every', 15]
+const after = (): Guess[] => [
+	['with', 36],
+	['.', 30],
+	['and', 20],
+	['every', 14]
+];
+const end = (): Guess[] => [
+	['.', 70],
+	['every', 20],
+	['and', 10]
+];
+const stop = (): Guess[] => [
+	['.', 80],
+	['every', 20]
 ];
 
 export const en: LlmText = {
 	title: 'LLMs and tokens',
 	intro: [
-		'You have probably chatted with ChatGPT, Gemini, or Claude. They write so smoothly it feels like someone is typing back. Inside each of them sits an <b>LLM</b>, short for large language model.',
-		'Here is the surprising part. An LLM does one tiny job over and over, it guesses the <b>next piece of text</b>. Just like your phone keyboard suggesting the next word, only trained on a mountain of books and websites.',
-		'Those pieces are called <b>tokens</b>. A token is often a whole word, sometimes half a word, sometimes just a comma. The word "networking" might become "network" plus "ing". Each token is then turned into a number, because a computer only works with numbers.',
-		'For every next token, the model scores thousands of options and turns the scores into chances. "Nim likes to eat" might continue with "rice" at 40 percent, "noodles" at 24, and so on. Then it picks one, adds it, and guesses again.',
-		'The <b>temperature</b> knob decides how adventurous that pick is. Turn it down and the model almost always takes the top guess (safe, a bit boring). Turn it up and unlikely tokens get a real chance (creative, sometimes nonsense).',
-		"[fyi] A real LLM is a giant [[neural network|ai/neural-net]] with billions of weights, trained to make these guesses. Mine below is just a tiny hand made word table, but the loop of guess, pick, add, repeat is exactly the same. That's also why an LLM can sound sure while being wrong, it only knows what usually comes next.",
-		'Type a sentence (or tap a starter) and watch it fall apart into tokens. Then pick the next token a few times, and play with the temperature to see the guesses change.'
+		'You have probably chatted with ChatGPT, Gemini, or Claude. You ask something, and a smooth answer appears word by word, as if someone were typing back. The brain inside each of them is an <b>LLM</b>, short for large language model.',
+		'Here is the surprise. An LLM does one tiny job, over and over. It guesses what comes <b>next</b>. Your phone keyboard does the same thing when it suggests the next word above the keys.',
+		'First, the model chops your text into small pieces called <b>tokens</b>. A token is often a whole word, sometimes half a word, sometimes just a full stop. Then every token becomes a number, because computers only work with numbers.',
+		'Now the guessing. After "Nim likes to eat", the model gives every possible next token a chance. "rice" gets 40 percent, "noodles" 24, and so on down to the odd ones.',
+		'It picks one, sticks it on the end, and guesses again with the longer sentence. Guess, pick, add, repeat. A long chatbot answer is just this loop running hundreds of times in a blink.',
+		'There is a knob called <b>temperature</b>. Turn it down and the top guess wins almost every time (safe, a bit boring). Turn it up and the bars even out, so surprising words sneak in (creative, sometimes nonsense).',
+		'[ingat] An LLM is your phone autocomplete with super powers. Your keyboard guesses one word and stops. An LLM keeps guessing until a whole answer is written.',
+		'[fyi] A real LLM is a giant [[neural network|ai/neural-net]] trained on a mountain of books and websites. That is also why it can sound sure while being wrong. It only knows what usually comes next, not what is true.',
+		'Want to watch it write something new? Roll another ending and see it guess its way to the full stop. Totally optional.'
 	],
 	reactions: {
-		typed:
-			'See how it broke apart? Short common words stay whole, long ones get cut into pieces, and the full stop is its own token. The little numbers are what the model actually reads.',
-		pick: 'One token added! The model looked only at what came before, scored its options, and picked one. Now it does the whole thing again for the next one.',
-		cold: 'Cold and careful. The top guess now gets nearly all the chance, so the model says the most expected thing every time. Great for facts, a bit dull for stories.',
-		hot: 'Now it is hot! The bars got much more even, so odd tokens can sneak in. This is where AI writing gets creative, and also where it starts talking nonsense.',
+		roll: 'A fresh ending, built one token at a time. It took the top guess each time, so it came out tidy and expected.',
 		surprise:
-			'Ha, it did not take the top guess! With some temperature, a less likely token can still win the dice roll. Run it twice and you get two different sentences.',
-		done: 'You just generated text the way an LLM does it, one token at a time. Every long answer from a chatbot is this same loop, repeated hundreds of times in a blink.'
+			'Ha, it did not always take the top guess! A less likely token won the roll. That is why asking a chatbot the same thing twice can give two different answers.'
 	},
-	inputLabel: 'Your sentence',
-	presets: ['Nim likes to eat', 'The server is', 'I want to learn'],
+	panels: [
+		{
+			tag: 'Chatbot',
+			title: 'An answer, word by word',
+			body: 'Behind the chat window sits an <b>LLM</b>. The reply shows up a little at a time because it really is made a little at a time.'
+		},
+		{
+			tag: 'Next word',
+			title: 'Just like your keyboard',
+			body: 'Your phone looks at what you typed and offers the three most likely next words. An LLM does the same job, only much, much better.'
+		},
+		{
+			tag: 'Tokens',
+			title: 'Text becomes pieces',
+			body: 'Common words stay whole, long ones split (learn plus ing), and the full stop is its own piece. The number under each piece is what the model actually reads.'
+		},
+		{
+			tag: 'Guesses',
+			title: 'Every option gets a chance',
+			body: 'Each bar is one guess for the next token. A longer bar means more likely. All the chances together add up to 100 percent.'
+		},
+		{
+			tag: 'The loop',
+			title: 'Guess, pick, add, repeat',
+			body: 'The picked token joins the sentence, and the model guesses again from the new, longer sentence. It never plans the whole answer ahead.'
+		},
+		{
+			tag: 'Temperature',
+			title: 'Safe or wild',
+			body: 'Low temperature makes the top bar huge, so the answer is predictable. High temperature flattens the bars, so rare words get a real chance.'
+		},
+		{
+			tag: 'Remember it',
+			title: 'Super powered autocomplete',
+			body: 'Your keyboard guesses one word. An LLM keeps guessing, token after token, until the answer is done.'
+		},
+		{
+			tag: 'Try it',
+			title: 'Roll another ending',
+			body: 'Each roll picks by chance using the bars, so the same start can end in a different sentence every time.'
+		}
+	],
+	picture: 'A phone where an AI writes a sentence one token at a time',
+	chatTitle: 'nimbus chat',
+	you: 'You',
+	ai: 'AI',
+	chatAsk: 'What does Nim like to eat?',
+	start: 'Nim likes to eat',
+	suggestions: ['rice', 'noodles', 'bread'],
+	tokenWords: [['Nim'], ['is'], ['learn', 'ing'], ['network', 'ing'], ['.']],
 	tokensCount: '{n} tokens',
-	idsNote: 'The number under each token is how the model sees it',
-	nextTitle: 'Top guesses for the next token',
-	tempLabel: 'Temperature',
-	tempCold: 'Safe',
-	tempHot: 'Wild',
-	pickBtn: 'Pick the next token',
-	full: 'That is a long sentence already, start a new one',
-	reset: 'Start over',
-	splits: {
-		networking: ['network', 'ing'],
-		learning: ['learn', 'ing'],
-		everything: ['every', 'thing'],
-		smoothly: ['smooth', 'ly'],
-		nimbus: ['nim', 'bus'],
-		noodles: ['nood', 'les'],
-		morning: ['morn', 'ing'],
-		sleeping: ['sleep', 'ing'],
-		because: ['be', 'cause']
-	},
+	idsNote: 'The number under each token is what the model sees',
+	nextLabel: 'Top guesses for the next token',
+	path: ['rice', 'with', 'friends', '.'],
 	table: {
-		'.': [
-			['Nim', 40],
-			['Then', 25],
-			['The', 20],
-			['It', 15]
-		],
-		nim: [
-			['likes', 40],
-			['is', 30],
-			['wants', 30]
-		],
-		then: [
-			['Nim', 40],
-			['it', 30],
-			['the', 30]
-		],
-		the: [
-			['server', 50],
-			['cloud', 30],
-			['cat', 20]
-		],
-		cat: [
-			['is', 60],
-			['eats', 40]
-		],
-		likes: [
-			['to', 80],
-			['rice', 20]
-		],
-		wants: [
-			['to', 80],
-			['a', 20]
-		],
-		want: [
-			['to', 80],
-			['a', 20]
-		],
-		i: [
-			['want', 50],
-			['like', 30],
-			['am', 20]
-		],
-		like: [
-			['to', 60],
-			['rice', 40]
-		],
-		am: [
-			['learning', 40],
-			['hungry', 35],
-			['happy', 25]
-		],
-		to: [
-			['learn', 40],
-			['eat', 30],
-			['sleep', 15],
-			['code', 15]
-		],
 		eat: [
 			['rice', 40],
 			['noodles', 24],
@@ -114,214 +96,43 @@ export const en: LlmText = {
 			['pizza', 12],
 			['clouds', 8]
 		],
-		eats: [
-			['rice', 40],
-			['noodles', 24],
-			['bread', 16],
-			['pizza', 12],
-			['clouds', 8]
-		],
-		rice: [
-			['.', 40],
-			['with', 28],
-			['and', 20],
-			['every', 12]
-		],
-		noodles: [
-			['.', 40],
-			['with', 30],
-			['and', 20],
-			['every', 10]
-		],
-		bread: [
-			['.', 40],
-			['with', 30],
-			['and', 20],
-			['every', 10]
-		],
-		pizza: [
-			['.', 40],
-			['with', 30],
-			['and', 20],
-			['every', 10]
-		],
+		rice: after(),
+		noodles: after(),
+		bread: after(),
+		pizza: after(),
 		clouds: [
-			['.', 30],
-			['because', 30],
-			['and', 25],
-			['every', 15]
+			['.', 45],
+			['with', 30],
+			['every', 25]
 		],
 		with: [
-			['friends', 40],
-			['cheese', 20],
-			['chili', 25],
-			['Nim', 15]
+			['friends', 42],
+			['chili', 26],
+			['cheese', 18],
+			['chicken', 14]
 		],
 		friends: end(),
-		cheese: end(),
 		chili: end(),
+		cheese: end(),
+		chicken: end(),
 		and: [
-			['drink', 35],
-			['sleep', 25],
-			['learn', 25],
-			['code', 15]
-		],
-		drink: [
 			['tea', 45],
-			['water', 35],
-			['coffee', 20]
+			['cake', 35],
+			['soup', 20]
 		],
-		tea: end(),
-		water: end(),
-		coffee: end(),
-		sleep: [
-			['.', 50],
-			['early', 30],
-			['every', 20]
-		],
-		early: [
-			['.', 70],
-			['and', 30]
-		],
+		tea: stop(),
+		cake: stop(),
+		soup: stop(),
 		every: [
-			['day', 55],
-			['morning', 30],
-			['night', 15]
-		],
-		day: [
-			['.', 70],
-			['and', 30]
-		],
-		morning: [
-			['.', 70],
-			['and', 30]
-		],
-		night: [
-			['.', 70],
-			['and', 30]
-		],
-		because: [
-			['it', 40],
-			['they', 30],
-			['Nim', 30]
-		],
-		it: [
-			['is', 60],
-			['was', 40]
-		],
-		they: [
-			['are', 60],
-			['taste', 40]
-		],
-		taste: [
-			['good', 50],
-			['sweet', 30],
-			['fluffy', 20]
-		],
-		are: [
-			['fluffy', 40],
-			['tasty', 35],
-			['busy', 25]
-		],
-		good: end(),
-		sweet: end(),
-		fluffy: end(),
-		tasty: end(),
-		server: [
-			['is', 50],
-			['runs', 30],
-			['was', 20]
-		],
-		cloud: [
-			['.', 40],
-			['server', 30],
-			['and', 30]
-		],
-		is: [
-			['busy', 30],
-			['fast', 25],
-			['down', 20],
-			['sleeping', 15],
-			['happy', 10]
-		],
-		was: [
-			['busy', 30],
-			['fast', 25],
-			['down', 20],
-			['sleeping', 15],
-			['happy', 10]
-		],
-		busy: [
-			['.', 50],
-			['today', 30],
-			['and', 20]
-		],
-		down: [
-			['.', 40],
-			['again', 35],
-			['today', 25]
-		],
-		fast: [
-			['.', 50],
-			['today', 25],
-			['and', 25]
-		],
-		sleeping: [
-			['.', 60],
-			['again', 40]
-		],
-		happy: [
-			['.', 60],
-			['today', 40]
-		],
-		hungry: [
-			['.', 60],
-			['and', 40]
-		],
-		today: [
-			['.', 80],
-			['and', 20]
-		],
-		again: [
-			['.', 80],
-			['and', 20]
-		],
-		runs: [
-			['fast', 50],
-			['all', 30],
-			['smoothly', 20]
-		],
-		all: [
 			['day', 60],
 			['night', 40]
 		],
-		smoothly: end(),
-		learn: [
-			['AI', 30],
-			['everything', 25],
-			['code', 25],
-			['networking', 20]
-		],
-		learning: [
-			['AI', 50],
-			['code', 50]
-		],
-		ai: end(),
-		code: end(),
-		networking: end(),
-		everything: end(),
-		a: [
-			['snack', 35],
-			['server', 35],
-			['cloud', 30]
-		],
-		snack: end()
+		day: [['.', 100]],
+		night: [['.', 100]]
 	},
-	fallback: [
-		['.', 30],
-		['and', 25],
-		['the', 20],
-		['is', 15],
-		['very', 10]
-	]
+	tempLabel: 'Temperature',
+	cold: 'Safe',
+	hot: 'Wild',
+	rule: 'Autocomplete, with super powers',
+	rollBtn: 'Roll another ending'
 };

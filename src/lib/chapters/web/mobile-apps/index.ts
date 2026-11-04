@@ -5,17 +5,9 @@ import { en } from './en';
 
 export const mobileApps: Lesson = {
 	id: 'mobile-apps',
-	mood: 'thinking',
-	moods: ['happy', 'thinking', 'idea', 'calm', 'excited', 'wink', 'happy'],
-	reactionMood: {
-		native: 'thinking',
-		cross: 'idea',
-		web: 'happy',
-		game: 'excited',
-		startup: 'happy',
-		menu: 'wink',
-		miss: 'thinking'
-	},
+	mood: 'happy',
+	moods: ['happy', 'thinking', 'calm', 'idea', 'excited', 'thinking', 'wink', 'idea', 'happy'],
+	reactionMood: { feature: 'wink' },
 	stage: MobileAppsStage,
 	text: { id, en }
 };

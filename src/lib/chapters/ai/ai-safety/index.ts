@@ -5,18 +5,19 @@ import { en } from './en';
 
 export const aiSafety: Lesson = {
 	id: 'ai-safety',
-	mood: 'thinking',
-	moods: ['calm', 'surprised', 'worried', 'thinking', 'idea', 'excited'],
-	reactionMood: {
-		checked: 'thinking',
-		caught: 'excited',
-		hijacked: 'surprised',
-		nodefense: 'worried',
-		revealed: 'idea',
-		decoy: 'wink',
-		onelayer: 'thinking',
-		safe: 'happy'
-	},
+	mood: 'calm',
+	moods: [
+		'calm',
+		'surprised',
+		'thinking',
+		'wink',
+		'thinking',
+		'worried',
+		'idea',
+		'thinking',
+		'happy'
+	],
+	reactionMood: { off: 'worried', on: 'excited' },
 	stage: AiSafetyStage,
 	text: { id, en }
 };

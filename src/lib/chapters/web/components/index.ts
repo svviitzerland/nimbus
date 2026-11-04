@@ -6,12 +6,8 @@ import { en } from './en';
 export const components: Lesson = {
 	id: 'components',
 	mood: 'calm',
-	moods: ['calm', 'idea', 'thinking', 'wink', 'happy'],
-	reactionMood: {
-		first: 'happy',
-		all: 'idea',
-		upgrade: 'excited'
-	},
+	moods: ['calm', 'idea', 'happy', 'thinking', 'excited', 'wink', 'idea', 'happy'],
+	reactionMood: { plain: 'surprised', upgrade: 'excited' },
 	stage: ComponentsStage,
 	text: { id, en }
 };

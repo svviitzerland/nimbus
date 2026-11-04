@@ -1,8 +1,9 @@
 import type { LessonText } from '../../types';
 
-/** Words on the meaning map. Where each one sits (and which family it belongs to) lives in the stage. */
+/** Words on the meaning map. Where each one sits lives in the stage. */
 export type EmbedWord =
 	| 'cat'
+	| 'kitten'
 	| 'dog'
 	| 'rabbit'
 	| 'puppy'
@@ -19,14 +20,38 @@ export type EmbedWord =
 	| 'website'
 	| 'nimbus';
 
+/** The four neighbourhoods of the map, like aisles in a supermarket. */
+export type EmbedRegion = 'animals' | 'royals' | 'food' | 'tech';
+
+export interface EmbeddingsPanel {
+	tag?: string;
+	title: string;
+	/** May hold simple HTML like <b>. */
+	body: string;
+}
+
 export interface EmbeddingsText extends LessonText {
+	/** One panel per scene of the guided visual (eight scenes). */
+	panels: EmbeddingsPanel[];
+	/** Alt text for the map. */
+	mapLabel: string;
 	/** The label shown for each word. */
 	words: Record<EmbedWord, string>;
-	shelf: string; // caption over the tray of words still to place
-	pickHint: string; // nothing selected yet
-	nearTitle: string; // template with {word}, heading of the nearest neighbours list
-	vectorLabel: string; // template with {word}, introduces the word's numbers
-	closeness: string; // template with {n}, how close a neighbour is in percent
-	placed: string; // template with {n}, how many loose words found their home
-	mapLabel: string; // aria label for the map
+	/** Aisle signs over each neighbourhood on the remember scene. */
+	regions: Record<EmbedRegion, string>;
+	/** Shown between two words that are far apart. */
+	far: string;
+	/** What the learner searches for on the search scene. */
+	query: string;
+	/** Small label on the search pin. */
+	searchLabel: string;
+	/** Template with {word}, introduces a word's long list of numbers. */
+	manyLabel: string;
+	/** Template with {n}, how many numbers a real embedding has. */
+	manyCount: string;
+	/** The rule of thumb shown on the remember scene. */
+	rule: string;
+	/** The optional button on the last scene, and the one that starts it over. */
+	dropBtn: string;
+	againBtn: string;
 }

@@ -1,12 +1,13 @@
-import type { LinuxLabText } from '$lib/components/stages/linux/text';
+import type { LinuxGuideText } from '$lib/components/stages/linux/text';
 
-export interface PermissionsText extends LinuxLabText {
-	// missions, in order: ls -l, make backup.sh runnable and run it, sudo cat, 777 then undo
-	cardLabel: string; // aria label of the permission grid
+export interface PermissionsText extends LinuxGuideText {
+	ownedBy: string; // under the file name, template with {owner}
 	permLabels: string[]; // column headings, read, write, run
-	ownerLabel: string; // row heading, followed by the owner's name
-	groupLabel: string; // row heading, followed by the group's name
-	othersLabel: string; // row heading for everyone else
-	cardNote: string; // caption under the grid, invites tapping a switch
-	dangerNote: string; // caption while others may write the file
+	rowLabels: string[]; // row headings, owner, group, others
+	sumLabel: string; // heading over the number each row adds up to
+	deniedChip: string; // chip after a Permission denied
+	ranChip: string; // chip after the script ran
+	bossChip: string; // chip after a sudo command
+	rule: string; // rule of thumb line on the numbers memory beat
+	sudoRule: string; // rule of thumb line on the sudo memory beat
 }

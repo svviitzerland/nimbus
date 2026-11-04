@@ -3,66 +3,75 @@ import type { RouterQueueText } from './types';
 export const id: RouterQueueText = {
 	title: 'Manajemen bandwidth',
 	intro: [
-		'Senin pagi. Sari lagi video call sama klien, Dewi lagi baca email, dan Budi baru mulai download update game yang gede banget. Tiba tiba call Sari macet.',
-		'Jalur internet kantor dari ISP itu 20 Mbps, kayak jalan raya dengan jumlah lajur yang tetap. Download Budi buka banyak koneksi sekaligus, jadi dia nguasain hampir semua lajur dan yang lain kegencet ke bahu jalan. Kamu udah ketemu ini di [[bottleneck|trafficflow/bottleneck]].',
-		'Solusinya <b>queue</b>. Simple queue di MikroTik bilang alamat ini paling banyak boleh pakai segini, namanya <b>max-limit</b>. Sisa yang nggak dipakai Budi jadi jatah yang lain.',
-		'Bagi jalur secara adil, atau ngasih prioritas ke lalu lintas tertentu, namanya <b>QoS</b> (quality of service). Konsepnya ada di [[Apa itu QoS|network/qos]].',
-		'[fyi] Hampir semua RT RW net di Indonesia jalan pakai ini. Sepuluh rumah berbagi satu jalur, dan queue per rumah yang bikin download satu keluarga nggak ngerusak malamnya satu gang.',
-		'Giliran kamu. Cari siapa yang nguasain jalur pakai torch, kasih Budi queue, lalu geser limitnya sampai semua dapat jatah yang adil.'
+		'Senin pagi. Sari lagi video call sama klien, Dewi baca email, dan Budi baru mulai download update game yang gede banget. Tiba tiba call Sari macet.',
+		'Jalur internet kantor dari ISP itu 20 Mbps (megabit per detik, seberapa banyak data yang muat lewat tiap detik), kayak jalan raya dengan jumlah lajur yang tetap. Download Budi buka banyak koneksi sekaligus dan ngambil hampir semua lajurnya. Kamu udah ketemu ini di [[bottleneck|trafficflow/bottleneck]].',
+		'Sebelum benerin apa apa, cari tau dulu siapa pelakunya. <b>torch</b> nunjukin lalu lintas di sebuah port saat ini juga, yang paling gede di atas. Lihat terminalnya.',
+		'Solusinya <b>queue</b>. Simple queue di MikroTik bilang alamat ini paling banyak boleh pakai segini, namanya <b>max-limit</b>. Sisa yang nggak kepakai Budi jadi buat yang lain.',
+		'Lihat terminalnya ngasih Budi sebuah queue. <b>target</b> itu alamatnya, dan <b>max-limit=5M/10M</b> artinya maksimal 5 Mbps upload dan 10 Mbps download. Perhatikan batangnya.',
+		'Bagi jalur secara adil, atau ngasih prioritas ke lalu lintas tertentu, namanya <b>QoS</b> (quality of service). Konsepnya ada di [[Apa itu QoS|network/qos]]. Budi tetap bisa download cepat, cuma nggak bisa nenggelamin yang lain lagi.',
+		'[ingat] max-limit ditulis upload dulu baru download. Ingat aja “naik dulu baru turun”, kayak naik tangga dulu baru meluncur di perosotan. Dan queue itu rambu batas kecepatan buat satu alamat, bukan tembok.',
+		'[fyi] Hampir semua RT RW net di Indonesia jalan pakai ini. Sepuluh rumah berbagi satu jalur, dan satu queue per rumah yang bikin download satu keluarga nggak ngerusak malam satu gang.',
+		'Giliran kamu. Cek queue Budi pakai <b>/queue simple print</b>.'
 	],
 	reactions: {
+		queuePrint:
+			'Itu queue Budi, target 192.168.88.253 dan max-limit 5M/10M. Upload di kiri, download di kanan.',
 		torch:
-			'Torch nunjukin lalu lintas di ether2 saat ini, yang paling gede di atas. 192.168.88.253 itu Budi, makan hampir semua 20 Mbps sendirian.',
-		wrongUser:
-			'Queue itu kepasang di orang lain. Budi masih bebas ngambil semuanya, jadi callnya tetap patah patah. Pasang queue di <b>192.168.88.253</b>.',
-		tooHarsh:
-			'Pelan pelan, Budi juga harus kerja. Neken dia segitu malah buang jalur yang nggak dipakai orang lain. Kasih dia minimal 4M.',
-		notYet:
-			'Mendingan, tapi Budi masih ngambil kebanyakan. Call Sari butuh 3 Mbps, geser limit Budi sedikit lagi ke bawah.',
-		fair: 'Sekarang semua kebagian. Budi tetap download dengan cepat, call Sari lancar, dan halaman Dewi kebuka. Itu jatah yang adil buat masing masing.',
-		tuned: 'Masih adil buat semua. Bebas mainin limitnya dan lihat batangnya bergerak.',
-		noQueue: 'Belum ada queue. Tambahin satu dulu, buat Budi.',
-		stats:
-			'Stats nunjukin kecepatan tiap queue saat ini dan seberapa banyak yang udah lewat. Admin ngecek ini buat tau siapa yang pakai jalur, dan kapan.',
+			'Torch lagi, lalu lintas langsung di ether2. Budi sekarang mentok di 10 Mbps, dan call Sari punya ruang buat napas.',
 		error:
-			'Yang itu RouterOS nggak ngerti. Cek lagi ejaannya, atau ketik <b>?</b> buat lihat yang ada. Tombol Bantu juga bisa ngetikin buat kamu.',
-		done: 'Jalurnya kebagi adil. Satu queue per orang, begitulah kantor dan RT RW net jaga kedamaian. Berikutnya, hotspot ala kafe buat tamu.'
+			'Yang itu RouterOS nggak ngerti. Cek lagi ejaannya, atau tekan sarannya dan lihat diketikin.'
 	},
-	missionsLabel: 'Misi',
-	missions: [
-		'Cari si rakus pakai torch',
-		'Kasih Budi queue',
-		'Semua dapat jatah adil',
-		'Lihat queuenya bekerja'
+	steps: [
+		{
+			title: 'Call yang macet',
+			body: 'Tiga orang, satu jalur internet. Kalau satu orang ngambil semuanya, yang lain langsung kerasa.'
+		},
+		{
+			tag: 'Mbps',
+			title: 'Jalan dengan lajur',
+			body: 'Bandwidth itu jumlah lajur jalannya. <b>20 Mbps</b> itu seluruh jalan, dipakai bareng satu kantor.'
+		},
+		{
+			tag: 'torch',
+			title: 'Siapa yang pakai',
+			body: '<b>torch</b> itu intipan langsung ke satu port. <b>RX</b> yang masuk (download), <b>TX</b> yang keluar.'
+		},
+		{
+			tag: 'queue',
+			title: 'Batas per alamat',
+			body: '<b>Simple queue</b> ngasih satu alamat batas atas. Di bawah batas, nggak ada yang berubah. Lewat batas, router memperlambat alamat itu.'
+		},
+		{
+			tag: 'max-limit',
+			title: 'Budi dapat batas',
+			body: '<b>5M/10M</b> artinya maksimal 5 Mbps upload dan 10 Mbps download buat 192.168.88.253.'
+		},
+		{
+			tag: 'QoS',
+			title: 'Adil, bukan lambat',
+			body: 'Jalurnya nggak jadi lebih cepat. Cuma dibagi, jadi call Sari dapat 3 Mbps yang dia butuh.'
+		},
+		{
+			tag: 'Cara ingat',
+			title: 'Naik dulu baru turun',
+			body: 'Di <b>5M/10M</b>, angka kiri itu upload, angka kanan itu download.'
+		},
+		{
+			title: 'Satu queue per rumah',
+			body: 'RT RW net dan warkop ngasih tiap pelanggan satu queue, biar jalurnya tetap adil di jam sibuk.'
+		},
+		{
+			title: 'Giliran kamu',
+			body: '<b>/queue simple</b> nampilin semua queue, berurutan, lengkap dengan target dan batasnya.'
+		}
 	],
-	hintBtn: 'Bantu',
-	doneNote: 'Nggak ada lagi yang nguasain jalur',
 	ispLabel: 'ISP',
+	lineLabel: 'Jalur kantor, 20 Mbps',
+	roles: ['video call', 'email', 'update game'],
 	inputLabel: 'perintah',
-	termHint: '# ketik perintah RouterOS lalu tekan Enter',
-	hintUnknown: '# perintah itu nggak ada, ketik ? buat lihat menunya',
+	tryLabel: 'Coba ini',
+	termHint: '# giliran kamu, ketik perintahnya lalu tekan Enter',
+	hintTry: '# coba {cmd}',
 	didYouMean: '# mungkin maksudnya {word}',
-	lineLabel: 'Jalur ISP, {n} Mbps dipakai bareng',
-	users: [
-		{ name: 'Sari', doing: 'video call' },
-		{ name: 'Budi', doing: 'download gede' },
-		{ name: 'Dewi', doing: 'email dan browsing' }
-	],
-	status: {
-		smooth: 'lancar',
-		choppy: 'patah patah',
-		fine: 'kebuka',
-		slow: 'lemot',
-		downloading: 'download'
-	},
-	addQueue: 'Tambah queue',
-	limitLabel: 'Max limit buat {name}',
-	unlimited: 'tanpa queue, bebas',
-	hintTorch: '# kantornya di ether2, coba /tool torch interface=ether2',
-	hintTarget: '# target itu alamat laptop, misalnya 192.168.88.253/32 buat Budi',
-	hintLimit: '# max-limit bentuknya 10M/10M (upload/download)',
-	hintNeeds: '# perintah ini masih butuh {keys}',
-	hintNoQueue: '# queue itu nggak ada, lihat /queue simple print',
-	hintStats: '# RATE itu saat ini, BYTES itu total sejauh ini',
-	hintExists: '# laptop itu udah punya queue, pakai /queue simple set'
+	hintBudi: '# 192.168.88.253 itu Budi, ngabisin hampir semua jalur'
 };
