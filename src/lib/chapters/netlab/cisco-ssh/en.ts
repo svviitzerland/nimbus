@@ -3,7 +3,7 @@ import type { CiscoSshText } from './types';
 export const en: CiscoSshText = {
 	title: 'SSH and enable secret',
 	intro: [
-		'Admins rarely walk to the router with a console cable. They log in from their own laptop over the network, that is [[remote access|cloud/remote-access]]. Someone set nimbus up for that long ago, look at its <b>vty lines</b>, the virtual doors for remote logins. Password cisco, transport telnet.',
+		'Admins rarely walk to the router with a console cable. They log in from their own laptop over the network, that is [[remote access|cloud/remote-access]]. Someone set the nimbus router up for that long ago, look at its <b>vty lines</b>, the virtual doors for remote logins. Password cisco, transport telnet.',
 		'Now Budi logs in with <b>Telnet</b>. But a stranger’s laptop sits on the same switch, quietly recording traffic. Look at what it caught.',
 		'[ingat] Telnet is a <b>postcard</b>, everyone who handles it along the way can read it. SSH is a <b>sealed envelope</b>, only the receiver can open it.',
 		'Let us lock things down, step by step. First the boss step, enable. <b>enable secret</b> sets a password for it, and IOS stores it scrambled so nobody can read it from the config.',
@@ -38,7 +38,7 @@ export const en: CiscoSshText = {
 		},
 		{
 			title: 'Postcard and envelope',
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			body: '<b>Telnet</b> is a postcard, <b>SSH</b> is a sealed envelope. Telnet uses port 23, SSH uses port 22.'
 		},
 		{

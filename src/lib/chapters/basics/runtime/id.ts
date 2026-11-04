@@ -3,7 +3,7 @@ import type { RuntimeText } from './types';
 export const id: RuntimeText = {
 	title: 'Runtime dan library',
 	intro: [
-		'Kodenya sudah ditulis, dan kamu tahu kode itu harus diterjemahkan. Tapi ada kejutan. Banyak program nggak bisa jalan sendirian, mereka cuma melayang tanpa pijakan.',
+		'Kodenya sudah ditulis, dan kamu tahu kode itu harus diterjemahkan. Tapi ada kejutan. Banyak program nggak bisa jalan sendirian. Lihat, kodenya melayang tanpa pijakan.',
 		'Program butuh <b>runtime</b>, program pembantu yang menjalankan programmu. Anggap aja panggung. Aktornya (kode kamu) baru bisa tampil kalau ada panggung di bawah kakinya.',
 		'Kode yang beda butuh panggung yang beda. JavaScript di server jalan di atas <b>Node.js</b>, JavaScript di halaman web jalan di dalam <b>browser</b> kamu, dan Java jalan di atas <b>JVM</b> (panggung khusus Java).',
 		'[fyi] Kata yang sama, dunia yang beda. "Runtime" juga berarti saat program sedang jalan. Crash waktu program jalan disebut runtime error, beda dengan salah ketik yang ditangkap [[compiler|basics/compiler]] sebelum apa pun jalan.',
@@ -46,12 +46,12 @@ export const id: RuntimeText = {
 			body: 'Alat yang mengunduhkan library buat kamu. <b>npm</b> untuk JavaScript, <b>pip</b> untuk Python.'
 		},
 		{
-			title: 'Kebanyakan pinjaman',
+			title: 'Sebagian besar pinjaman',
 			body: 'Kode buatanmu sering cuma beberapa ratus baris. Library dan runtime di bawahnya bisa sampai <b>jutaan</b>.'
 		},
 		{
-			title: 'Cara ingat',
-			tag: 'Cara ingat',
+			title: 'Panggung, properti, aktor',
+			tag: 'Biar nempel',
 			body: 'Runtime itu <b>panggung</b>, library itu <b>properti siap pakai</b>, kodemu <b>aktornya</b>.'
 		},
 		{

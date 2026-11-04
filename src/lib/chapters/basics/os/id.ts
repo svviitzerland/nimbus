@@ -6,7 +6,7 @@ export const id: OsText = {
 		'Lihat laptop ini. Browser, musik, dan chat jalan bersamaan, padahal CPU, RAM, dan storage yang dia punya cuma satu, bagian yang sudah kamu kenal di [[CPU, RAM, dan storage|basics/hardware]]. Terus siapa yang mengatur aplikasi mana dapat apa?',
 		'Itu tugas <b>sistem operasi</b>, atau <b>OS</b> (operating system). Dia manajer yang duduk di antara aplikasi dan hardware. Aplikasi nggak pernah mengambil CPU atau RAM sendiri, mereka minta ke OS, lalu OS yang membagikan.',
 		'[ingat] OS itu kayak pelayan di warung makan. Aplikasi itu pembelinya, hardware itu dapurnya. Pembeli nggak masuk dapur sendiri, mereka pesan lewat pelayan.',
-		'Lihat aplikasinya terbuka. Tiap aplikasi minta dulu ke OS jendela dan sedikit memori, baru setelah itu dia muncul di layar.',
+		'Lihat waktu aplikasinya dibuka. Tiap aplikasi minta dulu ke OS jendela dan sedikit memori, baru setelah itu dia muncul di layar.',
 		'CPU cuma bisa mengerjakan sedikit hal sekaligus, padahal aplikasinya jauh lebih banyak, jadi OS menyuruh mereka gantian. Tiap aplikasi dapat jatah waktu sangat singkat, beberapa per seribu detik, lalu giliran berikutnya. Gantinya cepat banget sampai semuanya kelihatan jalan bareng.',
 		'OS juga memberi tiap aplikasi bagian RAM sendiri dan menjaganya tetap terpisah. Jadi game yang crash (tiba tiba rusak) nggak bikin chat kamu ikut berantakan. OS juga menyisihkan sedikit RAM untuk dirinya.',
 		'[fyi] Buka satu aplikasi kebanyakan dan RAM jadi penuh. OS lalu menitipkan sisanya di storage (namanya <b>swap</b>). Storage jauh lebih lambat dari RAM, dan saat itulah laptop mulai lemot.',
@@ -22,7 +22,7 @@ export const id: OsText = {
 	},
 	steps: [
 		{
-			title: 'Serba satu',
+			title: 'Hardware cuma satu set',
 			body: 'Aplikasinya banyak, tapi <b>CPU</b>, <b>RAM</b>, dan <b>storage</b> cuma satu. Harus ada yang membagi.'
 		},
 		{
@@ -39,7 +39,7 @@ export const id: OsText = {
 		},
 		{
 			title: 'Berbagi RAM',
-			body: 'Tiap aplikasi dapat <b>bagian sendiri</b> di RAM, terpisah dari yang lain. 8 GB dipakai bersama.'
+			body: 'Tiap aplikasi dapat <b>bagian sendiri</b> di RAM, terpisah dari yang lain. Total 8 GB itu dipakai bersama semua aplikasi.'
 		},
 		{
 			title: 'Kalau RAM penuh',
@@ -55,7 +55,7 @@ export const id: OsText = {
 		},
 		{
 			title: 'Coba sendiri, kalau mau',
-			body: 'Ketuk aplikasi di bawah laptop untuk membuka atau menutupnya, lalu lihat RAM nya.'
+			body: 'Ketuk aplikasi di bawah laptop untuk membuka atau menutupnya, lalu lihat berapa RAM yang terpakai.'
 		}
 	],
 	apps: [

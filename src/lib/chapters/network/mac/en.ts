@@ -34,7 +34,7 @@ export const en: MacText = {
 		},
 		{
 			title: 'Tag stays, address changes',
-			tag: 'remember',
+			tag: 'make it stick',
 			body: 'Same phone, same name tag. A new network gives it a new IP.'
 		},
 		{
@@ -47,7 +47,7 @@ export const en: MacText = {
 		},
 		{
 			title: 'Delivered by name tag',
-			body: 'With the MAC known, frames go to that one device only. No more shouting.'
+			body: 'With the MAC known, the data goes to that one device only. No more shouting.'
 		},
 		{
 			title: 'Inside one room only',

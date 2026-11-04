@@ -5,17 +5,17 @@ export const id: CiscoAclText = {
 	intro: [
 		'Bos punya dua permintaan. Nggak ada yang main situs game di jam kerja, dan cuma Budi, si admin, yang boleh login ke router dari laptopnya. Sekarang router masih ngelolosin semuanya, lihat.',
 		'Cisco ngurus permintaan kayak gini pakai <b>access control list</b>, singkatnya ACL. Isinya daftar baris bernomor, tiap baris bilang <b>permit</b> atau <b>deny</b>. IOS bacanya dari atas dan berhenti di baris pertama yang cocok.',
-		'[ingat] Bayangin satpam yang pegang daftar tamu. Dia baca dari atas, baris pertama yang cocok sama kamu yang nentuin, dan kalau namamu nggak ada di daftar, ya nggak boleh masuk. Yang terakhir itu namanya <b>deny any</b> nggak kelihatan di dasar tiap daftar.',
+		'[ingat] Bayangin satpam yang pegang daftar tamu. Dia baca dari atas, baris pertama yang cocok sama kamu yang nentuin, dan kalau namamu nggak ada di daftar, ya nggak boleh masuk. Yang terakhir itu aturan <b>deny any</b> yang tak terlihat di dasar tiap daftar.',
 		'Ada dua jenis. List <b>standard</b> (nomor 1 sampai 99) cuma lihat siapa pengirimnya. List <b>extended</b> (100 sampai 199) juga lihat tujuannya ke mana dan port berapa. Buat blokir satu website butuh yang extended, jadi list 100 nolak tcp ke server game di port 443.',
 		'Daftar nggak ngapa ngapain sebelum digantung di port. <b>ip access-group 100 in</b> di Gi0/1 ngecek tiap paket yang masuk dari kantor. Perhatiin baik baik, ada yang salah.',
-		'Semuanya keblokir, bahkan nimbus.com dan Budi! Deny nggak kelihatan di dasar daftar yang nangkep mereka. Solusinya satu baris lagi di bawah deny, <b>permit ip any any</b>, biar sisanya boleh lewat.',
+		'Semuanya keblokir, bahkan nimbus.com dan Budi! Aturan deny yang tak terlihat di dasar daftar yang nangkep mereka. Solusinya satu baris lagi di bawah deny, <b>permit ip any any</b>, biar sisanya boleh lewat.',
 		'Sekarang soal login jarak jauh. List standard kecil nomor 10 cuma ngizinin alamat Budi, terus <b>access-class 10 in</b> ngegantungnya di <b>vty lines</b>, pintu virtual buat login lewat jaringan.',
 		'<b>show access-lists</b> nampilin tiap baris plus hitungan berapa paket yang cocok. Pas banget buat ngecek aturannya beneran kerja.',
 		'[fyi] Konsepnya sama, istilahnya beda. Di [[MikroTik|netlab/router-firewall]] namanya firewall filter, di cloud namanya security group, lihat [[firewall|networking/firewall]]. Selalu dari atas, selalu yang cocok pertama.',
 		'Giliran kamu. Dewi sekarang juga jadi admin. Ketik <b>conf t</b>, lalu <b>access-list 10 permit host 192.168.88.13</b>, dan lihat tes dia.'
 	],
 	reactions: {
-		task: 'Dewi boleh masuk! Baris barunya ada di bawah Budi di list 10, dan Sari tetap ketangkep deny nggak kelihatan di dasar. ACL kerja persis kayak mau bos.',
+		task: 'Dewi boleh masuk! Baris barunya ada di bawah Budi di list 10, dan Sari tetap ketangkep deny yang tak terlihat di dasar daftar. ACL kerja persis kayak mau bos.',
 		tooOpen:
 			'Dewi bisa masuk, tapi Sari juga. Baris itu kebanyakan ngelolosin orang. Pakai <b>host 192.168.88.13</b> biar cuma cocok buat Dewi.',
 		needEnable: 'Itu butuh prompt bos. Ketik <b>enable</b> dulu.',
@@ -38,8 +38,8 @@ export const id: CiscoAclText = {
 		},
 		{
 			title: 'Si satpam',
-			tag: 'Cara ingat',
-			body: 'Dari atas, yang cocok duluan menang, dan nggak ada di daftar artinya <b>nggak boleh masuk</b>. Aturan terakhir itu si deny nggak kelihatan.'
+			tag: 'Biar nempel',
+			body: 'Dari atas, yang cocok duluan menang, dan nggak ada di daftar artinya <b>nggak boleh masuk</b>. Aturan terakhir itu deny yang tak terlihat.'
 		},
 		{
 			title: 'Extended list 100',

@@ -3,12 +3,12 @@ import type { RequestJourneyText } from '../../types';
 export const id: RequestJourneyText = {
 	title: 'Dari HP sampai ke server',
 	intro: [
-		'Tadi kamu lihat client minta dan server menjawab. Tapi di antara HP-mu dan server itu ada perjalanan yang panjang banget, dan semuanya kelar dalam sekejap mata.',
+		'Tadi kamu lihat client minta dan server menjawab. Tapi di antara HP kamu dan server itu ada perjalanan yang panjang banget, dan semuanya kelar dalam sekejap mata.',
 		'Begitu kamu menekan buka, permintaanmu keluar dari HP lewat WiFi ke <b>router</b> di rumahmu. Router itu gerbang rumah, semua perangkat di rumahmu keluar masuk internet lewat dia.',
-		'Kalau kamu lagi di jalan dan pakai data seluler, lompatan pertamanya bukan ke router, tapi ke <b>tiang BTS</b> terdekat. Ini yang sering bikin bingung, katanya data jalan lewat kabel, lah tiang tinggi itu buat apa? Soalnya kabel nggak bisa ikut kamu jalan. Kabelnya berhenti di router atau di kaki tiang, dan sisa jarak dari situ sampai ke HP-mu diseberangi gelombang radio, lewat WiFi cuma beberapa meter, lewat tiang BTS beberapa kilometer.',
+		'Kalau kamu lagi di jalan dan pakai data seluler, lompatan pertamanya bukan ke router, tapi ke <b>tiang BTS</b> terdekat. Ini yang sering bikin bingung, katanya data jalan lewat kabel, lah tiang tinggi itu buat apa? Soalnya kabel nggak bisa ikut kamu jalan. Kabelnya berhenti di router atau di kaki tiang, dan sisa jarak dari situ sampai ke HP kamu diseberangi gelombang radio, lewat WiFi cuma beberapa meter, lewat tiang BTS beberapa kilometer.',
 		'Dan gelombangnya cuma sampai situ. Router maupun tiang BTS dua duanya disambung kabel serat optik, terus permintaanmu diteruskan ke <b>ISP</b> (Internet Service Provider), penyedia internet langgananmu, lewat kabel di pinggir jalan, antar kota, bahkan nanti dasar laut.',
-		'Sampai di tujuannya, server membaca permintaanmu dan mengirim jawaban, lewat jalan yang sama, balik sampai jadi halaman di layar HP-mu. Bolak balik ini biasanya cuma puluhan milidetik.',
-		'Sekarang lihat sendiri perjalanannya. Kamu bakal ikut dari matamu sendiri, dan aku bakal jelasin tiap kali kita berhenti. Coba juga tombol WiFi dan data seluler biar kelihatan lompatan pertamanya doang yang beda.'
+		'Sampai di tujuannya, server membaca permintaanmu dan mengirim jawaban, lewat jalan yang sama, balik sampai jadi halaman di layar HP kamu. Bolak balik ini biasanya cuma puluhan milidetik.',
+		'Sekarang lihat sendiri perjalanannya. Kamu ikut menumpang bersama permintaanmu, dan aku jelasin tiap kali kita berhenti. Coba juga tombol WiFi dan data seluler, yang beda cuma lompatan pertamanya.'
 	],
 	/** Satu baris untuk tiap perhentian animasinya. */
 	reactions: {

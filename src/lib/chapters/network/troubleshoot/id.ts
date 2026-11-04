@@ -9,7 +9,7 @@ export const id: TroubleshootText = {
 		'Makanya orang mengecek dari <b>bawah ke atas</b>. Lihat menaranya. Kabel, aman. WiFi, aman. Alamat IP, aman. Gateway, nggak menjawab. Berhenti di situ.',
 		'Lantai merah pertama itu <b>biang keroknya</b>. DNS dan website di atasnya cuma <b>korban</b>, mereka gagal karena lantai di bawahnya rusak. Mengutak atik mereka cuma buang waktu.',
 		'Jadi yang dibenerin cuma gateway. Routernya macet, direstart, dan semua lantai di atasnya jadi hijau dengan sendirinya.',
-		'[ingat] Mulai dari kabel, berakhir di website. Merah pertama dari bawah, itu biang keroknya.',
+		'[ingat] Kayak naik tangga, mulai dari anak tangga paling bawah (kabel) sampai paling atas (website). Merah pertama yang kamu injak, itu biang keroknya.',
 		'[fyi] Tiap pengecekan pakai alat yang mungkin sudah kamu kenal. [[Ping|network/ping]] ke router menguji gateway, nslookup bertanya ke [[DNS|networking/dns]], dan alamat yang diawali 169.254 artinya [[DHCP|network/dhcp]] nggak pernah memberimu alamat.',
 		'Mau jadi detektif? Ketuk tombolnya buat jaringan rusak yang baru, lalu cek lantainya dari bawah. Atau lanjut saja, ini opsional.'
 	],
@@ -47,7 +47,7 @@ export const id: TroubleshootText = {
 			body: 'Restart router yang macet membereskan gateway, dan DNS serta website kembali tanpa disentuh.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Kabel dulu, website terakhir',
 			body: 'Mulai dari kabel, berakhir di website. Merah pertama dari bawah, itu biang keroknya.'
 		},

@@ -8,8 +8,8 @@ export const en: RoutingText = {
 		'Now it reaches the router at your internet provider. The router reads the address on the label, and only the label. It never opens the envelope.',
 		'Beside every router stands a signpost, its <b>routing table</b>. Each arm says "for this address, take that road". The arm for nimbus.com points to the next router.',
 		'So the router passes the packet along and forgets about it. The next router reads the label, checks its own signpost, and does the same. Hop by hop, the packet arrives.',
-		'[ingat] A router is a post office sorting letters. It reads the address, drops the letter on the right road, and is done. Nobody drives the letter all the way.',
-		'And when no arm matches? The router never guesses, it throws the packet away. That is why almost every router has one arm marked "everything else", the <b>default route</b>. Your home router lives on basically that one arm.',
+		'[ingat] A router is a post office sorting letters. It reads the address, drops the letter on the right road, and is done. No single post office carries the letter the whole way.',
+		'And when no arm matches? The router never guesses, it throws the packet away. That is why almost every router has one arm marked "everything else", the <b>default route</b>. Your home router uses little else, it hands everything to the provider.',
 		'[fyi] Same word, different world. A cloud network (a [[VPC|networking/vpc]]) has route tables too. You fill in the lines from a web page instead of touching a box, but the idea is exactly the same.',
 		'That is routing, a chain of signposts. If you are curious, knock the signpost at the provider over and watch what happens to the next packet.'
 	],

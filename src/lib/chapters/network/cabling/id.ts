@@ -7,7 +7,7 @@ export const id: CablingText = {
 		'Kabel yang kamu colokkan ke laptop atau router namanya <b>kabel LAN</b>. Isinya delapan kawat tembaga tipis yang dipilin berpasangan. Tembaga membawa listrik, dan dia murah, kuat, serta gampang dicolok.',
 		'Tapi listrik punya kelemahan. Makin jauh jalannya, makin lemah dia, dan dia ketularan gangguan dari kabel lain di sekitarnya. Makanya kabel LAN mentok di sekitar 100 meter.',
 		'Kabel <b>fiber optik</b> itu helai kaca setipis rambut. Yang dibawanya cahaya, berkedip nyala dan mati. Cahaya hampir nggak melemah dan kebal gangguan listrik, jadi satu helai fiber bisa membentang puluhan kilometer.',
-		'[ingat] Tembaga buat dalam ruangan, fiber buat antar gedung. Kabel LAN cuma sepanjang kira kira satu lapangan bola, dan yang lebih jauh dari itu, seperti kabel yang masuk ke rumahmu, pasti fiber.',
+		'[ingat] Tembaga di ruangan, fiber di jalanan. Kabel LAN cuma sepanjang kira kira satu lapangan bola, dan yang lebih jauh dari itu, seperti kabel yang masuk ke rumahmu, biasanya fiber.',
 		'[fyi] Pilinan di kabel LAN bukan buat gaya. Dengan dipilin, gangguan dari luar mengenai kedua kawat sama rata, jadi saling meniadakan. Tulisan Cat5e, Cat6, dan Cat6a di kabel menunjukkan seberapa rapat pilinannya dan seberapa cepat kabelnya.',
 		'Mau coba menariknya? Geser jaraknya dan lihat di mana tembaga menyerah sementara fiber terus jalan.'
 	],
@@ -37,9 +37,9 @@ export const id: CablingText = {
 			body: 'Helai <b>kaca</b> setipis rambut yang membawa kedipan cahaya. Hampir nggak memudar, jadi bisa sampai berkilo kilometer.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Tembaga di ruangan, fiber di jalanan',
-			body: 'Kabel LAN cuma sepanjang satu lapangan bola (100 meter). Yang lebih jauh, seperti kabel ke rumahmu, itu fiber.'
+			body: 'Kabel LAN cuma sepanjang satu lapangan bola (100 meter). Yang lebih jauh, seperti kabel ke rumahmu, biasanya fiber.'
 		},
 		{
 			tag: 'FYI',

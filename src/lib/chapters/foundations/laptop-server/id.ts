@@ -4,8 +4,8 @@ export const id: LaptopServerText = {
 	title: 'Laptopmu juga bisa jadi server',
 	intro: [
 		'Ini rahasia kecil, server itu bukan barang ajaib. Laptop yang kamu pakai sekarang juga bisa jadi server. Jalankan aplikasimu di situ, dan komputer lain bisa membukanya.',
-		'Di rumah itu gampang banget. Selama satu WiFi, HP temanmu bisa buka situs yang jalan di laptopmu. Developer kerja begini tiap hari, istilahnya jalan di <b>local</b>.',
-		'Masalah muncul kalau situsnya mau dibuka orang seluruh dunia. Alamat <b>IP</b> rumahmu itu pinjaman dari ISP dan bisa diganti kapan saja, jadi alamat situsmu ikut berubah. Laptop juga harus nyala 24 jam nonstop, dan jatah unggah internet rumah kecil, langsung keteteran begitu pengunjung ramai.',
+		'Di rumah itu gampang banget. Selama satu WiFi, HP temanmu bisa buka situs yang jalan di laptopmu. Developer kerja begini tiap hari, istilahnya jalan secara <b>local</b>, cuma di jaringan rumah sendiri.',
+		'Masalah muncul kalau situsnya mau dibuka orang seluruh dunia. Alamat <b>IP</b> rumahmu (nomor alamatnya di internet) itu pinjaman dari ISP, penyedia internetmu, dan bisa diganti kapan saja, jadi alamat situsmu ikut berubah. Laptop juga harus nyala 24 jam nonstop, dan jatah unggah internet rumah kecil, langsung keteteran begitu pengunjung ramai.',
 		'Di sini sudah ada laptopmu di rumah, dan HP temanmu nyambung di WiFi yang sama. Mulai dari situ, lalu buka laptopmu untuk internet dan lihat masalahnya datang satu per satu.'
 	],
 	reactions: {

@@ -5,7 +5,7 @@ export const en: LoadBalancerText = {
 	intro: [
 		'A single server has a limit. While traffic is calm it stays relaxed. But the moment visitors flood in, it gets overwhelmed.',
 		'Picture running a <b>flash sale</b>. At noon sharp, thousands of people open your site at once. One server fills up instantly, the site slows down, then goes down.',
-		'The fix is to put a <b>load balancer</b> in front of several identical servers. Its job is to spread requests across them, by default one after another (round robin, though other methods like least connections exist), so no single server gets flooded.',
+		'The fix is to put a <b>load balancer</b> in front of several identical servers. Its job is to spread requests across them, usually one after another (called round robin, though there are other ways, like picking the least busy server), so no single server gets flooded.',
 		'As a bonus, if one server dies the balancer stops sending to it and reroutes traffic to the ones still alive. Visitors never notice.',
 		'The flash sale is ready to go, and a single server is on duty. Let it fall first, then bring in a load balancer with a few servers and watch the load spread out evenly.'
 	],
@@ -28,8 +28,10 @@ export const en: LoadBalancerText = {
 	crowdMany: 'Visitors flooding in',
 	promptStart: 'The site is calm, just one visitor and one server. Try making it suddenly busy.',
 	promptOverload: 'Visitors are flooding one server and it cannot cope. Try adding a server.',
-	promptBalanced: 'Now there are several servers, and the load balancer splits visitors evenly across them. Try killing one server.',
-	promptDone: 'One server died, but the load balancer instantly reroutes visitors to the others. The site stays up.',
+	promptBalanced:
+		'Now there are several servers, and the load balancer splits visitors evenly across them. Try killing one server.',
+	promptDone:
+		'One server died, but the load balancer instantly reroutes visitors to the others. The site stays up.',
 	statusUp: 'Online',
 	statusOver: 'Overwhelmed',
 	statusDown: 'Down',

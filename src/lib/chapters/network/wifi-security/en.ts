@@ -39,7 +39,7 @@ export const en: WifiSecurityText = {
 		},
 		{
 			tag: 'WPA3',
-			title: 'A lock you cannot crack at home',
+			title: 'A recording is no use for guessing',
 			body: 'Recording a phone joining gives the stranger nothing useful. He would have to guess live against your router, very slowly.'
 		},
 		{
@@ -47,7 +47,7 @@ export const en: WifiSecurityText = {
 			body: 'A second WiFi name on the same router. Guests get internet, but your own devices are out of their reach.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Bigger number, stronger lock',
 			body: 'Open, then WPA2, then WPA3. Pick the highest one all your devices support, and give it a long password.'
 		}
@@ -65,7 +65,7 @@ export const en: WifiSecurityText = {
 		idle: ['', ''],
 		listen: ['catching waves', 'from your house'],
 		open: ['reading it all', 'chat "see you at 7"'],
-		wpa2: ['scrambled noise', 'saved a join, guessing'],
-		wpa3: ['scrambled noise', 'nothing to take home']
+		wpa2: ['scrambled noise', 'record now, guess later'],
+		wpa3: ['scrambled noise', 'recording is useless']
 	}
 };

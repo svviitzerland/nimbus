@@ -5,10 +5,10 @@ export const id: QosText = {
 	intro: [
 		'Senin pagi di kantor nimbus.com. Ada yang lagi video call sama klien, ada yang nyolong main game sebentar, dan ada yang mulai download 40 GB. Semuanya desak desakan lewat satu jalur internet.',
 		'Tiap jalur punya batas atas (ingat [[bandwidth|trafficflow/bandwidth-throughput]]). Kalau yang datang lebih banyak dari yang bisa dibawa, router ngantriin paketnya di <b>queue</b>, alias antrean, kayak mobil di gerbang tol.',
-		'Bawaannya, antreannya siapa cepat dia dapat. Paket call yang hijau dan mungil kejebak di belakang tumpukan potongan download yang oranye. Suara yang telat itu nggak ada gunanya, jadi call nya putus putus.',
+		'Bawaannya, antreannya siapa cepat dia dapat. Paket call yang hijau dan mungil kejebak di belakang tumpukan potongan download yang oranye. Suara yang telat itu nggak ada gunanya, jadi suara callnya putus putus.',
 		'<b>QoS</b> (Quality of Service) bikin router bisa ngurutin antrean itu berdasarkan <b>prioritas</b>. Lihat paket call dan game nyelip ke depan.',
-		'Call nya mulus lagi. Download nya hampir nggak kerasa, cuma selesai beberapa detik lebih lama. Yang benci nunggu jalan duluan, yang santai ambil sisanya.',
-		'[ingat] QoS itu kayak ambulans di jalan macet. Semua minggir buat dia, truk truk tetap sampai rumah, cuma agak telat dikit.',
+		'Callnya mulus lagi. Downloadnya hampir nggak kerasa, cuma selesai beberapa detik lebih lama. Yang benci nunggu jalan duluan, yang santai ambil sisanya.',
+		'[ingat] QoS itu kayak ambulans di jalan macet. Semua minggir buat dia, truk truk tetap sampai tujuan, cuma agak telat dikit.',
 		'[fyi] Di router MikroTik ini diatur pakai queue, yang nanti kamu temui di [[manajemen bandwidth|netlab/router-queue]]. Jaringan besar bahkan nempelin nomor prioritas di dalam tiap paket (namanya DSCP), jadi tiap router di sepanjang jalan tahu siapa yang duluan.',
 		'Itulah QoS, antrean yang lebih pintar. Kalau mau lihat bedanya, matiin terus nyalain lagi.'
 	],

@@ -37,7 +37,7 @@ export const id: WiresharkText = {
 			body: 'Dengan HTTPS, bagian tengahnya dienkripsi. Wireshark tetap lihat bagian luar (siapa ngobrol dengan siapa, dan seberapa banyak), tapi nggak lihat halamannya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Plat kebaca, bagasi nggak',
 			body: 'Alamat di luar selalu bisa dibaca. Isi di dalam HTTPS nggak bisa.'
 		}

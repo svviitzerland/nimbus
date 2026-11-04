@@ -5,7 +5,7 @@ export const id: AwsText = {
 	intro: [
 		'Kamu sudah kenal semua bagian sebuah website di cloud. Pintu depan, jaringan privat, server, data, dan yang berjaga. Di papan ini, tiap bagian jadi satu kartu polos bertuliskan idenya.',
 		'Sekarang kenalan sama toko paling besar yang menyewakan semua itu, <b>Amazon Web Services</b>, atau AWS. Dia lahir di dalam Amazon, dan tahun 2006 mulai menyewakan mesin sejenis yang menjalankan toko online mereka. Sekarang layanannya lebih dari 200, dan namanya kedengaran kayak kode rahasia.',
-		'Lihat baris paling atas membalik. Pintu depan jadi <b>Route 53</b> ([[DNS|networking/dns]], dinamai dari port 53), <b>CloudFront</b> (CDN, salinan dekat tiap pengunjung) dan <b>Elastic Load Balancing</b> (membagi pengunjung ke beberapa server).',
+		'Lihat kartu di baris paling atas berbalik. Pintu depan jadi <b>Route 53</b> ([[DNS|networking/dns]], dinamai dari port 53), <b>CloudFront</b> (CDN, salinan dekat tiap pengunjung) dan <b>Elastic Load Balancing</b> (membagi pengunjung ke beberapa server).',
 		'Berikutnya jaringan privat. <b>VPC</b> itu jaringan berpagar milikmu sendiri di dalam AWS, dan <b>Security Group</b> itu firewall di sekeliling tiap server, cuma membiarkan masuk yang kamu izinkan.',
 		'Lalu komputer yang benar benar menjalankan nimbus.com. <b>EC2</b> itu server sewaan, <b>ECS</b> menjalankan container, dan <b>Lambda</b> menjalankan satu fungsi kecil cuma waktu ada yang memanggil.',
 		'Tiap website butuh tempat buat datanya. <b>S3</b> menyimpan file seperti foto dan backup, <b>RDS</b> itu database SQL yang diurus AWS, dan <b>DynamoDB</b> itu database NoSQL buat trafik raksasa.',
@@ -48,7 +48,7 @@ export const id: AwsText = {
 		{
 			tag: 'Sejak 2006',
 			title: 'Amazon Web Services',
-			body: 'Cloud terbesar di dunia. Layanan pertamanya <b>S3</b> buat file dan <b>EC2</b> buat server.'
+			body: 'Cloud terbesar di dunia. Layanan besar pertamanya <b>S3</b> buat file dan <b>EC2</b> buat server.'
 		},
 		{
 			tag: 'Lapis 1',
@@ -76,7 +76,7 @@ export const id: AwsText = {
 			body: '<b>IAM</b> buat siapa boleh apa, <b>KMS</b> buat kunci, <b>CloudWatch</b> buat grafik dan alarm.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Ide sama, papan nama baru',
 			body: 'Balik kartu mana saja, ide di baliknya sudah kamu kenal. Pasangan paling gampang, <b>EC2 itu VM</b>.'
 		},

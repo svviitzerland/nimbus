@@ -53,7 +53,7 @@ export const id: CiscoIntroText = {
 		},
 		{
 			title: 'Tiga prompt',
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			body: '<b>&gt;</b> tamu, cuma lihat. <b>#</b> bos. <b>(config)#</b> tukang yang lagi ngubah. Tiap baris yang kamu ketik selalu mulai dari salah satunya.'
 		},
 		{
@@ -67,7 +67,7 @@ export const id: CiscoIntroText = {
 		{
 			title: 'Giliran kamu',
 			tag: 'Coba',
-			body: 'Tap console, ketik <code>sh run</code>, lalu tekan Enter. Cari baris <code>hostname nimbus</code> di bagian atas.'
+			body: 'Ketuk console, ketik <code>sh run</code>, lalu tekan Enter. Cari baris <code>hostname nimbus</code> di bagian atas.'
 		}
 	],
 	modes: { look: 'lihat', boss: 'bos', change: 'ubah', port: 'satu port' },

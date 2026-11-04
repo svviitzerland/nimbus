@@ -40,11 +40,11 @@ export const id: VpnText = {
 			body: 'Sebelum masuk terowongan, semuanya dienkripsi. Orang luar bisa tahu kamu mengirim sesuatu, tapi nggak tahu isinya.'
 		},
 		{
-			title: 'Keluar di dalam',
+			title: 'Muncul di dalam kantor',
 			body: 'Server VPN membuka bungkusan permintaanmu dan meneruskannya dari dalam kantor. Buat server gaji, permintaan itu datang dari jaringan kantor.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Terowongan dan gembok',
 			body: '<b>Terowongan</b> menaruhmu di dalam jaringan lain. <b>Gembok</b> menjaga perjalanannya tetap rahasia.'
 		}

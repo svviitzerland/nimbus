@@ -10,7 +10,7 @@ export const id: ProtocolsText = {
 		'Pintu 22 itu <b>SSH</b>. Lewat sini kamu bisa ngetik perintah ke komputer yang jauh banget, dengan aman, seolah kamu duduk di depannya.',
 		'Pintu 53 itu <b>DNS</b>, buku alamat dari [[DNS|networking/dns]]. Sebelum laptopmu bisa buka nimbus.com, dia nanya ke sini dulu nama itu alamatnya apa.',
 		'[ingat] Hafalin empat pintu dulu aja. 80 web biasa, 443 web bergembok, 22 SSH, 53 DNS. SSH hurufnya S kembar, pintunya juga 2 kembar.',
-		'[fyi] Masih banyak yang lain. Email dikirim pakai <b>SMTP</b> dan dibaca pakai <b>IMAP</b>, file dipindah pakai <b>SFTP</b>. Huruf S hampir selalu artinya obrolannya dienkripsi. Di bawahnya, semuanya numpang di TCP dan IP yang sama dari [[Lapisan dan paket|networking/layers]].',
+		'[fyi] Masih banyak yang lain. Email dikirim pakai <b>SMTP</b> dan dibaca pakai <b>IMAP</b>, file dipindah pakai <b>SFTP</b>. S di HTTPS dan SFTP artinya aman (secure), tapi S di SMTP cuma singkatan simple. Di bawahnya, semuanya numpang di TCP dan IP yang sama dari [[Lapisan dan paket|networking/layers]].',
 		'Itulah protokol, pintu yang punya nama dan nomor. Kalau mau, ketuk sendiri pintu mana aja.'
 	],
 	reactions: {
@@ -56,7 +56,7 @@ export const id: ProtocolsText = {
 		},
 		{
 			title: 'Masih banyak lagi',
-			body: '<b>SMTP</b> ngirim email, <b>IMAP</b> bacanya, <b>SFTP</b> mindahin file. Ada S biasanya artinya dienkripsi.'
+			body: '<b>SMTP</b> ngirim email, <b>IMAP</b> bacanya, <b>SFTP</b> mindahin file. S di HTTPS, SSH, dan SFTP artinya aman, S di SMTP bukan.'
 		},
 		{
 			title: 'Ketuk pintunya',

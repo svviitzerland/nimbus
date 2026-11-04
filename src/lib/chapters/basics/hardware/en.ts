@@ -43,7 +43,7 @@ export const en: HardwareText = {
 		{
 			tag: 'RAM',
 			title: 'The desk',
-			body: 'Holds the apps and files open right now, so the CPU can grab them instantly. It needs power to remember. <b>8 GB RAM</b> on a shop label tells you how big the desk is.'
+			body: 'Holds the apps and files open right now, so the CPU can grab them instantly. It only remembers while the power is on. <b>8 GB RAM</b> on a shop label tells you how big the desk is.'
 		},
 		{
 			tag: 'Storage',
@@ -56,7 +56,7 @@ export const en: HardwareText = {
 			body: 'Files are copied from storage into RAM, and the CPU reads them from RAM. It almost never reaches into storage directly, that would be far too slow.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'The desk and the cupboard',
 			body: 'Power off clears the desk (RAM), the cupboard (storage) keeps everything. Rule of thumb, if you did not save it, it only lived in RAM.'
 		},
@@ -72,8 +72,8 @@ export const en: HardwareText = {
 		},
 		{
 			tag: 'Input and output',
-			title: 'Keyboard in, screen out',
-			body: '<b>Input</b> brings things in (keyboard, mouse, touch, microphone). <b>Output</b> sends results out (screen, speakers). The CPU sits in between.'
+			title: 'The keyboard sends, the screen shows',
+			body: '<b>Input</b> devices send what you do into the computer (keyboard, mouse, touch, microphone). <b>Output</b> devices show you the result (screen, speakers). In between, the CPU does the work.'
 		},
 		{
 			tag: 'The team',

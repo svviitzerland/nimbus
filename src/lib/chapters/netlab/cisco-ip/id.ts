@@ -4,7 +4,7 @@ export const id: CiscoIpText = {
 	title: 'Interface dan DHCP pool',
 	intro: [
 		'Router kita sekarang namanya nimbus, dan udah ada kabel dari <b>GigabitEthernet0/1</b> ke switch kantor. Tapi lihat, lampunya mati. Router Cisco dikirim dengan port yang dimatiin, jadi belum ada yang bisa lewat.',
-		'Pertama, port itu butuh alamat, nomor rumah si router di sisi kantor. Kita masuk ke portnya pakai <b>interface g0/1</b>, lalu kasih <b>192.168.88.1</b>. Perhatiin, Cisco mau masknya ditulis lengkap, <b>255.255.255.0</b>, bukan /24.',
+		'Pertama, port itu butuh alamat, nomor rumah si router di sisi kantor. Kita masuk ke portnya pakai <b>interface g0/1</b>, lalu kasih <b>192.168.88.1</b>. Perhatiin, Cisco mau ukuran jaringannya ditulis sebagai <b>mask</b> lengkap, <b>255.255.255.0</b>, bukan /24 (artinya sama).',
 		'Habis itu kita nyalain pakai <b>no shutdown</b>. Lampunya jadi hijau, dan IOS ngumumin pakai tulisan kuning, changed state to up.',
 		'[ingat] Di IOS, <b>no</b> di depan perintah artinya batalin. shutdown itu matiin port, jadi no shutdown ya nyalain lagi. Gampangnya, no itu tombol undo. Berlaku di mana mana, no hostname, no ip address, dan lainnya.',
 		'Sekarang Sari, Budi, dan Dewi nyolok laptopnya. Masing masing teriak ke kabel, ada yang punya alamat buat aku nggak? Itu namanya <b>DHCP</b>, resepsionis jaringan yang bagiin badge bernomor, lihat [[Apa itu DHCP|network/dhcp]]. Belum ada yang jawab.',
@@ -44,7 +44,7 @@ export const id: CiscoIpText = {
 		},
 		{
 			title: 'Batalin pakai no',
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			body: 'Taruh <b>no</b> di depan buat undo. <code>shutdown</code> itu mati, <code>no shutdown</code> itu nyala.'
 		},
 		{
@@ -61,7 +61,7 @@ export const id: CiscoIpText = {
 		},
 		{
 			title: 'Tiga pertanyaan',
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			body: '<b>network</b> nomorku berapa, <b>default-router</b> pintunya di mana, <b>dns-server</b> siapa yang tau nama.'
 		},
 		{
@@ -71,7 +71,7 @@ export const id: CiscoIpText = {
 		{
 			title: 'Giliran kamu',
 			tag: 'Coba',
-			body: 'Tap console lalu ketik <code>ping 192.168.88.13</code>. Tiap <b>!</b> itu balasan, tiap <b>.</b> itu sepi.'
+			body: 'Ketuk console lalu ketik <code>ping 192.168.88.13</code>. Tiap <b>!</b> itu balasan, tiap <b>.</b> itu sepi.'
 		}
 	],
 	tagAsk: 'DHCP?',

@@ -5,7 +5,7 @@ export const en: AzureText = {
 	intro: [
 		'You already met every piece of a website in the cloud. A front door, a private network, servers, data, and someone keeping watch. On the board, each one is a plain tile with the idea written on it.',
 		'Microsoft has made Windows and Office for decades, and millions of office workers sign in with a Microsoft account every morning. <b>Azure</b> is the Microsoft cloud. It opened in 2010, and today more of its virtual machines run Linux than Windows.',
-		'Watch the top row flip. The front door becomes <b>Azure DNS</b>, <b>Front Door</b> (the CDN and global entrance, copies near every visitor) and <b>Load Balancer</b>, a name Azure kept perfectly plain.',
+		'Watch the cards in the top row flip. The front door becomes <b>Azure DNS</b>, <b>Front Door</b> (the CDN and global entrance, copies near every visitor) and <b>Load Balancer</b>, a name Azure kept perfectly plain.',
 		'Next comes the private network. <b>VNet</b>, short for Virtual Network, is your own fenced off network, and an <b>NSG</b> (Network Security Group) is the firewall that says which ports may pass.',
 		'Then the computers that run nimbus.com. <b>Virtual Machines</b> are rented servers, no nickname at all. <b>Container Apps</b> runs containers, and <b>Functions</b> runs one small piece of code when it is called.',
 		'Every website needs a place for its data. <b>Blob Storage</b> holds files, <b>Azure SQL</b> is a SQL database Microsoft looks after, and <b>Cosmos DB</b> is a NoSQL database that copies itself to many regions.',

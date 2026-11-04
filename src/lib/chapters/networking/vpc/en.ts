@@ -3,7 +3,7 @@ import type { NetworkText } from '../types';
 export const en: NetworkText = {
 	title: 'Private networks and subnets',
 	intro: [
-		'Your cloud servers live inside a <b>VPC</b>, a private network of your own. Picture a fenced house where you decide the rooms and the doors.',
+		'Your cloud servers live inside a <b>VPC</b> (Virtual Private Cloud), a private network of your own. Picture a fenced house where you decide the rooms and the doors.',
 		'The rooms inside are called <b>subnets</b>. The one facing the street is the <b>public subnet</b>, its door opens to the internet, and this is where the web server greets visitors.',
 		'The one at the back is the <b>private subnet</b>, with no door to the street at all. The database lives here, and only the web server may talk to it from inside.',
 		'[fyi] In an office that runs its own servers (on premise), the same idea is built from real boxes. Rooms are split with subnets and a [[VLAN|network/vlan]] on the switch, and the fence is a firewall on a router like [[MikroTik|netlab/router-intro]] or [[Cisco|netlab/cisco-intro]]. The difference is that in the cloud it is all virtual and set up from a screen, while in an office you buy the gear and plug in the cables yourself.',

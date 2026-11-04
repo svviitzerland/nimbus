@@ -5,12 +5,12 @@ export const id: DnsText = {
 	intro: [
 		'Setiap server di internet punya <b>alamat IP</b>, deretan angka yang menunjukkan lokasinya, mirip nomor rumah. Browser butuh angka ini untuk menyambung.',
 		'Masalahnya, manusia susah menghafal angka. Jadi kita pakai nama yang gampang diingat seperti nimbus.com. Tapi komputer tetap butuh angkanya.',
-		'Di sinilah <b>DNS</b> bekerja. Dia buku telepon internet. Kamu sebut sebuah nama, dia balas dengan alamat IP-nya, dan barulah browser bisa menyambung ke server yang benar.',
-		'Buku teleponnya sudah terbuka. Sebut sebuah nama dan ikuti DNS menemukan angkanya sampai HP-mu tersambung.'
+		'Di sinilah <b>DNS</b> bekerja. Dia buku telepon internet. Kamu sebut sebuah nama, dia balas dengan alamat IPnya, dan barulah browser bisa menyambung ke server yang benar.',
+		'Buku teleponnya sudah terbuka. Sebut sebuah nama dan ikuti DNS menemukan angkanya sampai HP kamu tersambung.'
 	],
 	reactions: {
 		resolved:
-			'Secepat itu. Kamu cuma menyebut nama, DNS membalas dengan alamat IP-nya, dan HP-mu langsung tahu harus menyambung ke mana. Ini terjadi diam diam tiap kali kamu buka situs apa pun.'
+			'Secepat itu. Kamu cuma menyebut nama, DNS membalas dengan alamat IPnya, dan HP kamu langsung tahu harus menyambung ke mana. Ini terjadi diam diam tiap kali kamu buka situs apa pun.'
 	},
 	youLabel: 'HP kamu',
 	bookTitle: 'DNS',
@@ -23,5 +23,5 @@ export const id: DnsText = {
 	],
 	idleNote: 'Pilih nama situs di bawah',
 	lookupNote: 'DNS mencari namanya di buku',
-	connectNote: 'Ketemu, {ip}. HP-mu menyambung ke sana'
+	connectNote: 'Ketemu, {ip}. HP kamu menyambung ke sana'
 };

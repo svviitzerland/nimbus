@@ -9,7 +9,7 @@ export const id: SubnetText = {
 		'Sekarang kebalikannya. Tiap angkanya turun satu, ruangannya jadi dua kali lipat, dan sekatnya hilang sendiri. Ruangan /28 isi 16 bergabung jadi 32, lalu 64, lalu 128, sampai /24 jadi satu gedung utuh lagi.',
 		'Naik terus sampai /32 dan ruangannya tinggal satu jendela, pas satu alamat. /30 itu ruangan mungil isi 4, pas untuk satu kabel yang menyambung dua router.',
 		'Turun di bawah /24 dan ruangannya jadi lebih besar dari gedung ini. /16 itu satu kompleks berisi 256 gedung seperti punya kita, 65.536 alamat. /8 itu satu kota, sekitar 16,7 juta.',
-		'[ingat] Cukup ingat satu aturan. Angka besar, ruangan kecil. /32 itu satu alamat, /24 itu 256 (satu rumah atau kantor), dan tiap turun satu angka ruangannya jadi dua kali lipat. Tabel kecil itu sudah cukup buat hari pertama.',
+		'[ingat] Cukup ingat satu aturan. Angka besar, ruangan kecil. /32 itu satu alamat, /24 itu 256 (satu rumah atau kantor), dan tiap turun satu angka ruangannya jadi dua kali lipat. Contekan kecil di gambar itu sudah cukup buat hari pertama.',
 		'[fyi] Di tiap ruangan ada dua jendela yang sudah dipesan. Yang pertama nama ruangannya (network address), yang terakhir untuk teriak ke semua orang di dalamnya (broadcast address). Jadi ruangan /24 muat 254 perangkat, bukan 256.',
 		'[fyi] Katanya sama, dunianya beda. Di cloud, ruangan publik dan privat di [[VPC|networking/vpc]] kamu juga subnet, ditulis dengan garis miring yang persis sama. Bedanya, cloud menyimpan beberapa jendela lagi untuk dirinya sendiri.',
 		'Itulah subnetting versi ramah. Kalau mau, geser sendiri angkanya dan lihat ruangannya terbelah dan bergabung.'
@@ -48,7 +48,7 @@ export const id: SubnetText = {
 		},
 		{
 			title: 'Angka besar, ruangan kecil',
-			tag: 'cara ingat',
+			tag: 'biar nempel',
 			body: '/32 itu 1, /24 itu 256, dan tiap turun satu jadi dua kali lipat. Simpan tabel ini di saku.'
 		},
 		{

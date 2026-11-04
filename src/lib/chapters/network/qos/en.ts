@@ -8,7 +8,7 @@ export const en: QosText = {
 		'By default the queue is first come, first served. The tiny green call packets get stuck behind piles of orange download chunks. A voice that arrives late is useless, so the call stutters.',
 		'<b>QoS</b> (Quality of Service) lets the router sort that queue by <b>priority</b>. Watch the call and game packets slip to the front.',
 		'The call is smooth again. The download hardly notices, it just finishes a few seconds later. Traffic that hates waiting goes first, traffic that does not mind takes what is left.',
-		'[ingat] QoS is the ambulance on a jammed road. Everyone pulls over for it, and the trucks still get home, just a little later.',
+		'[ingat] QoS is the ambulance on a jammed road. Everyone pulls over for it, and the trucks still arrive, just a little later.',
 		'[fyi] On a MikroTik router you set this up with queues, which you will meet in [[bandwidth management|netlab/router-queue]]. Big networks even stamp a priority number inside each packet (called DSCP), so every router along the way knows who goes first.',
 		'That is QoS, a smarter waiting line. Flip it off and on if you want to see the difference.'
 	],

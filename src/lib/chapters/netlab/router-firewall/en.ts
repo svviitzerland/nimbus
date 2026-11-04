@@ -50,7 +50,7 @@ export const en: RouterFirewallText = {
 			body: 'Winbox knocks on <b>tcp port 8291</b>. Budi’s address is accepted, everyone else is dropped.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'First match wins',
 			body: 'Top to bottom, stop at the first match. Special cases on top, the general rule below.'
 		},

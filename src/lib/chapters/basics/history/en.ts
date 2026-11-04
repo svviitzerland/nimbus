@@ -10,7 +10,7 @@ export const en: HistoryText = {
 		'Then came World War II. At Bletchley Park in England, Turing and his teammates designed machines that helped crack Enigma, the secret code of the German forces. This, plus his 1936 idea, is why he is often called a father of computer science.',
 		'In 1945 the <b>ENIAC</b> was finished in the United States. It filled a whole room, weighed about 27 tonnes, and used around 18,000 glowing vacuum tubes as its switches. Programming it meant plugging cables by hand, and some of its very first programmers were women like Betty Snyder.',
 		'Vacuum tubes were big, hot, and burned out often. In 1947 scientists at Bell Labs invented the <b>transistor</b>, a tiny switch with no glass and no glow. Same job, a fraction of the size.',
-		'Machines still only understood numbers, which was hard work for people. <b>Grace Hopper</b> believed computers should understand words closer to English. In 1952 she built one of the first <b>compilers</b> (programs that turn words into machine numbers), and her ideas later grew into a language called COBOL. Her team once found a real moth stuck inside a computer and taped it in their logbook, a real life bug.',
+		'Computers back then only understood numbers, which made life hard for people. <b>Grace Hopper</b> believed computers should understand words closer to English. In 1952 she built one of the first <b>compilers</b> (programs that turn words into machine numbers), and her ideas later grew into a language called COBOL. Her team once found a real moth stuck inside a computer and taped it in their logbook, a real life bug.',
 		'In 1958 and 1959, Jack Kilby and Robert Noyce each found a way to put many transistors on one small piece of material, the <b>microchip</b>. Today a chip the size of your fingernail holds billions of them.',
 		'Chips made computers small and cheap enough for a desk. In 1977 the Apple II arrived, then the IBM PC in 1981, and the <b>personal computer</b> moved into homes and schools.',
 		'Computers were already talking over the internet, and in 1991 Tim Berners-Lee at CERN (a big science lab in Europe) opened the first website to the world. The <b>World Wide Web</b> turned the network into pages anyone could visit with a click.',
@@ -19,7 +19,7 @@ export const en: HistoryText = {
 		'The machines changed a lot, yet inside, the parts still do the same jobs. Next, we will [[open one up|basics/hardware]] and see what is in there. Tap a dot on the timeline if you want to visit an era again.'
 	],
 	reactions: {
-		peek: 'Good idea, a second look helps it stick. Hop around as much as you like, then Next opens up a laptop.'
+		peek: 'Good idea, a second look helps it stick. Hop around as much as you like, then we move on and open up a laptop.'
 	},
 	eras: [
 		{

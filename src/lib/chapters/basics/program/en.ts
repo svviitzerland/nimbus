@@ -6,7 +6,7 @@ export const en: ProgramText = {
 		'Let us start in a kitchen, far away from any computer. Nim wants a cup of tea, so we write down how to make one, step by step. Watch the recipe fill itself in.',
 		'That list has a fancy name, an <b>algorithm</b>. It simply means a clear list of steps that solves a problem. A recipe is an algorithm. So are the directions you text a friend to find your house (turn left at the bakery, third gate on the right).',
 		'So who invented the algorithm? No single person did. Around 300 BC, <b>Euclid</b> in Greece already wrote down the steps to find the biggest number that divides two numbers evenly. The name comes from <b>al Khwarizmi</b>, a scholar in Baghdad around the year 820. His book on doing sums step by step was translated into Latin, where his name was written <b>Algoritmi</b>. That is where the word algorithm was born.',
-		'A <b>program</b> is an algorithm written in a language a computer can follow. Same steps, same order, just spelled in a way the machine understands. Every app on your phone is exactly that.',
+		'A <b>program</b> is an algorithm written in a language a computer can follow. Same steps, same order, just spelled in a way the machine understands. Every app on your phone is a program like this.',
 		'Here is the big thing. A computer follows the steps <b>exactly</b>, one after another, and never guesses what you meant. If a step is missing or in the wrong place, it still does what is written. That kind of mistake is called a <b>bug</b>.',
 		'Now the fun part. Every algorithm in the world, from tea to a rocket launch, is built from just three building blocks. The first is <b>sequence</b>, steps done one after another, top to bottom.',
 		'The second is <b>choice</b>. The algorithm asks a question and picks a path. If the water is hot, pour it. If not, boil it first.',
@@ -58,13 +58,13 @@ export const en: ProgramText = {
 			body: 'The arrow loops back. Stir, check, stir again, and only move on once the answer is yes. Programmers call this a <b>loop</b>.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Then, if, until',
 			body: 'Sequence, choice, repetition. Every app you use is these three blocks stacked many, many times.'
 		},
 		{
 			tag: 'Try it',
-			title: 'One swap, one bug',
+			title: 'Swap two lines, get a bug',
 			body: 'Trade two lines and the computer still follows them, line by line. Nothing is broken except the order.'
 		}
 	],
@@ -75,7 +75,7 @@ export const en: ProgramText = {
 				year: 'c. 300 BC',
 				name: 'Euclid',
 				place: 'Greece',
-				body: 'Wrote the steps to find the biggest number that divides two numbers. Still used today.'
+				body: 'Wrote the steps to find the biggest number that divides two numbers evenly. Still used today.'
 			},
 			{
 				year: 'c. 820',

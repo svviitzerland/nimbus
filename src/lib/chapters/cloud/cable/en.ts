@@ -4,7 +4,7 @@ export const en: CableText = {
 	title: 'How does data travel?',
 	intro: [
 		'The data center holding your rented server can be in another country, even another continent. What does data actually cross to get that far?',
-		'Many people think it goes through satellites in the sky. In reality almost all of it, around 99%, travels through <b>fiber optic cables on the seabed</b>. The data is sent as pulses of light through glass as thin as a hair.',
+		'Many people think it goes through satellites in the sky. In reality almost all data between continents, around 99%, travels through <b>fiber optic cables on the seabed</b>. The data is sent as pulses of light through glass as thin as a hair.',
 		'The thin lines on this map are real undersea cables that are live right now.',
 		'Each cable comes ashore at a spot called a <b>landing station</b> (those little dots). From there the data enters the land network, then reaches the data center.',
 		'Your users in Argentina are ready to send. Pick them a destination, then ride along as the data dives across.'
@@ -26,6 +26,10 @@ export const en: CableText = {
 	cablesNote: 'The thin lines are live undersea cables',
 	routeNote: 'Example route, the real path can vary by carrier.',
 	credit: 'Cable data by TeleGeography',
-	compare: { near: 'Near', far: 'Far', hint: 'Send to one near and one far place to feel the difference' },
+	compare: {
+		near: 'Near',
+		far: 'Far',
+		hint: 'Send to one near and one far place to feel the difference'
+	},
 	dests: { 'sa-east-1': 'São Paulo', 'eu-central-1': 'Frankfurt', 'ap-northeast-1': 'Tokyo' }
 };

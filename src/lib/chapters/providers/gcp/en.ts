@@ -5,7 +5,7 @@ export const en: GcpText = {
 	intro: [
 		'You already met every piece of a website in the cloud. A front door, a private network, servers, data, and someone keeping watch. On the board, each one is a plain tile with the idea written on it.',
 		'Google ran Search, Gmail, and YouTube for billions of people long before it rented out a single server. <b>Google Cloud</b> lets you use that same machinery. It began in 2008 with App Engine, and its plain rented servers followed in 2012.',
-		'Watch the top row flip. Google names things plainly, so the front door becomes <b>Cloud DNS</b>, <b>Cloud CDN</b> (copies near every visitor) and <b>Cloud Load Balancing</b>, one single address for visitors from every continent.',
+		'Watch the cards in the top row flip. Google names things plainly, so the front door becomes <b>Cloud DNS</b>, <b>Cloud CDN</b> (copies near every visitor) and <b>Cloud Load Balancing</b>, one single address for visitors from every continent.',
 		'Next comes the private network. <b>VPC</b> is your own fenced off network, and on Google Cloud one VPC can stretch across the whole world. <b>Firewall rules</b> decide what may come in.',
 		'Then the computers that run nimbus.com. <b>Compute Engine</b> is a rented server, <b>Cloud Run</b> runs containers and shrinks to zero when nobody visits, and <b>Cloud Functions</b> runs one small function per request.',
 		'Every website needs a place for its data. <b>Cloud Storage</b> holds files, <b>Cloud SQL</b> is a SQL database Google looks after, and <b>Firestore</b> is a NoSQL database that can push changes straight to phones.',

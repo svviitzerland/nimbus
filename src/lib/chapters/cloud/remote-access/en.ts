@@ -3,8 +3,8 @@ import type { RemoteAccessText } from '../../types';
 export const en: RemoteAccessText = {
 	title: 'Getting into your cloud server',
 	intro: [
-		'Your server now lives in a data center, far away, maybe a different city or country. Very different from an <b>on-premise</b> server in your own office, which you can walk up to, plug a screen and keyboard into, or reach over the local network.',
-		'Since you cannot touch the machine, you get in from afar, called <b>remote access</b>. From your computer at home you connect over the internet using the server address, either an <b>IP</b> or a <b>hostname</b> like nimbus.com.',
+		'Your server now lives in a data center, far away, maybe a different city or country. Very different from an <b>on premise</b> server in your own office, which you can walk up to, plug a screen and keyboard into, or reach over the local network.',
+		'Since you cannot touch the machine, you get in from afar, called <b>remote access</b>. From your computer at home you connect over the internet using the server address, either an <b>IP</b> or a <b>hostname</b> (its name) like nimbus.com.',
 		'There are two common doors. <b>SSH</b> for a Linux server, a terminal where you type commands. <b>RDP</b> for a Windows server, a desktop screen you can click around.',
 		'Your server is ready in the data center. Get in through SSH, then through RDP, and see the difference.'
 	],

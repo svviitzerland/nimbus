@@ -58,8 +58,8 @@ export const en: CompilerText = {
 			body: 'Java and the JavaScript in your browser mix the two styles, translating some parts early and the rest while the program runs.'
 		},
 		{
-			title: 'Remember it',
-			tag: 'Remember it',
+			title: 'A book and a meeting',
+			tag: 'Make it stick',
 			body: 'Compiler is the <b>book translator</b>, whole book first. Interpreter is the <b>live interpreter</b> at a meeting, sentence by sentence.'
 		}
 	],

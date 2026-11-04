@@ -44,7 +44,7 @@ export const en: NatText = {
 		},
 		{
 			title: 'The front desk',
-			tag: 'remember',
+			tag: 'make it stick',
 			body: 'Outside sees one office address. The desk knows who inside is waiting for each reply.'
 		},
 		{

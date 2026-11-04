@@ -44,7 +44,7 @@ export const id: DevicesText = {
 			body: 'Mengubah jaringan berkabel jadi gelombang radio (WiFi) supaya HP dan laptop bisa ikut tanpa kabel.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Gerbang, resepsionis, lorong, pengeras suara',
 			body: 'Ikuti datanya dari luar ke dalam, <b>modem</b> lalu <b>router</b> lalu <b>switch</b>, ditambah <b>access point</b> buat yang tanpa kabel.'
 		},

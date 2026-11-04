@@ -38,7 +38,7 @@ export const en: CiscoAclText = {
 		},
 		{
 			title: 'The bouncer',
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			body: 'Top down, first match wins, and not on the list means <b>no entry</b>. That last rule is the invisible deny.'
 		},
 		{

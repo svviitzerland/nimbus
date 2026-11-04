@@ -30,7 +30,7 @@ export const en: WifiText = {
 			body: 'Short waves. Much faster up close, but every wall swallows a big chunk of them.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Bass and whistle',
 			body: 'Low number, long reach. <b>2.4</b> goes far but slow, <b>5</b> goes fast but near.'
 		},

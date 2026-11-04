@@ -5,7 +5,7 @@ export const id: AzureText = {
 	intro: [
 		'Kamu sudah kenal semua bagian sebuah website di cloud. Pintu depan, jaringan privat, server, data, dan yang berjaga. Di papan ini, tiap bagian jadi satu kartu polos bertuliskan idenya.',
 		'Microsoft sudah puluhan tahun membuat Windows dan Office, dan jutaan pekerja kantor login pakai akun Microsoft tiap pagi. <b>Azure</b> itu cloud milik Microsoft. Dibuka tahun 2010, dan sekarang virtual machine di sana lebih banyak yang menjalankan Linux daripada Windows.',
-		'Lihat baris paling atas membalik. Pintu depan jadi <b>Azure DNS</b>, <b>Front Door</b> (CDN sekaligus pintu masuk global, salinan dekat tiap pengunjung) dan <b>Load Balancer</b>, nama yang dibiarkan Azure apa adanya.',
+		'Lihat kartu di baris paling atas berbalik. Pintu depan jadi <b>Azure DNS</b>, <b>Front Door</b> (CDN sekaligus pintu masuk global, salinan dekat tiap pengunjung) dan <b>Load Balancer</b>, nama yang dibiarkan Azure apa adanya.',
 		'Berikutnya jaringan privat. <b>VNet</b>, singkatan Virtual Network, itu jaringan berpagar milikmu, dan <b>NSG</b> (Network Security Group) itu firewall yang menentukan port mana yang boleh lewat.',
 		'Lalu komputer yang menjalankan nimbus.com. <b>Virtual Machines</b> itu server sewaan, tanpa nama julukan sama sekali. <b>Container Apps</b> menjalankan container, dan <b>Functions</b> menjalankan sepotong kode waktu dipanggil.',
 		'Tiap website butuh tempat buat datanya. <b>Blob Storage</b> menyimpan file, <b>Azure SQL</b> itu database SQL yang diurus Microsoft, dan <b>Cosmos DB</b> itu database NoSQL yang menyalin dirinya ke banyak region.',
@@ -76,7 +76,7 @@ export const id: AzureText = {
 			body: '<b>Entra ID</b> buat login, <b>Key Vault</b> buat kunci, <b>Azure Monitor</b> buat grafik dan alarm.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Ide sama, papan nama baru',
 			body: 'Kebanyakan papan nama Azure polos. Pasangan buat yang aneh, <b>blob itu file apa saja</b>.'
 		},

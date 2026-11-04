@@ -34,7 +34,7 @@ export const en: RouterQueueText = {
 		{
 			tag: 'torch',
 			title: 'Who is using it',
-			body: '<b>torch</b> is a live look at one port. <b>RX</b> is what comes in (download), <b>TX</b> what goes out.'
+			body: '<b>torch</b> is a live look at one port. <b>RX</b> is what that port receives, <b>TX</b> is what it sends.'
 		},
 		{
 			tag: 'queue',
@@ -52,7 +52,7 @@ export const en: RouterQueueText = {
 			body: 'The line did not get faster. It just got shared, so the call has the 3 Mbps it needs.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Up before down',
 			body: 'In <b>5M/10M</b> the left number is upload, the right number is download.'
 		},

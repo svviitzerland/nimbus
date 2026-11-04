@@ -3,21 +3,21 @@ import type { RemoteAccessText } from '../../types';
 export const id: RemoteAccessText = {
 	title: 'Masuk ke server cloud',
 	intro: [
-		'Server-mu sekarang ada di data center, jauh, bisa beda kota atau beda negara. Beda banget sama server <b>on-premise</b> di kantor sendiri yang bisa kamu hampiri, colok layar dan keyboard, atau akses lewat jaringan lokal.',
-		'Karena mesinnya nggak bisa kamu pegang, caranya masuk dari jauh, namanya <b>remote access</b>. Dari komputer di rumah, kamu nyambung lewat internet pakai alamat server-nya, bisa berupa <b>IP</b> atau <b>hostname</b> seperti nimbus.com.',
+		'Server kamu sekarang ada di data center, jauh, bisa beda kota atau beda negara. Beda banget sama server <b>on premise</b> di kantor sendiri yang bisa kamu hampiri, colok layar dan keyboard, atau akses lewat jaringan lokal.',
+		'Karena mesinnya nggak bisa kamu pegang, caranya masuk dari jauh, namanya <b>remote access</b>. Dari komputer di rumah, kamu nyambung lewat internet pakai alamat servernya, bisa berupa <b>IP</b> atau <b>hostname</b> (nama alamatnya) seperti nimbus.com.',
 		'Ada dua pintu yang umum. <b>SSH</b> buat server Linux, isinya terminal buat ngetik perintah. <b>RDP</b> buat server Windows, isinya layar desktop yang bisa kamu klik klik.',
-		'Server-mu sudah siap di data center. Coba masuk lewat SSH, lalu lewat RDP, dan lihat bedanya.'
+		'Server kamu sudah siap di data center. Coba masuk lewat SSH, lalu lewat RDP, dan lihat bedanya.'
 	],
 	reactions: {
-		ssh: 'Lewat <b>SSH</b> kamu dapat terminal server-nya. Ketik perintah, server langsung jalanin, dan semua lalu lintasnya terenkripsi jadi aman walau lewat internet umum.',
-		rdp: 'Lewat <b>RDP</b> layar desktop server-nya muncul di laptopmu. Kamu gerakin mouse dan klik seperti komputer biasa, padahal mesinnya nun jauh di data center.',
+		ssh: 'Lewat <b>SSH</b> kamu dapat terminal servernya. Ketik perintah, server langsung jalanin, dan semua lalu lintasnya terenkripsi jadi aman walau lewat internet umum.',
+		rdp: 'Lewat <b>RDP</b> layar desktop servernya muncul di laptopmu. Kamu gerakin mouse dan klik seperti komputer biasa, padahal mesinnya nun jauh di data center.',
 		both: 'Nah, dua duanya jalan masuk ke mesin yang kamu sewa. SSH buat yang suka terminal dan otomasi, RDP buat yang butuh tampilan desktop. Mesinnya jauh, tapi berasa di depan mata.'
 	},
-	serverLabel: 'Server-mu',
+	serverLabel: 'Server kamu',
 	dcLabel: 'di data center',
 	homeLabel: 'Komputer di rumah',
 	lockedNote: 'Belum tersambung',
-	idleNote: 'Server-mu siap di data center. Coba masuk lewat SSH, lalu RDP.',
+	idleNote: 'Server kamu siap di data center. Coba masuk lewat SSH, lalu RDP.',
 	pickSsh: 'SSH (Linux)',
 	pickRdp: 'RDP (Windows)',
 	sshHost: 'nimbus.com',

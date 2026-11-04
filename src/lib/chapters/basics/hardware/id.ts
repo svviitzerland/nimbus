@@ -9,7 +9,7 @@ export const id: HardwareText = {
 		'Di tengahnya ada <b>CPU</b> (central processing unit), si otak. Dia membaca instruksi satu per satu lalu menjalankannya, miliaran langkah kecil tiap detik. Jauh di dalam, dia cuma paham nyala dan mati ([[bit|basics/binary]]).',
 		'Tepat di sebelahnya ada keping <b>RAM</b> (random access memory). RAM itu meja kerja, tempat semua yang sedang kamu pakai ditaruh supaya gampang dijangkau. Cepat banget, tapi dia lupa semuanya begitu listrik mati.',
 		'Keping kecil itu <b>storage</b>, namanya SSD (komputer lama pakai hard disk yang berputar). Storage itu lemari. Foto, aplikasi, dan game kamu tetap aman di sana walaupun komputernya dimatikan.',
-		'Lihat apa yang terjadi waktu kamu membuka game. Gamenya diambil dari lemari, ditaruh di atas meja, lalu CPU mengerjakannya dari situ. Jeda sebentar waktu loading itu ya perjalanan ini.',
+		'Lihat apa yang terjadi waktu kamu membuka game. Gamenya diambil dari lemari, ditaruh di atas meja, lalu CPU mengerjakannya dari situ. Jeda sebentar waktu loading itu terjadi karena perjalanan ini.',
 		'[ingat] <b>RAM itu meja, storage itu lemari.</b> Listrik mati, meja jadi bersih, lemari tetap penuh. Makanya ada tombol simpan, menyimpan artinya mengembalikan kerjaanmu ke lemari.',
 		'Chip yang ini namanya <b>GPU</b> (graphics processing unit). Dia yang menggambar semua yang kamu lihat, jutaan titik kecil di layar, berkali kali tiap detik. Game dan video bikin dia sibuk banget.',
 		'Yang paling besar, di bawah tempat tangan bersandar, itu <b>baterai</b>. Dia mengalirkan listrik ke semua bagian lewat motherboard. Komputer meja pakai power supply yang dicolok ke dinding, tugasnya sama.',
@@ -43,7 +43,7 @@ export const id: HardwareText = {
 		{
 			tag: 'RAM',
 			title: 'Si meja',
-			body: 'Menampung aplikasi dan file yang sedang dibuka, supaya CPU bisa langsung mengambilnya. Dia butuh listrik untuk ingat. <b>RAM 8 GB</b> di label toko itu ukuran mejanya.'
+			body: 'Menampung aplikasi dan file yang sedang dibuka, supaya CPU bisa langsung mengambilnya. Isinya hanya bertahan selama ada listrik. <b>RAM 8 GB</b> di label toko itu ukuran mejanya.'
 		},
 		{
 			tag: 'Storage',
@@ -56,7 +56,7 @@ export const id: HardwareText = {
 			body: 'File disalin dari storage ke RAM, lalu CPU membacanya dari RAM. CPU hampir nggak pernah merogoh storage langsung, kelamaan.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Meja dan lemari',
 			body: 'Listrik mati, meja (RAM) jadi bersih, lemari (storage) tetap menyimpan semuanya. Patokannya, kalau belum kamu simpan, berarti cuma ada di RAM.'
 		},
@@ -72,8 +72,8 @@ export const id: HardwareText = {
 		},
 		{
 			tag: 'Input dan output',
-			title: 'Keyboard masuk, layar keluar',
-			body: '<b>Input</b> membawa sesuatu masuk (keyboard, mouse, sentuhan, mikrofon). <b>Output</b> mengeluarkan hasil (layar, speaker). CPU ada di tengah tengahnya.'
+			title: 'Keyboard mengirim, layar menampilkan',
+			body: '<b>Input</b> adalah alat yang mengirim perintahmu ke dalam komputer (keyboard, mouse, sentuhan, mikrofon). <b>Output</b> adalah alat yang menunjukkan hasilnya ke kamu (layar, speaker). Di antara keduanya, CPU yang mengolah.'
 		},
 		{
 			tag: 'Satu tim',

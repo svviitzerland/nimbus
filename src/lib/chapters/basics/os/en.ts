@@ -10,7 +10,7 @@ export const en: OsText = {
 		'The CPU can only work on a few things at once, and there are far more apps, so the OS lets them take turns. Each app gets a tiny slice of time, a few thousandths of a second, then the next one goes. It switches so fast that everything looks like it runs at once.',
 		'The OS also hands each app its own piece of RAM and keeps those pieces apart. That way a game that crashes (suddenly breaks) cannot mess up your chat. The OS keeps a little RAM for itself, too.',
 		'[fyi] Open one app too many and RAM fills up. The OS then parks the extra on storage (this is called <b>swap</b>). Storage is much slower than RAM, and that is the moment a laptop starts to crawl.',
-		'It looks after your files as well. When the music app wants a song, it asks the OS, and the OS fetches it from storage. Folders are simply the OS keeping your files tidy.',
+		'The OS looks after your files as well. When the music app wants a song, it asks the OS, and the OS fetches it from storage. Folders are simply the OS keeping your files tidy.',
 		'You already know a few OSes. <b>Windows</b> and <b>macOS</b> run laptops, <b>Linux</b> runs most of the servers on the internet, and <b>Android</b> and <b>iOS</b> run phones (Android is built on Linux). You can talk to any of them with icons or typed commands, see [[CLI and GUI|foundations/cli-gui]].',
 		'Different names, same job. If you like, open and close apps on the laptop and watch the OS share out the RAM.'
 	],
@@ -22,7 +22,7 @@ export const en: OsText = {
 	},
 	steps: [
 		{
-			title: 'One of each',
+			title: 'Only one set of hardware',
 			body: 'Many apps, but just one <b>CPU</b>, one <b>RAM</b>, and one <b>storage</b>. Someone has to share them out.'
 		},
 		{
@@ -39,7 +39,7 @@ export const en: OsText = {
 		},
 		{
 			title: 'Sharing RAM',
-			body: 'Each app gets its <b>own piece</b> of RAM, kept apart from the others. 8 GB is shared by everyone.'
+			body: 'Each app gets its <b>own piece</b> of RAM, kept apart from the others. All the apps share the same 8 GB.'
 		},
 		{
 			title: 'When RAM is full',
@@ -55,7 +55,7 @@ export const en: OsText = {
 		},
 		{
 			title: 'Try it, if you like',
-			body: 'Tap an app under the laptop to open or close it, and watch the RAM.'
+			body: 'Tap an app under the laptop to open or close it, and watch how much RAM is used.'
 		}
 	],
 	apps: [

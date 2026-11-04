@@ -6,7 +6,7 @@ export const id: LabPickText = {
 		'Selamat datang di lab. Di sini kamu bukan cuma baca soal router, tapi beneran ngatur satu, lengkap dengan terminalnya, buat kantor kecil nimbus.',
 		'Router itu dibuat banyak merek, dan dua yang paling sering kamu temui di dunia kerja adalah <b>MikroTik</b> dan <b>Cisco</b>. Konsepnya sama persis, IP, DHCP, NAT, firewall, cuma bahasa perintahnya yang beda.',
 		'[fyi] MikroTik banyak dipakai ISP, warnet, dan RT RW net karena murah tapi kuat. Cisco merajai kantor dan perusahaan besar, dan sertifikasinya, CCNA, jadi salah satu yang paling dicari buat kerja di jaringan.',
-		'[ingat] Mereknya beda, idenya sama. IP, DHCP, NAT, dan firewall ada di semua router, yang beda cuma cara ngetiknya. Jadi yang kamu pelajari di satu merek tetap kepakai di merek lain.',
+		'[ingat] Kayak nyetir mobil. Setir, gas, dan rem ada di semua merek, cuma letak tombolnya yang beda. Router juga gitu, IP, DHCP, NAT, dan firewall ada di semua merek, cuma cara ngetiknya yang beda.',
 		'Pilih satu buat didalami duluan. Tenang, yang satunya tetap ada di menu, kapan saja kamu bisa pindah dan coba dua duanya.'
 	],
 	reactions: {

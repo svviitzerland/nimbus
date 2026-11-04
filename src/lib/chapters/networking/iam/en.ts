@@ -6,7 +6,7 @@ export const en: IamText = {
 		'Outside guests are not the only ones who need rules. People on the inside should not be able to touch everything either.',
 		'At an office, every employee carries an <b>access card</b>. The card answers two things, who you are (<b>authentication</b>) and what you may do (<b>authorization</b>).',
 		'The golden rule is called <b>least privilege</b>, grant only the access that is needed. An intern does not need the server room key, and if the card gets stolen, the thief can do very little too.',
-		'Budi the intern happens to start today. Hand him two different cards, and check which doors decide to open.'
+		'Budi the intern happens to start today. Hand him two different cards, one at a time, and check which doors open.'
 	],
 	reactions: {
 		admin:

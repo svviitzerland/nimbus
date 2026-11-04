@@ -57,7 +57,7 @@ export const en: RouterHotspotText = {
 			body: 'When the hour runs out, the router logs the guest out and the login page comes back.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'A cinema ticket',
 			body: 'No voucher, no WiFi. When the time ends, back to the login page.'
 		},

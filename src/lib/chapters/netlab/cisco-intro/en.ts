@@ -53,7 +53,7 @@ export const en: CiscoIntroText = {
 		},
 		{
 			title: 'Three prompts',
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			body: '<b>&gt;</b> look, <b>#</b> boss, <b>(config)#</b> change. Every line you type starts from one of these.'
 		},
 		{

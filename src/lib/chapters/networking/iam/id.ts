@@ -6,7 +6,7 @@ export const id: IamText = {
 		'Bukan cuma tamu dari luar yang perlu diatur. Orang dalam pun tidak boleh bisa menyentuh segalanya.',
 		'Di kantor, tiap karyawan pegang <b>kartu akses</b>. Kartu itu menjawab dua hal, kamu siapa (<b>autentikasi</b>) dan kamu boleh apa (<b>otorisasi</b>).',
 		'Aturan emasnya namanya <b>least privilege</b>, kasih akses seperlunya saja. Anak magang tidak butuh kunci ruang server, dan kalau kartunya dicuri, pencurinya juga cuma bisa sedikit.',
-		'Kebetulan Budi si anak magang baru mulai hari ini. Pasangkan dua kartu berbeda ke dia, dan cek pintu mana saja yang mau terbuka.'
+		'Kebetulan Budi si anak magang baru mulai hari ini. Kasih dia dua kartu yang berbeda bergantian, lalu cek pintu mana saja yang terbuka.'
 	],
 	reactions: {
 		admin:

@@ -5,7 +5,7 @@ export const id: GcpText = {
 	intro: [
 		'Kamu sudah kenal semua bagian sebuah website di cloud. Pintu depan, jaringan privat, server, data, dan yang berjaga. Di papan ini, tiap bagian jadi satu kartu polos bertuliskan idenya.',
 		'Google sudah menjalankan Search, Gmail, dan YouTube buat miliaran orang jauh sebelum menyewakan satu server pun. <b>Google Cloud</b> membuat mesin yang sama itu bisa kamu pakai. Mulainya tahun 2008 dengan App Engine, lalu server sewaan polosnya menyusul tahun 2012.',
-		'Lihat baris paling atas membalik. Google memberi nama apa adanya, jadi pintu depan jadi <b>Cloud DNS</b>, <b>Cloud CDN</b> (salinan dekat tiap pengunjung) dan <b>Cloud Load Balancing</b>, satu alamat buat pengunjung dari semua benua.',
+		'Lihat kartu di baris paling atas berbalik. Google memberi nama apa adanya, jadi pintu depan jadi <b>Cloud DNS</b>, <b>Cloud CDN</b> (salinan dekat tiap pengunjung) dan <b>Cloud Load Balancing</b>, satu alamat buat pengunjung dari semua benua.',
 		'Berikutnya jaringan privat. <b>VPC</b> itu jaringan berpagar milikmu, dan di Google Cloud satu VPC bisa membentang ke seluruh dunia. <b>Firewall rules</b> menentukan apa yang boleh masuk.',
 		'Lalu komputer yang menjalankan nimbus.com. <b>Compute Engine</b> itu server sewaan, <b>Cloud Run</b> menjalankan container dan menyusut sampai nol waktu sepi, dan <b>Cloud Functions</b> menjalankan satu fungsi kecil tiap ada permintaan.',
 		'Tiap website butuh tempat buat datanya. <b>Cloud Storage</b> menyimpan file, <b>Cloud SQL</b> itu database SQL yang diurus Google, dan <b>Firestore</b> itu database NoSQL yang bisa langsung mengirim perubahan ke HP.',
@@ -76,7 +76,7 @@ export const id: GcpText = {
 			body: '<b>IAM</b> buat peran, <b>Cloud KMS</b> buat kunci, <b>Cloud Monitoring</b> buat grafik dan alarm.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Ide sama, papan nama baru',
 			body: 'Di Google papan namanya kebanyakan terbaca seperti idenya. Pasangan paling gampang, <b>Compute Engine itu VM</b>.'
 		},

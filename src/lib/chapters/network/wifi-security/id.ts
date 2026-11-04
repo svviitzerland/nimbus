@@ -39,7 +39,7 @@ export const id: WifiSecurityText = {
 		},
 		{
 			tag: 'WPA3',
-			title: 'Gembok yang nggak bisa dibobol di rumah',
+			title: 'Rekaman nggak bisa dipakai menebak',
 			body: 'Merekam HP yang masuk nggak ada gunanya buat orang asing. Dia harus menebak langsung ke router kamu, pelan sekali.'
 		},
 		{
@@ -47,7 +47,7 @@ export const id: WifiSecurityText = {
 			body: 'Nama WiFi kedua di router yang sama. Tamu dapat internet, tapi perangkatmu sendiri di luar jangkauan mereka.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Angka besar, gembok kuat',
 			body: 'Open, lalu WPA2, lalu WPA3. Pilih yang paling tinggi yang didukung semua perangkatmu, dan kasih password yang panjang.'
 		}
@@ -65,7 +65,7 @@ export const id: WifiSecurityText = {
 		idle: ['', ''],
 		listen: ['menangkap gelombang', 'dari rumahmu'],
 		open: ['bisa baca semua', 'chat "ketemu jam 7"'],
-		wpa2: ['cuma acakan', 'rekam, tebak di rumah'],
-		wpa3: ['cuma acakan', 'nggak ada yang dibawa']
+		wpa2: ['cuma acakan', 'rekam dulu, tebak nanti'],
+		wpa3: ['cuma acakan', 'rekaman nggak berguna']
 	}
 };

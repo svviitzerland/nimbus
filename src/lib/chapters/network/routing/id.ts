@@ -8,8 +8,8 @@ export const id: RoutingText = {
 		'Sekarang dia nyampe di router milik provider internetmu. Router baca alamat di labelnya, cuma labelnya aja. Amplopnya nggak pernah dibuka.',
 		'Di samping tiap router ada papan penunjuk jalan, namanya <b>tabel routing</b>. Tiap panahnya bilang "buat alamat ini, lewat jalan itu". Panah buat nimbus.com nunjuk ke router berikutnya.',
 		'Jadi router ngoper paketnya, terus langsung lupa. Router berikutnya baca label, cek papannya sendiri, dan ngelakuin hal yang sama. Lompat demi lompat, paketnya nyampe.',
-		'[ingat] Router itu kayak kantor pos yang nyortir surat. Baca alamatnya, taruh di jalur yang bener, selesai. Nggak ada yang nganterin suratnya sampai ujung sendirian.',
-		'Terus kalau nggak ada panah yang cocok? Router nggak pernah nebak, paketnya dibuang. Makanya hampir semua router punya satu panah bertulisan "selain itu", namanya <b>default route</b>. Router di rumahmu pada dasarnya hidup dari satu panah itu.',
+		'[ingat] Router itu kayak kantor pos yang nyortir surat. Baca alamatnya, taruh di jalur yang bener, selesai. Nggak ada satu kantor pos pun yang nganterin surat itu sampai tujuan sendirian.',
+		'Terus kalau nggak ada panah yang cocok? Router nggak pernah nebak, paketnya dibuang. Makanya hampir semua router punya satu panah bertulisan "selain itu", namanya <b>default route</b>. Router di rumahmu hampir cuma pakai panah itu, semuanya dioper ke provider.',
 		'[fyi] Kata sama, dunia beda. Jaringan di cloud (sebuah [[VPC|networking/vpc]]) juga punya route table. Barisnya diisi dari halaman web, bukan dari kotak fisik, tapi idenya persis sama.',
 		'Itulah routing, deretan papan penunjuk jalan. Kalau penasaran, robohin papan di router provider dan lihat nasib paket berikutnya.'
 	],

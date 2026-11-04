@@ -3,9 +3,9 @@ import type { DhcpText } from './types';
 export const id: DhcpText = {
 	title: 'Apa itu DHCP',
 	intro: [
-		'Masuk ke kafe, sambung ke WiFi nya, dan sedetik kemudian HP mu sudah online. Kamu nggak pernah mengetik [[alamat IP|network/ip-address]]. Jadi siapa yang memberinya?',
+		'Masuk ke kafe, sambung ke WiFinya, dan sedetik kemudian HP kamu sudah online. Kamu nggak pernah mengetik [[alamat IP|network/ip-address]]. Jadi siapa yang memberinya?',
 		'Di dalam router kafe ada pembantu kecil bernama <b>DHCP</b> (Dynamic Host Configuration Protocol). Bayangkan resepsionis di balik meja, dengan papan kunci di dinding. Tiap kunci itu satu alamat yang masih kosong.',
-		'HP mu masuk tanpa alamat sama sekali, jadi dia memanggil ke seluruh ruangan, "ada yang bagi bagi alamat?" Pesan pertama ini namanya <b>Discover</b>.',
+		'HP kamu masuk tanpa alamat sama sekali, jadi dia memanggil ke seluruh ruangan, "ada yang bagi bagi alamat?" Pesan pertama ini namanya <b>Discover</b>.',
 		'Resepsionis mendengarnya, mengambil satu kunci kosong dari papan, lalu menyodorkannya. "Gimana kalau 192.168.1.12?" Itu namanya <b>Offer</b>.',
 		'HP menjawab, "oke, aku mau yang itu." Itu namanya <b>Request</b>. (Dia bilang keras keras, siapa tahu ada resepsionis lain yang juga menawarkan.)',
 		'Resepsionis mencatatnya di buku dan menyerahkan kuncinya. Itu namanya <b>Ack</b> (singkatan dari acknowledge). Bersama kuncinya ada secarik catatan, jalan keluarnya (<b>gateway</b>) dan server [[DNS|networking/dns]] mana yang ditanya soal nama.',
@@ -50,7 +50,7 @@ export const id: DhcpText = {
 		},
 		{
 			title: 'Resepsionis yang meminjamkan kunci',
-			tag: 'cara ingat',
+			tag: 'biar nempel',
 			body: '<b>D</b>iscover, <b>O</b>ffer, <b>R</b>equest, <b>A</b>ck. Datang, dapat kunci, kembalikan.'
 		},
 		{

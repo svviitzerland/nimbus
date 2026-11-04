@@ -5,7 +5,7 @@ export const id: PingText = {
 	intro: [
 		'nimbus.com terasa lambat, atau malah nggak kebuka sama sekali. Sebelum menebak nebak, orang jaringan mengajukan dua pertanyaan dengan tenang. Servernya ada nggak? Kalau ada, di bagian jalan mana masalahnya?',
 		'Pertanyaan pertama punya alat bernama <b>ping</b>. Lihat terminalnya. Laptopmu mengirim paket kecil yang bilang "kamu ada?", lalu server menjawab "aku di sini". Diulang empat kali, biar yakin.',
-		'Setiap jawaban menampilkan <b>time</b> dalam ms (milidetik, seperseribu detik). Itu waktu pulang pergi. Namanya diambil dari sonar kapal selam, bunyi "ping" dikirim, dan gemanya memberi tahu ada sesuatu di sana.',
+		'Setiap jawaban menampilkan <b>time</b> dalam ms (milidetik, seperseribu detik). Itu waktu pulang pergi. Nama ping sendiri diambil dari sonar kapal selam, bunyi "ping" dikirim, dan gemanya memberi tahu ada sesuatu di sana.',
 		'Tapi paketmu nggak langsung lompat ke server. Paket itu dioper dari router ke router, dari rumahmu, ke ISP (penyedia internetmu), melintasi kota, mungkin lewat bawah laut. Setiap operan disebut <b>hop</b>, dan itulah [[routing|network/routing]] yang sedang bekerja.',
 		'<b>traceroute</b> (di Windows namanya <b>tracert</b>) menampilkan setiap hop di jalan, lengkap dengan waktu untuk sampai ke masing masing. Kalau waktunya tiba tiba melonjak, atau daftarnya berhenti, kamu tahu kira kira di mana masalahnya.',
 		'[fyi] Lihat baris <b>* * *</b>? Ada router yang disuruh diam, sering kali oleh [[firewall|networking/firewall]]. Router itu nggak rusak, paketmu tetap lewat di situ.',
@@ -51,7 +51,7 @@ export const id: PingText = {
 			body: 'Baris <b>* * *</b> itu router yang memilih nggak menjawab. Selama hop berikutnya menjawab, jalannya baik baik saja.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Absen dan peta',
 			body: 'ping menjawab <b>ada atau nggak</b>. traceroute menjawab <b>lewat mana</b>.'
 		}

@@ -34,7 +34,7 @@ export const id: RouterQueueText = {
 		{
 			tag: 'torch',
 			title: 'Siapa yang pakai',
-			body: '<b>torch</b> itu intipan langsung ke satu port. <b>RX</b> yang masuk (download), <b>TX</b> yang keluar.'
+			body: '<b>torch</b> itu intipan langsung ke satu port. <b>RX</b> itu yang diterima port itu, <b>TX</b> yang dikirim port itu.'
 		},
 		{
 			tag: 'queue',
@@ -52,7 +52,7 @@ export const id: RouterQueueText = {
 			body: 'Jalurnya nggak jadi lebih cepat. Cuma dibagi, jadi call Sari dapat 3 Mbps yang dia butuh.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Naik dulu baru turun',
 			body: 'Di <b>5M/10M</b>, angka kiri itu upload, angka kanan itu download.'
 		},

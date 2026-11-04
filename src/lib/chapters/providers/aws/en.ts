@@ -5,7 +5,7 @@ export const en: AwsText = {
 	intro: [
 		'You already met every piece of a website in the cloud. A front door, a private network, servers, data, and someone keeping watch. On the board, each one is a plain tile with the idea written on it.',
 		'Now meet the biggest shop that rents those pieces out, <b>Amazon Web Services</b>, or AWS. It grew inside Amazon, and in 2006 it started renting out the same kind of machines that ran the online store. Today it has more than 200 services, and the names sound like a secret code.',
-		'Watch the top row flip. The front door becomes <b>Route 53</b> (the [[DNS|networking/dns]], named after port 53), <b>CloudFront</b> (the CDN, copies near every visitor) and <b>Elastic Load Balancing</b> (it shares visitors between servers).',
+		'Watch the cards in the top row flip. The front door becomes <b>Route 53</b> (the [[DNS|networking/dns]], named after port 53), <b>CloudFront</b> (the CDN, copies near every visitor) and <b>Elastic Load Balancing</b> (it shares visitors between servers).',
 		'Next comes the private network. <b>VPC</b> is your own fenced off network inside AWS, and <b>Security Groups</b> are the firewall around each server, letting in only what you allow.',
 		'Then the computers that actually run nimbus.com. <b>EC2</b> is a rented server, <b>ECS</b> runs containers, and <b>Lambda</b> runs one small function only when someone calls it.',
 		'Every website needs a place for its data. <b>S3</b> holds files like photos and backups, <b>RDS</b> is a SQL database that AWS looks after, and <b>DynamoDB</b> is the NoSQL one built for huge traffic.',
@@ -48,7 +48,7 @@ export const en: AwsText = {
 		{
 			tag: 'Since 2006',
 			title: 'Amazon Web Services',
-			body: 'The biggest cloud in the world. Its first services were <b>S3</b> for files and <b>EC2</b> for servers.'
+			body: 'The biggest cloud in the world. Its first big services were <b>S3</b> for files and <b>EC2</b> for servers.'
 		},
 		{
 			tag: 'Layer 1',

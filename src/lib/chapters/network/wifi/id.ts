@@ -30,7 +30,7 @@ export const id: WifiText = {
 			body: 'Gelombang pendek. Jauh lebih cepat kalau dekat, tapi tiap tembok menelan sebagian besar gelombangnya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Bass dan siulan',
 			body: 'Angka kecil, jangkauan jauh. <b>2.4</b> jauh tapi lambat, <b>5</b> cepat tapi dekat.'
 		},

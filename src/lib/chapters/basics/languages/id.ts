@@ -6,12 +6,12 @@ export const id: LanguagesText = {
 		'Ada rahasia kecil soal semua komputer. Chip yang benar benar bekerja, namanya <b>CPU</b> (otaknya komputer), sama sekali nggak bisa baca kata. Dia cuma ngerti <b>0 dan 1</b>.',
 		'Perintah yang ditulis cuma pakai 0 dan 1 disebut <b>machine code</b> (kode mesin). Dulu orang beneran nulis program kayak gini, pakai tangan. Lambat, bikin pusing, dan salah satu digit aja semuanya rusak.',
 		'Makanya orang menciptakan cara yang lebih ramah buat menulis perintah, yaitu <b>bahasa pemrograman</b>. Kamu nulis pakai kata dan simbol, lalu penerjemah (misalnya [[compiler|basics/compiler]]) mengubahnya jadi 0 dan 1 buat CPU.',
-		'Kenalan sama <b>C</b>, salah satu bahasa klasik, lahir tahun 1970an. Tugasnya sama, jumlahkan 2 dan 3 lalu tampilkan hasilnya. Masih agak rewel soal kurung dan titik koma, tapi jalannya dekat banget sama mesin, jadi cepat.',
+		'Kenalan sama <b>C</b>, salah satu bahasa klasik, lahir tahun 1970an. Tugasnya sama seperti kode mesin tadi, jumlahkan 2 dan 3 lalu tampilkan hasilnya. Masih agak rewel soal kurung dan titik koma, tapi jalannya dekat banget sama mesin, jadi cepat.',
 		'Dan ini <b>Python</b>. Tugas yang persis sama, cukup satu baris. Bacanya hampir kayak bahasa Inggris biasa, makanya banyak orang belajar Python duluan.',
 		'Perhatikan untung ruginya. Makin ke atas, makin gampang ditulis manusia. Makin ke bawah, makin dekat ke mesin, lebih cepat tapi lebih rewel. Nggak ada bahasa yang jago di semua hal.',
 		'Jadi orang memilih bahasa kayak milih alat dari kotak perkakas. Palu nggak lebih bagus dari obeng, dia cuma pas buat paku.',
 		'[fyi] Kata yang sama, dunia yang beda. Bahasa sehari hari punya tata bahasa dan bahasa gaul, bahasa pemrograman juga punya aturan, cuma jauh lebih ketat. Lupa satu kurung aja, penerjemahnya langsung nolak ngerti, sejelas apa pun maksudnya.',
-		'[ingat] Lihat kodenya tinggal di mana. JavaScript buat web, Python buat data dan AI, C buat yang ngebut, Kotlin dan Swift buat aplikasi HP.',
+		'[ingat] Tanya dulu, kodenya bakal jalan di mana? JavaScript buat web, Python buat data dan AI, C buat yang ngebut, Kotlin dan Swift buat aplikasi HP.',
 		'Gitu deh intinya. Kalau mau, pencet salah satu versi kodenya dan lihat dia nulis dirinya sendiri lagi.'
 	],
 	reactions: {
@@ -44,12 +44,12 @@ export const id: LanguagesText = {
 		},
 		{
 			tag: 'Kotak perkakas',
-			title: 'Satu bahasa, satu tugas',
+			title: 'Tiap bahasa punya keahlian',
 			body: 'Kebanyakan bahasa bisa dipakai buat hampir apa aja, tapi tiap bahasa punya tugas yang bikin dia terkenal.'
 		},
 		{
-			tag: 'Cara ingat',
-			title: 'Kodenya tinggal di mana?',
+			tag: 'Biar nempel',
+			title: 'Kodenya bakal jalan di mana?',
 			body: 'Di browser, JavaScript. Di HP, Kotlin buat Android atau Swift buat iPhone. Data dan AI, Python. Butuh ngebut, C.'
 		},
 		{

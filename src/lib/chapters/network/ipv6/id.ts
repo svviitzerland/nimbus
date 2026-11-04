@@ -6,9 +6,9 @@ export const id: Ipv6Text = {
 		'Di [[pelajaran alamat IP|network/ip-address]] kamu sudah kenal alamat seperti 192.168.1.20, empat angka dari 0 sampai 255 dengan titik di antaranya. Gaya itu namanya <b>IPv4</b>, versi 4 dari Internet Protocol, ditulis tahun 1981.',
 		'Empat angka seperti itu bisa membentuk sekitar 4,3 miliar alamat berbeda. Waktu itu seluruh internet cuma beberapa ratus komputer besar, jadi rasanya tempatnya nggak bakal habis.',
 		'Lalu datang komputer rumahan, lalu HP, lalu jam tangan, TV, kamera, sampai kulkas. Lihat kolamnya terisi, tahun demi tahun.',
-		'Tahun 2011 kolam pusatnya habis. Perangkat baru terus berdatangan, tapi sudah nggak ada alamat IPv4 baru yang bisa dibagikan.',
+		'Tahun 2011 cadangan alamat pusat dunia habis. Perangkat baru terus berdatangan, tapi sudah nggak ada alamat IPv4 baru yang bisa dibagikan.',
 		'Solusinya <b>IPv6</b>. Alamatnya empat kali lebih panjang, ditulis dalam delapan kelompok huruf dan angka (angka 0 sampai 9 plus a sampai f), dengan titik dua di antara kelompoknya.',
-		'Seberapa besar? Saking besarnya, semua alamat IPv4 di dunia muat di dalam satu titik kecil di sana. IPv6 punya sekitar 340 undesiliun alamat, angka sepanjang 39 digit.',
+		'Seberapa besar? Saking besarnya, semua alamat IPv4 di dunia cuma jadi satu titik kecil di dalam ruang IPv6. IPv6 punya sekitar 340 undesiliun alamat, angka sepanjang 39 digit.',
 		'[ingat] Cara gampang membedakannya. Titik satu, empat angka, itu IPv4. Titik dua, ada hurufnya, itu IPv6. Pokoknya kalau ada huruf di alamatnya, pasti IPv6.',
 		'[fyi] Kenapa nggak ada IPv5? Angka 5 sudah dipakai tahun 1980an untuk protokol eksperimen streaming suara, jadi versi berikutnya langsung 6.',
 		'Memindahkan seluruh dunia butuh puluhan tahun, jadi sekarang kebanyakan perangkat membawa dua duanya, dan trik bernama [[NAT|network/nat]] membuat alamat IPv4 lama tetap cukup. Kalau mau, kasih alamat ke tiap butir pasir di Bumi dan lihat sisa ruangnya.'
@@ -43,7 +43,7 @@ export const id: Ipv6Text = {
 		},
 		{
 			title: 'Titik atau titik dua',
-			tag: 'cara ingat',
+			tag: 'biar nempel',
 			body: 'Titik dan 4 angka berarti <b>IPv4</b>. Titik dua, huruf, dan 8 kelompok berarti <b>IPv6</b>.'
 		},
 		{
@@ -70,7 +70,7 @@ export const id: Ipv6Text = {
 	ruleV4: 'titik, 4 angka',
 	ruleV6: 'titik dua, huruf, 8 kelompok',
 	skipped: 'nggak pernah dipakai',
-	bothLabel: 'HP mu sekarang',
+	bothLabel: 'HP kamu sekarang',
 	sandBtn: 'Kasih alamat ke tiap butir pasir',
 	sandLabel: 'tiap butir pasir di Bumi'
 };

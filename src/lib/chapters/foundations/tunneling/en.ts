@@ -3,9 +3,9 @@ import type { TunnelingText } from '../../types';
 export const en: TunnelingText = {
 	title: 'Tunneling',
 	intro: [
-		'The laptop failed as a public server. But before we jump to the big solution, there is a trick many developers use, called <b>tunneling</b>.',
-		'The idea goes like this. Your laptop connects out first, to a server owned by a third party, most often <b>ngrok</b>. That outgoing connection becomes a private tunnel between your laptop and their server.',
-		'The third party then lends you a public address. Anyone who opens it gets forwarded through that tunnel all the way to your laptop. A changing home IP no longer matters, because your laptop is the one dialing out, not the one being hunted down.',
+		'Your laptop just failed as a public server. But before we jump to the big solution, there is a trick many developers use, called <b>tunneling</b>.',
+		'The idea goes like this. Your laptop connects out first, to a go between server owned by a third party (called a <b>relay</b>), most often one from <b>ngrok</b>. That outgoing connection becomes a private tunnel between your laptop and their server.',
+		'The third party then lends you a public address. Anyone who opens it gets forwarded through that tunnel all the way to your laptop. A changing home IP no longer matters, because your laptop is the one dialing out, so nobody has to find a way in.',
 		'It is perfect for demoing to a client or testing from your phone without uploading anything anywhere. But it stays a borrowed door. The address is random and changes every start, all traffic flows through someone else’s server, and the moment the laptop closes, it dies too.',
 		'Your laptop is on with the app running locally. Start the tunnel, have your friend drop by, then close the laptop and watch what happens.'
 	],

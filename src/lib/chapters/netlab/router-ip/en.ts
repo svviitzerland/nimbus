@@ -51,7 +51,7 @@ export const en: RouterIpText = {
 			body: 'The server listens on <b>ether2</b>, hands out from the pool, and writes every handout down as a <b>lease</b>.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Badges, note, receptionist',
 			body: 'Pool, network, server. Miss the receptionist and nobody gets a badge.'
 		},

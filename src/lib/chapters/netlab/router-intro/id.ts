@@ -48,12 +48,12 @@ export const id: RouterIntroText = {
 		{
 			tag: 'ip address',
 			title: 'Pintu kantor',
-			body: '<b>192.168.88.1/24</b> di ether2 artinya router jawab di .1, dan seluruh jalan 192.168.88.x itu kantor.'
+			body: '<b>192.168.88.1/24</b> di ether2 artinya router jawab di .1, dan semua alamat 192.168.88.x milik jaringan kantor.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Warung, pesanan, detail',
-			body: '<b>/ip address</b> itu warungnya, <b>add</b> itu pesanannya, pasangan <b>key=value</b> itu detailnya.'
+			body: '<b>/ip address</b> itu warungnya, <b>add</b> itu pesanannya, pasangan <b>key=value</b> (nama=isi) itu detailnya.'
 		},
 		{
 			title: 'Giliran kamu',

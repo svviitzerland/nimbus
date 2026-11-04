@@ -6,7 +6,7 @@ export const id: MacText = {
 		'Bayangkan kantor nimbus.com. Ada laptop, printer, TV, dan HP yang berbagi satu jaringan di dalam ruangan. Jaringan kecil seperti ini namanya <b>LAN</b> (local area network, jaringan lokal).',
 		'Masing masing dapat [[alamat IP|network/ip-address]] waktu bergabung, misalnya 192.168.1.20 untuk printer. Anggap saja itu alamat meja tempat dia duduk.',
 		'Tapi tiap kartu jaringan juga membawa nomor kedua yang dipasang dari pabrik. Namanya <b>MAC address</b>, enam pasang huruf dan angka, dan nggak boleh ada dua kartu di dunia yang sama.',
-		'[ingat] Biar gampang bedainnya, MAC itu label nama yang dijahit di baju, ikut ke mana pun dan nggak pernah ganti. IP itu alamat yang dikasih, jadi ganti kalau kamu pindah. Lihat HP nya jalan dari kantor ke kafe.',
+		'[ingat] Biar gampang bedainnya, MAC itu label nama yang dijahit di baju, ikut ke mana pun dan nggak pernah ganti. IP itu alamat yang dikasih, jadi ganti kalau kamu pindah. Lihat HP ini pindah dari kantor ke kafe.',
 		'Sekarang laptopmu mau mencetak. Dia tahu printer ada di 192.168.1.20, tapi di dalam ruangan kabel mengantar berdasarkan label nama. Jadi dia tanya keras keras ke seluruh ruangan, "siapa yang punya 192.168.1.20?" Pertanyaan itu namanya <b>ARP</b>.',
 		'Semua mendengar (pesan ke semua orang namanya <b>broadcast</b>), tapi cuma printer yang menjawab dengan label namanya. Laptop mencatatnya di <b>tabel ARP</b>, biar lain kali nggak perlu nanya lagi.',
 		'Sekarang cetakan langsung dikirim ke satu label nama itu. TV dan HP bahkan nggak melihatnya. Keluarlah nimbus.pdf.',
@@ -34,7 +34,7 @@ export const id: MacText = {
 		},
 		{
 			title: 'Label tetap, alamat ganti',
-			tag: 'cara ingat',
+			tag: 'biar nempel',
 			body: 'HP yang sama, label nama yang sama. Jaringan baru memberinya IP baru.'
 		},
 		{
@@ -52,7 +52,7 @@ export const id: MacText = {
 		{
 			title: 'Cuma di dalam satu ruangan',
 			tag: 'info',
-			body: 'Label MAC itu lokal. Alamat IP lah yang membawa paket menyeberangi internet.'
+			body: 'Label MAC cuma berlaku di dalam ruangan. Yang membawa paket menyeberangi internet adalah alamat IP.'
 		},
 		{
 			title: 'Tanya pakai IP, antar pakai MAC',

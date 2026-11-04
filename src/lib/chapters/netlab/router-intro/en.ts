@@ -51,7 +51,7 @@ export const en: RouterIntroText = {
 			body: '<b>192.168.88.1/24</b> on ether2 means the router answers at .1, and the whole 192.168.88.x street is the office.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Place, job, details',
 			body: '<b>/ip address</b> is the place, <b>add</b> is the job, the <b>key=value</b> pairs are the details.'
 		},

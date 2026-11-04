@@ -52,7 +52,7 @@ export const id: RouterNatText = {
 			body: 'Tiap penukaran dicatat. Huruf <b>s</b> artinya srcnat, dan nomor port yang ngebedain balasan satu sama lain.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Seragam kantor',
 			body: 'Keluar, semua pakai seragam kantor. Pulang, buku catatan yang bilang siapa orangnya.'
 		},

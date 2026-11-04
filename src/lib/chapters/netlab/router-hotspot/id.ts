@@ -57,7 +57,7 @@ export const id: RouterHotspotText = {
 			body: 'Begitu jamnya habis, router ngeluarin tamu dan halaman login muncul lagi.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Tiket bioskop',
 			body: 'Nggak ada voucher, nggak ada WiFi. Waktu habis, balik ke halaman login.'
 		},

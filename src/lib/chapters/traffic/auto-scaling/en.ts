@@ -18,17 +18,19 @@ export const en: AutoScalingText = {
 	plusLabel: 'Add visitors',
 	minusLabel: 'Remove visitors',
 	balancerLabel: 'Load balancer',
-	ruleTitle: 'The robot follows',
+	ruleTitle: 'The robot’s rule',
 	cpuLabel: 'CPU',
 	condUp: 'Above 70%',
 	actUp: 'Add a machine',
 	condDown: 'Below 30%',
 	actDown: 'Remove one',
-	addEvent: '+1 machine',
-	removeEvent: '-1 machine',
+	addEvent: '1 new machine',
+	removeEvent: '1 machine off',
 	costLabel: 'Cost ${n} per hour',
-	promptRaise: 'The traffic is alive, rising and falling by itself. Wait and see, or nudge it with plus and minus.',
+	promptRaise:
+		'The traffic is alive, rising and falling by itself. Wait and see, or nudge it with plus and minus.',
 	promptWatch: 'CPU crossed the line. The robot is adding machines by itself, just sit back.',
-	promptDrop: 'The load is healthy again. When the traffic dips later, machines will be removed on their own too.',
+	promptDrop:
+		'The load is healthy again. When the traffic dips later, machines will be removed on their own too.',
 	promptDone: 'Up by itself when busy, down by itself when quiet. You pay for what you use.'
 };

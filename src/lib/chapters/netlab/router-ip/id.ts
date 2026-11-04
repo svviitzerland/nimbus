@@ -4,7 +4,7 @@ export const id: RouterIpText = {
 	title: 'IP address dan DHCP server',
 	intro: [
 		'Tiga karyawan baru barusan nyolok laptopnya ke switch kantor. Kabelnya aman, lampunya kedip kedip, tapi coba lihat alamat di bawah tiap laptop. Masih kosong.',
-		'Tiap perangkat di jaringan butuh <b>IP address</b> sendiri, kayak nomor rumah, kalau nggak, balasan buat dia nggak bakal nyampe. Di sini belum ada yang bagi alamat, jadi tiap laptop nyerah dan bikin sendiri, <b>169.254.x.x</b>, alamat yang nggak kepakai di mana mana.',
+		'Tiap perangkat di jaringan butuh <b>IP address</b> sendiri, kayak nomor rumah, kalau nggak, balasan buat dia nggak bakal nyampe. Di sini belum ada yang bagi alamat, jadi tiap laptop nyerah dan bikin sendiri, <b>169.254.x.x</b>, alamat darurat yang nggak bisa dipakai keluar ke mana mana.',
 		'Ngetik alamat satu satu di tiap laptop masih oke buat tiga orang, tapi nggak buat tiga puluh. Makanya jaringan pakai <b>DHCP</b>, layanan yang bagi bagi alamat sendiri, mirip resepsionis yang ngasih badge bernomor ke tiap tamu. Konsepnya ada di [[Apa itu DHCP|network/dhcp]].',
 		'DHCP server di MikroTik butuh tiga bagian. Pertama <b>pool</b>, kotak badge yang boleh dibagi. Lihat terminalnya, 192.168.88.10 sampai .254, nomor kecil sengaja dikosongin buat perangkat kayak printer.',
 		'Kedua, info <b>network</b>, kertas sambutan yang ikut dikasih bareng badge. Gateway kamu (jalan keluar) itu router di 192.168.88.1, dan tanya ke 8.8.8.8 kalau mau cari alamat sebuah nama.',
@@ -51,7 +51,7 @@ export const id: RouterIpText = {
 			body: 'Servernya dengerin di <b>ether2</b>, bagi alamat dari pool, dan nyatat tiap pembagian sebagai <b>lease</b>.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Badge, kertas, resepsionis',
 			body: 'Pool, network, server. Lupa resepsionisnya, nggak ada yang dapat badge.'
 		},

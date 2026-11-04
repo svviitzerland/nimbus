@@ -48,7 +48,7 @@ export const en: CiscoVlanText = {
 		},
 		{
 			title: 'Door and hallway',
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			body: '<b>Access</b> is a door into one room. <b>Trunk</b> is a hallway for all rooms, with name tags on every packet.'
 		},
 		{

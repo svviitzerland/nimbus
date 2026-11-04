@@ -5,8 +5,8 @@ export const id: ProgramText = {
 	intro: [
 		'Kita mulai dari dapur dulu, jauh dari komputer. Nim pengin secangkir teh, jadi kita tulis cara bikinnya, langkah demi langkah. Lihat resepnya terisi sendiri.',
 		'Daftar itu punya nama keren, <b>algoritma</b>. Artinya cuma daftar langkah yang jelas buat menyelesaikan suatu masalah. Resep itu algoritma. Petunjuk jalan yang kamu kirim ke teman biar dia sampai ke rumahmu juga (belok kiri di toko roti, pagar ketiga sebelah kanan).',
-		'Siapa penemu algoritma? Sebenarnya nggak ada satu orang. Sekitar 300 SM, <b>Euklides</b> di Yunani sudah menulis langkah langkah mencari angka terbesar yang bisa membagi dua bilangan. Namanya sendiri datang dari <b>Al Khawarizmi</b>, ilmuwan di Baghdad sekitar tahun 820. Bukunya tentang cara berhitung langkah demi langkah diterjemahkan ke bahasa Latin, dan namanya ditulis <b>Algoritmi</b>. Dari situlah kata algoritma lahir.',
-		'<b>Program</b> itu algoritma yang ditulis dalam bahasa yang bisa diikuti komputer. Langkahnya sama, urutannya sama, cuma ditulis dengan cara yang dimengerti mesin. Semua aplikasi di HP kamu sebenarnya ya itu.',
+		'Siapa penemu algoritma? Sebenarnya nggak ada satu orang. Sekitar 300 SM, <b>Euklides</b> di Yunani sudah menulis langkah langkah mencari angka terbesar yang habis membagi dua bilangan sekaligus. Namanya sendiri datang dari <b>Al Khawarizmi</b>, ilmuwan di Baghdad sekitar tahun 820. Bukunya tentang cara berhitung langkah demi langkah diterjemahkan ke bahasa Latin, dan namanya ditulis <b>Algoritmi</b>. Dari situlah kata algoritma lahir.',
+		'<b>Program</b> itu algoritma yang ditulis dalam bahasa yang bisa diikuti komputer. Langkahnya sama, urutannya sama, cuma ditulis dengan cara yang dimengerti mesin. Semua aplikasi di HP kamu sebenarnya program seperti ini.',
 		'Nah, ini yang penting. Komputer mengikuti langkahnya <b>persis</b>, satu per satu, dan nggak pernah nebak maksud kamu. Kalau ada langkah yang hilang atau salah tempat, dia tetap jalanin apa yang tertulis. Kesalahan kayak gitu disebut <b>bug</b>.',
 		'Sekarang bagian serunya. Semua algoritma di dunia, dari bikin teh sampai meluncurkan roket, dibangun dari tiga balok dasar aja. Yang pertama <b>urutan</b> (sequence), langkah dikerjakan satu demi satu, dari atas ke bawah.',
 		'Yang kedua <b>pilihan</b> (choice). Algoritmanya bertanya, lalu memilih jalan. Kalau airnya sudah panas, langsung tuang. Kalau belum, rebus dulu.',
@@ -58,13 +58,13 @@ export const id: ProgramText = {
 			body: 'Panahnya balik ke atas. Aduk, cek, aduk lagi, dan baru lanjut kalau jawabannya ya. Programmer menyebutnya <b>loop</b>.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Lalu, kalau, sampai',
 			body: 'Urutan, pilihan, pengulangan. Semua aplikasi yang kamu pakai cuma tiga balok ini yang ditumpuk berkali kali.'
 		},
 		{
 			tag: 'Coba',
-			title: 'Satu tukar, satu bug',
+			title: 'Tukar dua baris, muncul bug',
 			body: 'Tukar dua baris, komputer tetap mengikutinya baris demi baris. Nggak ada yang rusak, cuma urutannya yang salah.'
 		}
 	],
@@ -75,7 +75,7 @@ export const id: ProgramText = {
 				year: '± 300 SM',
 				name: 'Euklides',
 				place: 'Yunani',
-				body: 'Menulis langkah mencari angka terbesar yang bisa membagi dua bilangan. Masih dipakai sampai sekarang.'
+				body: 'Menulis langkah mencari angka terbesar yang habis membagi dua bilangan sekaligus. Masih dipakai sampai sekarang.'
 			},
 			{
 				year: '± 820',

@@ -6,7 +6,7 @@ export const id: ServerText = {
 		'Setiap kali kamu membuka sebuah situs, sebenarnya ada dua pihak yang lagi ngobrol. Yang satu <b>meminta</b>, yang satu <b>melayani</b>.',
 		'Pihak yang meminta namanya <b>client</b>. Itu HP atau laptopmu, lewat browser yang lagi kamu pakai sekarang. Tugasnya minta halaman, lalu menampilkannya ke layarmu.',
 		'Pihak yang melayani namanya <b>server</b>. Komputer di suatu tempat yang menyala 24 jam, kerjanya menunggu permintaan datang lalu menjawabnya.',
-		'Di sini sudah ada dua pelakunya, HP-mu dan sebuah server yang siaga. Buka website-nya dan perhatikan obrolan mereka berdua.'
+		'Di sini sudah ada dua pelakunya, HP kamu dan sebuah server yang siaga. Buka situsnya dan perhatikan obrolan mereka berdua.'
 	],
 	reactions: {
 		served:

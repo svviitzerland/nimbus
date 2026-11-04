@@ -7,7 +7,7 @@ export const en: LanWanText = {
 		'When a network fits in one room or one building, it is called a <b>LAN</b>, a Local Area Network. The box in the middle is a <b>switch</b>, and every cable in the room plugs into it.',
 		'Now your company opens more offices around the city. Each office keeps its own LAN, and long lines rented from a telecom company stitch them together. A network that spreads that wide is a <b>WAN</b>, a Wide Area Network.',
 		'And the <b>internet</b>? It is not one giant network that somebody owns. It is millions of networks (homes, campuses, companies, internet providers) agreeing to carry data for each other. A network of networks.',
-		'[ingat] L is for Local, one building. W is for Wide, a whole city or even a country. And the internet is every one of them joined together. Small, bigger, everything.',
+		'[ingat] L is for Local, one building. W is for Wide, a whole city or even a country. And the internet is every one of them joined together. Small, big, worldwide.',
 		'[fyi] Look at the back of a home router. One port says <b>WAN</b>, the one facing the outside world, and the others say <b>LAN</b>, facing your rooms. The same words, shrunk into one box. You will meet that box in [[network devices|network/devices]].',
 		'Want to fly around yourself? Tap LAN, WAN, or Internet and the camera zooms right there.'
 	],
@@ -35,7 +35,7 @@ export const en: LanWanText = {
 			body: 'Millions of networks agreeing to pass data along. Nobody owns all of it, and data can go around a broken link.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'L for Local, W for Wide',
 			body: '<b>LAN</b> is one building, <b>WAN</b> is a city or a country, and the <b>internet</b> is all of them joined.'
 		},

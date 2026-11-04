@@ -5,7 +5,7 @@ export const id: CliGuiText = {
 	intro: [
 		'Sekarang, gimana cara kita nyuruh komputer ngerjain sesuatu? Ada dua cara, lewat <b>GUI</b> atau lewat <b>CLI</b>. Biar kerasa bedanya, kita kerjain satu tugas yang sama pakai dua duanya, yaitu buka folder <b>Documents</b> lalu lihat isinya.',
 		'Lewat <b>GUI</b> (Graphical User Interface) kamu tinggal lihat dan klik. Di layar ini ada ikon folder <b>Documents</b>, klik aja buat ngebukanya, nanti isinya langsung kelihatan.',
-		'Lewat <b>CLI</b> (Command Line Interface) kamu ngetik perintah lalu Enter. Tugasnya sama, cuma diketik. Ketik <b>cd documents</b> buat masuk ke foldernya, lalu <b>ls</b> buat lihat isinya. Salah ketik gak apa apa, nanti dikasih tau kok.',
+		'Lewat <b>CLI</b> (Command Line Interface) kamu ngetik perintah lalu Enter. Tugasnya sama, cuma diketik. Ketik <b>cd documents</b> buat masuk ke foldernya, lalu <b>ls</b> buat lihat isinya. Salah ketik nggak apa apa, terminalnya bakal kasih tahu.',
 		'Sekarang giliran kamu, coba lewat GUI dan lewat CLI. Hasilnya sama persis kan? GUI itu klik klik yang enak dilihat, CLI itu ketik yang cepat dan gampang diulang. Makin mahir, biasanya makin sering pakai CLI.'
 	],
 	reactions: {

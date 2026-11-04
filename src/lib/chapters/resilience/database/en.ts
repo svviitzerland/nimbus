@@ -4,12 +4,12 @@ export const en: DatabaseText = {
 	title: 'SQL or NoSQL?',
 	intro: [
 		'Data you use often usually lives in a database. There are two big families, and they store data in very different ways.',
-		'<b>SQL</b> arranges data into tables of rows and columns. The rules are strict, every row must follow the same columns, and tables can link to each other. That strictness is exactly what lets it guarantee transactions stay consistent.',
-		'<b>NoSQL</b> stores free-form documents. One document may carry different fields than its neighbor, and the collection stretches easily across many machines when the data explodes.',
+		'<b>SQL</b> arranges data into tables of rows and columns. The rules are strict, every row must follow the same columns, and tables can link to each other. Being that tidy makes SQL the go to choice for transactions that must stay consistent, like money transfers.',
+		'<b>NoSQL</b> stores free form documents. One document may carry different fields than its neighbor, and the whole set of documents stretches easily across many machines when the data explodes.',
 		'Both already hold a little data. Add new rows and documents yourself, and feel the difference between the strict table and the flexible documents.'
 	],
 	reactions: {
-		sql: 'See, the new row must follow the existing columns, id, name, balance, nothing missing and nothing extra. That strictness is why money never goes missing halfway.',
+		sql: 'See, the new row must follow the existing columns, id, name, balance, nothing missing and nothing extra. That strictness suits money, the data always stays tidy and easy to check.',
 		nosql:
 			'This side is far more relaxed. The new document has a different shape and still gets accepted. That freedom is what makes NoSQL great for wildly varied data that needs to stretch across many machines.'
 	},

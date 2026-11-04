@@ -6,12 +6,12 @@ export const en: LanguagesText = {
 		'Here is a secret about every computer. The chip that does the real work, the <b>CPU</b> (the brain of the computer), cannot read words at all. It only understands <b>0 and 1</b>.',
 		'Instructions written as pure 0 and 1 are called <b>machine code</b>. Long ago people really wrote programs like this, by hand. Slow, painful, and one wrong digit broke everything.',
 		'So people invented friendlier ways to write instructions, <b>programming languages</b>. You write with words and symbols, and a translator (like a [[compiler|basics/compiler]]) turns them into 0 and 1 for the CPU.',
-		'Meet <b>C</b>, one of the classics, born in the 1970s. Same job, add 2 and 3 and show the answer. It is a little fussy with brackets and semicolons, but it runs very close to the machine, so it is fast.',
+		'Meet <b>C</b>, one of the classics, born in the 1970s. Same job as the machine code, add 2 and 3 and show the answer. It is a little fussy with brackets and semicolons, but it runs very close to the machine, so it is fast.',
 		'And here is <b>Python</b>. The exact same job, in one line. It reads almost like plain English, which is why so many people learn it first.',
 		'Notice the trade. The higher up, the easier for people to write. The lower down, the closer to the machine, faster but fussier. No language wins at everything.',
 		'So people pick a language the way you pick a tool from a toolbox. A hammer is not better than a screwdriver, it just fits nails.',
 		'[fyi] Same word, different world. Spoken languages have grammar and slang, programming languages have rules too, only much stricter. Forget one bracket and the translator refuses to understand you, no matter how obvious it looks.',
-		'[ingat] Pick by where the code lives. Web gets JavaScript, data and AI get Python, speed gets C, phones get Kotlin and Swift.',
+		'[ingat] First ask, where will the code run? Web gets JavaScript, data and AI get Python, speed gets C, phones get Kotlin and Swift.',
 		'That is the whole idea. If you like, tap any version of the code and watch it write itself again.'
 	],
 	reactions: {
@@ -44,12 +44,12 @@ export const en: LanguagesText = {
 		},
 		{
 			tag: 'Toolbox',
-			title: 'A language for each job',
+			title: 'Each language has a specialty',
 			body: 'Most languages can do almost anything, but each one has the jobs it is famous for.'
 		},
 		{
-			tag: 'Remember',
-			title: 'Where does the code live?',
+			tag: 'Make it stick',
+			title: 'Where will the code run?',
 			body: 'In a browser, JavaScript. On a phone, Kotlin for Android or Swift for iPhone. Data and AI, Python. Raw speed, C.'
 		},
 		{

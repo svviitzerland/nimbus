@@ -10,7 +10,7 @@ export const id: HistoryText = {
 		'Lalu Perang Dunia II datang. Di Bletchley Park, Inggris, Turing dan timnya merancang mesin yang membantu memecahkan Enigma, kode rahasia pasukan Jerman. Karya ini, ditambah idenya tahun 1936, yang bikin dia sering disebut salah satu bapak ilmu komputer.',
 		'Tahun 1945, <b>ENIAC</b> selesai dibangun di Amerika Serikat. Besarnya satu ruangan penuh, beratnya sekitar 27 ton, dan pakai kira kira 18.000 tabung vakum yang menyala sebagai saklarnya. Memprogramnya berarti mencolok kabel satu per satu, dan beberapa programmer pertamanya adalah perempuan seperti Betty Snyder.',
 		'Tabung vakum itu besar, panas, dan sering putus. Tahun 1947, ilmuwan di Bell Labs menemukan <b>transistor</b>, saklar mungil tanpa kaca dan tanpa nyala. Tugasnya sama, ukurannya jauh lebih kecil.',
-		'Mesin waktu itu cuma paham angka, dan itu bikin repot manusia. <b>Grace Hopper</b> yakin komputer harusnya bisa paham kata kata yang mirip bahasa Inggris. Tahun 1952 dia membuat salah satu <b>compiler</b> pertama (program yang mengubah kata jadi angka mesin), dan idenya kemudian tumbuh jadi bahasa bernama COBOL. Timnya pernah menemukan ngengat sungguhan nyangkut di dalam komputer, lalu menempelkannya di buku catatan, bug yang benar benar serangga.',
+		'Komputer di masa itu cuma paham angka, jadi manusia yang repot. <b>Grace Hopper</b> yakin komputer harusnya bisa paham kata kata yang mirip bahasa Inggris. Tahun 1952 dia membuat salah satu <b>compiler</b> pertama (program yang mengubah kata jadi angka mesin), dan idenya kemudian tumbuh jadi bahasa bernama COBOL. Timnya pernah menemukan ngengat sungguhan nyangkut di dalam komputer, lalu menempelkannya di buku catatan, bug yang benar benar serangga.',
 		'Tahun 1958 dan 1959, Jack Kilby dan Robert Noyce masing masing menemukan cara menaruh banyak transistor di satu kepingan kecil, yaitu <b>microchip</b>. Sekarang, chip seukuran kuku jarimu berisi miliaran transistor.',
 		'Berkat chip, komputer jadi cukup kecil dan murah untuk ditaruh di meja. Tahun 1977 muncul Apple II, lalu IBM PC tahun 1981, dan <b>komputer pribadi</b> mulai masuk ke rumah dan sekolah.',
 		'Komputer sudah saling ngobrol lewat internet, lalu tahun 1991 Tim Berners-Lee di CERN (laboratorium sains besar di Eropa) membuka website pertama untuk dunia. <b>World Wide Web</b> mengubah jaringan itu jadi halaman yang bisa dikunjungi siapa saja dengan sekali klik.',
@@ -19,7 +19,7 @@ export const id: HistoryText = {
 		'Mesinnya berubah banyak, tapi di dalamnya, bagian bagiannya masih mengerjakan tugas yang sama. Berikutnya, kita [[bongkar satu|basics/hardware]] dan lihat isinya. Kalau mau mampir lagi ke satu zaman, ketuk titik di garis waktunya.'
 	],
 	reactions: {
-		peek: 'Ide bagus, lihat sekali lagi bikin makin nempel. Jalan jalan sepuasnya, lalu Next bakal membongkar sebuah laptop.'
+		peek: 'Ide bagus, lihat sekali lagi bikin makin nempel. Jalan jalan sepuasnya, lalu kita lanjut membongkar sebuah laptop.'
 	},
 	eras: [
 		{
@@ -30,7 +30,7 @@ export const id: HistoryText = {
 		{
 			mark: '1613',
 			title: 'Komputer manusia',
-			body: 'Kata <b>computer</b> pertama kali tercatat tahun 1613, artinya orang yang menghitung. Satu ruangan penuh dari mereka menghitung tabel untuk kapal, sains, dan belakangan penerbangan luar angkasa, cuma pakai kertas dan pensil.'
+			body: 'Kata <b>computer</b> pertama kali tercatat tahun 1613, artinya orang yang menghitung. Mereka bekerja beramai ramai di satu ruangan, menghitung tabel untuk kapal, sains, dan belakangan penerbangan luar angkasa, cuma pakai kertas dan pensil.'
 		},
 		{
 			mark: '1843',

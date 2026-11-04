@@ -9,7 +9,7 @@ export const en: SubnetText = {
 		'Now the other way. Each step down doubles the room, and the walls disappear by themselves. /28 rooms of 16 merge into 32, then 64, then 128, until /24 is the whole building again.',
 		'Go all the way up to /32 and the room is a single window, exactly one address. /30 is a tiny room of 4, just right for one cable joining two routers.',
 		'Go down past /24 and the room gets bigger than this building. /16 is a whole campus of 256 buildings like ours, 65,536 addresses. /8 is a city of them, about 16.7 million.',
-		'[ingat] Only one rule to remember. Bigger number, smaller room. /32 is one address, /24 is 256 (a home or an office), and every step down doubles the room. That small table is all you need on day one.',
+		'[ingat] Only one rule to remember. Bigger number, smaller room. /32 is one address, /24 is 256 (a home or an office), and every step down doubles the room. The small cheat sheet in the picture is all you need on day one.',
 		"[fyi] Two windows in every room are spoken for. The first is the room's name (the network address) and the last is for shouting to everyone inside (the broadcast address). So a /24 room fits 254 devices, not 256.",
 		'[fyi] Same word, different world. In the cloud, the public and private rooms of your [[VPC|networking/vpc]] are subnets too, written with exactly this slash. The cloud just keeps a few more windows for itself.',
 		'That is subnetting, the friendly version. If you like, nudge the number yourself and watch the rooms split and merge.'
@@ -46,7 +46,7 @@ export const en: SubnetText = {
 		},
 		{
 			title: 'Bigger number, smaller room',
-			tag: 'remember',
+			tag: 'make it stick',
 			body: '/32 is 1, /24 is 256, and each step down doubles. Keep this table in your pocket.'
 		},
 		{

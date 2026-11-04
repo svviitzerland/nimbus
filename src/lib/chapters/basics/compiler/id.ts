@@ -58,8 +58,8 @@ export const id: CompilerText = {
 			body: 'Java dan JavaScript di browser mencampur dua gaya ini, sebagian diterjemahkan lebih awal dan sisanya sambil program jalan.'
 		},
 		{
-			title: 'Cara ingat',
-			tag: 'Cara ingat',
+			title: 'Buku dan rapat',
+			tag: 'Biar nempel',
 			body: 'Compiler itu <b>penerjemah buku</b>, semua dulu baru dibaca. Interpreter itu <b>juru bahasa di rapat</b>, sekalimat demi sekalimat.'
 		}
 	],

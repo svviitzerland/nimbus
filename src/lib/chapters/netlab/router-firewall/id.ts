@@ -50,7 +50,7 @@ export const id: RouterFirewallText = {
 			body: 'Winbox ngetok <b>tcp port 8291</b>. Alamat Budi diterima, yang lain dibuang.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Yang pertama cocok menang',
 			body: 'Atas ke bawah, berhenti di yang pertama cocok. Yang khusus di atas, yang umum di bawah.'
 		},

@@ -3,7 +3,7 @@ import type { BandwidthThroughputText } from '../types';
 export const en: BandwidthThroughputText = {
 	title: 'Bandwidth and throughput',
 	intro: [
-		'Imagine you put a video on your server, and it goes viral. Many people watch at once. This is where bandwidth and throughput are felt.',
+		'Imagine you put a video on your server, and it goes viral. Many people watch at once. This is where two terms, bandwidth and throughput, start to matter.',
 		'<b>Bandwidth</b> is the capacity of the road from your server to the internet, the ceiling. <b>Throughput</b> is the data actually delivered each second.',
 		'Add viewers one by one until some start buffering, then upgrade the bandwidth.'
 	],

@@ -52,7 +52,7 @@ export const en: RouterNatText = {
 			body: 'Every swap is written down. The <b>s</b> flag means srcnat, and the port number tells the replies apart.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'The office name tag',
 			body: 'Going out, everyone wears the office tag. Coming back, the notebook says who it really was.'
 		},

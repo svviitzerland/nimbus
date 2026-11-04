@@ -35,7 +35,7 @@ export const id: IpAddressText = {
 			body: 'Satu untuk satu rumah, diberikan ke router oleh penyedia internetmu. Nomor inilah yang dilihat internet.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Rumah dan kamar',
 			body: 'Alamat publik itu <b>nomor rumah</b> di jalan. Alamat privat itu <b>nomor kamar</b> di dalamnya.'
 		},

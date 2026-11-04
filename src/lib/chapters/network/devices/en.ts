@@ -44,7 +44,7 @@ export const en: DevicesText = {
 			body: 'Turns the wired network into radio (the WiFi) so phones and laptops can join without a cable.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Gate, receptionist, hallway, loudspeaker',
 			body: 'Follow the data inward, <b>modem</b> then <b>router</b> then <b>switch</b>, plus the <b>access point</b> for everyone without a cable.'
 		},

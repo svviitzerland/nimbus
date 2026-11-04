@@ -47,7 +47,7 @@ export const en: CiscoNatText = {
 		},
 		{
 			title: 'Wildcards',
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			body: 'Flip the mask. <b>0</b> must match, <b>255</b> anything. 255.255.255.0 becomes <b>0.0.0.255</b>.'
 		},
 		{

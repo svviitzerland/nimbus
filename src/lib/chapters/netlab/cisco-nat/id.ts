@@ -8,7 +8,7 @@ export const id: CiscoNatText = {
 		'Pertama, router harus tau sisi mana yang mana. Gi0/1 ngadep ke kantor, jadi <b>ip nat inside</b>. Gi0/0 ngadep ke internet, jadi <b>ip nat outside</b>. Lihat label kecil di bawah portnya.',
 		'Berikutnya, siapa yang boleh ditranslasi? Kita tulis di <b>access list</b>, daftar pendek berisi alamat. access-list 1 ngizinin satu kantor, 192.168.88.0 dengan <b>0.0.0.255</b>.',
 		'[ingat] 0.0.0.255 itu <b>wildcard</b>, subnet mask yang dibalik. 0 artinya bagian ini harus sama, 255 artinya bebas. Jadi 255.255.255.0 dibalik jadi 0.0.0.255. Gampangnya, nol itu wajib, 255 itu terserah.',
-		'Sekarang aturan yang nyatuin semuanya. Translasi sumber inside di list 1 jadi alamat g0/0, dan <b>overload</b>. Overload artinya banyak laptop berbagi satu alamat itu, dibedain pakai nomor port.',
+		'Sekarang aturan yang nyatuin semuanya. Alamat pengirim dari dalam yang cocok sama list 1 diganti jadi alamat g0/0, pakai <b>overload</b>. Overload artinya banyak laptop berbagi satu alamat itu, dibedain pakai nomor port.',
 		'Semua orang buka nimbus.com barengan. Perhatiin label tiap paket berubah di router, dan tiap laptop nambah satu baris baru di tabel.',
 		'IOS nampilin tabel yang sama pakai <b>show ip nat translations</b>. Inside local itu alamat asli laptop, inside global itu yang dilihat internet.',
 		'[fyi] Di [[MikroTik|netlab/router-nat]], seluruh lesson ini cuma satu aturan masquerade. Konsepnya sama, istilahnya beda. Di cloud, NAT gateway ngerjain tugas yang sama buat jaringan privat.',
@@ -47,7 +47,7 @@ export const id: CiscoNatText = {
 		},
 		{
 			title: 'Wildcard',
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			body: 'Balik masknya. <b>0</b> wajib sama, <b>255</b> terserah. 255.255.255.0 jadi <b>0.0.0.255</b>.'
 		},
 		{
@@ -69,7 +69,7 @@ export const id: CiscoNatText = {
 		{
 			title: 'Giliran kamu',
 			tag: 'Coba',
-			body: 'Tap console lalu ketik <code>sh ip nat tr</code>. Cocokin alamat tiap laptop sama portnya.'
+			body: 'Ketuk console lalu ketik <code>sh ip nat tr</code>. Cocokin alamat tiap laptop sama portnya.'
 		}
 	],
 	tagFrom: 'dari {ip}',

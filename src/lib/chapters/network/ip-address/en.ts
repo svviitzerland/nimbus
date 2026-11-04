@@ -35,7 +35,7 @@ export const en: IpAddressText = {
 			body: 'One per home, given to your router by your internet provider. This is the number the rest of the internet sees.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'House and rooms',
 			body: 'The public address is the <b>house number</b> on the street. Private addresses are the <b>room numbers</b> inside.'
 		},

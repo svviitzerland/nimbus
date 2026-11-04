@@ -9,7 +9,7 @@ export const en: TroubleshootText = {
 		'That is why people check <b>bottom up</b>. Watch the tower. Cable, fine. WiFi, fine. IP address, fine. Gateway, no answer. Stop right there.',
 		'The first red floor is the <b>culprit</b>. DNS and the website above it are only <b>victims</b>, they fail because the floor under them is broken. Poking at them would be a waste of time.',
 		'So we fix only the gateway. The router had frozen, a restart brings it back, and every floor above turns green by itself.',
-		'[ingat] Start from the cable, end at the website. The first red floor on the way up is the one to fix.',
+		'[ingat] Climb it like stairs, from the bottom step (the cable) to the top (the website). The first red step you land on is the one to fix.',
 		'[fyi] Every check uses a tool you may already know. A [[ping|network/ping]] to the router tests the gateway, nslookup asks [[DNS|networking/dns]], and an address starting with 169.254 means [[DHCP|network/dhcp]] never handed you one.',
 		'Want to play detective? Tap the button for a new broken network and check the floors from the bottom. Or just carry on, it is optional.'
 	],
@@ -47,7 +47,7 @@ export const en: TroubleshootText = {
 			body: 'Restarting the frozen router fixes the gateway, and DNS and the website come back without touching them.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Cable first, website last',
 			body: 'Start from the cable, end at the website. The first red on the way up is the culprit.'
 		},

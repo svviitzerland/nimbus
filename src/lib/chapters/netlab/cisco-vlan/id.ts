@@ -48,7 +48,7 @@ export const id: CiscoVlanText = {
 		},
 		{
 			title: 'Pintu dan lorong',
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			body: '<b>Access</b> itu pintu kamar, satu ruangan. <b>Trunk</b> itu lorong hotel buat semua ruangan, tiap paket pakai label nama.'
 		},
 		{

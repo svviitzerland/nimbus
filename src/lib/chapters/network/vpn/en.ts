@@ -40,11 +40,11 @@ export const en: VpnText = {
 			body: 'Before anything enters the tunnel it is encrypted. Outsiders can tell you are sending something, but not what it says.'
 		},
 		{
-			title: 'Stepping out inside',
+			title: 'Coming out inside the office',
 			body: 'The VPN server unwraps your request and passes it on from inside the office. To the payroll server, it came from the office network.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Tunnel plus lock',
 			body: 'The <b>tunnel</b> puts you inside the other network. The <b>lock</b> keeps the trip private.'
 		}

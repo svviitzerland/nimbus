@@ -4,12 +4,12 @@ export const id: DatabaseText = {
 	title: 'SQL atau NoSQL?',
 	intro: [
 		'Data yang sering dipakai biasanya tinggal di sebuah database. Ada dua keluarga besar, dan keduanya menyimpan data dengan cara yang sangat berbeda.',
-		'<b>SQL</b> menata data dalam tabel berisi baris dan kolom. Aturannya ketat, semua baris wajib mengikuti kolom yang sama, dan antar tabel bisa saling terhubung. Ketatnya itulah yang bikin dia bisa menjamin transaksi selalu konsisten.',
-		'<b>NoSQL</b> menyimpan dokumen yang bentuknya bebas. Satu dokumen boleh punya isian yang beda dari tetangganya, dan koleksinya gampang melar ke banyak mesin saat datanya membludak.',
+		'<b>SQL</b> menata data dalam tabel berisi baris dan kolom. Aturannya ketat, semua baris wajib mengikuti kolom yang sama, dan antar tabel bisa saling terhubung. Karena serapi itu, SQL jadi andalan buat transaksi yang wajib konsisten, misalnya transfer uang.',
+		'<b>NoSQL</b> menyimpan dokumen yang bentuknya bebas. Satu dokumen boleh punya isian yang beda dari tetangganya, dan kumpulan dokumennya gampang melar ke banyak mesin saat datanya membludak.',
 		'Dua duanya sudah terisi beberapa data. Tambahkan sendiri baris dan dokumen barunya, dan rasakan bedanya tabel yang ketat dengan dokumen yang lentur.'
 	],
 	reactions: {
-		sql: 'Lihat, baris baru wajib ngikut kolom yang sudah ada, id, nama, saldo, tidak boleh kurang atau nambah sendiri. Ketat begini yang bikin uang tidak pernah hilang di tengah jalan.',
+		sql: 'Lihat, baris baru wajib ngikut kolom yang sudah ada, id, nama, saldo, tidak boleh kurang atau nambah sendiri. Ketat begini cocok buat urusan uang, datanya selalu rapi dan gampang dicek.',
 		nosql:
 			'Yang ini jauh lebih santai. Dokumen baru bentuknya beda sendiri pun tetap diterima. Kebebasan ini yang bikin NoSQL enak buat data yang beraneka ragam dan gampang dilebarkan ke banyak mesin.'
 	},

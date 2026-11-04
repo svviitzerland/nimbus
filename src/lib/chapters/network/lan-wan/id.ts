@@ -6,7 +6,7 @@ export const id: LanWanText = {
 		'Colokkan dua laptop ke kotak kecil yang sama pakai kabel, dan mereka sudah bisa saling kirim file. Kelompok kecil itu namanya <b>jaringan</b>.',
 		'Kalau jaringannya muat di satu ruangan atau satu gedung, namanya <b>LAN</b>, Local Area Network. Kotak di tengahnya itu <b>switch</b>, tempat semua kabel di ruangan dicolokkan.',
 		'Sekarang kantormu buka cabang di beberapa sudut kota. Tiap kantor tetap punya LAN sendiri, dan jalur panjang yang disewa dari perusahaan telekomunikasi menjahit mereka jadi satu. Jaringan yang menyebar seluas itu namanya <b>WAN</b>, Wide Area Network.',
-		'Lalu <b>internet</b>? Dia bukan satu jaringan raksasa milik seseorang. Internet itu jutaan jaringan (rumah, kampus, perusahaan, penyedia internet) yang sepakat saling mengantar data. Jaringan dari jaringan jaringan.',
+		'Lalu <b>internet</b>? Dia bukan satu jaringan raksasa milik seseorang. Internet itu jutaan jaringan (rumah, kampus, perusahaan, penyedia internet) yang sepakat saling mengantar data. Jaringan yang isinya jaringan jaringan lain.',
 		'[ingat] LAN itu L buat Lokal, cukup satu gedung. WAN itu W buat Wilayah luas, satu kota bahkan satu negara. Internet itu gabungan semuanya. Kecil, besar, sedunia.',
 		'[fyi] Coba lihat bagian belakang router rumah. Ada satu port berlabel <b>WAN</b>, yang menghadap dunia luar, dan sisanya berlabel <b>LAN</b>, menghadap ke dalam rumah. Kata yang sama, cuma dikecilkan jadi satu kotak. Kotak itu akan kamu kenal di [[perangkat jaringan|network/devices]].',
 		'Mau terbang sendiri? Ketuk LAN, WAN, atau Internet, dan kameranya langsung zoom ke sana.'
@@ -35,7 +35,7 @@ export const id: LanWanText = {
 			body: 'Jutaan jaringan yang sepakat saling meneruskan data. Nggak ada yang memiliki semuanya, dan data bisa memutar kalau satu jalur putus.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'L itu Lokal, W itu Wilayah',
 			body: '<b>LAN</b> satu gedung, <b>WAN</b> satu kota atau satu negara, <b>internet</b> gabungan semuanya.'
 		},

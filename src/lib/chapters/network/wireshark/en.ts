@@ -37,7 +37,7 @@ export const en: WiresharkText = {
 			body: 'With HTTPS the middle is encrypted. Wireshark still sees the outside (who talked to whom, and how much), but not the page.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Plates yes, trunk no',
 			body: 'Addresses on the outside are always readable. Content inside HTTPS is not.'
 		}

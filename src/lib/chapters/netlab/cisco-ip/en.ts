@@ -4,7 +4,7 @@ export const en: CiscoIpText = {
 	title: 'Interfaces and DHCP pools',
 	intro: [
 		'Our router is called nimbus now, and a cable already runs from <b>GigabitEthernet0/1</b> to the office switch. But look, the light is off. Cisco ships router ports switched off, so nothing gets through yet.',
-		'First the port needs an address, the router’s own house number on the office side. We step into the port with <b>interface g0/1</b>, then give it <b>192.168.88.1</b>. Notice Cisco wants the mask spelled out, <b>255.255.255.0</b>, not /24.',
+		'First the port needs an address, the router’s own house number on the office side. We step into the port with <b>interface g0/1</b>, then give it <b>192.168.88.1</b>. Notice Cisco wants the network size spelled out as a full <b>mask</b>, <b>255.255.255.0</b>, not /24 (they mean the same).',
 		'Then we switch it on with <b>no shutdown</b>. The light turns green and IOS announces it in yellow, changed state to up.',
 		'[ingat] In IOS, <b>no</b> in front of a command undoes it. shutdown switches a port off, so no shutdown switches it back on. Same trick everywhere, no hostname, no ip address, and so on.',
 		'Now Sari, Budi, and Dewi plug in their laptops. Each one shouts into the cable, anyone got an address for me? That is <b>DHCP</b>, the network’s receptionist handing out numbered badges, see [[What is DHCP|network/dhcp]]. Nobody answers yet.',
@@ -45,7 +45,7 @@ export const en: CiscoIpText = {
 		},
 		{
 			title: 'Undo with no',
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			body: 'Put <b>no</b> in front to undo. <code>shutdown</code> is off, <code>no shutdown</code> is on.'
 		},
 		{
@@ -62,7 +62,7 @@ export const en: CiscoIpText = {
 		},
 		{
 			title: 'Three questions',
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			body: '<b>network</b> which number is mine, <b>default-router</b> where is the exit, <b>dns-server</b> who knows the names.'
 		},
 		{

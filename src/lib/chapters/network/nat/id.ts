@@ -15,7 +15,7 @@ export const id: NatText = {
 	],
 	reactions: {
 		stranger:
-			'Dibuang. Nggak ada yang di dalam yang minta ini, jadi nggak ada barisnya di tabel, dan router nggak tahu ini untuk siapa. NAT diam diam menjaga orang asing tetap di luar.'
+			'Dibuang. Nggak ada HP di dalam yang minta ini, jadi nggak ada barisnya di tabel, dan router nggak tahu ini untuk siapa. NAT diam diam menjaga orang asing tetap di luar.'
 	},
 	steps: [
 		{
@@ -44,7 +44,7 @@ export const id: NatText = {
 		},
 		{
 			title: 'Meja resepsionis',
-			tag: 'cara ingat',
+			tag: 'biar nempel',
 			body: 'Dari luar cuma kelihatan satu alamat kantor. Resepsionis tahu siapa di dalam yang menunggu tiap balasan.'
 		},
 		{

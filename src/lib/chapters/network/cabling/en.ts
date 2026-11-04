@@ -7,7 +7,7 @@ export const en: CablingText = {
 		'The cable you plug into a laptop or a router is a <b>LAN cable</b>. Inside are eight thin copper wires twisted in pairs. Copper carries electricity, and it is cheap, tough, and easy to plug in.',
 		'Electricity has a weakness though. The further it goes, the weaker it gets, and it picks up noise from other wires along the way. So a LAN cable tops out at about 100 metres.',
 		'<b>Fibre optic</b> cable is a strand of glass as thin as a hair. It carries light instead, flashing on and off. Light barely fades and ignores electrical noise, so one fibre can run for tens of kilometres.',
-		'[ingat] Copper for the room, fibre for the road. A LAN cable reaches about the length of a football pitch, and anything longer than that, like the line coming into your house, is fibre.',
+		'[ingat] Copper for the room, fibre for the road. A LAN cable reaches about the length of a football pitch, and anything longer than that, like the line coming into your house, is usually fibre.',
 		'[fyi] The twists in a LAN cable are not for looks. Twisting each pair makes outside noise hit both wires equally, so it cancels out. Cat5e, Cat6, and Cat6a on the label tell you how tight and how fast the cable is.',
 		'Want to stretch it? Drag the distance and watch where copper gives up while fibre keeps going.'
 	],
@@ -37,9 +37,9 @@ export const en: CablingText = {
 			body: 'A strand of <b>glass</b> as thin as a hair, carrying flashes of light. It barely fades, so it runs for kilometres.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Copper for the room, fibre for the road',
-			body: 'A LAN cable reaches about one football pitch (100 metres). Anything longer, like the line to your house, is fibre.'
+			body: 'A LAN cable reaches about one football pitch (100 metres). Anything longer, like the line to your house, is usually fibre.'
 		},
 		{
 			tag: 'FYI',

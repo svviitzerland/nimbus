@@ -10,7 +10,7 @@ export const en: DhcpText = {
 		'The phone answers, "yes please, that one." That is the <b>Request</b>. (It says it out loud, in case another receptionist offered something too.)',
 		'The receptionist writes it in the book and hands the key over. That is the <b>Ack</b> (short for acknowledge). Along with the key comes a little slip, the way out (the <b>gateway</b>) and which [[DNS|networking/dns]] server to ask for names.',
 		'The key is only lent, never given forever. The loan is called a <b>lease</b> and has a time limit. When the phone leaves and stops renewing, the time runs out and the key goes back on the board for the next guest.',
-		'[ingat] DHCP is the receptionist lending you a room key. You arrive, you get a key, you give it back when you leave. And the four steps spell <b>DORA</b>, Discover, Offer, Request, Ack.',
+		'[ingat] DHCP is the receptionist lending you a room key. You arrive, you get a key, you give it back when you leave. And the four steps spell <b>DORA</b>, like Dora the Explorer. Discover, Offer, Request, Ack.',
 		'[fyi] Later, in the MikroTik lab, you set up this receptionist yourself and choose the board of keys and the lease time by hand. That is [[IP address and DHCP server|netlab/router-ip]].',
 		'That is all DHCP does, quietly, every time you join a network. If you like, let more guests walk in and see what happens when the board runs out.'
 	],
@@ -50,7 +50,7 @@ export const en: DhcpText = {
 		},
 		{
 			title: 'A receptionist lending keys',
-			tag: 'remember',
+			tag: 'make it stick',
 			body: '<b>D</b>iscover, <b>O</b>ffer, <b>R</b>equest, <b>A</b>ck. Arrive, get a key, give it back.'
 		},
 		{

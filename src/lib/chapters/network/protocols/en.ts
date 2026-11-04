@@ -10,7 +10,7 @@ export const en: ProtocolsText = {
 		'Door 22 is <b>SSH</b>. It lets you type commands into a computer that sits far away, safely, as if you were sitting in front of it.',
 		'Door 53 is <b>DNS</b>, the address book from [[DNS|networking/dns]]. Before your laptop can visit nimbus.com at all, it asks here which address that name belongs to.',
 		'[ingat] Four doors are enough to start. 80 web, 443 safe web, 22 SSH, 53 DNS. SSH has two S, its door has two 2s.',
-		'[fyi] There are many more. Email is sent with <b>SMTP</b> and read with <b>IMAP</b>, files move with <b>SFTP</b>. The S always means the conversation is encrypted. Underneath, all of them ride on the same TCP and IP from [[Layers and packets|networking/layers]].',
+		'[fyi] There are many more. Email is sent with <b>SMTP</b> and read with <b>IMAP</b>, files move with <b>SFTP</b>. The S in HTTPS and SFTP means secure, but the S in SMTP just stands for simple. Underneath, all of them ride on the same TCP and IP from [[Layers and packets|networking/layers]].',
 		'That is a protocol, a door with a name and a number. Tap any door if you want to knock on it yourself.'
 	],
 	reactions: {
@@ -56,7 +56,7 @@ export const en: ProtocolsText = {
 		},
 		{
 			title: 'Many more',
-			body: '<b>SMTP</b> sends email, <b>IMAP</b> reads it, <b>SFTP</b> moves files. An S usually means encrypted.'
+			body: '<b>SMTP</b> sends email, <b>IMAP</b> reads it, <b>SFTP</b> moves files. The S in HTTPS, SSH, and SFTP means secure, the S in SMTP does not.'
 		},
 		{
 			title: 'Knock on a door',

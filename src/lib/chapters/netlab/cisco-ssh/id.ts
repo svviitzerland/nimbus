@@ -3,7 +3,7 @@ import type { CiscoSshText } from './types';
 export const id: CiscoSshText = {
 	title: 'SSH dan enable secret',
 	intro: [
-		'Admin jarang banget jalan ke router bawa kabel console. Mereka login dari laptop sendiri lewat jaringan, itu namanya [[remote access|cloud/remote-access]]. Dulu ada yang udah nyiapin nimbus buat itu, lihat <b>vty lines</b>nya, pintu virtual buat login jarak jauh. Passwordnya cisco, transportnya telnet.',
+		'Admin jarang banget jalan ke router bawa kabel console. Mereka login dari laptop sendiri lewat jaringan, itu namanya [[remote access|cloud/remote-access]]. Dulu ada yang udah nyiapin router nimbus buat itu, lihat <b>vty lines</b>nya, pintu virtual buat login jarak jauh. Passwordnya cisco, transportnya telnet.',
 		'Sekarang Budi login pakai <b>Telnet</b>. Tapi ada laptop orang asing nyolok di switch yang sama, diam diam ngerekam lalu lintas. Lihat apa yang dia dapet.',
 		'[ingat] Telnet itu <b>kartu pos</b>, semua orang yang megang di jalan bisa baca. SSH itu <b>amplop tertutup</b>, cuma penerimanya yang bisa buka. Telnet telanjang, SSH sembunyi.',
 		'Yuk kita kunci satu per satu. Pertama tangga bos, enable. <b>enable secret</b> masang password buat dia, dan IOS nyimpennya dalam bentuk acak jadi nggak ada yang bisa baca dari config.',
@@ -39,7 +39,7 @@ export const id: CiscoSshText = {
 		},
 		{
 			title: 'Kartu pos dan amplop',
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			body: '<b>Telnet</b> itu kartu pos, <b>SSH</b> itu amplop tertutup. Telnet pakai port 23, SSH pakai port 22.'
 		},
 		{
