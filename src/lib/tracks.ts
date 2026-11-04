@@ -124,15 +124,16 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		]
 	},
 	{
-		id: 'Aplikasi dan Backend',
-		en: 'Apps and Backends',
+		id: 'Framework',
+		en: 'Frameworks',
+		keys: ['web/why-framework', 'web/components', 'web/rendering', 'web/build-tools']
+	},
+	{
+		id: 'Backend dan API',
+		en: 'Backends and APIs',
 		keys: [
-			'web/why-framework',
-			'web/components',
-			'web/rendering',
-			'web/build-tools',
-			'web/backend-what',
 			'foundations/api',
+			'web/backend-what',
 			'foundations/apiRest',
 			'foundations/apiGraphql',
 			'foundations/apiGrpc',
@@ -147,10 +148,10 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		id: 'Data',
 		en: 'Data',
 		keys: [
-			'resilience/database',
 			'web/sql',
 			'web/sql-commands',
 			'web/relations',
+			'resilience/database',
 			'web/db-index',
 			'web/transaction',
 			'web/oltp-olap',
@@ -179,6 +180,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		en: 'Servers and Linux',
 		keys: [
 			'foundations/virtual-machine',
+			'cloud/remote-access',
 			'linux/linux-files',
 			'linux/permissions',
 			'linux/packages',
@@ -191,7 +193,6 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		en: 'Cloud',
 		keys: [
 			'cloud/cloud',
-			'cloud/remote-access',
 			'cloud/services',
 			'cloud/region',
 			'resilience/availability-zone',
@@ -212,7 +213,9 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'traffic/load-balancer',
 			'traffic/scaling',
 			'traffic/auto-scaling',
-			'traffic/cdn'
+			'traffic/cdn',
+			'compute/monitoring',
+			'devops/logs'
 		]
 	},
 	{
@@ -304,8 +307,6 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'devops/config-mgmt',
 			'devops/kubernetes',
 			'devops/release',
-			'compute/monitoring',
-			'devops/logs',
 			'devops/on-call',
 			'compute/cost'
 		]

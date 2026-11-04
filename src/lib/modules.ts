@@ -66,7 +66,7 @@ export const modules: Module[] = [
 		'internet',
 		'Client dan Server',
 		'Client and Server',
-		['foundations/server', 'foundations/request-journey', 'foundations/port'],
+		['foundations/server', 'foundations/request-journey', 'foundations/port', 'web/http'],
 		true
 	),
 	m('git', 'Git dan GitHub', 'Git and GitHub', [
@@ -92,11 +92,12 @@ export const modules: Module[] = [
 	]),
 	m('addressing', 'Pengalamatan', 'Addressing', [
 		'network/mac',
+		'network/ip-address',
 		'networking/dns',
-		'network/ipv6',
 		'network/subnet',
 		'network/dhcp',
-		'network/nat'
+		'network/nat',
+		'network/ipv6'
 	]),
 	m('delivery', 'Routing dan Protokol', 'Routing and Protocols', [
 		'networking/layers',
@@ -152,8 +153,8 @@ export const modules: Module[] = [
 	m('web-how', 'Cara Web Bekerja', 'How the Web Works', [
 		'web/http',
 		'web/browser',
-		'web/domain-hosting',
-		'networking/dns'
+		'networking/dns',
+		'web/domain-hosting'
 	]),
 	m('frontend', 'Frontend', 'Frontend', [
 		'web/html',
@@ -171,8 +172,8 @@ export const modules: Module[] = [
 		'web/build-tools'
 	]),
 	m('backend', 'Backend', 'Backend', [
-		'web/backend-what',
 		'foundations/api',
+		'web/backend-what',
 		'foundations/apiRest',
 		'foundations/apiGraphql',
 		'foundations/apiGrpc',
@@ -183,10 +184,10 @@ export const modules: Module[] = [
 		'web/jobs'
 	]),
 	m('database', 'Database', 'Database', [
-		'resilience/database',
 		'web/sql',
 		'web/sql-commands',
 		'web/relations',
+		'resilience/database',
 		'web/db-index',
 		'web/transaction',
 		'web/oltp-olap',
