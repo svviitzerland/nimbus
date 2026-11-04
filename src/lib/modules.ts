@@ -183,6 +183,7 @@ export const modules: Module[] = [
 		'foundations/apiWebhook',
 		'web/auth',
 		'web/backend-frameworks',
+		'web/config-secrets',
 		'web/jobs'
 	]),
 	m('database', 'Database', 'Database', [
@@ -193,6 +194,7 @@ export const modules: Module[] = [
 		'web/db-index',
 		'web/transaction',
 		'web/oltp-olap',
+		'web/replication',
 		'web/cache'
 	]),
 	m('go-live', 'Deploy', 'Deploy', [

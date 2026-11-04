@@ -141,6 +141,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'foundations/apiWebhook',
 			'web/auth',
 			'web/backend-frameworks',
+			'web/config-secrets',
 			'web/jobs'
 		]
 	},
@@ -155,6 +156,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'web/db-index',
 			'web/transaction',
 			'web/oltp-olap',
+			'web/replication',
 			'web/cache'
 		]
 	},
