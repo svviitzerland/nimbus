@@ -18,7 +18,9 @@
 		aside = false,
 		onnext,
 		onback,
-		onjump
+		onjump,
+		step = 0,
+		steps = 0
 	}: {
 		nim: string;
 		mood?: Mood;
@@ -30,6 +32,9 @@
 		onback?: () => void;
 		/** Jump to another lesson from a cross link chip. Without it, lesson chips cannot jump. */
 		onjump?: (ref: LessonRef) => void;
+		/** Current beat and beat count, drawn as small progress dots in the dock. */
+		step?: number;
+		steps?: number;
 	} = $props();
 
 	// Any line (a beat or a reaction) that starts with `[fyi]` is a "by the way" aside: the
@@ -47,50 +52,13 @@
 				: nim
 	);
 
-	// Small screens only: that is where the bubble would otherwise cover the stage, so the
-	// moderator-style auto close applies there. On desktop the bubble stays in its corner.
-	let isMobile = $state(false);
-	$effect(() => {
-		const mq = window.matchMedia('(max-width: 767px)');
-		const sync = () => (isMobile = mq.matches);
-		sync();
-		mq.addEventListener('change', sync);
-		return () => mq.removeEventListener('change', sync);
-	});
-
-	// Game-like companion: Nim sits pinned in the bottom-left corner and never moves; the cloud
-	// bubble floats above it without resizing the stage. On a phone, when it is the learner's turn
-	// (aside), Nim says its line, waits long enough to read it, then steps out on its own like a
-	// game moderator so the stage gets full focus. A tap on Nim takes over for the current line;
-	// any new line (a beat or a reaction) clears that, so reactions and completion pop Nim back.
-	let override = $state<{ line: string; open: boolean } | null>(null);
-	let autoHidden = $state<string | null>(null);
-	const moderated = $derived(aside && isMobile);
-	const base = $derived(moderated ? autoHidden !== nim : true);
-	const open = $derived(override?.line === nim ? override.open : base);
-
-	// A brief, snappy peek scaled a little to length (markup stripped), then Nim ducks out.
-	function readMs(html: string) {
-		const words = html
-			.replace(/^\s*\[(fyi|ingat)\]\s*/i, '')
-			.replace(/<[^>]*>/g, '')
-			.trim()
-			.split(/\s+/)
-			.filter(Boolean).length;
-		return Math.min(3500, Math.max(1300, 500 + words * 130));
-	}
-
-	$effect(() => {
-		// Schedule the auto close once per line, only while moderated and not under a manual tap.
-		if (!moderated || override?.line === nim || autoHidden === nim) return;
-		const line = nim;
-		const id = setTimeout(() => (autoHidden = line), readMs(line));
-		return () => clearTimeout(id);
-	});
-
+	// The dialogue lives in a dock under the stage, so it never covers anything. The learner can
+	// still fold it down to a slim bar (Nim, one line, and Next) to give the stage more room.
+	let collapsed = $state(false);
 	function toggle() {
-		override = { line: nim, open: !open };
+		collapsed = !collapsed;
 	}
+	// `aside` (the learner's turn) only tints the dock border now; it no longer hides Nim.
 
 	// Inline glossary chips: [[term|topic]] becomes a tappable chip (rendered inside {@html} so it
 	// composes with any existing markup), and a tap opens a small "coming soon" card for that module.
@@ -124,117 +92,91 @@
 
 <svelte:window onkeydown={onTermKey} />
 
-<div class="flex flex-col items-start gap-1.5 md:flex-row md:items-end md:gap-2">
-	<!-- Cloud-shaped speech bubble: above Nim on mobile, beside (lifted) on desktop -->
-	{#if open}
-		<div
-			transition:fly={{ y: 18, duration: 260, easing: cubicOut }}
-			class="pointer-events-auto order-1 w-[calc(100vw-1.5rem)] max-w-[360px] min-w-0 md:order-2 md:mb-12 md:w-auto md:max-w-[340px]"
-			style="filter: drop-shadow(0 10px 22px rgba(22,40,60,0.13));"
+<div class="dock-wrap">
+	<!-- The dialogue dock. It sits in the page flow under the stage (never on top of it), like the
+	     dialogue box in a game, with Nim on the left, the line in the middle, and the controls on
+	     the right. Folded, it becomes a slim bar so the stage gets nearly all the room. -->
+	<section class="dock" class:collapsed class:turn={aside} aria-label="Nim">
+		<button
+			type="button"
+			onclick={toggle}
+			aria-label={collapsed ? $t.showNim : $t.hideNim}
+			aria-expanded={!collapsed}
+			class="avatar"
+			style="view-transition-name: nim;"
 		>
-			<div class="relative rounded-[26px] bg-card">
-				<!-- cloud bumps (top) -->
-				<span class="absolute -top-2.5 left-7 h-6 w-6 rounded-full bg-card"></span>
-				<span class="absolute -top-4 left-14 h-9 w-9 rounded-full bg-card"></span>
-				<span class="absolute -top-2 right-12 h-5 w-5 rounded-full bg-card"></span>
-				<!-- trailing dots going down to Nim -->
-				<span class="absolute -bottom-3 left-6 h-3.5 w-3.5 rounded-full bg-card"></span>
-				<span class="absolute -bottom-7 left-2 h-2.5 w-2.5 rounded-full bg-card"></span>
+			<span class="block md:hidden"><Nim {mood} size={collapsed ? 36 : 48} /></span>
+			<span class="hidden md:block"><Nim {mood} size={collapsed ? 44 : 76} /></span>
+		</button>
 
-				<div class="relative px-5 py-4">
-					<div class="flex items-center justify-between">
-						<p class="text-[11px] font-bold tracking-widest text-faint uppercase">Nim</p>
-						<!-- send Nim "out": collapse the bubble to give the stage room -->
-						<button
-							onclick={toggle}
-							aria-label={$t.hideNim}
-							class="-mt-1 -mr-1.5 rounded-full p-1.5 text-faint transition-colors hover:text-ink"
-						>
-							<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-								<path
-									d="M3 5.5l4 4 4-4"
-									stroke="currentColor"
-									stroke-width="1.8"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								/>
-							</svg>
-						</button>
-					</div>
-
-					{#key nim}
-						<p
-							use:termClicks
-							in:fade={{ duration: 200 }}
-							class="mt-1 min-h-[3.5rem] text-[14.5px] leading-relaxed text-ink/90 md:min-h-[4.5rem]"
-						>
-							{#if isFyi}<span class="fyi-tag"
-									><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
-										><path
-											d="M12 1.6l1.7 8.7 8.7 1.7-8.7 1.7L12 22.4l-1.7-8.7L1.6 12l8.7-1.7z"
-										/></svg
-									>FYI</span
-								>{/if}{#if isMemo}<span class="memo-tag"
-									><svg
-										viewBox="0 0 24 24"
-										fill="none"
-										stroke="currentColor"
-										stroke-width="2.4"
-										stroke-linecap="round"
-										stroke-linejoin="round"
-										aria-hidden="true"
-										><path
-											d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z"
-										/></svg
-									>{$t.memoTag}</span
-								>{/if}{@html html}
-						</p>
-					{/key}
-
-					<div class="mt-3 flex items-center justify-end gap-2">
-						{#if canBack}
-							<button
-								onclick={onback}
-								class="rounded-lg px-3 py-2 text-sm font-medium text-muted transition-colors hover:text-ink"
-							>
-								{$t.back}
-							</button>
-						{/if}
-						<button
-							onclick={onnext}
-							disabled={!canNext}
-							class="rounded-xl bg-brand px-5 py-2.5 text-sm font-semibold text-white shadow-[0_3px_0_rgba(28,74,160,0.5)] transition-all enabled:hover:brightness-110 enabled:active:translate-y-0.5 enabled:active:shadow-[0_1px_0_rgba(28,74,160,0.5)] disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
-						>
-							{final ? $t.finish : $t.next}
-						</button>
-					</div>
-
-					{#if !canNext}
-						<p class="mt-2 text-right text-[11px] text-faint">{$t.completeHint}</p>
-					{/if}
-				</div>
+		<div class="line">
+			<div class="meta">
+				<span class="who">Nim</span>
+				{#if steps > 1 && !collapsed}
+					<span class="dots" aria-hidden="true">
+						{#each Array.from({ length: steps }, (_, k) => k) as k (k)}
+							<i class:on={k === step} class:past={k < step}></i>
+						{/each}
+					</span>
+				{/if}
 			</div>
+			{#key nim}
+				<p use:termClicks in:fade={{ duration: 200 }} class="text" class:clamp={collapsed}>
+					{#if isFyi}<span class="fyi-tag"
+							><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
+								><path d="M12 1.6l1.7 8.7 8.7 1.7-8.7 1.7L12 22.4l-1.7-8.7L1.6 12l8.7-1.7z" /></svg
+							>FYI</span
+						>{/if}{#if isMemo}<span class="memo-tag"
+							><svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.4"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true"
+								><path
+									d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z"
+								/></svg
+							>{$t.memoTag}</span
+						>{/if}{@html html}
+				</p>
+			{/key}
 		</div>
-	{/if}
 
-	<!-- Nim, the character: pinned bottom-left, shared element that glides between pages.
-	     Tap to toggle the bubble (bring it back when it has stepped out). -->
-	<button
-		type="button"
-		onclick={toggle}
-		aria-label={open ? $t.hideNim : $t.showNim}
-		aria-expanded={open}
-		class="pointer-events-auto order-2 shrink-0 self-start outline-none md:order-1 md:self-end"
-		class:nim-call={!open}
-		style="view-transition-name: nim;"
-	>
-		<span class="block md:hidden"><Nim {mood} size={58} /></span>
-		<span class="hidden md:block"><Nim {mood} size={112} /></span>
-		{#if !open}
-			<!-- a soft pulse that invites tapping Nim back open -->
-			<span class="ping" aria-hidden="true"></span>
+		<div class="controls">
+			{#if canBack && !collapsed}
+				<button onclick={onback} class="back">{$t.back}</button>
+			{/if}
+			<button
+				onclick={onnext}
+				disabled={!canNext}
+				class="next"
+				title={canNext ? undefined : $t.completeHint}
+			>
+				{final ? $t.finish : $t.next}
+			</button>
+			<button
+				type="button"
+				onclick={toggle}
+				aria-label={collapsed ? $t.showNim : $t.hideNim}
+				class="fold"
+			>
+				<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+					<path
+						d={collapsed ? 'M3 8.5l4-4 4 4' : 'M3 5.5l4 4 4-4'}
+						stroke="currentColor"
+						stroke-width="1.8"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/>
+				</svg>
+			</button>
+		</div>
+		{#if !canNext && !collapsed}
+			<p class="hint">{$t.completeHint}</p>
 		{/if}
-	</button>
+	</section>
 
 	<!-- Cross link card for a tapped [[label|target]] chip. It says where the idea is taught. A
 	     shipped lesson can be jumped to right now (Nim brings the learner back afterwards); a
@@ -303,6 +245,192 @@
 </div>
 
 <style>
+	.dock-wrap {
+		display: flex;
+		width: 100%;
+		justify-content: center;
+	}
+	.dock {
+		position: relative;
+		display: grid;
+		width: min(100%, 920px);
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 4px 16px;
+		border: 1px solid var(--color-line);
+		border-radius: 24px;
+		background: var(--color-card);
+		padding: 12px 14px 12px 12px;
+		box-shadow: 0 12px 32px rgba(22, 40, 60, 0.1);
+		transition:
+			padding 0.25s,
+			border-color 0.25s;
+	}
+	.dock.turn {
+		border-color: color-mix(in srgb, var(--color-brand) 35%, var(--color-line));
+	}
+	.dock.collapsed {
+		padding-top: 6px;
+		padding-bottom: 6px;
+	}
+	.avatar {
+		align-self: end;
+		margin: -26px 0 -4px;
+		outline: none;
+		-webkit-tap-highlight-color: transparent;
+	}
+	.collapsed .avatar {
+		align-self: center;
+		margin: 0;
+	}
+	.line {
+		min-width: 0;
+	}
+	.meta {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+	.who {
+		font-size: 11px;
+		font-weight: 800;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		color: var(--color-brand);
+	}
+	.dots {
+		display: flex;
+		gap: 4px;
+	}
+	.dots i {
+		height: 5px;
+		width: 5px;
+		border-radius: 999px;
+		background: var(--color-line);
+		transition:
+			width 0.2s,
+			background 0.2s;
+	}
+	.dots i.past {
+		background: color-mix(in srgb, var(--color-brand) 45%, var(--color-line));
+	}
+	.dots i.on {
+		width: 16px;
+		background: var(--color-brand);
+	}
+	.text {
+		margin: 4px 0 0;
+		min-height: 3.2em;
+		font-size: 15px;
+		line-height: 1.6;
+		color: color-mix(in srgb, var(--color-ink) 92%, transparent);
+	}
+	.text.clamp {
+		min-height: 0;
+		margin: 0;
+		display: -webkit-box;
+		-webkit-line-clamp: 1;
+		line-clamp: 1;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		font-size: 13.5px;
+	}
+	.controls {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+	.back {
+		border-radius: 10px;
+		padding: 8px 12px;
+		font-size: 14px;
+		font-weight: 500;
+		color: var(--color-muted);
+		transition: color 0.15s;
+	}
+	.back:hover {
+		color: var(--color-ink);
+	}
+	.next {
+		border-radius: 12px;
+		background: var(--color-brand);
+		padding: 10px 22px;
+		font-size: 14px;
+		font-weight: 600;
+		color: #fff;
+		box-shadow: 0 3px 0 rgba(28, 74, 160, 0.5);
+		transition:
+			filter 0.15s,
+			transform 0.1s;
+	}
+	.next:enabled:hover {
+		filter: brightness(1.1);
+	}
+	.next:enabled:active {
+		transform: translateY(2px);
+		box-shadow: 0 1px 0 rgba(28, 74, 160, 0.5);
+	}
+	.next:disabled {
+		cursor: not-allowed;
+		opacity: 0.4;
+		box-shadow: none;
+	}
+	.fold {
+		display: flex;
+		height: 30px;
+		width: 30px;
+		align-items: center;
+		justify-content: center;
+		border-radius: 999px;
+		color: var(--color-faint);
+		transition: color 0.15s;
+	}
+	.fold:hover {
+		color: var(--color-ink);
+	}
+	.hint {
+		grid-column: 2 / 4;
+		margin: 0;
+		text-align: right;
+		font-size: 11px;
+		color: var(--color-faint);
+	}
+	@media (max-width: 767px) {
+		.dock {
+			grid-template-columns: auto minmax(0, 1fr);
+			gap: 6px 10px;
+			border-radius: 20px;
+			padding: 10px 10px 10px 8px;
+		}
+		.avatar {
+			margin: -18px 0 0;
+			align-self: start;
+		}
+		.text {
+			font-size: 14px;
+			min-height: 0;
+		}
+		.controls {
+			grid-column: 1 / 3;
+			justify-content: flex-end;
+		}
+		.collapsed .controls {
+			grid-column: auto;
+		}
+		.collapsed.dock {
+			grid-template-columns: auto minmax(0, 1fr) auto;
+		}
+		.hint {
+			grid-column: 1 / 3;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.dock,
+		.dots i {
+			transition: none;
+		}
+	}
+
 	button {
 		position: relative;
 		-webkit-tap-highlight-color: transparent;
@@ -521,9 +649,6 @@
 		}
 	}
 	/* gentle bob to signal Nim is waiting when the bubble is out */
-	.nim-call {
-		animation: nim-bob 2.4s ease-in-out infinite;
-	}
 	@keyframes nim-bob {
 		0%,
 		100% {
@@ -532,17 +657,6 @@
 		50% {
 			transform: translateY(-5px);
 		}
-	}
-	.ping {
-		position: absolute;
-		top: 6px;
-		right: 6px;
-		height: 9px;
-		width: 9px;
-		border-radius: 9999px;
-		background: var(--color-brand);
-		box-shadow: 0 0 0 0 rgba(46, 111, 224, 0.5);
-		animation: nim-ping 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
 	}
 	@keyframes nim-ping {
 		0% {
@@ -556,9 +670,5 @@
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.nim-call,
-		.ping {
-			animation: none;
-		}
 	}
 </style>

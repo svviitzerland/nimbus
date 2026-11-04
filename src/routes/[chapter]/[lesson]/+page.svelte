@@ -19,7 +19,11 @@
 	let beat = $state(0);
 	let reaction = $state<string | null>(null);
 	let reactionToken = $state<string | null>(null);
-	let completed = $state(false);
+	// Which lesson reported its step as done. Keyed by lesson (not a plain flag) because a guided
+	// stage calls oncomplete() as it mounts, which runs before the reset effect below; a flag
+	// would be wiped right after it was set and Next would stay locked.
+	let completedFor = $state<string | null>(null);
+	const completed = $derived(completedFor === data.lessonId);
 	// A stage can lock Next (during an intro animation) and ask to be shown on an early beat.
 	let locked = $state(false);
 	let shown = $state(false);
@@ -29,7 +33,6 @@
 		beat = 0;
 		reaction = null;
 		reactionToken = null;
-		completed = false;
 		// coming back from a detour lands on the beat the learner left from
 		untrack(() => {
 			path.adoptVariant({ chapterId: data.chapterId, lessonId: data.lessonId });
@@ -92,7 +95,7 @@
 	);
 
 	function onComplete() {
-		completed = true;
+		completedFor = data.lessonId;
 	}
 	function onLock(v: boolean) {
 		locked = v;
@@ -203,9 +206,9 @@
 		<h1 class="mt-1 font-display text-2xl font-medium text-ink md:text-[1.9rem]">{text.title}</h1>
 	</div>
 
-	<!-- Stage. Sits between the title and Nim and is bounded so neither ever gets pushed off screen. -->
+	<!-- Stage. Sits between the title and Nim's dock and scrolls if a stage is taller than the room left. -->
 	<section
-		class="flex min-h-0 flex-1 items-start justify-center overflow-hidden px-4 pt-2 pb-4 md:px-8 md:pt-5 md:pb-6"
+		class="flex min-h-0 flex-1 items-start justify-center overflow-x-hidden overflow-y-auto px-4 pt-2 pb-3 md:px-8 md:pt-4 md:pb-4"
 	>
 		{#key data.lessonId}
 			<div class="stage-in h-full w-full">
@@ -227,13 +230,9 @@
 		{/key}
 	</section>
 
-	<!-- Nim + cloud bubble: floats in the bottom-left corner (every screen) so Nim stays put and
-	     the stage never resizes when the bubble pops in or out. The wrapper ignores pointer events
-	     so taps fall through to the stage; only Nim and the bubble themselves are interactive.
+	<!-- Nim's dialogue dock: in the normal flow under the stage, so it never covers the stage.
 	     Safe-area padding keeps it clear of the phone's home bar. -->
-	<div
-		class="pointer-events-none absolute bottom-0 left-0 z-10 px-3 pb-[max(0.6rem,env(safe-area-inset-bottom))] md:bottom-5 md:left-5 md:px-0 md:pb-0"
-	>
+	<div class="shrink-0 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6 md:pb-5">
 		<SpeechBubble
 			nim={message}
 			mood={currentMood}
@@ -241,6 +240,8 @@
 			{canBack}
 			{final}
 			{aside}
+			step={Math.min(beat, text.intro.length - 1)}
+			steps={text.intro.length}
 			onnext={next}
 			onback={back}
 			onjump={jump}
