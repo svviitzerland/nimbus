@@ -72,6 +72,8 @@ export const modules: Module[] = [
 	m('git', 'Git dan GitHub', 'Git and GitHub', [
 		'compute/version-control',
 		'compute/git-vs-github',
+		'compute/git-branch',
+		'compute/pull-request',
 		'compute/git-hosts'
 	]),
 	m(
@@ -242,6 +244,7 @@ export const modules: Module[] = [
 	]),
 	m('devops', 'DevOps', 'DevOps', [
 		'devops/what-devops',
+		'compute/testing',
 		'compute/cicd',
 		'devops/iac',
 		'devops/config-mgmt',

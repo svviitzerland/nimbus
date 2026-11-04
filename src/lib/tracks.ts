@@ -161,7 +161,13 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 	{
 		id: 'Git dan Kerja Bareng',
 		en: 'Git and Teamwork',
-		keys: ['compute/version-control', 'compute/git-vs-github', 'compute/git-hosts']
+		keys: [
+			'compute/version-control',
+			'compute/git-vs-github',
+			'compute/git-branch',
+			'compute/pull-request',
+			'compute/git-hosts'
+		]
 	},
 	{
 		id: 'Online kan Situsmu',
@@ -302,6 +308,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'compute/microservices',
 			'compute/serverless',
 			'devops/what-devops',
+			'compute/testing',
 			'compute/cicd',
 			'devops/iac',
 			'devops/config-mgmt',
