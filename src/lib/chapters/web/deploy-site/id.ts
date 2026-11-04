@@ -10,6 +10,7 @@ export const id: DeploySiteText = {
 		'Lalu host menyajikan file itu di nimbus.com. Buka dari HP mana pun, di mana pun, dan judul barunya sudah ada. Kamu sama sekali nggak menyentuh servernya.',
 		'[ingat] Dorong, rakit, tayang. Push, build, live. Kamu cuma kerjakan kata pertama, host yang mengurus dua sisanya. Tiga kata, dan perubahan di laptopmu sampai ke semua HP.',
 		'Host ada dua jenis. <b>Platform</b> seperti Vercel, Netlify, atau Cloudflare Pages mengerjakan semua langkah sendiri. <b>VPS</b> (virtual private server) itu komputer sewaan, kamu login lalu mengetik tiap langkahnya sendiri. Lebih bebas, lebih banyak kerjaan.',
+		'Satu lagi buat situsmu sendiri, gembok kecilnya. Pengunjung berharap ada <b>HTTPS</b>, dan untuk itu server butuh <b>sertifikat</b>, semacam KTP digital yang membuktikan dia memang nimbus.com. <b>Let’s Encrypt</b> membagikannya gratis, dan kebanyakan host memasangnya sendiri buatmu.',
 		'[fyi] Push, build, live itu sebenarnya [[CI/CD|compute/cicd]] versi mini. Tim yang lebih besar menambahkan tes otomatis di tengahnya, jadi perubahan yang rusak dihentikan sebelum sempat sampai ke HP.',
 		'Mau lihat sekali lagi? Push judul baru dan ikuti perjalanannya sampai ke HP. Ini opsional kok.'
 	],
@@ -53,6 +54,11 @@ export const id: DeploySiteText = {
 			body: '<b>Platform</b> menjalankan langkahnya buat kamu. Di <b>VPS</b> kamu login dan mengetiknya sendiri, seperti perintah di layar kecil itu.'
 		},
 		{
+			tag: 'HTTPS',
+			title: 'Sertifikat gratis',
+			body: 'Host meminta sertifikat ke <b>Let’s Encrypt</b>, lalu gembok muncul di samping nimbus.com. Sertifikatnya bahkan memperbarui diri sendiri sebelum habis.'
+		},
+		{
 			tag: 'Pipeline',
 			title: 'Tes di tengah jalan',
 			body: '<b>Pipeline</b> itu rangkaian langkah otomatis. Kalau ada tesnya, perubahan yang rusak nggak akan lolos dari pos pemeriksaan.'
@@ -73,6 +79,7 @@ export const id: DeploySiteText = {
 	updated: 'baru diperbarui',
 	hosts: { platform: 'Platform, otomatis', vps: 'VPS, manual' },
 	vpsCommands: ['$ ssh nimbus.com', '$ git pull', '$ npm run build', '$ nginx -s reload'],
+	cert: { title: 'Let’s Encrypt', sub: 'sertifikat gratis' },
 	rule: 'Dorong, rakit, tayang',
 	pushBtn: 'Push judul baru',
 	pushing: 'Lagi jalan'

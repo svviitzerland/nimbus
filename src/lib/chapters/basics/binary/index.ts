@@ -14,6 +14,7 @@ export const binary: Lesson = {
 		'happy',
 		'wink',
 		'surprised',
+		'idea',
 		'thinking',
 		'wink',
 		'excited'

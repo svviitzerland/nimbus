@@ -7,7 +7,7 @@ export const en: WhatDevopsText = {
 		'Developers worked for months and piled every change into one huge box. Then they threw it over the wall, and Ops had to install it without knowing what was inside.',
 		'Of course something broke. Dev said it worked on their laptop, Ops said the code was broken. Release day became scary, so teams released less often, and every box got even bigger.',
 		'<b>DevOps</b> knocks that wall down. The name simply glues the two words together, because Dev and Ops become one team that builds, ships and looks after the app together.',
-		'The trick is to ship <b>small changes, often</b>. Machines do the boring part, testing and delivering every little box by themselves, like the [[CI/CD pipeline|compute/cicd]] you already met.',
+		'The trick is to ship <b>small changes, often</b>. Machines do the boring part, testing and delivering every little box by themselves, in a [[CI/CD pipeline|compute/cicd]], which you will meet next.',
 		'Small boxes still break sometimes. But when a box holds just one change, you know right away what went wrong. Pull it back, fix it, send it again, all within a few minutes.',
 		'[ingat] <b>Small and often beats big and rare.</b> A tiny box is easy to check and easy to take back. A giant box hides its bug like a needle in a haystack.',
 		'[fyi] DevOps began as a way of working, not a tool you install. The name caught on around 2009, when people started running DevOpsDays meetups. Today DevOps engineer is also a job title, but the idea is still the same, one team, small steps.',

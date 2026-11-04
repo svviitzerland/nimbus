@@ -7,6 +7,7 @@ export const id: ThreatsText = {
 		'Penyerang juga mikir begitu. <b>Threat modeling</b> artinya keliling sistem milikmu sendiri pakai kacamata penyerang, sebelum penyerang beneran datang, lalu menambal pintu yang paling lemah duluan.',
 		'Intinya empat pertanyaan sederhana. Kita bikin apa? Apa yang bisa salah? Kita mau ngapain soal itu? Udah cukup bagus belum? Penulis keamanan Adam Shostack yang bikin empat pertanyaan ini terkenal.',
 		'Buat nimbus.com, rumahnya begini. Pintu depan itu halaman login. Jendela itu software server lama yang nggak pernah diupdate. Pagar belakang itu login yang dikasih ke perusahaan rekanan. Kunci di bawah pot itu backup, salinan lengkap semua data.',
+		'Zoom ke jendela itu. <b>Vulnerability</b> itu celah, kayak grendel yang rusak. <b>Exploit</b> itu trik buat memakainya, <b>patch</b> itu perbaikannya. Celah yang ketahuan dapat nomor di daftar publik <b>CVE</b> (Heartbleed itu CVE-2014-0160), dan penyerang ikut membacanya. Aplikasi yang nggak diupdate itu jendela terbuka.',
 		'Cerita nyata. Tahun 2013 jaringan toko Amerika bernama Target kehilangan sekitar 40 juta nomor kartu. Penyerangnya nggak mulai dari pintu depan. Mereka masuk duluan pakai login perusahaan kecil jasa AC dan pemanas yang bekerja untuk Target.',
 		'Dari pagar belakang itu mereka menyusup lewat jaringan Target sampai ke mesin kasir di toko toko, lalu diam diam menyalin kartu tiap kali pelanggan bayar. Gembok pintu depannya bahkan nggak disentuh sama sekali.',
 		'[ingat] <b>Rumah cuma seaman pintu terlemahnya.</b> Mikir kayak maling, ngunci kayak pemilik.',
@@ -40,6 +41,11 @@ export const id: ThreatsText = {
 			tag: 'nimbus.com',
 			title: 'Rumahnya itu sistemnya',
 			body: 'Pintu itu <b>login</b>, jendela itu <b>software lama</b>, pagar itu <b>login rekanan</b>, kuncinya itu <b>backup</b>.'
+		},
+		{
+			tag: 'Kosakata',
+			title: 'Celah, trik, tambalan',
+			body: '<b>Vulnerability</b> itu celahnya, <b>exploit</b> memakainya, <b>patch</b> menutupnya. Tiap celah yang dikenal dapat nomor <b>CVE</b>.'
 		},
 		{
 			tag: 'Target, 2013',
@@ -101,5 +107,12 @@ export const id: ThreatsText = {
 	cardsLabel: '40 juta kartu',
 	threatLabel: 'Apa yang bisa salah',
 	fixLabel: 'Tambalannya',
-	tapHint: 'Pencet satu bagian rumah'
+	tapHint: 'Pencet satu bagian rumah'",
+	vocab: {
+		vuln: 'vulnerability',
+		exploit: 'exploit',
+		patch: 'patch',
+		cve: 'CVE'
+	},
+	cveExample: 'CVE-2014-0160 itu Heartbleed'
 };

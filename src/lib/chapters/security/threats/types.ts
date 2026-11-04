@@ -16,4 +16,8 @@ export interface ThreatsText extends LessonText {
 	threatLabel: string;
 	fixLabel: string;
 	tapHint: string;
+	/** Labels for the four words on the vocabulary beat (vulnerability, exploit, patch, CVE). */
+	vocab: { vuln: string; exploit: string; patch: string; cve: string };
+	/** A real CVE number with its nickname, shown under the four words. */
+	cveExample: string;
 }

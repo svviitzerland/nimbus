@@ -7,6 +7,7 @@ export const en: ThreatsText = {
 		"Attackers think the same way. <b>Threat modeling</b> means walking around your own system with an attacker's eyes, before a real attacker does, and fixing the weakest door first.",
 		'It boils down to four plain questions. What are we building? What can go wrong? What will we do about it? Did we do a good enough job? The security writer Adam Shostack made these four famous.',
 		'For nimbus.com the house looks like this. The front door is the login page. The window is old server software nobody updated. The back gate is a login given to a partner company. The key under the pot is a backup, a full copy of all the data.',
+		'Zoom in on that window. A <b>vulnerability</b> is a weakness, like a broken latch. An <b>exploit</b> is a trick that uses it, a <b>patch</b> is the fix. Known holes get a number on a public list, <b>CVE</b> (Heartbleed was CVE-2014-0160), and attackers read it too. An app never updated is an open window.',
 		'A real story. In 2013 the American store chain Target lost about 40 million card numbers. The attackers did not start at the front door. They first got in with the login of a small heating and air conditioning company that worked for Target.',
 		"From that back gate they crept through Target's network all the way to the cash registers in the stores, and quietly copied cards as customers paid. The lock on the front door was never even touched.",
 		'[ingat] <b>A house is only as safe as its weakest door.</b> Think like a burglar, then lock like an owner.',
@@ -40,6 +41,11 @@ export const en: ThreatsText = {
 			tag: 'nimbus.com',
 			title: 'The house is the system',
 			body: 'Door is the <b>login</b>, window is <b>old software</b>, gate is a <b>partner login</b>, the key is the <b>backup</b>.'
+		},
+		{
+			tag: 'The words',
+			title: 'Weakness, trick, fix',
+			body: 'A <b>vulnerability</b> is the weakness, an <b>exploit</b> uses it, a <b>patch</b> closes it. Each known one gets a <b>CVE</b> number.'
 		},
 		{
 			tag: 'Target, 2013',
@@ -101,5 +107,12 @@ export const en: ThreatsText = {
 	cardsLabel: '40 million cards',
 	threatLabel: 'What could go wrong',
 	fixLabel: 'The fix',
-	tapHint: 'Tap a spot on the house'
+	tapHint: 'Tap a spot on the house'",
+	vocab: {
+		vuln: 'vulnerability',
+		exploit: 'exploit',
+		patch: 'patch',
+		cve: 'CVE'
+	},
+	cveExample: 'CVE-2014-0160 is Heartbleed'
 };

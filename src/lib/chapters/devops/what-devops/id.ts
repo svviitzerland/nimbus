@@ -7,7 +7,7 @@ export const id: WhatDevopsText = {
 		'Developer kerja berbulan bulan dan numpuk semua perubahan ke satu kotak raksasa. Terus kotaknya dilempar lewat tembok, dan Ops harus masang tanpa tahu isinya apa.',
 		'Ya jelas ada yang rusak. Dev bilang di laptopnya jalan kok, Ops bilang kodenya yang rusak. Hari rilis jadi menakutkan, jadi rilisnya makin jarang, dan kotaknya makin gede.',
 		'<b>DevOps</b> ngerobohin tembok itu. Namanya cuma gabungan dua kata tadi, karena Dev dan Ops jadi satu tim yang bareng bareng bikin, ngirim, dan ngerawat aplikasinya.',
-		'Rahasianya, kirim <b>perubahan kecil, tapi sering</b>. Bagian yang membosankan dikerjain mesin, ngetes dan ngirim tiap kotak kecil sendiri, kayak [[pipeline CI/CD|compute/cicd]] yang udah kamu kenal.',
+		'Rahasianya, kirim <b>perubahan kecil, tapi sering</b>. Bagian yang membosankan dikerjain mesin, ngetes dan ngirim tiap kotak kecil sendiri, lewat [[pipeline CI/CD|compute/cicd]], yang bakal kamu kenal sesudah ini.',
 		'Kotak kecil juga kadang rusak. Tapi kalau isinya cuma satu perubahan, kamu langsung tahu salahnya di mana. Tarik balik, benerin, kirim lagi, semuanya beres dalam beberapa menit.',
 		'[ingat] <b>Kecil tapi sering, jangan besar tapi jarang.</b> Kotak kecil gampang dicek dan gampang ditarik balik. Kotak raksasa nyembunyiin bugnya kayak jarum di tumpukan jerami.',
 		'[fyi] DevOps awalnya cara kerja, bukan alat yang tinggal diinstal. Namanya mulai ngetren sekitar 2009, waktu orang mulai bikin acara DevOpsDays. Sekarang DevOps engineer juga jadi nama pekerjaan, tapi idenya tetap sama, satu tim, langkah kecil.',

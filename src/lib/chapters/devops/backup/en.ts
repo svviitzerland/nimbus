@@ -18,7 +18,7 @@ export const en: BackupText = {
 		daily:
 			'Ouch. The only copy was made at midnight, so every order placed since then died with the disk. Try every hour and watch the gap shrink.',
 		hourly:
-			'Much better. The newest copy was from four in the afternoon, so only the last forty minutes of orders were lost. That gap has a name, the <b>RPO</b>, how much data you can afford to lose.'
+			'Much better. The newest copy was from four in the afternoon, so only forty minutes of orders were lost. That gap is the <b>RPO</b>, how much data you can lose. Its partner, the <b>RTO</b>, is how long until you are back up.'
 	},
 	steps: [
 		{

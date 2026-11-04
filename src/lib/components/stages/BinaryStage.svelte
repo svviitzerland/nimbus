@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Bits and bytes as a guided story. The picture follows Nim's beats by itself (a switch
-	// blinking, a byte filling up, the letters of nimbus, a photo made of dots, boxes growing
-	// from byte to GB). The last scene lets the learner flip the switches, which is optional.
+	// blinking, a byte filling up, the letters of nimbus, a photo made of dots, a byte written as
+	// two hex digits, boxes growing from byte to GB). The last scene lets the learner flip the switches, which is optional.
 	import Guide from '$lib/components/Guide.svelte';
 	import type { StageProps } from '$lib/chapters/types';
 	import type { BinaryText } from '$lib/chapters/basics/binary/types';
@@ -10,7 +10,7 @@
 	const tx = $derived(text as BinaryText);
 
 	/** Beat index to scene index (the two [ingat] beats and the [fyi] keep the scene before). */
-	const STEP_OF_BEAT = [0, 1, 1, 2, 3, 3, 4, 5, 5, 6];
+	const STEP_OF_BEAT = [0, 1, 1, 2, 3, 3, 4, 5, 6, 6, 7];
 	const WORD = 'nimbus';
 	const VALUES = [128, 64, 32, 16, 8, 4, 2, 1];
 	const bitsOf = (c: string) => VALUES.map((v) => (c.charCodeAt(0) & v ? 1 : 0));
@@ -19,6 +19,9 @@
 	const PATTERNS = ['10110010', '01101110', '11100101', '00111100', '01010101'].map((p) =>
 		[...p].map(Number)
 	);
+	/** The sixteen hex digits, and the bytes the hex scene shows in turn (FF first). */
+	const HEX = '0123456789ABCDEF';
+	const HEX_BYTES = [0xff, 0xa5, 0x3c, 0x0a];
 	/** Box sizes in px for byte, KB, MB, GB. */
 	const BOX = [12, 28, 58, 100];
 
@@ -59,6 +62,9 @@
 	const letterBits = $derived(N_BITS.map((b, i) => (tick > i ? b : 0)));
 	const rows = $derived(Math.min(WORD.length, Math.floor(tick / 2) + 1));
 	const boxes = $derived(Math.min(BOX.length, Math.floor(tick / 2) + 1));
+	const hexByte = $derived(reduced ? 0xff : HEX_BYTES[Math.floor(tick / 5) % HEX_BYTES.length]);
+	const hexBits = $derived(VALUES.map((v) => (hexByte & v ? 1 : 0)));
+	const hexPair = $derived([HEX[hexByte >> 4], HEX[hexByte & 15]]);
 
 	// the optional play scene, starting from the letter n
 	let mine = $state<number[]>([...N_BITS]);
@@ -256,6 +262,36 @@
 				</g>
 			</svg>
 		{:else if s === 5}
+			<div class="col hex">
+				<span class="label">{tx.hexDigits}</span>
+				<div class="digits">
+					{#each HEX as d (d)}
+						<span class="hd" class:on={hexPair.includes(d)} class:letter={d >= 'A'}>{d}</span>
+					{/each}
+				</div>
+				<div class="nibbles">
+					{#each [0, 1] as half (half)}
+						<div class="nib">
+							<div class="row">
+								{#each hexBits.slice(half * 4, half * 4 + 4) as b, i (i)}{@render sw(b === 1)}{/each}
+							</div>
+							<div class="bracket nibble"></div>
+							<span class="small">{tx.nibble}</span>
+							<span class="hexdigit">{hexPair[half]}</span>
+						</div>
+					{/each}
+				</div>
+				<span class="pill">{hexPair.join('')}<span class="pill-sub">{tx.hexByte}</span></span>
+				<div class="uses">
+					{#each tx.hexUses as u, i (i)}
+						<span class="use">
+							{#if i === 0}<i class="swatch"></i>{/if}
+							<b>{u.label}</b><code>{u.value}</code>
+						</span>
+					{/each}
+				</div>
+			</div>
+		{:else if s === 6}
 			<div class="col">
 				<div class="boxes">
 					{#each tx.boxes as b, i (i)}
@@ -615,7 +651,100 @@
 		fill: var(--color-faint);
 	}
 
-	/* scene 5, growing boxes */
+	/* scene 5, hexadecimal */
+	.col.hex {
+		gap: 8px;
+	}
+	.digits {
+		display: grid;
+		grid-template-columns: repeat(8, 26px);
+		gap: 5px;
+	}
+	.hd {
+		display: grid;
+		height: 26px;
+		place-items: center;
+		border: 1.5px solid var(--color-line);
+		border-radius: 7px;
+		background: var(--color-card);
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 13px;
+		font-weight: 700;
+		color: var(--color-muted);
+		transition:
+			background 0.35s,
+			border-color 0.35s,
+			color 0.35s;
+	}
+	.hd.letter {
+		color: var(--color-amber);
+	}
+	.hd.on {
+		border-color: var(--color-brand);
+		background: var(--color-brand);
+		color: var(--color-card);
+	}
+	.nibbles {
+		display: flex;
+		gap: 18px;
+		margin-top: 4px;
+	}
+	.nib {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+	}
+	.bracket.nibble {
+		width: calc(4 * 26px + 3 * 8px);
+	}
+	.hexdigit {
+		font-family: var(--font-display);
+		font-size: 30px;
+		font-weight: 600;
+		line-height: 1;
+		color: var(--color-brand);
+	}
+	.pill-sub {
+		margin-left: 8px;
+		font-size: 12px;
+		font-weight: 600;
+		opacity: 0.8;
+	}
+	.uses {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 6px;
+		max-width: 340px;
+	}
+	.use {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		border: 1px solid var(--color-line);
+		border-radius: 999px;
+		background: var(--color-card);
+		padding: 3px 10px;
+		font-size: 11.5px;
+		color: var(--color-muted);
+	}
+	.use b {
+		font-weight: 700;
+	}
+	.use code {
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-weight: 700;
+		color: var(--color-ink);
+	}
+	.swatch {
+		width: 10px;
+		height: 10px;
+		border-radius: 3px;
+		background: #ff0000;
+	}
+
+	/* scene 6, growing boxes */
 	.boxes {
 		display: flex;
 		align-items: flex-end;
@@ -658,7 +787,7 @@
 		color: var(--color-muted);
 	}
 
-	/* scene 6, the optional play */
+	/* scene 7, the optional play */
 	.flip {
 		border-radius: 12px;
 		padding: 2px;
@@ -689,6 +818,12 @@
 		.bracket {
 			width: calc(8 * 26px + 7 * 5px);
 		}
+		.bracket.nibble {
+			width: calc(4 * 26px + 3 * 5px);
+		}
+		.nibbles {
+			gap: 14px;
+		}
 		.one {
 			gap: 24px;
 		}
@@ -702,6 +837,7 @@
 		.result,
 		.wrow,
 		.note,
+		.hd,
 		.bx {
 			transition: none;
 		}

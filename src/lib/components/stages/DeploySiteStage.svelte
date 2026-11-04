@@ -19,6 +19,7 @@
 		| 'live'
 		| 'remember'
 		| 'hosts'
+		| 'https'
 		| 'cicd'
 		| 'try';
 	const SCENES: Scene[] = [
@@ -29,6 +30,7 @@
 		'live',
 		'remember',
 		'hosts',
+		'https',
 		'cicd',
 		'try'
 	];
@@ -160,7 +162,9 @@
 	const oldIdx = $derived(scene === 'try' ? from : 0);
 	const newIdx = $derived(scene === 'try' ? to : 1);
 	const phoneLive = $derived(
-		scene === 'try' ? pushes === 0 || ph === 'live' : ph === 'live' && seq !== null
+		scene === 'try'
+			? pushes === 0 || ph === 'live'
+			: scene === 'https' || (ph === 'live' && seq !== null)
 	);
 	const phoneHeadline = $derived(H[phoneLive ? newIdx : oldIdx] ?? '');
 	const phoneText = $derived(asleep ? tx.unreachable : phoneHeadline);
@@ -186,6 +190,7 @@
 		live: ['host', 'phone', 'live'],
 		remember: ['laptop', 'repo', 'host', 'phone', 'push', 'build', 'live'],
 		hosts: ['host'],
+		https: ['host', 'phone', 'live'],
 		cicd: ['laptop', 'repo', 'host', 'phone', 'push', 'build', 'live'],
 		try: ['laptop', 'repo', 'host', 'phone', 'push', 'build', 'live']
 	};
@@ -198,6 +203,10 @@
 		pushes += 1;
 		onstate?.('push');
 	}
+
+	// the HTTPS scene, the certificate arrives first and then the lock shows on the phone
+	const certOn = $derived(scene === 'https' && (clock.reduced || clock.t > 700));
+	const lockOn = $derived(scene === 'https' && (clock.reduced || clock.t > 1900));
 
 	const GEAR = Array.from({ length: 8 }, (_, k) => k * 45);
 </script>
@@ -331,7 +340,15 @@
 				<rect x="241" y="158" width="78" height="150" rx="14" class="phone" />
 				<rect x="247" y="170" width="66" height="128" rx="5" class="screen" />
 				<rect x="251" y="176" width="58" height="11" rx="5.5" class="addr" />
-				<text x="280" y="184" text-anchor="middle" class="url">nimbus.com</text>
+				{#if lockOn}
+					<g transform="translate(256 178.5)" class="plock">
+						<rect x="0" y="2.6" width="6" height="4.6" rx="1" />
+						<path d="M1.3 2.6V1.8a1.7 1.7 0 0 1 3.4 0v0.8" />
+					</g>
+				{/if}
+				<text x={lockOn ? 284 : 280} y="184" text-anchor="middle" class="url" class:safe={lockOn}
+					>nimbus.com</text
+				>
 				{#if asleep}
 					<circle cx="280" cy="226" r="11" class="sad" />
 					<path d="M275 221 l10 10 M285 221 l-10 10" class="cut" />
@@ -355,6 +372,19 @@
 				{/if}
 				<text x="280" y="326" text-anchor="middle" class="label">{tx.labels.phone}</text>
 			</g>
+
+			<!-- the free certificate, handed to the host on the HTTPS scene -->
+			{#if scene === 'https'}
+				<g class="cert" class:show={certOn}>
+					<rect x="118" y="132" width="112" height="44" rx="9" class="certbox" />
+					<g transform="translate(130 145)" class="plock big">
+						<rect x="0" y="5" width="12" height="10" rx="2" />
+						<path d="M2.6 5V3.4a3.4 3.4 0 0 1 6.8 0V5" />
+					</g>
+					<text x="150" y="152" class="certT">{tx.cert.title}</text>
+					<text x="150" y="166" class="certS">{tx.cert.sub}</text>
+				</g>
+			{/if}
 
 			<!-- the package carrying the commit -->
 			<g
@@ -650,6 +680,46 @@
 		font-size: 7.5px;
 		font-weight: 700;
 	}
+	.url.safe {
+		fill: var(--color-grass);
+	}
+	.plock rect {
+		fill: var(--color-grass);
+	}
+	.plock path {
+		fill: none;
+		stroke: var(--color-grass);
+		stroke-width: 1.1;
+	}
+	.plock.big path {
+		stroke-width: 1.8;
+	}
+	.cert {
+		opacity: 0;
+		transform: translateY(8px);
+		transition:
+			opacity 0.5s,
+			transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+	.cert.show {
+		opacity: 1;
+		transform: none;
+	}
+	.certbox {
+		fill: var(--color-grass-soft);
+		stroke: var(--color-grass);
+		stroke-width: 1.5;
+	}
+	.certT {
+		fill: var(--color-ink);
+		font-size: 10.5px;
+		font-weight: 800;
+	}
+	.certS {
+		fill: var(--color-grass);
+		font-size: 9px;
+		font-weight: 700;
+	}
 	.pkg {
 		transition: opacity 0.3s;
 	}
@@ -678,6 +748,7 @@
 		.pkg,
 		.pkg.move,
 		.actor,
+		.cert,
 		.display {
 			transition: none;
 		}

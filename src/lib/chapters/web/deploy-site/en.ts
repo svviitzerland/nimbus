@@ -10,6 +10,7 @@ export const en: DeploySiteText = {
 		'Then the host serves those files at nimbus.com. Open it on any phone, anywhere, and the new headline is already there. You never touched the server yourself.',
 		'[ingat] Push, build, live. You only do the first word, the host does the other two. Three words, and a change on your laptop lands on every phone.',
 		'Hosts come in two kinds. A <b>platform</b> like Vercel, Netlify, or Cloudflare Pages does every step by itself. A <b>VPS</b> (virtual private server) is a rented computer where you log in and type each step yourself. More control, more chores.',
+		'One more thing for your own site, the little lock. Visitors expect <b>HTTPS</b>, and for that the server needs a <b>certificate</b>, a digital ID card that proves it really is nimbus.com. <b>Let’s Encrypt</b> hands them out for free, and most hosts set one up for you by themselves.',
 		'[fyi] Push, build, live is a tiny [[CI/CD|compute/cicd]] pipeline. Bigger teams add automatic tests in the middle, so a broken change gets stopped before it ever reaches a phone.',
 		'Want to watch it once more? Push a new headline and follow it all the way to the phone. Totally optional.'
 	],
@@ -53,6 +54,11 @@ export const en: DeploySiteText = {
 			body: 'A <b>platform</b> runs the steps for you. On a <b>VPS</b> you log in and type them yourself, like the commands on that little screen.'
 		},
 		{
+			tag: 'HTTPS',
+			title: 'A free certificate',
+			body: 'The host asks <b>Let’s Encrypt</b> for a certificate, and a lock appears next to nimbus.com. It even renews itself before it runs out.'
+		},
+		{
 			tag: 'Pipeline',
 			title: 'Tests in the middle',
 			body: 'A <b>pipeline</b> is a chain of automatic steps. With tests in it, a broken change never gets past the checkpoint.'
@@ -73,6 +79,7 @@ export const en: DeploySiteText = {
 	updated: 'just updated',
 	hosts: { platform: 'Platform, by itself', vps: 'VPS, by hand' },
 	vpsCommands: ['$ ssh nimbus.com', '$ git pull', '$ npm run build', '$ nginx -s reload'],
+	cert: { title: 'Let’s Encrypt', sub: 'free certificate' },
 	rule: 'Push, build, live',
 	pushBtn: 'Push a new headline',
 	pushing: 'On its way'

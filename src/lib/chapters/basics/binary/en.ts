@@ -10,6 +10,7 @@ export const en: BinaryText = {
 		'A word is just bytes in a row, one byte for each letter. The word nimbus has six letters, so it takes six bytes, 48 little switches in total.',
 		'[fyi] The first popular list was called ASCII, from the 1960s. Today we use <b>Unicode</b>, a much longer list that also covers Japanese, Arabic, Javanese script, and even emoji.',
 		'Photos use the same trick. A photo is a grid of tiny colored dots, and each dot is three bytes saying how much red, green, and blue it has. Songs too, the sound is measured tens of thousands of times every second and each measurement becomes a few bytes.',
+		'Rows of 0 and 1 are hard for people to read, so programmers often write bytes in <b>hexadecimal</b> (hex for short), which has 16 digits, 0 to 9 and then A to F. One hex digit is exactly 4 bits, so a byte is just two hex digits, and 11111111 becomes FF. That is why colors like #FF0000 (pure red) and network addresses like MAC and IPv6 are written in hex.',
 		'Bytes pile up fast, so we count them in bigger boxes. A <b>KB</b> (kilobyte) is about a thousand bytes, an <b>MB</b> (megabyte) about a million, and a <b>GB</b> (gigabyte) about a billion. A photo is a few MB, a movie a few GB.',
 		'[ingat] Kilo, mega, giga. Every step up is a thousand times bigger, just like counting money in thousands, millions, and billions.',
 		'Everything on a computer is bytes in the end, even apps (more on that in [[What is a program|basics/program]]). If you like, flip a few switches yourself and see which letter comes out.'
@@ -41,6 +42,10 @@ export const en: BinaryText = {
 			body: 'Millions of colored dots. Each dot is <b>3 bytes</b>, one for red, one for green, one for blue. A song is sound turned into bytes the same way.'
 		},
 		{
+			title: 'Hexadecimal',
+			body: 'Sixteen digits, <b>0 to 9</b> and <b>A to F</b>. One hex digit is 4 bits, so one byte is two hex digits, and 11111111 is <b>FF</b>.'
+		},
+		{
 			title: 'Bigger boxes',
 			body: '<b>KB</b> is about a thousand bytes, <b>MB</b> about a million, <b>GB</b> about a billion. Each box holds roughly a thousand of the one before.'
 		},
@@ -61,6 +66,14 @@ export const en: BinaryText = {
 	dotNote: 'one dot',
 	colors: ['red', 'green', 'blue'],
 	oneByte: '1 byte',
+	hexDigits: '16 digits',
+	nibble: '4 bits',
+	hexByte: '1 byte, 2 hex digits',
+	hexUses: [
+		{ label: 'color', value: '#FF0000' },
+		{ label: 'MAC address', value: '3C:22:FB:0A:11:9E' },
+		{ label: 'IPv6', value: '2001:db8::ff' }
+	],
 	boxes: [
 		{ unit: 'byte', what: 'one letter' },
 		{ unit: 'KB', what: 'a page of text' },

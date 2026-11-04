@@ -18,7 +18,7 @@ export const id: BackupText = {
 		daily:
 			'Aduh. Satu satunya salinan dibuat tengah malam, jadi semua pesanan sejak itu ikut mati bareng disknya. Coba tiap jam dan lihat celahnya menyusut.',
 		hourly:
-			'Jauh lebih baik. Salinan terbaru dari jam empat sore, jadi cuma pesanan empat puluh menit terakhir yang hilang. Celah itu punya nama, <b>RPO</b>, seberapa banyak data yang masih boleh hilang.'
+			'Jauh lebih baik. Salinan terbaru dari jam empat sore, jadi cuma pesanan empat puluh menit yang hilang. Celah itu namanya <b>RPO</b>, berapa banyak data yang boleh hilang. Pasangannya, <b>RTO</b>, berapa lama sampai kamu jalan lagi.'
 	},
 	steps: [
 		{

@@ -5,7 +5,7 @@ export const id: CacheText = {
 	intro: [
 		'Buka halaman produk di nimbus.com kelihatannya gampang, tapi di belakangnya server aplikasi nanya ke database soal nama, harga, foto, dan stoknya. Database yang lagi sibuk bisa butuh hampir sedetik buat jawab. Lihat satu kunjungan.',
 		'Padahal kebanyakan pengunjung membuka beberapa halaman yang sama, lagi dan lagi. Tiap kunjungan bikin database mengerjakan semuanya dari nol. Perhatikan berapa kali dia ditanya.',
-		'Jadi kita simpan jawabannya sejak pertama kali, lalu dipakai ulang. Itulah <b>cache</b>. Kamu sudah ketemu salah satunya di [[Caching dan CDN|traffic/cdn]]. CDN menyimpan salinan file dekat pengunjung, cache yang ini menyimpan jawaban siap pakai tepat di sebelah server aplikasi.',
+		'Jadi kita simpan jawabannya sejak pertama kali, lalu dipakai ulang. Itulah <b>cache</b>. Nanti kamu ketemu satu lagi di [[Caching dan CDN|traffic/cdn]]. CDN menyimpan salinan file dekat pengunjung, cache yang ini menyimpan jawaban siap pakai tepat di sebelah server aplikasi.',
 		'Alat yang populer buat ini namanya <b>Redis</b>, database mungil yang tinggal di memori (RAM), bukan di disk. Baca dari memori cuma butuh satu dua milidetik, jauh lebih cepat daripada menjalankan query besar di disk.',
 		'Kunjungan pertama itu <b>miss</b>. Redis belum punya jawabannya, jadi server nanya ke database dengan cara lambat, lalu menyimpan salinannya di Redis sambil jalan balik.',
 		'Kunjungan sesudahnya jadi <b>hit</b>, dilayani langsung dari memori dalam beberapa milidetik. Database bahkan nggak sadar, dan angka di bawahnya berhenti naik.',

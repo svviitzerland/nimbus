@@ -5,7 +5,7 @@ export const en: CacheText = {
 	intro: [
 		'Opening a product page on nimbus.com looks simple, but behind it the app server asks the database for the name, the price, the photos, and the stock. A busy database can take most of a second to answer. Watch one visit.',
 		'Yet most visitors open the very same few pages, again and again. Every single visit makes the database do the whole job from scratch. Keep an eye on how many times it gets asked.',
-		'So we keep the answer the first time and reuse it. That is a <b>cache</b>. You already met one in [[Caching and CDNs|traffic/cdn]]. A CDN keeps copies of files near the visitors, this cache keeps ready made answers right next to the app server.',
+		'So we keep the answer the first time and reuse it. That is a <b>cache</b>. You will meet another one later in [[Caching and CDNs|traffic/cdn]]. A CDN keeps copies of files near the visitors, this cache keeps ready made answers right next to the app server.',
 		'A popular tool for it is <b>Redis</b>, a tiny database that lives in memory (RAM) instead of on disk. Reading from memory takes a millisecond or two, way faster than running a big query on disk.',
 		'The first visit is a <b>miss</b>. Redis does not have the answer yet, so the server asks the database the slow way and saves a copy in Redis on the way back.',
 		'Every visit after that is a <b>hit</b>, served straight from memory in a couple of milliseconds. The database does not even notice, and the counter under it stops climbing.',

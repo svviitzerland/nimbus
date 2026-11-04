@@ -8,7 +8,7 @@ export interface DeployPanel {
 }
 
 export interface DeploySiteText extends LessonText {
-	/** One panel per scene of the guided picture (nine scenes, one per beat). */
+	/** One panel per scene of the guided picture (ten scenes, one per beat). */
 	panels: DeployPanel[];
 	/** Spoken description of the whole picture. */
 	picture: string;
@@ -28,6 +28,8 @@ export interface DeploySiteText extends LessonText {
 	hosts: { platform: string; vps: string };
 	/** What you type on a VPS. Real commands, shown as they are. */
 	vpsCommands: string[];
+	/** The certificate badge on the HTTPS scene (issuer name, then a short caption). */
+	cert: { title: string; sub: string };
 	/** The rule of thumb line under the picture. */
 	rule: string;
 	/** The optional button on the last beat. */
