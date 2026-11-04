@@ -191,10 +191,10 @@
 					<g class="fade">
 						{#if scene.screen === 'login'}
 							<text x="45" y="26" text-anchor="middle" class="pTitle">{tx.page.loginTitle}</text>
-							<rect x="8" y="40" width="74" height="22" rx="5" class="field" />
-							<text x="13" y="55" class="fieldT">{tx.page.email}</text>
-							<rect x="8" y="68" width="74" height="22" rx="5" class="field" />
-							<text x="13" y="84" class="fieldT dots">••••••••</text>
+							<rect x="5" y="40" width="80" height="22" rx="5" class="field" />
+							<text x="10" y="55" class="fieldT">{tx.page.email}</text>
+							<rect x="5" y="68" width="80" height="22" rx="5" class="field" />
+							<text x="10" y="84" class="fieldT dots">••••••••</text>
 							<rect x="8" y="102" width="74" height="24" rx="12" class="btn" />
 							<text x="45" y="118" text-anchor="middle" class="btnT">{tx.page.loginBtn}</text>
 						{:else if scene.screen === 'hello'}
@@ -256,7 +256,7 @@
 					<g class="fade">
 						<rect x="226" y="156" width="124" height="110" rx="10" class="board" />
 						{#if scene.board === 'session'}
-							<text x="238" y="176" class="boardT">{tx.listLabel}</text>
+							<text x="288" y="176" text-anchor="middle" class="boardT">{tx.listLabel}</text>
 							{#each tx.listRows as r, i (i)}
 								{@const mine = i === 1}
 								<rect
@@ -273,14 +273,14 @@
 								<text x="300" y={200 + i * 24} class="rowT">{r.name}</text>
 							{/each}
 						{:else if scene.board === 'token'}
-							<text x="238" y="176" class="boardT">{tx.tokenLabel}</text>
+							<text x="288" y="176" text-anchor="middle" class="boardT">{tx.tokenLabel}</text>
 							<circle cx="256" cy="216" r="9" class="keyC big" />
 							<path d="M265 216h16m-6 0v6" class="keyL big" />
 							<circle cx="318" cy="216" r="16" class="stamp" class:look={scene.lookup} />
 							<path d="M310 216l6 6 10 -11" class="tick dark" />
 							<text x="288" y="254" text-anchor="middle" class="rowT faint">{tx.tokenNote}</text>
 						{:else}
-							<text x="238" y="176" class="boardT">{tx.hashLabel}</text>
+							<text x="288" y="176" text-anchor="middle" class="boardT">{tx.hashLabel}</text>
 							<rect x="234" y="190" width="108" height="22" rx="5" class="row" />
 							<text x="242" y="205" class="rowT">{tx.hashUser}</text>
 							<text x="276" y="205" class="rowT mono">{tx.hashValue}</text>
@@ -479,9 +479,9 @@
 		stroke-width: 2;
 	}
 	.boardT {
-		font-size: 10px;
+		font-size: 9px;
 		font-weight: 800;
-		letter-spacing: 0.06em;
+		letter-spacing: 0.04em;
 		text-transform: uppercase;
 		fill: var(--color-faint);
 	}

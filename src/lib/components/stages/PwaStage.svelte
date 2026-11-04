@@ -201,16 +201,16 @@
 
 			<!-- phone -->
 			<g class="part" class:dim={!lit('phone')}>
-				<rect x="120" y="36" width="116" height="282" rx="20" class="phone" />
-				<rect x="128" y="50" width="100" height="256" rx="12" class="screen" />
+				<rect x="116" y="36" width="124" height="262" rx="20" class="phone" />
+				<rect x="124" y="50" width="108" height="236" rx="12" class="screen" />
 				<!-- status bar with wifi -->
-				<g transform="translate(214 60)" class="wifi" class:off={!net}>
+				<g transform="translate(218 60)" class="wifi" class:off={!net}>
 					<path d="M-7 -1 Q0 -7 7 -1" />
 					<path d="M-4 2 Q0 -1 4 2" />
 					<circle cx="0" cy="5" r="1.4" />
 				</g>
 				{#if !net}
-					<path d="M206 54 L222 68" class="cut thin" />
+					<path d="M210 54 L226 68" class="cut thin" />
 				{/if}
 
 				{#if screen === 'site'}
@@ -258,7 +258,7 @@
 						<text x="206" y="222" text-anchor="middle" class="iconname">{tx.appName}</text>
 					{/if}
 				{:else}
-					<rect x="128" y="50" width="100" height="70" rx="12" class="hero full" />
+					<rect x="124" y="50" width="108" height="70" rx="12" class="hero full" />
 					<text x="140" y="104" class="brand light">{tx.appName}</text>
 					{#each wrap(tx.tagline, 16) as l, k (k)}
 						<text x="136" y={140 + k * 12} class="tagline">{l}</text>
@@ -266,18 +266,18 @@
 					{#each [168, 178, 188, 202, 212] as y (y)}
 						<rect x="136" {y} width={y % 20 === 8 ? 70 : 82} height="4" rx="2" class="lines" />
 					{/each}
-					<rect x="140" y="270" width="76" height="16" rx="8" class="src" class:cache={fromCache} />
-					<text x="178" y="281" text-anchor="middle" class="srctext" class:cache={fromCache}
+					<rect x="140" y="256" width="76" height="16" rx="8" class="src" class:cache={fromCache} />
+					<text x="178" y="267" text-anchor="middle" class="srctext" class:cache={fromCache}
 						>{fromCache ? tx.fromCache : tx.fromServer}</text
 					>
 				{/if}
 
 				{#if banner}
 					<g class="banner">
-						<rect x="132" y="250" width="92" height="48" rx="9" class="bannerbg" />
-						<text x="140" y="266" class="ask">{tx.installAsk}</text>
-						<rect x="176" y="274" width="42" height="17" rx="8.5" class="install" class:pressed />
-						<text x="197" y="286" text-anchor="middle" class="installtext">{tx.installBtn}</text>
+						<rect x="132" y="232" width="92" height="48" rx="9" class="bannerbg" />
+						<text x="140" y="248" class="ask">{tx.installAsk}</text>
+						<rect x="176" y="256" width="42" height="17" rx="8.5" class="install" class:pressed />
+						<text x="197" y="268" text-anchor="middle" class="installtext">{tx.installBtn}</text>
 					</g>
 				{/if}
 			</g>

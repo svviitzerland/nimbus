@@ -198,21 +198,21 @@
 						<line x1="184" y1="110" x2={R.x} y2={R.y} class="wire" class:hide={!showRedis} />
 
 						<!-- the phone -->
-						<g transform="translate(10 60)">
-							<rect width="74" height="122" rx="12" class="phone" />
-							<rect x="6" y="12" width="62" height="96" rx="5" class="screen" />
-							<rect x="28" y="5" width="18" height="3" rx="1.5" class="notch" />
+						<g transform="translate(12 52)">
+							<rect width="70" height="138" rx="13" class="phone" />
+							<rect x="6" y="14" width="58" height="110" rx="5" class="screen" />
+							<rect x="26" y="6" width="18" height="3" rx="1.5" class="notch" />
 							{#if screen.state === 'loading'}
-								<g class="dots" transform="translate(37 60)">
+								<g class="dots" transform="translate(35 68)">
 									<circle cx="-10" r="3" />
 									<circle r="3" />
 									<circle cx="10" r="3" />
 								</g>
 							{:else if screen.state === 'shown'}
 								<g in:fade={{ duration: 200 }}>
-									<rect x="14" y="22" width="46" height="34" rx="4" class="photo" />
-									<text x="37" y="72" class="pname">{tx.product.name}</text>
-									<text x="37" y="88" class="pprice" class:bad={stale && screen.price !== dbPrice}
+									<rect x="12" y="28" width="46" height="34" rx="4" class="photo" />
+									<text x="35" y="80" class="pname">{tx.product.name}</text>
+									<text x="35" y="96" class="pprice" class:bad={stale && screen.price !== dbPrice}
 										>{fmt.format(screen.price)}</text
 									>
 								</g>

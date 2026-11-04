@@ -181,86 +181,87 @@
 {#snippet visual()}
 	<div class="w-full">
 		<svg
-			viewBox="0 0 400 330"
+			viewBox="0 0 400 340"
 			class="mx-auto block w-full max-w-[440px]"
 			role="img"
 			aria-label={tx.steps[step].title}
 		>
+			<!-- the way that is playing, with how long it took right under it -->
 			{#if playing}
-				<text x="200" y="40" text-anchor="middle" class="mode">{tx.modes[playing.mode]}</text>
+				<text x="200" y="28" text-anchor="middle" class="mode">{tx.modes[playing.mode]}</text>
+			{/if}
+			{#if readyShown}
+				<text x="200" y="50" text-anchor="middle" class="ready" in:fade={{ duration: 200 }}>
+					{tx.readyAfter.replace('{s}', secs)}
+				</text>
 			{/if}
 
 			<!-- the server -->
 			<g class:dim={step === 0}>
-				<text x="70" y="80" text-anchor="middle" class="lbl">{tx.serverLabel}</text>
+				<text x="70" y="76" text-anchor="middle" class="lbl">{tx.serverLabel}</text>
 				{#each [0, 1, 2] as u (u)}
-					<rect x="30" y={90 + u * 48} width="80" height="40" rx="6" class="unit" />
+					<rect x="30" y={88 + u * 52} width="80" height="44" rx="6" class="unit" />
 					<circle
 						cx="44"
-						cy={110 + u * 48}
+						cy={110 + u * 52}
 						r="3.5"
 						class="led"
 						class:busy={scene?.status === 'serverBuilds'}
 					/>
-					<rect x="56" y={106 + u * 48} width="44" height="4" rx="2" class="slit" />
-					<rect x="56" y={114 + u * 48} width="30" height="4" rx="2" class="slit" />
+					<rect x="56" y={104 + u * 52} width="44" height="4" rx="2" class="slit" />
+					<rect x="56" y={112 + u * 52} width="30" height="4" rx="2" class="slit" />
 				{/each}
 				{#if playing?.mode === 'ssg'}
 					<g in:fade={{ duration: 250 }}>
 						{#each [0, 1, 2] as s (s)}
-							<rect x={36 + s * 8} y={250 - s * 4} width="40" height="50" rx="4" class="sheet" />
+							<rect x={36 + s * 8} y={258 - s * 4} width="40" height="50" rx="4" class="sheet" />
 						{/each}
-						<g>{@render page(52, 242, 40, 50, 5, true)}</g>
-						<text x="70" y="318" text-anchor="middle" class="lbl">{tx.shelfLabel}</text>
+						<g>{@render page(52, 250, 40, 50, 5, true)}</g>
+						<text x="70" y="328" text-anchor="middle" class="lbl">{tx.shelfLabel}</text>
 					</g>
 				{/if}
 				{#if scene && scene.serverBlocks > 0}
-					<rect x="122" y="110" width="44" height="100" rx="5" class="sheet" />
-					{@render page(122, 110, 44, 100, scene.serverBlocks, false)}
+					<rect x="122" y="112" width="44" height="100" rx="5" class="sheet" />
+					{@render page(122, 112, 44, 100, scene.serverBlocks, false)}
 				{/if}
 			</g>
 
 			<!-- the wire -->
-			<line x1="112" y1="160" x2="284" y2="160" class="wire" />
+			<line x1="112" y1="162" x2="262" y2="162" class="wire" />
 
 			{#if step === 1}
 				<g class="huh">
-					<circle cx="112" cy="70" r="13" style="fill:var(--color-amber)" />
-					<text x="112" y="76" text-anchor="middle" class="q">?</text>
+					<circle cx="116" cy="80" r="13" style="fill:var(--color-amber)" />
+					<text x="116" y="86" text-anchor="middle" class="q">?</text>
 				</g>
 				<g class="huh">
-					<circle cx="372" cy="40" r="13" style="fill:var(--color-amber)" />
-					<text x="372" y="46" text-anchor="middle" class="q">?</text>
+					<circle cx="378" cy="80" r="13" style="fill:var(--color-amber)" />
+					<text x="378" y="86" text-anchor="middle" class="q">?</text>
 				</g>
 			{/if}
 
 			<!-- what travels -->
 			{#if scene?.req != null}
-				<circle cx={284 - scene.req * 170} cy="160" r="6" class="ping" />
+				<circle cx={262 - scene.req * 148} cy="162" r="6" class="ping" />
 			{/if}
 			{#if scene?.resp}
-				{@const px = 124 + scene.resp.p * 120}
-				<rect x={px} y="110" width="44" height="100" rx="5" class="sheet" />
+				{@const px = 124 + scene.resp.p * 116}
+				<rect x={px} y="112" width="44" height="100" rx="5" class="sheet" />
 				{#if scene.resp.kind === 'page'}
-					{@render page(px, 110, 44, 100, 5, false)}
+					{@render page(px, 112, 44, 100, 5, false)}
 				{:else}
-					<rect x={px + 10} y="170" width="44" height="34" rx="5" class="box" />
-					<text x={px + 32} y="192" text-anchor="middle" class="js">JS</text>
+					<rect x={px + 10} y="172" width="44" height="34" rx="5" class="box" />
+					<text x={px + 32} y="194" text-anchor="middle" class="js">JS</text>
 				{/if}
 			{/if}
 
-			<!-- the phone -->
-			<text x="330" y="30" text-anchor="middle" class="lbl">{tx.youLabel}</text>
-			<rect x="282" y="40" width="96" height="240" rx="18" class="phone" />
-			<rect x="290" y="58" width="80" height="204" rx="6" class="screen" />
-			{@render page(290, 62, 80, 196, phoneBlocks, phoneHydrated)}
+			<!-- the phone, about one wide to two tall like a real one -->
+			<text x="322" y="76" text-anchor="middle" class="lbl">{tx.youLabel}</text>
+			<rect x="264" y="86" width="116" height="238" rx="20" class="phone" />
+			<rect x="272" y="104" width="100" height="202" rx="7" class="screen" />
+			{@render page(272, 108, 100, 194, phoneBlocks, phoneHydrated)}
 			{#if scene?.status === 'jsBuilds' && phoneBlocks < 5}
-				<path d="M322 236a8 8 0 0 1 8 -8" class="spin" />
-			{/if}
-			{#if readyShown}
-				<text x="330" y="304" text-anchor="middle" class="ready" in:fade={{ duration: 200 }}>
-					{tx.readyAfter.replace('{s}', secs)}
-				</text>
+				<path d="M314 280a8 8 0 0 1 8 -8" class="spin" />
 			{/if}
 		</svg>
 		<p class="status" aria-live="polite">{tx.status[status]}</p>
@@ -366,7 +367,7 @@
 		stroke-width: 3;
 		stroke-linecap: round;
 		animation: spin 0.9s linear infinite;
-		transform-origin: 330px 236px;
+		transform-origin: 322px 280px;
 	}
 	.ready {
 		font-size: 12px;

@@ -272,8 +272,9 @@
 	}
 
 	/* phone, in the Foundation style */
+	/* about one wide to two tall, like a real phone */
 	.phone {
-		width: 156px;
+		width: 132px;
 		border-radius: 24px;
 		background: #fff;
 		border: 1px solid #e8e2d8;
@@ -281,7 +282,7 @@
 		box-shadow: 0 10px 26px rgba(22, 40, 60, 0.1);
 	}
 	.screen {
-		height: 196px;
+		height: 236px;
 		border-radius: 16px;
 		background: #f7f6f2;
 		overflow: hidden;
@@ -711,12 +712,12 @@
 			font-size: 12px;
 		}
 		.phone {
-			width: 216px;
+			width: 184px;
 			padding: 11px;
 			border-radius: 28px;
 		}
 		.screen {
-			height: 280px;
+			height: 330px;
 		}
 		.addr {
 			padding: 9px 12px;

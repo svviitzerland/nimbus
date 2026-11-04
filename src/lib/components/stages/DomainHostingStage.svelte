@@ -208,7 +208,7 @@
 		{/if}
 
 		<svg
-			viewBox="0 0 460 312"
+			viewBox="0 0 460 348"
 			class="scene"
 			role="img"
 			aria-label="{tx.shopLabel}, {tx.hostLabel}, {tx.dnsLabel}"
@@ -325,32 +325,38 @@
 
 			<!-- the friend's phone -->
 			<g class="phone" class:dim={!phoneOn}>
-				<rect x="40" y="196" width="72" height="110" rx="12" class="phone-body" />
-				<rect x="46" y="208" width="60" height="88" rx="4" class="phone-screen" />
-				<rect x="50" y="212" width="52" height="10" rx="5" class="bar-addr" />
-				<text x="76" y="219.5" text-anchor="middle" class="tiny">nimbus.com</text>
-				{#if phoneOn && screen === 'loading'}
-					<g class="loading">
-						<circle cx="66" cy="254" r="2.6" />
-						<circle cx="76" cy="254" r="2.6" />
-						<circle cx="86" cy="254" r="2.6" />
-					</g>
-				{:else if phoneOn && screen === 'error'}
-					<circle cx="76" cy="244" r="9" class="err-ring" />
-					<path d="M72 240l8 8M80 240l-8 8" class="err-x" />
-					<text x="76" y="268" text-anchor="middle" class="tiny err">
-						{#each wrap(tx.phone.cannot) as l, k (k)}<tspan x="76" dy={k ? 8 : 0}>{l}</tspan>{/each}
-					</text>
-				{:else if phoneOn && screen === 'site'}
-					<g class="site-page">
-						<path d="M66 252a7 7 0 0 1-1-13.6A9 9 0 0 1 82 236a6.5 6.5 0 0 1 3.6 16z" class="nim" />
-						<text x="76" y="266" text-anchor="middle" class="tiny strong">
-							{#each wrap(tx.phone.welcome) as l, k (k)}<tspan x="76" dy={k ? 8 : 0}>{l}</tspan
+				<rect x="40" y="196" width="72" height="146" rx="14" class="phone-body" />
+				<rect x="46" y="208" width="60" height="122" rx="5" class="phone-screen" />
+				<rect x="50" y="213" width="52" height="10" rx="5" class="bar-addr" />
+				<text x="76" y="220.5" text-anchor="middle" class="tiny">nimbus.com</text>
+				<g transform="translate(0 18)">
+					{#if phoneOn && screen === 'loading'}
+						<g class="loading">
+							<circle cx="66" cy="254" r="2.6" />
+							<circle cx="76" cy="254" r="2.6" />
+							<circle cx="86" cy="254" r="2.6" />
+						</g>
+					{:else if phoneOn && screen === 'error'}
+						<circle cx="76" cy="244" r="9" class="err-ring" />
+						<path d="M72 240l8 8M80 240l-8 8" class="err-x" />
+						<text x="76" y="268" text-anchor="middle" class="tiny err">
+							{#each wrap(tx.phone.cannot) as l, k (k)}<tspan x="76" dy={k ? 8 : 0}>{l}</tspan
 								>{/each}
 						</text>
-						<rect x="56" y="282" width="40" height="5" rx="2.5" class="bar" />
-					</g>
-				{/if}
+					{:else if phoneOn && screen === 'site'}
+						<g class="site-page">
+							<path
+								d="M66 252a7 7 0 0 1-1-13.6A9 9 0 0 1 82 236a6.5 6.5 0 0 1 3.6 16z"
+								class="nim"
+							/>
+							<text x="76" y="266" text-anchor="middle" class="tiny strong">
+								{#each wrap(tx.phone.welcome) as l, k (k)}<tspan x="76" dy={k ? 8 : 0}>{l}</tspan
+									>{/each}
+							</text>
+							<rect x="56" y="282" width="40" height="5" rx="2.5" class="bar" />
+						</g>
+					{/if}
+				</g>
 			</g>
 
 			<!-- the packet travelling between them -->

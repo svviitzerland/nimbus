@@ -44,9 +44,9 @@
 		<rect class="screen" x="-15.5" y="-13.5" width="31" height="18" rx="1.5" />
 		<path class="body" d="M-25 8 H25 L22 13 H-22 Z" />
 	{:else if kind === 'phone'}
-		<rect class="body" x="-10" y="-18" width="20" height="36" rx="4" />
-		<rect class="screen" x="-7" y="-13" width="14" height="24" rx="1.5" />
-		<circle class="detail" cx="0" cy="14.5" r="1.4" />
+		<rect class="body" x="-10" y="-20" width="20" height="40" rx="4.5" />
+		<rect class="screen" x="-7.5" y="-16" width="15" height="29" rx="1.5" />
+		<circle class="detail" cx="0" cy="16.5" r="1.4" />
 	{:else if kind === 'pc'}
 		<rect class="body" x="-20" y="-18" width="40" height="27" rx="3" />
 		<rect class="screen" x="-16.5" y="-14.5" width="33" height="20" rx="1.5" />

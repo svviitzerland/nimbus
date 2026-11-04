@@ -107,9 +107,10 @@
 					class:lit={shown === 3 && !knocked}
 				/>
 				{#each ROADS as [a, b] (a + b)}
+					<!-- roads leaving downward start under the node's label, so no line crosses text -->
 					<line
 						x1={POS[a].x}
-						y1={POS[a].y}
+						y1={a === 'lap' || a === 'R3' ? POS[a].y + 35 : POS[a].y}
 						x2={POS[b].x}
 						y2={POS[b].y}
 						class="road"
@@ -125,7 +126,7 @@
 						stroke="var(--color-line)"
 						stroke-width="1.6"
 					/>
-					<text y="30" text-anchor="middle" class="lbl">{tx.otherLabel}</text>
+					<text y="-28" text-anchor="middle" class="lbl">{tx.otherLabel}</text>
 				</g>
 
 				<NgLaptop x={POS.lap.x} y={POS.lap.y} label={tx.laptopLabel} lit={here === 'lap'} />
@@ -141,22 +142,23 @@
 				/>
 
 				<!-- the home router's signpost, one arm, the default route -->
-				<g class="sign" class:focus={signR1Lit} transform="translate(34 200)">
+				<g class="sign" class:focus={signR1Lit} transform="translate(34 210)">
 					<rect x="-2" y="0" width="4" height="62" rx="2" fill="var(--color-faint)" />
-					<path d="M0 8 H82 L92 18 L82 28 H0 Z" class="plank" class:hot={signR1Lit} />
-					<text x="42" y="22" text-anchor="middle" class="plank-t">{tx.signDefault}</text>
+					<path d="M0 26 H82 L92 36 L82 46 H0 Z" class="plank" class:hot={signR1Lit} />
+					<text x="42" y="40" text-anchor="middle" class="plank-t">{tx.signDefault}</text>
 				</g>
 
-				<!-- the provider router's signpost, two arms -->
-				<g transform="translate(156 200)">
+				<!-- the provider router's signpost, two arms. The tilted arm points up toward the other
+				     networks and sits above the flat one, so the two never cross. -->
+				<g transform="translate(156 210)">
 					<g class="sign" class:fallen={knocked} class:focus={signR2Lit}>
 						<rect x="-2" y="0" width="4" height="62" rx="2" fill="var(--color-faint)" />
-						<path d="M0 6 H74 L84 16 L74 26 H0 Z" class="plank" class:hot={signR2Lit} />
-						<text x="38" y="20" text-anchor="middle" class="plank-t">{tx.signNimbus}</text>
-						<g transform="rotate(-24 0 40)">
-							<path d="M0 32 H58 L67 41 L58 50 H0 Z" class="plank" />
-							<text x="30" y="45" text-anchor="middle" class="plank-t">{tx.signOther}</text>
+						<g transform="rotate(-20 0 10)">
+							<path d="M0 2 H58 L67 11 L58 20 H0 Z" class="plank" />
+							<text x="30" y="15" text-anchor="middle" class="plank-t">{tx.signOther}</text>
 						</g>
+						<path d="M0 26 H74 L84 36 L74 46 H0 Z" class="plank" class:hot={signR2Lit} />
+						<text x="38" y="40" text-anchor="middle" class="plank-t">{tx.signNimbus}</text>
 					</g>
 				</g>
 

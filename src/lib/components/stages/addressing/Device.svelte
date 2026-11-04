@@ -45,17 +45,17 @@
 		/>
 	{:else if kind === 'phone'}
 		<rect
-			x="16"
-			y="3"
-			width="16"
-			height="33"
-			rx="4"
+			x="15"
+			y="2"
+			width="18"
+			height="36"
+			rx="4.5"
 			fill="var(--color-card)"
 			stroke="var(--color-muted)"
 			stroke-width="2"
 		/>
-		<rect x="19" y="8" width="10" height="20" rx="1.5" fill={tone} opacity="0.22" />
-		<circle cx="24" cy="31.5" r="1.4" fill="var(--color-muted)" />
+		<rect x="18" y="6.5" width="12" height="24" rx="1.5" fill={tone} opacity="0.22" />
+		<circle cx="24" cy="34" r="1.4" fill="var(--color-muted)" />
 	{:else if kind === 'printer'}
 		<rect
 			x="14"

@@ -34,6 +34,8 @@
 						<div class="cardlet"></div>
 						<div class="cardlet"></div>
 					</div>
+					<div class="bar w85"></div>
+					<div class="bar w70"></div>
 				</div>
 			{/if}
 			{#if phase === 'offline'}
@@ -49,10 +51,11 @@
 </div>
 
 <style>
+	/* Real phones are about 1 wide by 2 tall, so the whole body is 150 by 306 (about 0.49). */
 	.phone {
-		width: 158px;
+		width: 150px;
 		max-width: 100%;
-		border-radius: 26px;
+		border-radius: 28px;
 		background: var(--color-card);
 		border: 1px solid var(--color-line);
 		padding: 10px;
@@ -60,8 +63,8 @@
 	}
 	.screen {
 		position: relative;
-		height: 228px;
-		border-radius: 18px;
+		height: 284px;
+		border-radius: 20px;
 		background: var(--color-paper);
 		overflow: hidden;
 		display: flex;
@@ -124,6 +127,12 @@
 	.content > *:nth-child(5) {
 		animation-delay: 0.3s;
 	}
+	.content > *:nth-child(6) {
+		animation-delay: 0.37s;
+	}
+	.content > *:nth-child(7) {
+		animation-delay: 0.44s;
+	}
 	.content.dim > * {
 		animation: none;
 		opacity: 0.4;
@@ -140,7 +149,7 @@
 		}
 	}
 	.hero {
-		height: 46px;
+		height: 62px;
 		border-radius: 8px;
 		background: linear-gradient(120deg, #eaf1fc, #dbe8fb);
 	}
@@ -167,7 +176,7 @@
 	}
 	.cardlet {
 		flex: 1;
-		height: 34px;
+		height: 44px;
 		border-radius: 8px;
 		background: #ece6dc;
 	}

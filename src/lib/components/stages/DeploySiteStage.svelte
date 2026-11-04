@@ -261,9 +261,17 @@
 
 			<!-- host server rack -->
 			<g class="actor" class:dim={!lit('host')}>
-				<text x="280" y="16" text-anchor="middle" class="label">{tx.labels.host}</text>
-				{#if scene === 'server'}
-					<text x="340" y="16" text-anchor="end" class="always">{tx.alwaysOn}</text>
+				<!-- one centred header, so the extra words never sit on top of the name -->
+				{#if scene === 'hosts'}
+					<text x="280" y="16" text-anchor="middle" class="hostkind"
+						>{vps ? tx.hosts.vps : tx.hosts.platform}</text
+					>
+				{:else}
+					<text x="280" y="16" text-anchor="middle" class="label"
+						>{tx.labels.host}{#if scene === 'server'}<tspan class="always" dx="6"
+								>{tx.alwaysOn}</tspan
+							>{/if}</text
+					>
 				{/if}
 				<rect x="226" y="24" width="108" height="98" rx="10" class="rack" />
 				{#if vps}
@@ -301,11 +309,6 @@
 						</g>
 					</g>
 				{/if}
-				{#if scene === 'hosts'}
-					<text x="280" y="140" text-anchor="middle" class="hostkind"
-						>{vps ? tx.hosts.vps : tx.hosts.platform}</text
-					>
-				{/if}
 			</g>
 
 			<!-- laptop -->
@@ -325,10 +328,10 @@
 
 			<!-- phone -->
 			<g class="actor" class:dim={!lit('phone')}>
-				<rect x="238" y="166" width="84" height="142" rx="14" class="phone" />
-				<rect x="244" y="178" width="72" height="120" rx="5" class="screen" />
-				<rect x="250" y="184" width="60" height="11" rx="5.5" class="addr" />
-				<text x="280" y="192" text-anchor="middle" class="url">nimbus.com</text>
+				<rect x="241" y="158" width="78" height="150" rx="14" class="phone" />
+				<rect x="247" y="170" width="66" height="128" rx="5" class="screen" />
+				<rect x="251" y="176" width="58" height="11" rx="5.5" class="addr" />
+				<text x="280" y="184" text-anchor="middle" class="url">nimbus.com</text>
 				{#if asleep}
 					<circle cx="280" cy="226" r="11" class="sad" />
 					<path d="M275 221 l10 10 M285 221 l-10 10" class="cut" />

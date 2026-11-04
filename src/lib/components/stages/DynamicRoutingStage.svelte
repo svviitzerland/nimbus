@@ -51,11 +51,13 @@
 	const talking = $derived(shown === 2);
 
 	// ---------- Act two, the Facebook tale ----------
-	const PH = { x: 46, y: 262 };
-	const PROV = { x: 150, y: 262 };
-	const GATE = { x: 236, y: 205 };
-	const DNS = { x: 244, y: 104 };
-	const FDC = { x: 298, y: 150 };
+	// Facebook's box spans x 198 to 336. Its edge router (GATE) is where your provider's road
+	// arrives, so the road and the packet always end on something.
+	const PH = { x: 40, y: 262 };
+	const PROV = { x: 140, y: 262 };
+	const GATE = { x: 238, y: 206 };
+	const DNS = { x: 236, y: 90 };
+	const FDC = { x: 302, y: 146 };
 
 	let pulled = $state(false);
 	function togglePull() {
@@ -155,7 +157,7 @@
 										stroke-width="2.4"
 										stroke-linecap="round"
 									/>
-									<text x="20" y="4" class="bad-t">{tx.brokenTag}</text>
+									<text y="-19" text-anchor="middle" class="bad-t">{tx.brokenTag}</text>
 								</g>
 							{/if}
 						{/each}
@@ -176,16 +178,21 @@
 							<NgRouter
 								x={p.x}
 								y={p.y}
-								label={k === 'A' ? tx.officeLabel : k === 'E' ? tx.dcLabel : ''}
 								lit={talking || (pkt !== null && pkt.x === p.x && pkt.y === p.y)}
 							/>
 						{/each}
+						<!-- the two named routers, labels drawn with a paper halo so a road under them
+						     never runs through the letters -->
+						<text x={P.A.x} y={P.A.y + 27} text-anchor="middle" class="halo-lbl"
+							>{tx.officeLabel}</text
+						>
+						<text x={P.E.x} y={P.E.y + 27} text-anchor="middle" class="halo-lbl">{tx.dcLabel}</text>
 					</g>
 				{:else}
 					<g class="act">
 						<!-- Facebook's own network, a building of servers joined by its backbone -->
-						<rect x="206" y="34" width="124" height="186" rx="16" class="fb" />
-						<text x="268" y="56" text-anchor="middle" class="fb-t">{tx.fbLabel}</text>
+						<rect x="198" y="22" width="138" height="212" rx="16" class="fb" />
+						<text x="267" y="44" text-anchor="middle" class="fb-t">{tx.fbLabel}</text>
 						<line
 							x1={DNS.x}
 							y1={DNS.y}
@@ -239,10 +246,12 @@
 							tone={lost ? 'var(--color-danger)' : 'var(--color-brand)'}
 						/>
 						<NgRouter x={PROV.x} y={PROV.y} label={tx.providerLabel} lit={!withdrawn} />
+						<!-- Facebook's edge router, where the road from your provider comes in -->
+						<NgRouter x={GATE.x} y={GATE.y} lit={!backboneDown} />
 
 						<!-- the provider's map card, what it learned over BGP -->
-						<g transform="translate(86 150)">
-							<rect width="112" height="48" rx="10" class="map" class:gone={withdrawn} />
+						<g transform="translate(12 148)">
+							<rect width="150" height="48" rx="10" class="map" class:gone={withdrawn} />
 							<text x="10" y="17" class="map-h">{tx.mapTitle}</text>
 							<text x="10" y="35" class="map-row" class:gone={withdrawn}>
 								{withdrawn ? tx.mapGone : tx.mapKnown}
@@ -252,7 +261,7 @@
 						<!-- the announcement travelling out of Facebook -->
 						{#if !withdrawn}
 							<g class="shout" class:still={shown === 6}>
-								<rect x="-50" y="-11" width="100" height="22" rx="11" />
+								<rect x="-58" y="-11" width="116" height="22" rx="11" />
 								<text y="4" text-anchor="middle">{tx.announce}</text>
 							</g>
 						{/if}
@@ -369,6 +378,15 @@
 			opacity: 0;
 		}
 	}
+	.halo-lbl {
+		fill: var(--color-muted);
+		font-size: 10.5px;
+		font-weight: 700;
+		paint-order: stroke;
+		stroke: var(--color-paper);
+		stroke-width: 5px;
+		stroke-linejoin: round;
+	}
 	.fb {
 		fill: var(--color-brand-soft);
 		stroke: var(--color-brand);
@@ -408,7 +426,7 @@
 	}
 	.shout.still {
 		animation: none;
-		transform: translate(236px, 118px);
+		transform: translate(226px, 152px);
 	}
 	.shout rect {
 		fill: var(--color-grass-soft);
@@ -422,18 +440,18 @@
 	}
 	@keyframes shout {
 		0% {
-			transform: translate(236px, 118px);
+			transform: translate(226px, 152px);
 			opacity: 0;
 		}
 		15% {
 			opacity: 1;
 		}
 		70% {
-			transform: translate(142px, 128px);
+			transform: translate(87px, 126px);
 			opacity: 1;
 		}
 		100% {
-			transform: translate(142px, 128px);
+			transform: translate(87px, 126px);
 			opacity: 0;
 		}
 	}
@@ -478,7 +496,7 @@
 			transform: scale(1.8);
 		}
 		.shout {
-			transform: translate(190px, 124px);
+			transform: translate(87px, 126px);
 		}
 		.packet,
 		.road {

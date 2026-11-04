@@ -137,7 +137,10 @@
 			role="img"
 			aria-label={tx.steps[step].title}
 		>
-			<text x="62" y="30" text-anchor="middle" class="lbl">{tx.srcLabel}</text>
+			<!-- two calm trays, so each header always sits on something -->
+			<rect x="4" y="12" width="116" height="226" rx="14" class="zone" />
+			<rect x="274" y="12" width="118" height="226" rx="14" class="zone" />
+			<text x="62" y="31" text-anchor="middle" class="lbl">{tx.srcLabel}</text>
 			{#each SRC as [x, y], i (i)}
 				<g
 					class:feed={feeding}
@@ -157,9 +160,10 @@
 					<rect x="142" y="116" width="12" height="32" rx="4" class="mouth" />
 					<rect x="246" y="116" width="12" height="32" rx="4" class="mouth" />
 					<text x="200" y="104" text-anchor="middle" class="mlabel">{tx.toolLabel}</text>
+					<!-- one row per job, a lamp with its name beside it -->
 					{#each JOBS as j, k (j)}
-						<circle cx={172 + k * 28} cy="140" r="9" class="lamp" class:on={lit[j]} />
-						<text x={172 + k * 28} y="222" text-anchor="middle" class="job" class:on={lit[j]}>
+						<circle cx="172" cy={126 + k * 22} r="6.5" class="lamp" class:on={lit[j]} />
+						<text x="184" y={129.5 + k * 22} class="job" class:on={lit[j]}>
 							{tx.jobs[j]}
 						</text>
 					{/each}
@@ -167,7 +171,7 @@
 			{/if}
 
 			<!-- what goes online -->
-			<text x="338" y="30" text-anchor="middle" class="lbl">{tx.outLabel}</text>
+			<text x="333" y="31" text-anchor="middle" class="lbl">{tx.outLabel}</text>
 			{#key out}
 				<g in:fade={{ duration: 300 }}>
 					{#if out === 'raw'}
@@ -235,6 +239,10 @@
 		font-weight: 700;
 		fill: var(--color-faint);
 	}
+	.zone {
+		fill: var(--color-line);
+		opacity: 0.28;
+	}
 	.sheet {
 		fill: var(--color-card);
 		stroke: var(--color-line);
@@ -281,7 +289,7 @@
 		fill: var(--color-amber);
 	}
 	.job {
-		font-size: 9.5px;
+		font-size: 10px;
 		font-weight: 700;
 		fill: var(--color-faint);
 	}

@@ -116,8 +116,8 @@
 {#snippet visual()}
 	<div class="w-full">
 		<svg
-			viewBox="0 0 400 400"
-			class="mx-auto block w-full max-w-[420px]"
+			viewBox="-20 0 440 400"
+			class="mx-auto block w-full max-w-[460px]"
 			role="img"
 			aria-label={tx.steps[step].title}
 		>
@@ -169,10 +169,10 @@
 				</g>
 			{:else}
 				<!-- the phone -->
-				<rect x="122" y="12" width="156" height="376" rx="28" style="fill:var(--color-ink)" />
-				<rect x="130" y="22" width="140" height="356" rx="21" style="fill:var(--color-card)" />
+				<rect x="116" y="12" width="168" height="352" rx="28" style="fill:var(--color-ink)" />
+				<rect x="124" y="22" width="152" height="332" rx="21" style="fill:var(--color-card)" />
 				<rect x="180" y="28" width="40" height="6" rx="3" style="fill:var(--color-line)" />
-				<rect x="130" y="40" width="140" height="28" style="fill:var(--color-brand-soft)" />
+				<rect x="124" y="40" width="152" height="28" style="fill:var(--color-brand-soft)" />
 				<circle cx="146" cy="54" r="5" style="fill:var(--color-brand)" />
 				<text x="200" y="58" text-anchor="middle" class="site">{tx.site}</text>
 
@@ -210,10 +210,10 @@
 							{@render itemRow()}
 							<text x="140" y="146" class="fee">{tx.messy.fee}</text>
 							<text x="140" y="176" class="total">{tx.messy.total}</text>
-							<rect x="146" y="282" width="108" height="32" rx="6" class="dull" />
-							<text x="200" y="303" text-anchor="middle" class="dullT">{tx.messy.cancel}</text>
-							<rect x="146" y="322" width="108" height="32" rx="6" class="dull" />
-							<text x="200" y="343" text-anchor="middle" class="dullT">{tx.messy.next}</text>
+							<rect x="146" y="272" width="108" height="32" rx="6" class="dull" />
+							<text x="200" y="293" text-anchor="middle" class="dullT">{tx.messy.cancel}</text>
+							<rect x="146" y="312" width="108" height="32" rx="6" class="dull" />
+							<text x="200" y="333" text-anchor="middle" class="dullT">{tx.messy.next}</text>
 						{:else}
 							{@render itemRow()}
 							<text x="140" y="146" class="free">{tx.clear.free}</text>
@@ -233,8 +233,8 @@
 				{#if showFlags && screen === 'messy'}
 					{#key step}
 						<g>
-							{@render flag(288, 322, 254, tx.messy.flags[0], 'r', false)}
-							{@render flag(112, 347, 146, tx.messy.flags[1], 'l', false)}
+							{@render flag(288, 312, 254, tx.messy.flags[0], 'r', false)}
+							{@render flag(112, 337, 146, tx.messy.flags[1], 'l', false)}
 							{@render flag(112, 150, 140, tx.messy.flags[2], 'l', false)}
 						</g>
 					{/key}
