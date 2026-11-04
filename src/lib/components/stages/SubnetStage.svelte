@@ -62,8 +62,8 @@
 	function prefixFor(i: number) {
 		if (i === 2) return SPLIT[still ? 2 : Math.min(t % 7, 4)];
 		if (i === 3) return MERGE[still ? 4 : Math.min(t % 7, 4)];
-		if (i === 7) return 26;
-		if (i === 8) return 25;
+		if (i === 8) return 26;
+		if (i === 9) return 25;
 		if (i === LAST) return mine;
 		return 24;
 	}
@@ -133,6 +133,8 @@
 				{#if i === 5}
 					{@render campus()}
 				{:else if i === 6}
+					{@render mask()}
+				{:else if i === 7}
 					{@render cheatBig()}
 				{:else}
 					{@render building(i, prefixFor(i))}
@@ -148,7 +150,7 @@
 {#snippet building(i: number, p: number)}
 	{@const size = sizeOf(p)}
 	{@const tiny = i === 4}
-	{@const ends = i === 7}
+	{@const ends = i === 8}
 	<svg viewBox="0 0 300 336" class="svg" role="img" aria-label={tx.buildingLabel}>
 		<!-- sign on the roof -->
 		<rect x="70" y="18" width="160" height="30" rx="9" class="sign" />
@@ -206,7 +208,7 @@
 			</g>
 		{/if}
 
-		{#if i === 8}
+		{#if i === 9}
 			<g in:fade={{ duration: 400 }}>
 				<rect x="95" y="128" width="110" height="22" rx="11" class="pin" />
 				<text x="150" y="143" class="pin-t">{tx.publicLabel}</text>
@@ -257,6 +259,31 @@
 	{#if still || t >= 3}
 		<p class="caption soft" in:fade={{ duration: 400 }}>{tx.campus8}</p>
 	{/if}
+{/snippet}
+
+{#snippet mask()}
+	<div class="mask" in:fade={{ duration: 300 }}>
+		<p class="cheat-title">{tx.maskTitle}</p>
+		<div class="octets">
+			{#each ['192', '168', '1', '0'] as o, k (k)}
+				<span class="oct" class:free={k === 3}>{o}</span>
+			{/each}
+		</div>
+		<div class="octets">
+			{#each ['255', '255', '255', '0'] as o, k (k)}
+				<span class="oct m" class:free={k === 3}>{o}</span>
+			{/each}
+		</div>
+		<div class="octlabels">
+			<span class="fixed">{tx.fixedLabel}</span>
+			<span class="freel">{tx.freeLabel}</span>
+		</div>
+		<p class="same">255.255.255.0 <small>{tx.sameLabel}</small> <b>/24</b></p>
+		<div class="maskrows">
+			<span>255.255.255.128 <b>/25</b></span>
+			<span>255.255.0.0 <b>/16</b></span>
+		</div>
+	</div>
 {/snippet}
 
 {#snippet cheatBig()}
@@ -566,5 +593,87 @@
 		.mini rect {
 			transition: none;
 		}
+	}
+	.mask {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		border: 1px solid var(--color-line);
+		border-radius: 18px;
+		background: var(--color-card);
+		padding: 16px 12px;
+	}
+	.octets {
+		display: grid;
+		width: 100%;
+		max-width: 300px;
+		grid-template-columns: 3fr 3fr 3fr 3fr;
+		gap: 6px;
+	}
+	.oct {
+		border-radius: 8px;
+		background: var(--color-brand-soft);
+		color: var(--color-brand);
+		padding: 6px 0;
+		text-align: center;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 15px;
+		font-weight: 700;
+	}
+	.oct.free {
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
+	}
+	.oct.m {
+		background: var(--color-paper);
+		border: 1.5px solid var(--color-brand);
+	}
+	.oct.m.free {
+		border-color: var(--color-amber);
+	}
+	.octlabels {
+		display: grid;
+		width: 100%;
+		max-width: 300px;
+		grid-template-columns: 3fr 1fr;
+		gap: 6px;
+		font-size: 11px;
+		font-weight: 700;
+		text-align: center;
+	}
+	.octlabels .fixed {
+		color: var(--color-brand);
+	}
+	.octlabels .freel {
+		color: var(--color-amber);
+	}
+	.same {
+		margin: 4px 0 0;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 15px;
+		font-weight: 700;
+		color: var(--color-ink);
+		text-align: center;
+	}
+	.same small {
+		font-family: var(--font-sans, inherit);
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.same b,
+	.maskrows b {
+		color: var(--color-grass);
+	}
+	.maskrows {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 4px 16px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 12px;
+		color: var(--color-muted);
 	}
 </style>

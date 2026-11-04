@@ -8,13 +8,37 @@
 	let {
 		text,
 		oncomplete,
-		onstate
+		onstate,
+		onshow,
+		beat = 0
 	}: {
 		text: LessonText;
 		oncomplete?: () => void;
 		onstate?: (s: string) => void;
+		onshow?: (v: boolean) => void;
+		beat?: number;
 	} = $props();
 	const tx = $derived(text as LoadBalancerText);
+
+	// Beats 4 and 5 explain stateless servers with a small looping scene instead of the simulation.
+	// Phase 0, your click lands on server 1, which remembers you. Phase 1, the next click lands on
+	// server 2, which has never met you, so you are logged out. Phase 2 and 3, a shared store
+	// appears and both servers read your session from it, so you stay logged in.
+	const stateless = $derived(beat === 4 || beat === 5);
+	let slPhase = $state(0);
+	$effect(() => {
+		onshow?.(stateless);
+		if (!stateless) return;
+		slPhase = beat === 5 ? 2 : 0;
+		const id = setInterval(
+			() => (slPhase = beat === 5 ? 2 + ((slPhase + 1) % 2) : (slPhase + 1) % 4),
+			1800
+		);
+		return () => clearInterval(id);
+	});
+	const shared = $derived(slPhase >= 2);
+	const target = $derived(slPhase % 2 === 0 ? 1 : 2);
+	const inside = $derived(shared || target === 1);
 
 	type Server = { id: number; alive: boolean };
 	let servers = $state<Server[]>([{ id: 1, alive: true }]);
@@ -174,115 +198,262 @@
 	</svg>
 {/snippet}
 
-<div class="flex h-full w-full flex-col items-center justify-center gap-4">
-	<!-- The live scene: visitors stream from the top, through the balancer, onto the servers -->
-	<div class="scene">
-		<div class="mech" class:wide={servers.length > 1}>
-			<!-- rails: the path traffic takes, fanning from the balancer to each server -->
-			<svg class="rails" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-				{#if hasBalancer}
-					<line class="rail" x1="50" y1="11" x2="50" y2="33" />
-					{#each servers as s, i (s.id)}
-						<line class="rail" class:dead={!s.alive} x1="50" y1="33" x2={laneOf(i)} y2="60" />
-					{/each}
-				{:else}
-					<line class="rail" x1="50" y1="11" x2="50" y2="60" />
-				{/if}
-			</svg>
-
-			<!-- the crowd at the top: one visitor, then a flood. Plain icons, not a button. -->
-			<div class="crowd">
-				<div class="heads" class:busy={surge}>
-					{#if surge}
-						{#each Array(7) as _, k (k)}
-							<span class="h">{@render person(13, '#c2491f')}</span>
-						{/each}
-					{:else}
-						<span class="h">{@render person(15, '#8a949d')}</span>
+{#if stateless}
+	<div class="sl">
+		<div class="sl-you" class:out={!inside}>
+			<span class="sl-phone"></span>
+			<b>{tx.youLabel}</b>
+			<span class="sl-state">{inside ? tx.loggedIn : tx.loggedOut}</span>
+		</div>
+		<div class="sl-wires">
+			<span class="sl-wire" class:on={target === 1}></span>
+			<span class="sl-wire" class:on={target === 2}></span>
+		</div>
+		<div class="sl-servers">
+			{#each [1, 2] as n (n)}
+				<div class="sl-srv" class:hit={target === n}>
+					<ServerRack slots={2} active={target === n} />
+					<span class="sl-name">{tx.serverLabel.replace('{n}', String(n))}</span>
+					{#if !shared && target === n}
+						<span class="sl-bubble" class:bad={n === 2}
+							>{n === 1 ? tx.memoryLabel : tx.unknownLabel}</span
+						>
 					{/if}
 				</div>
-				<span class="crowd-label" class:busy={surge}>{surge ? tx.crowdMany : tx.crowdOne}</span>
-			</div>
-
-			<!-- the load balancer: appears with the servers, highlighted, splitting the crowd -->
-			{#if hasBalancer}
-				<div class="balancer" class:flash={highlightBal}>
-					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-						<path
-							d="M12 4v6m0 0L6 18m6-8 6 8"
-							stroke="#2e6fe0"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-						/>
-					</svg>
-					<div class="bal-text">
-						<span class="bal-name">{tx.balancerLabel}</span>
-						<span class="bal-note">{tx.balancerNote}</span>
-					</div>
-				</div>
-			{/if}
-
-			<!-- the servers, each holding the visitors currently on it -->
-			<div class="servers">
-				{#each servers as s, i (s.id)}
-					{@const st = stateOf(s.id, s.alive)}
-					{@const l = loads[s.id] ?? 0}
-					<div class="srv-col">
-						<div class="pile">
-							{#each Array(Math.min(l, 9)) as _, k (k)}
-								<span class="u">{@render person(11, colorOf(st))}</span>
-							{/each}
-							{#if l > 9}<span class="more" style="color:{colorOf(st)}">+{l - 9}</span>{/if}
-						</div>
-						<div class="srv-wrap {st}" style="--c:{colorOf(st)}">
-							<ServerRack slots={3} active={false} />
-							{#if !s.alive}
-								<span class="rx">×</span>
-							{/if}
-						</div>
-						<span class="slabel" class:off={!s.alive}
-							>{tx.serverLabel.replace('{n}', String(s.id))}</span
-						>
-					</div>
-				{/each}
-			</div>
-
-			<!-- visitors streaming down the rails onto the servers -->
-			{#each arrivals as a (a.id)}
-				<span
-					class="visitor"
-					class:routed={a.routed}
-					class:bal={hasBalancer}
-					style="--lx:{a.lane}%"
-				>
-					{@render person(13, '#c2491f')}
-				</span>
 			{/each}
 		</div>
-	</div>
-
-	<!-- the result of the simulation, shown as a plain status caption -->
-	<div class="status" class:down={overloaded}>
-		<span class="sdotpill"></span>
-		{statusText}
-	</div>
-
-	<!-- guidance + the one clear action, at the bottom like the Foundation stage -->
-	<div class="footer">
-		<p class="prompt">{prompt}</p>
-		<div class="acts">
-			{#if action}
-				<CallToActionButton onclick={action.run}>{action.label}</CallToActionButton>
-			{/if}
-			{#if surge}
-				<button type="button" onclick={reset} class="reset">{tx.reset}</button>
-			{/if}
+		<div class="sl-store" class:on={shared}>
+			<b>{tx.storeLabel}</b>
+			<small>{tx.storeNote}</small>
 		</div>
 	</div>
-</div>
+{:else}
+	<div class="flex h-full w-full flex-col items-center justify-center gap-4">
+		<!-- The live scene: visitors stream from the top, through the balancer, onto the servers -->
+		<div class="scene">
+			<div class="mech" class:wide={servers.length > 1}>
+				<!-- rails: the path traffic takes, fanning from the balancer to each server -->
+				<svg class="rails" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+					{#if hasBalancer}
+						<line class="rail" x1="50" y1="11" x2="50" y2="33" />
+						{#each servers as s, i (s.id)}
+							<line class="rail" class:dead={!s.alive} x1="50" y1="33" x2={laneOf(i)} y2="60" />
+						{/each}
+					{:else}
+						<line class="rail" x1="50" y1="11" x2="50" y2="60" />
+					{/if}
+				</svg>
+
+				<!-- the crowd at the top: one visitor, then a flood. Plain icons, not a button. -->
+				<div class="crowd">
+					<div class="heads" class:busy={surge}>
+						{#if surge}
+							{#each Array(7) as _, k (k)}
+								<span class="h">{@render person(13, '#c2491f')}</span>
+							{/each}
+						{:else}
+							<span class="h">{@render person(15, '#8a949d')}</span>
+						{/if}
+					</div>
+					<span class="crowd-label" class:busy={surge}>{surge ? tx.crowdMany : tx.crowdOne}</span>
+				</div>
+
+				<!-- the load balancer: appears with the servers, highlighted, splitting the crowd -->
+				{#if hasBalancer}
+					<div class="balancer" class:flash={highlightBal}>
+						<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<path
+								d="M12 4v6m0 0L6 18m6-8 6 8"
+								stroke="#2e6fe0"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+						</svg>
+						<div class="bal-text">
+							<span class="bal-name">{tx.balancerLabel}</span>
+							<span class="bal-note">{tx.balancerNote}</span>
+						</div>
+					</div>
+				{/if}
+
+				<!-- the servers, each holding the visitors currently on it -->
+				<div class="servers">
+					{#each servers as s, i (s.id)}
+						{@const st = stateOf(s.id, s.alive)}
+						{@const l = loads[s.id] ?? 0}
+						<div class="srv-col">
+							<div class="pile">
+								{#each Array(Math.min(l, 9)) as _, k (k)}
+									<span class="u">{@render person(11, colorOf(st))}</span>
+								{/each}
+								{#if l > 9}<span class="more" style="color:{colorOf(st)}">+{l - 9}</span>{/if}
+							</div>
+							<div class="srv-wrap {st}" style="--c:{colorOf(st)}">
+								<ServerRack slots={3} active={false} />
+								{#if !s.alive}
+									<span class="rx">×</span>
+								{/if}
+							</div>
+							<span class="slabel" class:off={!s.alive}
+								>{tx.serverLabel.replace('{n}', String(s.id))}</span
+							>
+						</div>
+					{/each}
+				</div>
+
+				<!-- visitors streaming down the rails onto the servers -->
+				{#each arrivals as a (a.id)}
+					<span
+						class="visitor"
+						class:routed={a.routed}
+						class:bal={hasBalancer}
+						style="--lx:{a.lane}%"
+					>
+						{@render person(13, '#c2491f')}
+					</span>
+				{/each}
+			</div>
+		</div>
+
+		<!-- the result of the simulation, shown as a plain status caption -->
+		<div class="status" class:down={overloaded}>
+			<span class="sdotpill"></span>
+			{statusText}
+		</div>
+
+		<!-- guidance + the one clear action, at the bottom like the Foundation stage -->
+		<div class="footer">
+			<p class="prompt">{prompt}</p>
+			<div class="acts">
+				{#if action}
+					<CallToActionButton onclick={action.run}>{action.label}</CallToActionButton>
+				{/if}
+				{#if surge}
+					<button type="button" onclick={reset} class="reset">{tx.reset}</button>
+				{/if}
+			</div>
+		</div>
+	</div>
+{/if}
 
 <style>
+	.sl {
+		display: flex;
+		width: min(94vw, 360px);
+		height: 100%;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+	}
+	.sl-you {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		border: 1.5px solid var(--color-grass);
+		border-radius: 12px;
+		background: var(--color-card);
+		padding: 7px 12px;
+		font-size: 12.5px;
+		transition: border-color 0.3s;
+	}
+	.sl-you.out {
+		border-color: var(--color-danger);
+	}
+	.sl-phone {
+		height: 22px;
+		width: 13px;
+		border: 2px solid var(--color-ink);
+		border-radius: 3px;
+	}
+	.sl-state {
+		border-radius: 999px;
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+		padding: 2px 9px;
+		font-size: 11.5px;
+		font-weight: 700;
+	}
+	.sl-you.out .sl-state {
+		background: var(--color-danger-soft);
+		color: var(--color-danger);
+	}
+	.sl-wires {
+		display: flex;
+		width: 60%;
+		justify-content: space-between;
+	}
+	.sl-wire {
+		height: 26px;
+		width: 3px;
+		border-radius: 2px;
+		background: var(--color-line);
+		transition: background 0.3s;
+	}
+	.sl-wire.on {
+		background: var(--color-brand);
+	}
+	.sl-servers {
+		display: flex;
+		width: 100%;
+		justify-content: space-around;
+	}
+	.sl-srv {
+		position: relative;
+		display: flex;
+		width: 130px;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+		opacity: 0.6;
+		transition: opacity 0.3s;
+	}
+	.sl-srv.hit {
+		opacity: 1;
+	}
+	.sl-name {
+		font-size: 11.5px;
+		font-weight: 700;
+		color: var(--color-muted);
+	}
+	.sl-bubble {
+		border-radius: 999px;
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+		padding: 2px 9px;
+		font-size: 11px;
+		font-weight: 700;
+	}
+	.sl-bubble.bad {
+		background: var(--color-danger-soft);
+		color: var(--color-danger);
+	}
+	.sl-store {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		border: 1.5px solid var(--color-line);
+		border-radius: 12px;
+		background: var(--color-card);
+		padding: 7px 18px;
+		opacity: 0.3;
+		transition:
+			opacity 0.3s,
+			border-color 0.3s;
+	}
+	.sl-store.on {
+		opacity: 1;
+		border-color: var(--color-brand);
+	}
+	.sl-store b {
+		font-size: 13px;
+		color: var(--color-brand);
+	}
+	.sl-store small {
+		font-size: 11px;
+		color: var(--color-muted);
+	}
 	.scene {
 		display: flex;
 		justify-content: center;

@@ -20,4 +20,8 @@ export interface SubnetText extends LessonText {
 	smaller: string; // accessible label for the minus button
 	bigger: string; // accessible label for the plus button
 	thousands: string; // thousands separator for this language
+	maskTitle: string; // over the mask drawing
+	fixedLabel: string; // under the 255 parts, the fixed part of the address
+	freeLabel: string; // under the 0 part, the windows inside the room
+	sameLabel: string; // between 255.255.255.0 and /24
 }

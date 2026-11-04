@@ -9,6 +9,7 @@ export const id: SubnetText = {
 		'Sekarang kebalikannya. Tiap angkanya turun satu, ruangannya jadi dua kali lipat, dan sekatnya hilang sendiri. Ruangan /28 isi 16 bergabung jadi 32, lalu 64, lalu 128, sampai /24 jadi satu gedung utuh lagi.',
 		'Naik terus sampai /32 dan ruangannya tinggal satu jendela, pas satu alamat. /30 itu ruangan mungil isi 4, pas untuk satu kabel yang menyambung dua router.',
 		'Turun di bawah /24 dan ruangannya jadi lebih besar dari gedung ini. /16 itu satu kompleks berisi 256 gedung seperti punya kita, 65.536 alamat. /8 itu satu kota, sekitar 16,7 juta.',
+		'Kadang ukurannya ditulis dengan cara lain, <b>255.255.255.0</b>. Itu namanya <b>subnet mask</b>. Tiap 255 menandai bagian alamat yang tetap (gedungnya), dan 0 menandai bagian yang berubah ubah (jendela di dalamnya). Tiga kali 255 itu 24 bit yang tetap, jadi 255.255.255.0 artinya persis sama dengan /24.',
 		'[ingat] Cukup ingat satu aturan. Angka besar, ruangan kecil. /32 itu satu alamat, /24 itu 256 (satu rumah atau kantor), dan tiap turun satu angka ruangannya jadi dua kali lipat. Contekan kecil di gambar itu sudah cukup buat hari pertama.',
 		'[fyi] Di tiap ruangan ada dua jendela yang sudah dipesan. Yang pertama nama ruangannya (network address), yang terakhir untuk teriak ke semua orang di dalamnya (broadcast address). Jadi ruangan /24 muat 254 perangkat, bukan 256.',
 		'[fyi] Katanya sama, dunianya beda. Di cloud, ruangan publik dan privat di [[VPC|networking/vpc]] kamu juga subnet, ditulis dengan garis miring yang persis sama. Bedanya, cloud menyimpan beberapa jendela lagi untuk dirinya sendiri.',
@@ -45,6 +46,11 @@ export const id: SubnetText = {
 		{
 			title: 'Yang raksasa',
 			body: '<b>/16</b> itu 65.536 alamat, satu kompleks. <b>/8</b> sekitar 16,7 juta, satu kota.'
+		},
+		{
+			title: 'Ukuran sama, cara tulis lain',
+			tag: 'subnet mask',
+			body: '<b>255.255.255.0</b> itu <b>/24</b>. 255.255.255.128 itu /25, dan 255.255.0.0 itu /16.'
 		},
 		{
 			title: 'Angka besar, ruangan kecil',
@@ -88,5 +94,9 @@ export const id: SubnetText = {
 	privateLabel: 'subnet privat',
 	smaller: 'Angka lebih kecil, ruangan lebih besar',
 	bigger: 'Angka lebih besar, ruangan lebih kecil',
-	thousands: '.'
+	thousands: '.',
+	maskTitle: 'Subnet mask',
+	fixedLabel: 'tetap, gedungnya',
+	freeLabel: 'jendelanya',
+	sameLabel: 'artinya sama dengan'
 };

@@ -13,6 +13,7 @@ export const subnet: Lesson = {
 		'happy',
 		'surprised',
 		'excited',
+		'idea',
 		'wink',
 		'thinking',
 		'idea',

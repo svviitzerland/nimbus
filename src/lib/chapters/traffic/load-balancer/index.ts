@@ -6,7 +6,7 @@ import { en } from './en';
 export const loadBalancer: Lesson = {
 	id: 'load-balancer',
 	mood: 'thinking',
-	moods: ['calm', 'worried', 'idea', 'happy', 'thinking'],
+	moods: ['calm', 'worried', 'idea', 'happy', 'surprised', 'wink', 'thinking'],
 	reactionMood: { overload: 'worried', balanced: 'excited', rerouted: 'happy' },
 	stage: LoadBalancerStage,
 	text: { id, en }

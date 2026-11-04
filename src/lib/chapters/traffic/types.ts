@@ -34,6 +34,14 @@ export interface LoadBalancerText extends LessonText {
 	siteSlow: string;
 	siteDown: string;
 	loadLabel: string;
+	/** The stateless scene on the session beats. */
+	youLabel: string; // over the phone
+	loggedIn: string;
+	loggedOut: string;
+	memoryLabel: string; // a server remembering you in its own memory
+	unknownLabel: string; // a server that has never seen you
+	storeLabel: string; // the shared session store
+	storeNote: string;
 }
 
 export interface ScalingText extends LessonText {

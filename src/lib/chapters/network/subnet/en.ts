@@ -9,6 +9,7 @@ export const en: SubnetText = {
 		'Now the other way. Each step down doubles the room, and the walls disappear by themselves. /28 rooms of 16 merge into 32, then 64, then 128, until /24 is the whole building again.',
 		'Go all the way up to /32 and the room is a single window, exactly one address. /30 is a tiny room of 4, just right for one cable joining two routers.',
 		'Go down past /24 and the room gets bigger than this building. /16 is a whole campus of 256 buildings like ours, 65,536 addresses. /8 is a city of them, about 16.7 million.',
+		'Sometimes you will see the size written another way, <b>255.255.255.0</b>. That is the <b>subnet mask</b>. Each 255 marks a part of the address that stays fixed (the building), and the 0 marks the part that changes (the windows inside). Three 255s are 24 fixed bits, so 255.255.255.0 means exactly the same as /24.',
 		'[ingat] Only one rule to remember. Bigger number, smaller room. /32 is one address, /24 is 256 (a home or an office), and every step down doubles the room. The small cheat sheet in the picture is all you need on day one.',
 		"[fyi] Two windows in every room are spoken for. The first is the room's name (the network address) and the last is for shouting to everyone inside (the broadcast address). So a /24 room fits 254 devices, not 256.",
 		'[fyi] Same word, different world. In the cloud, the public and private rooms of your [[VPC|networking/vpc]] are subnets too, written with exactly this slash. The cloud just keeps a few more windows for itself.',
@@ -43,6 +44,11 @@ export const en: SubnetText = {
 		{
 			title: 'The big ones',
 			body: '<b>/16</b> is 65,536 addresses, a campus. <b>/8</b> is about 16.7 million, a city.'
+		},
+		{
+			title: 'The same size, another way',
+			tag: 'subnet mask',
+			body: '<b>255.255.255.0</b> is <b>/24</b>. 255.255.255.128 is /25, and 255.255.0.0 is /16.'
 		},
 		{
 			title: 'Bigger number, smaller room',
@@ -86,5 +92,9 @@ export const en: SubnetText = {
 	privateLabel: 'private subnet',
 	smaller: 'Smaller number, bigger rooms',
 	bigger: 'Bigger number, smaller rooms',
-	thousands: ','
+	thousands: ',',
+	maskTitle: 'Subnet mask',
+	fixedLabel: 'fixed, the building',
+	freeLabel: 'the windows',
+	sameLabel: 'means the same as'
 };

@@ -136,64 +136,69 @@
 			<p class="snote">{tx.serverlessNote}</p>
 		</div>
 	{:else}
-	<div class="monitor">
-		<div class="bezel" class:on>
-			<div class="screen">
-				{#if !on}
-					<button type="button" class="power" onclick={powerOn}>
-						<span class="pring">
-							<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-								<path d="M12 3v8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" />
+		<div class="monitor">
+			<div class="bezel" class:on>
+				<div class="screen">
+					{#if !on}
+						<button type="button" class="power" onclick={powerOn}>
+							<span class="pring">
+								<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+									<path
+										d="M12 3v8"
+										stroke="currentColor"
+										stroke-width="2.2"
+										stroke-linecap="round"
+									/>
+									<path
+										d="M7.5 6.4a7 7 0 1 0 9 0"
+										stroke="currentColor"
+										stroke-width="2.2"
+										stroke-linecap="round"
+										fill="none"
+									/>
+								</svg>
+							</span>
+							<span>{tx.openBtn}</span>
+						</button>
+					{:else}
+						<div class="shead">
+							<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 								<path
-									d="M7.5 6.4a7 7 0 1 0 9 0"
-									stroke="currentColor"
-									stroke-width="2.2"
-									stroke-linecap="round"
-									fill="none"
+									d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A3.8 3.8 0 0 1 18 18z"
+									fill="#cdddf6"
+									stroke="#2e6fe0"
+									stroke-width="1.4"
 								/>
 							</svg>
-						</span>
-						<span>{tx.openBtn}</span>
-					</button>
-				{:else}
-					<div class="shead">
-						<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-							<path
-								d="M7 18a4 4 0 0 1 0-8 5 5 0 0 1 9.6-1.5A3.8 3.8 0 0 1 18 18z"
-								fill="#cdddf6"
-								stroke="#2e6fe0"
-								stroke-width="1.4"
-							/>
-						</svg>
-						<span class="stitle">{tx.screenTitle}</span>
-						<span class="ssub">{tx.screenSub}</span>
-					</div>
-					<div class="marquee">
-						{#each PROVIDERS as prov}
-							<div class="mrow">
-								<div class="rlabel">
-									<ProviderLogo id={prov.id} size={15} />
-									<span>{prov.name}</span>
-								</div>
-								<div class="rtrack">
-									<div class="rseq" class:rev={prov.reverse}>
-										{#each [...prov.items, ...prov.items] as [file, label]}
-											<span class="chip">
-												<img src={url[file]} alt="" width="22" height="22" />
-												<span>{label}</span>
-											</span>
-										{/each}
+							<span class="stitle">{tx.screenTitle}</span>
+							<span class="ssub">{tx.screenSub}</span>
+						</div>
+						<div class="marquee">
+							{#each PROVIDERS as prov}
+								<div class="mrow">
+									<div class="rlabel">
+										<ProviderLogo id={prov.id} size={15} />
+										<span>{prov.name}</span>
+									</div>
+									<div class="rtrack">
+										<div class="rseq" class:rev={prov.reverse}>
+											{#each [...prov.items, ...prov.items] as [file, label]}
+												<span class="chip">
+													<img src={url[file]} alt="" width="22" height="22" />
+													<span>{label}</span>
+												</span>
+											{/each}
+										</div>
 									</div>
 								</div>
-							</div>
-						{/each}
-					</div>
-				{/if}
+							{/each}
+						</div>
+					{/if}
+				</div>
 			</div>
+			<div class="neck"></div>
+			<div class="base"></div>
 		</div>
-		<div class="neck"></div>
-		<div class="base"></div>
-	</div>
 	{/if}
 </div>
 
