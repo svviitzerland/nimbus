@@ -304,13 +304,13 @@
 
 		<!-- CPU and RAM meters -->
 		<text x="14" y="172" class="meter-t">{tx.cpuLabel}</text>
-		<rect x="44" y="165" width="44" height="8" rx="4" class="track" />
-		<rect x="44" y="165" width={Math.max(3, cpu * 0.44)} height="8" rx="4" class="fill {tone}" />
-		<text x="110" y="172" class="pct">{Math.round(cpu)}%</text>
+		<rect x="44" y="165" width="38" height="8" rx="4" class="track" />
+		<rect x="44" y="165" width={Math.max(3, cpu * 0.38)} height="8" rx="4" class="fill {tone}" />
+		<text x="113" y="172" class="pct">{Math.round(cpu)}%</text>
 		<text x="14" y="190" class="meter-t">{tx.ramLabel}</text>
-		<rect x="44" y="183" width="44" height="8" rx="4" class="track" />
-		<rect x="44" y="183" width={ram * 0.44} height="8" rx="4" class="fill calm" />
-		<text x="110" y="190" class="pct">{Math.round(ram)}%</text>
+		<rect x="44" y="183" width="38" height="8" rx="4" class="track" />
+		<rect x="44" y="183" width={ram * 0.38} height="8" rx="4" class="fill calm" />
+		<text x="113" y="190" class="pct">{Math.round(ram)}%</text>
 
 		<!-- the process list -->
 		<text x="124" y="22" class="list-t">{tx.listTitle}</text>
@@ -327,8 +327,8 @@
 				<text x="147" y="48" class="chip-t" class:focus={pidFocus}>{p.pid}</text>
 				<text x="174" y="48.5" class="name">{p.name}</text>
 				{#if p.bg || p.ignored}
-					<rect x="234" y="37" width="50" height="14" rx="7" class="tag" class:stuck={p.ignored} />
-					<text x="259" y="47" class="tag-t" class:stuck={p.ignored}
+					<rect x="238" y="37" width="47" height="14" rx="7" class="tag" class:stuck={p.ignored} />
+					<text x="261.5" y="47" class="tag-t" class:stuck={p.ignored}
 						>{p.ignored ? tx.stuckLabel : tx.bgLabel}</text
 					>
 				{/if}

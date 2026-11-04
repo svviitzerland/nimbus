@@ -217,7 +217,7 @@
 	const BASE_CSS = [
 		'html{background:#fff;color:#16212b}',
 		'body{margin:12px;font:14px/1.45 system-ui,sans-serif;overflow-wrap:anywhere}',
-		'h1{font-size:1.6em;margin:.2em 0 .4em}',
+		'h1{font-size:1.4em;margin:.1em 0 .3em}',
 		'p{margin:.4em 0 .8em}',
 		'img{max-width:100%;height:auto;max-height:56px;display:block;margin:.4em 0}',
 		'form{display:flex;flex-wrap:wrap;gap:6px;margin:.5em 0}',
@@ -525,7 +525,7 @@
 	iframe {
 		display: block;
 		width: 100%;
-		height: 200px;
+		height: 262px;
 		border: 0;
 		background: #fff;
 	}

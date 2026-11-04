@@ -138,12 +138,12 @@
 					<path d="M70 {MAIN_Y} C90 {MAIN_Y} 90 24 110 24 L170 24" class="ln-br adi" />
 					<text x="110" y="12" class="bname adi">adi</text>
 					{@render commitDot(136, 24, 'adi')}
-					<text x="158" y="28" class="clabel">{tx.titleCommit}</text>
+					<text x="136" y="46" text-anchor="middle" class="clabel">{tx.titleCommit}</text>
 					<!-- Citra, below -->
 					<path d="M70 {MAIN_Y} C90 {MAIN_Y} 90 134 110 134 L250 134" class="ln-br citra" />
 					<text x="110" y="153" class="bname citra">citra</text>
 					{@render commitDot(160, 134, 'citra')}
-					<text x="182" y="138" class="clabel">{tx.titleCommit}</text>
+					<text x="160" y="120" text-anchor="middle" class="clabel">{tx.titleCommit}</text>
 					{@render commitDot(70, MAIN_Y, 'main')}
 				</g>
 				{#if scene >= 5}

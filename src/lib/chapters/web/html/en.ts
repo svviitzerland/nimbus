@@ -44,27 +44,27 @@ export const en: HtmlText = {
 		},
 		{
 			tag: 'Tag 2',
-			title: '&lt;p&gt;',
+			title: '<p>',
 			body: 'A paragraph. Ordinary text on its own line.'
 		},
 		{
 			tag: 'Tag 3',
-			title: '&lt;button&gt;',
+			title: '<button>',
 			body: 'A button you can press. HTML gives it a shape, not a job.'
 		},
 		{
 			tag: 'Tag 4',
-			title: '&lt;img&gt;',
+			title: '<img>',
 			body: 'A picture. <b>src</b> says which file, <b>alt</b> says what it shows. No closing tag needed.'
 		},
 		{
 			tag: 'Tag 5',
-			title: '&lt;a href&gt;',
+			title: '<a href>',
 			body: 'A link. <b>href</b> says where it leads. Pages linked to pages, all over the world, are why it is called a <b>web</b>.'
 		},
 		{
 			tag: 'Tag 6',
-			title: '&lt;form&gt;',
+			title: '<form>',
 			body: '<b>&lt;input&gt;</b> is a field to type in. The button inside the form sends what you typed to the server as a <b>POST</b> request.'
 		},
 		{

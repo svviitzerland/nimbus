@@ -44,27 +44,27 @@ export const id: HtmlText = {
 		},
 		{
 			tag: 'Tag 2',
-			title: '&lt;p&gt;',
+			title: '<p>',
 			body: 'Paragraf. Teks biasa di barisnya sendiri.'
 		},
 		{
 			tag: 'Tag 3',
-			title: '&lt;button&gt;',
+			title: '<button>',
 			body: 'Tombol yang bisa dipencet. HTML ngasih bentuknya, bukan tugasnya.'
 		},
 		{
 			tag: 'Tag 4',
-			title: '&lt;img&gt;',
+			title: '<img>',
 			body: 'Gambar. <b>src</b> bilang file yang mana, <b>alt</b> bilang isinya apa. Nggak perlu tag penutup.'
 		},
 		{
 			tag: 'Tag 5',
-			title: '&lt;a href&gt;',
+			title: '<a href>',
 			body: 'Link. <b>href</b> bilang ke mana tujuannya. Halaman yang saling tersambung ke halaman lain di seluruh dunia, makanya disebut <b>web</b> (jaring).'
 		},
 		{
 			tag: 'Tag 6',
-			title: '&lt;form&gt;',
+			title: '<form>',
 			body: '<b>&lt;input&gt;</b> itu kolom buat mengetik. Tombol di dalam form mengirim ketikanmu ke server sebagai request <b>POST</b>.'
 		},
 		{
