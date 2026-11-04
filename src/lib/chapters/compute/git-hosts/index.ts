@@ -5,7 +5,6 @@ import { en } from './en';
 
 export const gitHosts: Lesson = {
 	id: 'git-hosts',
-	section: 'Git & GitHub',
 	mood: 'thinking',
 	moods: ['surprised', 'thinking', 'wink'],
 	reactionMood: {
