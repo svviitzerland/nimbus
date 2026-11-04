@@ -336,19 +336,15 @@
 				{/if}
 				{#if i % 2 === 0}
 					<!-- the last stop sits at the right edge, so its label runs leftward to stay inside -->
-					<text
-						y="34"
-						x={i === 6 ? 14 : 0}
-						text-anchor={i === 6 ? 'end' : 'middle'}
-						class="nm">{i === 0 ? tx.youLabel : tx.hops[i - 1]}</text
+					<text y="34" x={i === 6 ? 14 : 0} text-anchor={i === 6 ? 'end' : 'middle'} class="nm"
+						>{i === 0 ? tx.youLabel : tx.hops[i - 1]}</text
 					>
 					{#if hop && i <= revealed}<text
 							y="45"
 							x={i === 6 ? 14 : 0}
 							text-anchor={i === 6 ? 'end' : 'middle'}
 							class="ms"
-							class:quiet
-							>{hop.ip ? `${hop.ms} ms` : '* * *'}</text
+							class:quiet>{hop.ip ? `${hop.ms} ms` : '* * *'}</text
 						>{/if}
 				{:else}
 					<text y="-30" text-anchor="middle" class="nm">{tx.hops[i - 1]}</text>

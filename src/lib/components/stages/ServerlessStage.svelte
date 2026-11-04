@@ -393,8 +393,8 @@
 		white-space: nowrap;
 	}
 	.shrink {
-		width: 92px;
-		height: 146px;
+		width: 87px;
+		height: 178px;
 		overflow: visible;
 	}
 	.shrink > :global(.phone) {
@@ -646,8 +646,8 @@
 			font-size: 11.5px;
 		}
 		.shrink {
-			width: 114px;
-			height: 180px;
+			width: 108px;
+			height: 220px;
 		}
 		.shrink > :global(.phone) {
 			transform: scale(0.72);
