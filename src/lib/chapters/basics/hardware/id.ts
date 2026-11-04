@@ -3,7 +3,8 @@ import type { HardwareText } from './types';
 export const id: HardwareText = {
 	title: 'Komponen komputer',
 	intro: [
-		'Ingat kan, komputer makin lama makin kecil? Sekarang satu komputer utuh muat di dalam laptop tipis. Yuk kita bongkar pelan pelan dan jejerkan semua bagiannya, biar kelihatan siapa mengerjakan apa.',
+		'Ingat kan, komputer makin lama makin kecil? Sekarang satu komputer utuh muat di dalam laptop tipis ini. Dari luar cuma kelihatan <b>layar</b>, <b>keyboard</b>, dan touchpad. Terus, otaknya di mana ya?',
+		'Yuk kita buka. Sekrupnya dilepas, bagian keyboard diangkat, dan... taraa! Ternyata di dalamnya ramai. Semua bagian ini punya tugas sendiri, dan kita kenalan satu per satu.',
 		'Papan besar tempat semuanya menempel itu namanya <b>motherboard</b>. Anggap saja jalanan di sebuah kota kecil. Semua bagian tinggal di situ, dan jalur tembaga yang tipis mengantar pesan dari satu bagian ke bagian lain.',
 		'Di tengahnya ada <b>CPU</b> (central processing unit), si otak. Dia membaca instruksi satu per satu lalu menjalankannya, miliaran langkah kecil tiap detik. Jauh di dalam, dia cuma paham nyala dan mati ([[bit|basics/binary]]).',
 		'Tepat di sebelahnya ada keping <b>RAM</b> (random access memory). RAM itu meja kerja, tempat semua yang sedang kamu pakai ditaruh supaya gampang dijangkau. Cepat banget, tapi dia lupa semuanya begitu listrik mati.',
@@ -11,8 +12,8 @@ export const id: HardwareText = {
 		'Lihat apa yang terjadi waktu kamu membuka game. Gamenya diambil dari lemari, ditaruh di atas meja, lalu CPU mengerjakannya dari situ. Jeda sebentar waktu loading itu ya perjalanan ini.',
 		'[ingat] <b>RAM itu meja, storage itu lemari.</b> Listrik mati, meja jadi bersih, lemari tetap penuh. Makanya ada tombol simpan, menyimpan artinya mengembalikan kerjaanmu ke lemari.',
 		'Chip yang ini namanya <b>GPU</b> (graphics processing unit). Dia yang menggambar semua yang kamu lihat, jutaan titik kecil di layar, berkali kali tiap detik. Game dan video bikin dia sibuk banget.',
-		'Paling bawah ada <b>baterai</b>. Dia mengalirkan listrik ke semua bagian lewat motherboard. Komputer meja pakai power supply yang dicolok ke dinding, tugasnya sama.',
-		'Nah, begini cara kamu dan komputer ngobrol. <b>Keyboard</b> itu <b>input</b>, dia mengirim tombol yang kamu tekan ke dalam. <b>Layar</b> itu <b>output</b>, dia menunjukkan hasilnya. Tekan tombol, CPU mendengarnya, lalu hurufnya muncul.',
+		'Yang paling besar, di bawah tempat tangan bersandar, itu <b>baterai</b>. Dia mengalirkan listrik ke semua bagian lewat motherboard. Komputer meja pakai power supply yang dicolok ke dinding, tugasnya sama.',
+		'Kita pasang lagi keyboardnya. Nah, begini cara kamu dan komputer ngobrol. <b>Keyboard</b> itu <b>input</b>, dia mengirim tombol yang kamu tekan ke dalam. <b>Layar</b> itu <b>output</b>, dia menunjukkan hasilnya. Tekan tombol, CPU mendengarnya, lalu hurufnya muncul.',
 		'Itulah satu tim lengkap. Bahkan [[server|foundations/server]] yang besar juga dibangun dari bagian yang sama. Ketuk bagian mana saja kalau mau lihat lagi, lalu kita cari tahu gimana CPU berpikir cuma pakai 0 dan 1.'
 	],
 	reactions: {
@@ -21,8 +22,13 @@ export const id: HardwareText = {
 	steps: [
 		{
 			tag: 'Laptop',
-			title: 'Laptop yang dibongkar',
-			body: 'Dari atas ke bawah ada <b>layar</b>, <b>keyboard</b>, <b>motherboard</b> beserta chipnya, dan <b>baterai</b>. HP, komputer meja, dan server punya jenis bagian yang sama.'
+			title: 'Laptop utuh',
+			body: 'Yang kamu lihat sehari hari cuma bagian luarnya, yaitu <b>layar</b>, <b>keyboard</b>, dan <b>touchpad</b>. Bagian yang benar benar bekerja tersembunyi di dalam bodinya.'
+		},
+		{
+			tag: 'Dibuka',
+			title: 'Isi sebuah laptop',
+			body: 'Di bawah keyboard ada <b>motherboard</b> dengan chip chipnya, <b>kipas</b> pendingin, dan <b>baterai</b> besar di bawah tempat tanganmu bersandar. HP, komputer meja, dan server punya jenis bagian yang sama.'
 		},
 		{
 			tag: 'Motherboard',
@@ -89,5 +95,5 @@ export const id: HardwareText = {
 	cleared: 'kosong',
 	kept: 'masih ada',
 	typed: 'halo',
-	picture: 'Laptop yang dibongkar, dengan layar, keyboard, motherboard, dan baterai dijejerkan'
+	picture: 'Sebuah laptop yang dibuka, kelihatan motherboard, chip, kipas, dan baterai di dalamnya'
 };

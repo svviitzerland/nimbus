@@ -10,6 +10,7 @@ export const program: Lesson = {
 		'calm',
 		'idea',
 		'thinking',
+		'thinking',
 		'surprised',
 		'happy',
 		'thinking',

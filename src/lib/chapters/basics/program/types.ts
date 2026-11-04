@@ -11,8 +11,18 @@ export interface GuidePanel {
 }
 
 export interface ProgramText extends LessonText {
-	/** One panel per scene of the guided visual (eight scenes). */
+	/**
+	 * One panel per scene of the guided visual, in story order (nine panels). The second one is
+	 * the short history of algorithms.
+	 */
 	panels: GuidePanel[];
+	/** The history scene, three people on a small timeline, oldest first. */
+	history: {
+		heading: string;
+		people: { year: string; name: string; place: string; body: string }[];
+		/** How the name turned into the word, shown as small chips. */
+		word: string[];
+	};
 	/** Heading of the recipe card while it is still plain words. */
 	recipeTitle: string;
 	/** Heading of the same card once it is written for a computer. */

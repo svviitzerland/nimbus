@@ -5,27 +5,27 @@ export const id: LanguagesText = {
 	intro: [
 		'Ada rahasia kecil soal semua komputer. Chip yang benar benar bekerja, namanya <b>CPU</b> (otaknya komputer), sama sekali nggak bisa baca kata. Dia cuma ngerti <b>0 dan 1</b>.',
 		'Perintah yang ditulis cuma pakai 0 dan 1 disebut <b>machine code</b> (kode mesin). Dulu orang beneran nulis program kayak gini, pakai tangan. Lambat, bikin pusing, dan salah satu digit aja semuanya rusak.',
-		'Makanya orang menciptakan cara yang lebih ramah buat menulis perintah, yaitu <b>bahasa pemrograman</b>. Kamu nulis pakai kata dan simbol, lalu penerjemah (namanya [[compiler|basics/compiler]]) mengubahnya jadi 0 dan 1 buat CPU.',
+		'Makanya orang menciptakan cara yang lebih ramah buat menulis perintah, yaitu <b>bahasa pemrograman</b>. Kamu nulis pakai kata dan simbol, lalu penerjemah (misalnya [[compiler|basics/compiler]]) mengubahnya jadi 0 dan 1 buat CPU.',
 		'Kenalan sama <b>C</b>, salah satu bahasa klasik, lahir tahun 1970an. Tugasnya sama, jumlahkan 2 dan 3 lalu tampilkan hasilnya. Masih agak rewel soal kurung dan titik koma, tapi jalannya dekat banget sama mesin, jadi cepat.',
 		'Dan ini <b>Python</b>. Tugas yang persis sama, cukup satu baris. Bacanya hampir kayak bahasa Inggris biasa, makanya banyak orang belajar Python duluan.',
 		'Perhatikan untung ruginya. Makin ke atas, makin gampang ditulis manusia. Makin ke bawah, makin dekat ke mesin, lebih cepat tapi lebih rewel. Nggak ada bahasa yang jago di semua hal.',
 		'Jadi orang memilih bahasa kayak milih alat dari kotak perkakas. Palu nggak lebih bagus dari obeng, dia cuma pas buat paku.',
 		'[fyi] Kata yang sama, dunia yang beda. Bahasa sehari hari punya tata bahasa dan bahasa gaul, bahasa pemrograman juga punya aturan, cuma jauh lebih ketat. Lupa satu kurung aja, penerjemahnya langsung nolak ngerti, sejelas apa pun maksudnya.',
-		'[ingat] Lihat kodenya tinggal di mana. JS buat web, Python buat data dan AI, C buat yang ngebut, Kotlin dan Swift buat aplikasi HP.',
+		'[ingat] Lihat kodenya tinggal di mana. JavaScript buat web, Python buat data dan AI, C buat yang ngebut, Kotlin dan Swift buat aplikasi HP.',
 		'Gitu deh intinya. Kalau mau, pencet salah satu versi kodenya dan lihat dia nulis dirinya sendiri lagi.'
 	],
 	reactions: {
 		machine:
 			'Sembilan byte 0 dan 1, dan ini baru bagian menjumlahkan. Buat menampilkan hasilnya di layar butuh ratusan baris lagi. Untung sekarang nggak ada yang perlu nulis ini pakai tangan.',
-		c: 'C minta kamu menjelaskan banyak hal, library mana yang dipakai, program mulai dari mana, titik koma di tiap baris. Imbalannya, dia jalan cepat.',
+		c: 'C minta kamu menjelaskan banyak hal, library (kode siap pakai) mana yang dipakai, program mulai dari mana, titik koma di tiap baris. Imbalannya, dia jalan cepat.',
 		python:
-			'Satu baris, dan bagian yang rewel diurus Python. Tapi tetap aja, kodenya diterjemahkan dulu jadi 0 dan 1 sebelum bisa dijalankan CPU.'
+			'Satu baris, dan bagian yang rewel diurus Python. Di balik layar, tetap ada penerjemah yang mengubahnya jadi langkah yang bisa dijalankan CPU.'
 	},
 	panels: [
 		{
 			tag: 'Machine code',
 			title: 'Satu satunya yang dimengerti CPU',
-			body: 'CPU membaca 0 dan 1 per delapan angka (tiap kelompok disebut <b>byte</b>). Sembilan byte ini cuma menaruh 2 di sebuah kotak lalu menambahkan 3.'
+			body: 'CPU membaca 0 dan 1 per delapan angka (tiap kelompok disebut <b>byte</b>). Sembilan byte ini cuma menaruh 2 di sebuah kotak, menambahkan 3, lalu berhenti.'
 		},
 		{
 			tag: 'C',
@@ -73,5 +73,5 @@ export const id: LanguagesText = {
 		speed: { lang: 'C', job: 'Kecepatan, kayak game dan sistem operasi' },
 		phone: { lang: 'Kotlin dan Swift', job: 'Aplikasi HP' }
 	},
-	rule: 'JS buat web, Python buat data, C buat ngebut, Kotlin dan Swift buat HP.'
+	rule: 'JavaScript buat web, Python buat data, C buat ngebut, Kotlin dan Swift buat HP.'
 };

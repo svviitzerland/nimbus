@@ -342,7 +342,7 @@
 
 		<!-- requests travelling through the OS -->
 		{#if !reduced && step === 1}
-			{#each [['M180 160 V218 L70 262', 'var(--color-brand)'], ['M180 160 V218 V272', 'var(--color-grass)'], ['M180 160 V218 L290 262', 'var(--color-amber)']] as [p, c], i (i)}
+			{#each [['M180 188 V204 M100 232 L70 252', 'var(--color-brand)'], ['M180 188 V204 M180 232 V264', 'var(--color-grass)'], ['M180 188 V204 M260 232 L290 252', 'var(--color-amber)']] as [p, c], i (i)}
 				<circle r="4.5" fill={c}>
 					<animateMotion dur="2.4s" begin="{i * 0.8}s" repeatCount="indefinite" path={p} />
 				</circle>
@@ -351,11 +351,15 @@
 		{#if step === 6}
 			<g>
 				{#if reduced}
-					<g transform="translate(290 218)">{@render file()}</g>
+					<g transform="translate(260 218)">{@render file()}</g>
 				{:else}
 					<g>
 						{@render file()}
-						<animateMotion dur="3s" repeatCount="indefinite" path="M290 270 V218 L250 54" />
+						<animateMotion
+							dur="3s"
+							repeatCount="indefinite"
+							path="M290 252 L260 232 M180 204 V188 L250 54"
+						/>
 					</g>
 				{/if}
 			</g>

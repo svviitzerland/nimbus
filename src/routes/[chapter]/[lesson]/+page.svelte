@@ -78,6 +78,8 @@
 	const canNext = $derived(!((isLastBeat && !completed) || locked));
 	const final = $derived(isLastLesson && isLastBeat);
 	const canBack = $derived(beat > 0 || (inTrack ? path.prev(here) !== undefined : data.index > 0));
+	// every line this lesson can show, so the dock keeps one height for the whole lesson
+	const lines = $derived([...text.intro, ...Object.values(text.reactions ?? {})]);
 	const message = $derived(reaction ?? text.intro[Math.min(beat, text.intro.length - 1)]);
 	// "Your turn": on the last beat, before the step is finished, the stage is what matters, so
 	// Nim steps out (on phones, after a brief moderator-style peek). This also covers reactions:
@@ -206,14 +208,13 @@
 		<h1 class="mt-1 font-display text-2xl font-medium text-ink md:text-[1.9rem]">{text.title}</h1>
 	</div>
 
-	<!-- Stage. Sits between the title and Nim's dock and scrolls if a stage is taller than the room left. -->
-	<section
-		class="flex min-h-0 flex-1 items-start justify-center overflow-x-hidden overflow-y-auto px-4 pt-2 pb-3 md:px-8 md:pt-4 md:pb-4"
-	>
+	<!-- Stage. Sits between the title and Nim's dock and gets all the room left. Stages centre
+	     themselves in it (so every picture sits at the same height) and scroll if taller. -->
+	<section class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-2 md:px-8 md:py-3">
 		{#key data.lessonId}
 			<div class="stage-in h-full w-full">
 				<div
-					class="flex h-full w-full items-start justify-center transition-opacity duration-300 {stageActive
+					class="stage-slot flex h-full w-full items-center-safe justify-center transition-opacity duration-300 {stageActive
 						? ''
 						: 'pointer-events-none opacity-40 select-none'}"
 				>
@@ -235,6 +236,7 @@
 	<div class="shrink-0 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6 md:pb-5">
 		<SpeechBubble
 			nim={message}
+			{lines}
 			mood={currentMood}
 			{canNext}
 			{canBack}
@@ -250,6 +252,12 @@
 </main>
 
 <style>
+	/* Stages were written for a page where Nim floated over them, so many reserve a big empty
+	   space at the bottom or pin themselves to the top. Nim now lives in the dock under the stage,
+	   so that space is taken back. */
+	.stage-slot > :global(*) {
+		padding-bottom: 0 !important;
+	}
 	:global(.stage-in) {
 		animation: stage-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 	}

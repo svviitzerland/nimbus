@@ -3,9 +3,9 @@ import type { RuntimeText } from './types';
 export const en: RuntimeText = {
 	title: 'Runtimes and libraries',
 	intro: [
-		'Your code is written, and you know it has to be translated. But here is a surprise. Most programs cannot run all alone, they float there with nothing to stand on.',
+		'Your code is written, and you know it has to be translated. But here is a surprise. Many programs cannot run all alone, they float there with nothing to stand on.',
 		'A program needs a <b>runtime</b>, a helper program that runs your program. Think of it as a stage. The actor (your code) only performs once there is a stage under its feet.',
-		'Different code needs a different stage. JavaScript on a server runs on <b>Node.js</b>, JavaScript on a web page runs inside your <b>browser</b>, and Java runs on the <b>JVM</b>.',
+		'Different code needs a different stage. JavaScript on a server runs on <b>Node.js</b>, JavaScript on a web page runs inside your <b>browser</b>, and Java runs on the <b>JVM</b> (Java’s own stage).',
 		'[fyi] Same word, different world. "Runtime" also means the moment a program is running. A crash while it runs is called a runtime error, unlike the typo a [[compiler|basics/compiler]] catches before anything runs.',
 		'Next come <b>libraries</b>, ready made parts other people wrote and share, often for free. Instead of building login or date handling from scratch, you borrow a part that already works.',
 		'You get libraries with a <b>package manager</b>, a tool that downloads them for you. JavaScript has npm, Python has pip. One short command, and a new part clicks into place. More in [[Installing software|linux/packages]].',
@@ -16,7 +16,7 @@ export const en: RuntimeText = {
 	],
 	reactions: {
 		noRuntime:
-			'The shop stopped. Your code and its libraries are still there, but nothing on this computer reads JavaScript without Node.js.',
+			'The shop stopped. Your code and its libraries are still there, but nothing on this server can run JavaScript without Node.js.',
 		runtime: 'Stage is back, and the shop runs again. Same code, it just needed somewhere to stand.'
 	},
 	steps: [
@@ -78,7 +78,7 @@ export const en: RuntimeText = {
 	],
 	libs: ['Login', 'Dates', 'Charts'],
 	installCmd: 'npm install chart.js',
-	installDone: 'added 1 package',
+	installDone: 'added 2 packages',
 	appName: 'nimbus.com shop',
 	appUp: 'running',
 	appDown: 'crashed',

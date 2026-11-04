@@ -7,8 +7,8 @@ export const id: OsText = {
 		'Itu tugas <b>sistem operasi</b>, atau <b>OS</b> (operating system). Dia manajer yang duduk di antara aplikasi dan hardware. Aplikasi nggak pernah mengambil CPU atau RAM sendiri, mereka minta ke OS, lalu OS yang membagikan.',
 		'[ingat] OS itu kayak pelayan di warung makan. Aplikasi itu pembelinya, hardware itu dapurnya. Pembeli nggak masuk dapur sendiri, mereka pesan lewat pelayan.',
 		'Lihat aplikasinya terbuka. Tiap aplikasi minta dulu ke OS jendela dan sedikit memori, baru setelah itu dia muncul di layar.',
-		'CPU cuma satu, jadi OS menyuruh aplikasi gantian. Tiap aplikasi dapat jatah waktu sangat singkat, beberapa per seribu detik, lalu giliran berikutnya. Gantinya cepat banget sampai semuanya kelihatan jalan bareng.',
-		'OS juga memberi tiap aplikasi bagian RAM sendiri dan menjaganya tetap terpisah. Jadi game yang crash nggak bikin chat kamu ikut berantakan. OS juga menyisihkan sedikit RAM untuk dirinya.',
+		'CPU cuma bisa mengerjakan sedikit hal sekaligus, padahal aplikasinya jauh lebih banyak, jadi OS menyuruh mereka gantian. Tiap aplikasi dapat jatah waktu sangat singkat, beberapa per seribu detik, lalu giliran berikutnya. Gantinya cepat banget sampai semuanya kelihatan jalan bareng.',
+		'OS juga memberi tiap aplikasi bagian RAM sendiri dan menjaganya tetap terpisah. Jadi game yang crash (tiba tiba rusak) nggak bikin chat kamu ikut berantakan. OS juga menyisihkan sedikit RAM untuk dirinya.',
 		'[fyi] Buka satu aplikasi kebanyakan dan RAM jadi penuh. OS lalu menitipkan sisanya di storage (namanya <b>swap</b>). Storage jauh lebih lambat dari RAM, dan saat itulah laptop mulai lemot.',
 		'OS juga mengurus file kamu. Waktu aplikasi musik mau memutar lagu, dia minta ke OS, lalu OS mengambilnya dari storage. Folder itu cara OS menjaga file kamu tetap rapi.',
 		'Kamu pasti sudah kenal beberapa OS. <b>Windows</b> dan <b>macOS</b> menjalankan laptop, <b>Linux</b> menjalankan sebagian besar server di internet, dan <b>Android</b> serta <b>iOS</b> menjalankan HP (Android dibangun di atas Linux). Kamu bisa ngobrol dengan mereka lewat ikon atau perintah yang diketik, lihat [[CLI dan GUI|foundations/cli-gui]].',
@@ -16,7 +16,7 @@ export const id: OsText = {
 	],
 	reactions: {
 		open: 'Satu aplikasi lagi, satu potong RAM lagi. OS menyelipkannya dan memasukkannya ke antrean giliran CPU.',
-		slow: 'Waduh, RAM penuh. OS menitipkan sisanya di storage yang lambat, jadi semuanya tersendat. Inilah saat kipas laptop mulai berisik. Coba tutup satu aplikasi.',
+		slow: 'Waduh, RAM penuh. OS menitipkan sisanya di storage yang lambat, jadi semuanya tersendat dan tiap klik terasa telat. Coba tutup satu aplikasi.',
 		close:
 			'Menutup aplikasi mengembalikan RAM miliknya ke OS, dan yang lain bisa lega lagi. Makanya menutup aplikasi yang nggak dipakai beneran membantu laptop yang sudah tua.'
 	},
@@ -35,7 +35,7 @@ export const id: OsText = {
 		},
 		{
 			title: 'Giliran di CPU',
-			body: 'CPU bekerja untuk satu aplikasi dalam satu waktu. OS mengopernya dalam jatah super singkat, berputar terus.'
+			body: 'Tiap core (pekerja di dalam CPU) menjalankan satu aplikasi dalam satu waktu. OS mengopernya dalam jatah super singkat, berputar terus.'
 		},
 		{
 			title: 'Berbagi RAM',

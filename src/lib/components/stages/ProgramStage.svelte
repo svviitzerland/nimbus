@@ -14,8 +14,12 @@
 	let { text, oncomplete, onstate, onshow, beat = 0 }: StageProps = $props();
 	const tx = $derived(text as ProgramText);
 
-	// Which scene each beat shows (ten beats, eight scenes).
-	const SCENE_OF_BEAT = [0, 0, 1, 2, 3, 4, 5, 6, 6, 7];
+	// Which scene each beat shows (eleven beats, nine scenes). Scene 8 is the short history of
+	// algorithms, told right after the word is introduced. PANEL_ORDER lists the scene of each
+	// side panel, in story order.
+	const HISTORY = 8;
+	const SCENE_OF_BEAT = [0, 0, HISTORY, 1, 2, 3, 4, 5, 6, 6, 7];
+	const PANEL_ORDER = [0, HISTORY, 1, 2, 3, 4, 5, 6, 7];
 	const RIGHT: TeaStepId[] = ['cup', 'bag', 'boil', 'pour', 'stir'];
 	const SWAPPED: TeaStepId[] = ['pour', 'bag', 'boil', 'cup', 'stir'];
 	// The recipe as Python. Real code, so it is shown as is.
@@ -326,6 +330,62 @@
 	</div>
 {/snippet}
 
+{#snippet history()}
+	<div class="history">
+		<p class="card-title">{tx.history.heading}</p>
+		<ol class="trail">
+			{#each tx.history.people as p, i (i)}
+				<li class="person" style="animation-delay:{reduced ? 0 : i * 0.45}s">
+					<span class="year">{p.year}</span>
+					<div class="who">
+						{#if i === 2}
+							<img
+								src="/images/people/ada-lovelace.jpg"
+								alt={p.name}
+								width="40"
+								height="57"
+								class="face"
+							/>
+						{:else}
+							<svg viewBox="0 0 40 40" class="icon" aria-hidden="true">
+								{#if i === 0}
+									<!-- a compass and a circle, Euclid worked with geometry -->
+									<circle cx="20" cy="22" r="12" class="ic-line" />
+									<path d="M20 6 L13 30 M20 6 L28 30" class="ic-ink" />
+									<circle cx="20" cy="6" r="2.4" class="ic-dot" />
+								{:else}
+									<!-- an open book with numbers, al Khwarizmi's book on sums -->
+									<path
+										d="M6 10 Q13 7 20 11 Q27 7 34 10 V32 Q27 29 20 33 Q13 29 6 32 Z"
+										class="ic-line"
+									/>
+									<path d="M20 11 V33" class="ic-ink" />
+									<text x="13" y="24" class="ic-num">12</text>
+									<text x="27" y="24" class="ic-num">3</text>
+								{/if}
+							</svg>
+						{/if}
+						<div>
+							<p class="name">{p.name}<span>{p.place}</span></p>
+							<p class="body">{p.body}</p>
+						</div>
+					</div>
+					{#if i === 1}
+						<div class="morph">
+							{#each tx.history.word as w, k (k)}
+								{#if k > 0}<svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"
+										><path d="M3 1.5 L7 5 L3 8.5" class="ic-ink" /></svg
+									>{/if}
+								<span class="wchip" class:last={k === tx.history.word.length - 1}>{w}</span>
+							{/each}
+						</div>
+					{/if}
+				</li>
+			{/each}
+		</ol>
+	</div>
+{/snippet}
+
 {#snippet flowchart()}
 	<div class="flow-wrap">
 		<svg viewBox="0 0 320 340" class="flow" aria-hidden="true">
@@ -431,15 +491,21 @@
 {/snippet}
 
 <div class="stage">
-	<Guide steps={tx.panels} active={scene} onselect={(i) => (peek = i)}>
-		{#snippet visual(i: number)}
+	<Guide
+		steps={tx.panels}
+		active={PANEL_ORDER.indexOf(scene)}
+		onselect={(i) => (peek = PANEL_ORDER[i])}
+	>
+		{#snippet visual()}
 			<div class="visual">
-				{#if i === 7}
+				{#if scene === 7}
 					<button type="button" class="swap" onclick={toggleSwap}>
 						{swapped ? tx.unswap : tx.swap}
 					</button>
 				{/if}
-				{#if kitchenView}
+				{#if scene === HISTORY}
+					<div in:fade={{ duration: 300 }}>{@render history()}</div>
+				{:else if kitchenView}
 					<div class="pair" in:fade={{ duration: 300 }}>
 						{@render kitchen()}
 						{@render recipeCard()}
@@ -458,7 +524,7 @@
 		height: 100%;
 		width: 100%;
 		justify-content: center;
-		align-items: flex-start;
+		align-items: safe center;
 		overflow-y: auto;
 		overflow-x: hidden;
 		padding-bottom: 16px;
@@ -667,6 +733,145 @@
 		border-radius: 18px;
 		background: var(--color-card);
 		padding: 12px 14px;
+	}
+	/* the history scene */
+	.history {
+		width: 100%;
+		border: 1px solid var(--color-line);
+		border-radius: 18px;
+		background: var(--color-card);
+		padding: 14px 16px 10px;
+	}
+	.trail {
+		position: relative;
+		margin: 0;
+		padding: 0 0 0 18px;
+		list-style: none;
+	}
+	.trail::before {
+		content: '';
+		position: absolute;
+		left: 4px;
+		top: 6px;
+		bottom: 14px;
+		width: 2px;
+		border-radius: 2px;
+		background: var(--color-line);
+	}
+	.person {
+		position: relative;
+		padding: 0 0 12px;
+	}
+	.person::before {
+		content: '';
+		position: absolute;
+		left: -18px;
+		top: 4px;
+		height: 10px;
+		width: 10px;
+		border-radius: 999px;
+		background: var(--color-brand);
+		box-shadow: 0 0 0 3px var(--color-card);
+	}
+	.year {
+		font-size: 11px;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		color: var(--color-brand);
+	}
+	.who {
+		display: flex;
+		align-items: flex-start;
+		gap: 10px;
+		margin-top: 4px;
+	}
+	.icon {
+		flex: none;
+		height: 40px;
+		width: 40px;
+		border-radius: 10px;
+		background: var(--color-amber-soft);
+	}
+	.face {
+		flex: none;
+		height: 50px;
+		width: 40px;
+		border-radius: 8px;
+		object-fit: cover;
+		object-position: top;
+	}
+	.ic-line {
+		fill: none;
+		stroke: var(--color-amber);
+		stroke-width: 2;
+	}
+	.ic-ink {
+		fill: none;
+		stroke: var(--color-ink);
+		stroke-width: 1.8;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.ic-dot {
+		fill: var(--color-ink);
+	}
+	.ic-num {
+		font-size: 7px;
+		font-weight: 700;
+		text-anchor: middle;
+		fill: var(--color-ink);
+	}
+	.name {
+		margin: 0;
+		font-size: 14px;
+		font-weight: 700;
+		color: var(--color-ink);
+	}
+	.name span {
+		margin-left: 6px;
+		font-size: 11.5px;
+		font-weight: 500;
+		color: var(--color-faint);
+	}
+	.body {
+		margin: 2px 0 0;
+		font-size: 12.5px;
+		line-height: 1.45;
+		color: var(--color-muted);
+	}
+	.morph {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 6px;
+		margin: 8px 0 0 50px;
+	}
+	.wchip {
+		border-radius: 999px;
+		background: var(--color-paper);
+		padding: 3px 9px;
+		font-size: 11.5px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.wchip.last {
+		background: var(--color-brand-soft);
+		color: var(--color-brand);
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.person {
+			animation: person-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+		}
+	}
+	@keyframes person-in {
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
 	}
 	.card-title {
 		margin: 0 0 8px;

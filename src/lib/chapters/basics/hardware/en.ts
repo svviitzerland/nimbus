@@ -3,7 +3,8 @@ import type { HardwareText } from './types';
 export const en: HardwareText = {
 	title: 'Computer components',
 	intro: [
-		'Remember how computers kept getting smaller? Today a whole one fits inside a thin laptop. Let us gently take one apart and lay every piece out, so you can see who does what.',
+		'Remember how computers kept getting smaller? Today a whole one fits inside this thin laptop. From the outside you only see a <b>screen</b>, a <b>keyboard</b>, and a touchpad. So where is the brain?',
+		'Let us open it up. Out come the screws, up comes the keyboard, and... ta da! It is busy in there. Every part has its own job, so let us meet them one by one.',
 		'The big board everything sits on is the <b>motherboard</b>. Think of it as the streets of a tiny city. Every part lives on it, and thin copper roads carry messages from one part to another.',
 		'In the middle sits the <b>CPU</b> (central processing unit), the brain. It reads instructions one after another and follows them, billions of tiny steps every second. Deep down it only understands on and off ([[bits|basics/binary]]).',
 		'Right next to it are the <b>RAM</b> sticks (random access memory). RAM is the desk, where everything you are using right now is laid out within easy reach. Very fast, but it forgets everything when the power goes off.',
@@ -11,8 +12,8 @@ export const en: HardwareText = {
 		'Watch what happens when you open a game. It is carried out of the cupboard onto the desk, and the CPU works on it from there. That little wait while a game loads is exactly this trip.',
 		'[ingat] RAM is the desk, storage is the cupboard. Power off clears the desk, the cupboard stays full. That is why you press save, saving means putting your work back in the cupboard.',
 		'This chip is the <b>GPU</b> (graphics processing unit). It draws everything you see, millions of tiny dots on the screen, many times every second. Games and videos keep it very busy.',
-		'Down at the bottom is the <b>battery</b>. It feeds power to every part through the motherboard. A desktop computer has a power supply plugged into the wall instead, same job.',
-		'And this is how you and the computer talk. The <b>keyboard</b> is <b>input</b>, it sends your presses in. The <b>screen</b> is <b>output</b>, it shows you the result. Press a key, the CPU hears it, and a letter appears.',
+		'The biggest piece, under where your hands rest, is the <b>battery</b>. It feeds power to every part through the motherboard. A desktop computer has a power supply plugged into the wall instead, same job.',
+		'Let us put the keyboard back on. And this is how you and the computer talk. The <b>keyboard</b> is <b>input</b>, it sends your presses in. The <b>screen</b> is <b>output</b>, it shows you the result. Press a key, the CPU hears it, and a letter appears.',
 		'That is the whole team. Even a big [[server|foundations/server]] is built from the very same parts. Tap any part if you want to see it again, then let us find out how the CPU thinks in nothing but 0 and 1.'
 	],
 	reactions: {
@@ -21,8 +22,13 @@ export const en: HardwareText = {
 	steps: [
 		{
 			tag: 'Laptop',
-			title: 'A laptop, taken apart',
-			body: 'From top to bottom, the <b>screen</b>, the <b>keyboard</b>, the <b>motherboard</b> with its chips, and the <b>battery</b>. Phones, desktops, and servers have the same kinds of parts.'
+			title: 'A whole laptop',
+			body: 'What you see every day is only the outside, the <b>screen</b>, the <b>keyboard</b>, and the <b>touchpad</b>. The parts doing the real work are hidden inside the body.'
+		},
+		{
+			tag: 'Opened',
+			title: 'Inside a laptop',
+			body: 'Under the keyboard sit the <b>motherboard</b> with its chips, a cooling <b>fan</b>, and a big <b>battery</b> under where your hands rest. Phones, desktops, and servers have the same kinds of parts.'
 		},
 		{
 			tag: 'Motherboard',
@@ -89,5 +95,5 @@ export const en: HardwareText = {
 	cleared: 'empty',
 	kept: 'still here',
 	typed: 'hello',
-	picture: 'A laptop taken apart, with its screen, keyboard, motherboard, and battery laid out'
+	picture: 'A laptop opened up, showing the motherboard, chips, fan, and battery inside'
 };

@@ -3,9 +3,9 @@ import type { RuntimeText } from './types';
 export const id: RuntimeText = {
 	title: 'Runtime dan library',
 	intro: [
-		'Kodenya sudah ditulis, dan kamu tahu kode itu harus diterjemahkan. Tapi ada kejutan. Kebanyakan program nggak bisa jalan sendirian, mereka cuma melayang tanpa pijakan.',
+		'Kodenya sudah ditulis, dan kamu tahu kode itu harus diterjemahkan. Tapi ada kejutan. Banyak program nggak bisa jalan sendirian, mereka cuma melayang tanpa pijakan.',
 		'Program butuh <b>runtime</b>, program pembantu yang menjalankan programmu. Anggap aja panggung. Aktornya (kode kamu) baru bisa tampil kalau ada panggung di bawah kakinya.',
-		'Kode yang beda butuh panggung yang beda. JavaScript di server jalan di atas <b>Node.js</b>, JavaScript di halaman web jalan di dalam <b>browser</b> kamu, dan Java jalan di atas <b>JVM</b>.',
+		'Kode yang beda butuh panggung yang beda. JavaScript di server jalan di atas <b>Node.js</b>, JavaScript di halaman web jalan di dalam <b>browser</b> kamu, dan Java jalan di atas <b>JVM</b> (panggung khusus Java).',
 		'[fyi] Kata yang sama, dunia yang beda. "Runtime" juga berarti saat program sedang jalan. Crash waktu program jalan disebut runtime error, beda dengan salah ketik yang ditangkap [[compiler|basics/compiler]] sebelum apa pun jalan.',
 		'Berikutnya ada <b>library</b>, komponen siap pakai yang ditulis dan dibagikan orang lain, sering gratis. Daripada bikin fitur login atau pengolahan tanggal dari nol, kamu pinjam komponen yang sudah jalan.',
 		'Library didapat lewat <b>package manager</b>, alat yang mengunduhkannya buat kamu. JavaScript punya npm, Python punya pip. Satu perintah pendek, komponen baru langsung terpasang. Lebih lengkapnya di [[Memasang software|linux/packages]].',
@@ -16,7 +16,7 @@ export const id: RuntimeText = {
 	],
 	reactions: {
 		noRuntime:
-			'Tokonya berhenti. Kode dan library kamu masih ada, tapi nggak ada apa pun di komputer ini yang bisa baca JavaScript tanpa Node.js.',
+			'Tokonya berhenti. Kode dan library kamu masih ada, tapi nggak ada apa pun di server ini yang bisa menjalankan JavaScript tanpa Node.js.',
 		runtime: 'Panggungnya balik, tokonya jalan lagi. Kodenya sama, cuma butuh tempat berpijak.'
 	},
 	steps: [
@@ -78,7 +78,7 @@ export const id: RuntimeText = {
 	],
 	libs: ['Login', 'Tanggal', 'Grafik'],
 	installCmd: 'npm install chart.js',
-	installDone: 'added 1 package',
+	installDone: 'added 2 packages',
 	appName: 'Toko nimbus.com',
 	appUp: 'jalan',
 	appDown: 'crash',

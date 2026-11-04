@@ -8,6 +8,7 @@ export const hardware: Lesson = {
 	mood: 'happy',
 	moods: [
 		'happy',
+		'surprised',
 		'idea',
 		'thinking',
 		'calm',

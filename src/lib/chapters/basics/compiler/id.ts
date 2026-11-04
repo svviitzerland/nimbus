@@ -8,10 +8,10 @@ export const id: CompilerText = {
 		'<b>Compiler</b> itu kayak penerjemah yang menerjemahkan <b>satu buku utuh dulu</b>. Kamu nunggu di awal, lalu dapat buku jadinya dan bisa baca dengan ngebut. C dan Go bekerja begini.',
 		'<b>Interpreter</b> itu kayak juru bahasa yang berdiri di samping pembicara, menerjemahkan <b>kalimat per kalimat</b>. Kamu bisa langsung mulai, tapi tiap kalimat makan waktu tambahan. Python dan JavaScript biasanya bekerja begini.',
 		'Yuk lihat mereka menerjemahkan program kecil yang sama, berdampingan. Compiler diam dulu, lalu ngebut. Interpreter langsung mulai, tapi jalannya santai.',
-		'Sekarang ada salah ketik nyelip di baris 3. Compiler membaca semuanya sebelum apa pun jalan, jadi dia berhenti di situ dan nggak ada yang jalan sama sekali. Interpreter santai menjalankan baris baris awal, dan baru crash waktu sampai di baris 3.',
+		'Sekarang ada salah ketik nyelip di baris 3. Compiler membaca semuanya sebelum apa pun jalan, jadi dia berhenti di situ dan nggak ada yang jalan sama sekali. Interpreter santai menjalankan baris baris awal, dan baru crash (berhenti karena error) waktu sampai di baris 3.',
 		'Sedikit sejarah. Tahun 1952 <b>Grace Hopper</b> membuat salah satu compiler paling awal, namanya A0. Banyak orang bilang komputer cuma bisa berhitung, tapi dia yakin program sebaiknya ditulis pakai kata kata yang mirip bahasa Inggris, ide yang kemudian tumbuh jadi bahasa COBOL. Timnya bahkan pernah menemukan ngengat sungguhan nyangkut di dalam komputer Harvard Mark II tahun 1947, dan dia senang sekali menceritakan "bug" pertama yang beneran itu.',
 		'Satu lagi kelebihan compiler. Hasil terjemahannya disimpan jadi file, jadi waktu dijalankan lagi nggak perlu menerjemahkan, langsung jalan. Makanya aplikasi yang kamu install biasanya hasil compile, diterjemahkan sekali di komputer pembuatnya, lalu cepat buat semua orang.',
-		'[fyi] Di dunia nyata batasnya agak kabur. Java dikompilasi dulu jadi bahasa setengah jadi, lalu sebuah mesin virtual menerjemahkan sisanya sambil programnya jalan. Mesin JavaScript di browser kamu juga mencampur dua gaya ini, biar makin cepat.',
+		'[fyi] Di dunia nyata batasnya agak kabur. Java dikompilasi dulu jadi bahasa setengah jadi, lalu program pembantu (Java virtual machine) menerjemahkan sisanya sambil programnya jalan. Mesin JavaScript di browser kamu juga mencampur dua gaya ini, biar makin cepat.',
 		'[ingat] Compiler itu penerjemah buku, terjemahkan semua dulu baru dibaca. Interpreter itu juru bahasa di rapat, ngomong sekalimat langsung diterjemahkan sekalimat.',
 		'Kalau mau, giliran kamu. Selipkan salah ketik di baris 3 dan lihat siapa yang sadar duluan, lalu betulkan lagi.'
 	],
@@ -47,7 +47,7 @@ export const id: CompilerText = {
 		{
 			title: 'Grace Hopper',
 			tag: 'Sejarah',
-			body: 'Membuat compiler <b>A0</b> tahun 1952 dan memperjuangkan kode yang ditulis pakai kata kata mirip bahasa Inggris, yang kemudian melahirkan <b>COBOL</b>. Dia juga yang bikin kata <b>bug</b> terkenal.'
+			body: 'Membuat compiler <b>A0</b> tahun 1952 dan memperjuangkan kode yang ditulis pakai kata kata mirip bahasa Inggris, yang kemudian melahirkan <b>COBOL</b>. Cerita ngengat timnya ikut bikin kata <b>bug</b> terkenal di dunia komputer.'
 		},
 		{
 			title: 'Terjemahkan sekali',

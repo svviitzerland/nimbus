@@ -8,10 +8,10 @@ export const en: CompilerText = {
 		'A <b>compiler</b> is like a translator who translates a <b>whole book first</b>. You wait at the start, then you get the finished book and read it at full speed. C and Go work like this.',
 		'An <b>interpreter</b> is like a live interpreter standing next to a speaker, translating <b>sentence by sentence</b>. You start right away, but every sentence takes a little extra time. Python and JavaScript usually work like this.',
 		'Watch them translate the same tiny program, side by side. The compiler pauses, then races. The interpreter starts at once, then walks.',
-		'Now a typo sneaks into line 3. The compiler reads everything before anything runs, so it stops right there and nothing runs at all. The interpreter happily runs the first lines and only crashes when it reaches line 3.',
+		'Now a typo sneaks into line 3. The compiler reads everything before anything runs, so it stops right there and nothing runs at all. The interpreter happily runs the first lines and only crashes (stops with an error) when it reaches line 3.',
 		'Some history. In 1952 <b>Grace Hopper</b> built one of the very first compilers, called A0. People told her computers could only do math, but she believed we should write programs in words closer to English, an idea that later grew into the language COBOL. Her team even found a real moth stuck inside the Harvard Mark II computer in 1947, and she loved telling the story of that first actual "bug".',
 		'One more win for the compiler. Its translation is saved as a file, so the next run skips translating and starts instantly. That is why the apps you install are usually compiled, translated once on the maker’s computer, fast for everyone after.',
-		'[fyi] Real life is a little blurry. Java first compiles to a halfway language, then a virtual machine translates the rest while the program runs. The JavaScript engine in your browser mixes both styles too, just to go faster.',
+		'[fyi] Real life is a little blurry. Java first compiles to a halfway language, then a helper program (the Java virtual machine) translates the rest while the program runs. The JavaScript engine in your browser mixes both styles too, just to go faster.',
 		'[ingat] A compiler is a book translator, the whole book first, then you read fast. An interpreter is the live interpreter at a meeting, one sentence at a time, starting right away.',
 		'Your turn, if you like. Slip a typo into line 3 and watch who notices first, then fix it again.'
 	],
@@ -47,7 +47,7 @@ export const en: CompilerText = {
 		{
 			title: 'Grace Hopper',
 			tag: 'History',
-			body: 'Built the <b>A0</b> compiler in 1952 and pushed for code written in words close to English, which led to <b>COBOL</b>. She also made the word <b>bug</b> famous.'
+			body: 'Built the <b>A0</b> compiler in 1952 and pushed for code written in words close to English, which led to <b>COBOL</b>. Her team’s moth story helped make the word <b>bug</b> famous in computing.'
 		},
 		{
 			title: 'Translate once',

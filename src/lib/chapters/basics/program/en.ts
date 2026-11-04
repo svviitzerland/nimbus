@@ -5,6 +5,7 @@ export const en: ProgramText = {
 	intro: [
 		'Let us start in a kitchen, far away from any computer. Nim wants a cup of tea, so we write down how to make one, step by step. Watch the recipe fill itself in.',
 		'That list has a fancy name, an <b>algorithm</b>. It simply means a clear list of steps that solves a problem. A recipe is an algorithm. So are the directions you text a friend to find your house (turn left at the bakery, third gate on the right).',
+		'So who invented the algorithm? No single person did. Around 300 BC, <b>Euclid</b> in Greece already wrote down the steps to find the biggest number that divides two numbers evenly. The name comes from <b>al Khwarizmi</b>, a scholar in Baghdad around the year 820. His book on doing sums step by step was translated into Latin, where his name was written <b>Algoritmi</b>. That is where the word algorithm was born.',
 		'A <b>program</b> is an algorithm written in a language a computer can follow. Same steps, same order, just spelled in a way the machine understands. Every app on your phone is exactly that.',
 		'Here is the big thing. A computer follows the steps <b>exactly</b>, one after another, and never guesses what you meant. If a step is missing or in the wrong place, it still does what is written. That kind of mistake is called a <b>bug</b>.',
 		'Now the fun part. Every algorithm in the world, from tea to a rocket launch, is built from just three building blocks. The first is <b>sequence</b>, steps done one after another, top to bottom.',
@@ -25,6 +26,11 @@ export const en: ProgramText = {
 			tag: 'Algorithm',
 			title: 'A clear list of steps',
 			body: 'An <b>algorithm</b> is a set of steps that solves a problem. It is clear enough that anyone who follows it gets the same result.'
+		},
+		{
+			tag: 'History',
+			title: 'Where does the word come from?',
+			body: 'From the name of <b>al Khwarizmi</b>, a scholar in Baghdad in the ninth century. The steps themselves are much older, and in 1843 <b>Ada Lovelace</b> wrote the first algorithm meant for a calculating machine.'
 		},
 		{
 			tag: 'Program',
@@ -62,6 +68,30 @@ export const en: ProgramText = {
 			body: 'Trade two lines and the computer still follows them, line by line. Nothing is broken except the order.'
 		}
 	],
+	history: {
+		heading: 'The trail of the algorithm',
+		people: [
+			{
+				year: 'c. 300 BC',
+				name: 'Euclid',
+				place: 'Greece',
+				body: 'Wrote the steps to find the biggest number that divides two numbers. Still used today.'
+			},
+			{
+				year: 'c. 820',
+				name: 'al Khwarizmi',
+				place: 'Baghdad',
+				body: 'Wrote a book on doing sums step by step. His name became the word algorithm.'
+			},
+			{
+				year: '1843',
+				name: 'Ada Lovelace',
+				place: 'England',
+				body: 'Wrote the first algorithm for a calculating machine, often called the first computer program.'
+			}
+		],
+		word: ['al Khwarizmi', 'Algoritmi', 'algorithm']
+	},
 	recipeTitle: 'Tea recipe',
 	programTitle: 'The same recipe, for a computer',
 	steps: {

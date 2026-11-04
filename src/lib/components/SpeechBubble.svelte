@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { fade, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import Nim from './Nim.svelte';
@@ -11,6 +12,7 @@
 
 	let {
 		nim,
+		lines = [],
 		mood = 'calm',
 		canNext = false,
 		canBack = false,
@@ -23,6 +25,12 @@
 		steps = 0
 	}: {
 		nim: string;
+		/**
+		 * Every line this lesson can show (beats and reactions). The dock reserves room for the
+		 * longest one, so its height stays the same for the whole lesson and the stage above it
+		 * never jumps when a line is longer or shorter.
+		 */
+		lines?: string[];
 		mood?: Mood;
 		canNext?: boolean;
 		canBack?: boolean;
@@ -37,32 +45,106 @@
 		steps?: number;
 	} = $props();
 
-	// Any line (a beat or a reaction) that starts with `[fyi]` is a "by the way" aside: the
-	// bubble looks the same but leads with a small FYI tag. Reusable across every lesson.
+	// Any line (a beat or a reaction) that starts with `[fyi]` is a "by the way" aside, and
+	// `[ingat]` marks a memory trick. Both lead with a small tag and tint the bubble a little.
 	const FYI_MARK = '[fyi]';
-	const isFyi = $derived(nim.trimStart().toLowerCase().startsWith(FYI_MARK));
-	// `[ingat]` marks a memory trick (an easy way to remember the idea), with a green tag.
 	const MEMO_MARK = '[ingat]';
-	const isMemo = $derived(nim.trimStart().toLowerCase().startsWith(MEMO_MARK));
-	const body = $derived(
-		isFyi
-			? nim.trimStart().slice(FYI_MARK.length).trimStart()
-			: isMemo
-				? nim.trimStart().slice(MEMO_MARK.length).trimStart()
-				: nim
+	function parse(line: string) {
+		const s = line.trimStart();
+		const low = s.toLowerCase();
+		if (low.startsWith(FYI_MARK))
+			return { kind: 'fyi' as const, body: s.slice(FYI_MARK.length).trimStart() };
+		if (low.startsWith(MEMO_MARK))
+			return { kind: 'memo' as const, body: s.slice(MEMO_MARK.length).trimStart() };
+		return { kind: 'plain' as const, body: line };
+	}
+	const cur = $derived(parse(nim));
+	const isFyi = $derived(cur.kind === 'fyi');
+	const isMemo = $derived(cur.kind === 'memo');
+	const html = $derived(renderTerms(cur.body, $lang));
+	// invisible copies of every line, stacked in one grid cell, give the dock its fixed height
+	const sizers = $derived(
+		[...new Set([...lines, nim])].map((l) => {
+			const p = parse(l);
+			return { kind: p.kind, html: renderTerms(p.body, $lang) };
+		})
 	);
 
-	// The dialogue lives in a dock under the stage, so it never covers anything. The learner can
-	// still fold it down to a slim bar (Nim, one line, and Next) to give the stage more room.
+	// The dock can fold down to a slim bar (Nim, one line, and Next) to give the stage more room.
 	let collapsed = $state(false);
 	function toggle() {
 		collapsed = !collapsed;
 	}
-	// `aside` (the learner's turn) only tints the dock border now; it no longer hides Nim.
+
+	// Nim speaks a line word by word, and the mouth moves while the words come in. A tap on the
+	// line shows it all at once. The words are only faded in, so the layout never moves.
+	const WORD_MS = 24;
+	let talking = $state(false);
+	let revealAll = $state(false);
+	let reduced = $state(false);
+	onMount(() => {
+		reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+	});
+	function speak(node: HTMLElement) {
+		revealAll = false;
+		const walker = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+		const texts: Text[] = [];
+		while (walker.nextNode()) {
+			const n = walker.currentNode as Text;
+			if (!n.parentElement?.closest('.fyi-tag, .memo-tag')) texts.push(n);
+		}
+		let i = 0;
+		for (const tn of texts) {
+			const frag = document.createDocumentFragment();
+			for (const part of tn.data.split(/(\s+)/)) {
+				if (!part) continue;
+				if (/^\s+$/.test(part)) {
+					frag.append(part);
+					continue;
+				}
+				const w = document.createElement('span');
+				w.className = 'w';
+				w.style.setProperty('--i', String(i++));
+				w.textContent = part;
+				frag.append(w);
+			}
+			tn.replaceWith(frag);
+		}
+		talking = !reduced;
+		const timer = setTimeout(() => (talking = false), i * WORD_MS + 260);
+		return {
+			destroy() {
+				clearTimeout(timer);
+			}
+		};
+	}
+	// when a long line does not fit, a soft fade at the bottom says there is more to scroll
+	let stackEl: HTMLDivElement | undefined = $state();
+	let more = $state(false);
+	function measure() {
+		if (!stackEl) return;
+		more = stackEl.scrollHeight - stackEl.scrollTop - stackEl.clientHeight > 4;
+	}
+	$effect(() => {
+		void nim;
+		void collapsed;
+		if (stackEl) stackEl.scrollTop = 0;
+		requestAnimationFrame(measure);
+	});
+	function showAll() {
+		revealAll = true;
+		talking = false;
+	}
+
+	let nimSmall: Nim | undefined = $state();
+	let nimLarge: Nim | undefined = $state();
+	function pokeNim() {
+		nimSmall?.poke();
+		nimLarge?.poke();
+	}
 
 	// Inline glossary chips: [[term|topic]] becomes a tappable chip (rendered inside {@html} so it
 	// composes with any existing markup), and a tap opens a small "coming soon" card for that module.
-	const html = $derived(renderTerms(body, $lang));
 	let activeTerm = $state<{ label: string; target: string } | null>(null);
 	const term = $derived<ResolvedTerm | null>(
 		activeTerm ? resolveTerm(activeTerm.target, $lang) : null
@@ -74,7 +156,10 @@
 	function termClicks(node: HTMLElement) {
 		const onClick = (e: Event) => {
 			const btn = (e.target as HTMLElement).closest('button.term') as HTMLElement | null;
-			if (!btn || !node.contains(btn)) return;
+			if (!btn || !node.contains(btn)) {
+				showAll();
+				return;
+			}
 			e.preventDefault();
 			e.stopPropagation();
 			activeTerm = {
@@ -90,92 +175,135 @@
 	}
 </script>
 
+{#snippet tag(kind: 'fyi' | 'memo' | 'plain')}
+	{#if kind === 'fyi'}<span class="fyi-tag"
+			><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
+				><path d="M12 1.6l1.7 8.7 8.7 1.7-8.7 1.7L12 22.4l-1.7-8.7L1.6 12l8.7-1.7z" /></svg
+			>FYI</span
+		>{:else if kind === 'memo'}<span class="memo-tag"
+			><svg
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2.4"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true"
+				><path
+					d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z"
+				/></svg
+			>{$t.memoTag}</span
+		>{/if}
+{/snippet}
+
 <svelte:window onkeydown={onTermKey} />
 
 <div class="dock-wrap">
 	<!-- The dialogue dock. It sits in the page flow under the stage (never on top of it), like the
-	     dialogue box in a game, with Nim on the left, the line in the middle, and the controls on
-	     the right. Folded, it becomes a slim bar so the stage gets nearly all the room. -->
-	<section class="dock" class:collapsed class:turn={aside} aria-label="Nim">
+	     dialogue box in a game. Nim stands on the left, the speech bubble points at Nim, and the
+	     controls sit inside the bubble. Its height is fixed for the whole lesson. -->
+	<section
+		class="dock"
+		class:collapsed
+		class:turn={aside}
+		class:fyi={isFyi}
+		class:memo={isMemo}
+		aria-label="Nim"
+	>
 		<button
 			type="button"
-			onclick={toggle}
-			aria-label={collapsed ? $t.showNim : $t.hideNim}
-			aria-expanded={!collapsed}
 			class="avatar"
+			onclick={pokeNim}
+			aria-label="Nim"
 			style="view-transition-name: nim;"
 		>
-			<span class="block md:hidden"><Nim {mood} size={collapsed ? 36 : 48} /></span>
-			<span class="hidden md:block"><Nim {mood} size={collapsed ? 44 : 76} /></span>
+			<span class="block md:hidden"
+				><Nim bind:this={nimSmall} {mood} {talking} size={collapsed ? 32 : 42} /></span
+			>
+			<span class="hidden md:block"
+				><Nim bind:this={nimLarge} {mood} {talking} size={collapsed ? 46 : 104} /></span
+			>
 		</button>
 
-		<div class="line">
-			<div class="meta">
-				<span class="who">Nim</span>
-				{#if steps > 1 && !collapsed}
-					<span class="dots" aria-hidden="true">
-						{#each Array.from({ length: steps }, (_, k) => k) as k (k)}
-							<i class:on={k === step} class:past={k < step}></i>
+		<div class="bubble">
+			<span class="tail" aria-hidden="true"></span>
+			<div class="line">
+				<div class="meta">
+					<span class="who">Nim</span>
+					{#if steps > 1 && !collapsed}
+						<span class="dots" aria-hidden="true">
+							{#each Array.from({ length: steps }, (_, k) => k) as k (k)}
+								<i class:on={k === step} class:past={k < step}></i>
+							{/each}
+						</span>
+						<span class="count">{step + 1}/{steps}</span>
+					{/if}
+					{#if !canNext && !collapsed}
+						<span class="hint">{$t.completeHint}</span>
+					{/if}
+				</div>
+				{#if collapsed}
+					<p class="text clamp">{@render tag(cur.kind)}{@html html}</p>
+				{:else}
+					<div class="stack" class:more bind:this={stackEl} onscroll={measure}>
+						{#each sizers as s, k (k)}
+							<p class="text sizer" aria-hidden="true" inert>{@render tag(s.kind)}{@html s.html}</p>
 						{/each}
-					</span>
+						{#key nim}
+							<p
+								use:termClicks
+								use:speak
+								class="text live"
+								class:all={revealAll || reduced}
+								aria-live="polite"
+							>
+								{@render tag(cur.kind)}{@html html}
+							</p>
+						{/key}
+					</div>
 				{/if}
 			</div>
-			{#key nim}
-				<p use:termClicks in:fade={{ duration: 200 }} class="text" class:clamp={collapsed}>
-					{#if isFyi}<span class="fyi-tag"
-							><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"
-								><path d="M12 1.6l1.7 8.7 8.7 1.7-8.7 1.7L12 22.4l-1.7-8.7L1.6 12l8.7-1.7z" /></svg
-							>FYI</span
-						>{/if}{#if isMemo}<span class="memo-tag"
-							><svg
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2.4"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								aria-hidden="true"
-								><path
-									d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3Z"
-								/></svg
-							>{$t.memoTag}</span
-						>{/if}{@html html}
-				</p>
-			{/key}
-		</div>
 
-		<div class="controls">
-			{#if canBack && !collapsed}
-				<button onclick={onback} class="back">{$t.back}</button>
-			{/if}
-			<button
-				onclick={onnext}
-				disabled={!canNext}
-				class="next"
-				title={canNext ? undefined : $t.completeHint}
-			>
-				{final ? $t.finish : $t.next}
-			</button>
-			<button
-				type="button"
-				onclick={toggle}
-				aria-label={collapsed ? $t.showNim : $t.hideNim}
-				class="fold"
-			>
-				<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-					<path
-						d={collapsed ? 'M3 8.5l4-4 4 4' : 'M3 5.5l4 4 4-4'}
-						stroke="currentColor"
-						stroke-width="1.8"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-					/>
-				</svg>
-			</button>
+			<div class="controls">
+				{#if canBack && !collapsed}
+					<button onclick={onback} class="back">{$t.back}</button>
+				{/if}
+				<button
+					onclick={onnext}
+					disabled={!canNext}
+					class="next"
+					title={canNext ? undefined : $t.completeHint}
+				>
+					<span>{final ? $t.finish : $t.next}</span>
+					<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<path
+							d={final ? 'M5 12.5l4.5 4.5L19 7.5' : 'M9 5l7 7-7 7'}
+							stroke="currentColor"
+							stroke-width="2.8"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						/>
+					</svg>
+				</button>
+				<button
+					type="button"
+					onclick={toggle}
+					aria-label={collapsed ? $t.showNim : $t.hideNim}
+					aria-expanded={!collapsed}
+					class="fold"
+				>
+					<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+						<path
+							d={collapsed ? 'M3 8.5l4-4 4 4' : 'M3 5.5l4 4 4-4'}
+							stroke="currentColor"
+							stroke-width="1.8"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						/>
+					</svg>
+				</button>
+			</div>
 		</div>
-		{#if !canNext && !collapsed}
-			<p class="hint">{$t.completeHint}</p>
-		{/if}
 	</section>
 
 	<!-- Cross link card for a tapped [[label|target]] chip. It says where the idea is taught. A
@@ -251,37 +379,73 @@
 		justify-content: center;
 	}
 	.dock {
+		--accent: var(--color-brand);
 		position: relative;
 		display: grid;
-		width: min(100%, 920px);
-		grid-template-columns: auto minmax(0, 1fr) auto;
-		align-items: center;
-		gap: 4px 16px;
-		border: 1px solid var(--color-line);
-		border-radius: 24px;
-		background: var(--color-card);
-		padding: 12px 14px 12px 12px;
-		box-shadow: 0 12px 32px rgba(22, 40, 60, 0.1);
-		transition:
-			padding 0.25s,
-			border-color 0.25s;
+		width: min(100%, 960px);
+		grid-template-columns: auto minmax(0, 1fr);
+		align-items: end;
+		gap: 0 14px;
 	}
-	.dock.turn {
-		border-color: color-mix(in srgb, var(--color-brand) 35%, var(--color-line));
+	.dock.fyi {
+		--accent: var(--color-amber);
 	}
-	.dock.collapsed {
-		padding-top: 6px;
-		padding-bottom: 6px;
+	.dock.memo {
+		--accent: var(--color-grass);
 	}
 	.avatar {
+		position: relative;
 		align-self: end;
-		margin: -26px 0 -4px;
+		margin-bottom: 2px;
 		outline: none;
+		cursor: pointer;
 		-webkit-tap-highlight-color: transparent;
 	}
-	.collapsed .avatar {
-		align-self: center;
-		margin: 0;
+	.bubble {
+		position: relative;
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		align-items: center;
+		gap: 4px 18px;
+		border: 1px solid var(--color-line);
+		border-radius: 22px;
+		background: var(--color-card);
+		padding: 12px 14px 14px 20px;
+		box-shadow:
+			0 1px 0 color-mix(in srgb, var(--color-line) 60%, transparent),
+			0 14px 34px rgba(22, 40, 60, 0.1);
+		transition:
+			border-color 0.3s,
+			box-shadow 0.3s;
+	}
+	/* a soft accent stripe on the left edge, amber for FYI, green for a memory trick */
+	.bubble::before {
+		content: '';
+		position: absolute;
+		left: -1px;
+		top: 16px;
+		bottom: 16px;
+		width: 3px;
+		border-radius: 0 3px 3px 0;
+		background: var(--accent);
+		opacity: 0.85;
+		transition: background 0.3s;
+	}
+	.dock.turn .bubble {
+		border-color: color-mix(in srgb, var(--color-brand) 35%, var(--color-line));
+	}
+	/* the bubble's tail, pointing down and left at Nim */
+	.tail {
+		position: absolute;
+		left: -8px;
+		bottom: 26px;
+		height: 16px;
+		width: 16px;
+		transform: rotate(45deg);
+		border-left: 1px solid var(--color-line);
+		border-bottom: 1px solid var(--color-line);
+		background: var(--color-card);
+		border-radius: 0 0 0 4px;
 	}
 	.line {
 		min-width: 0;
@@ -290,13 +454,15 @@
 		display: flex;
 		align-items: center;
 		gap: 10px;
+		min-height: 18px;
 	}
 	.who {
 		font-size: 11px;
 		font-weight: 800;
 		letter-spacing: 0.12em;
 		text-transform: uppercase;
-		color: var(--color-brand);
+		color: var(--accent);
+		transition: color 0.3s;
 	}
 	.dots {
 		display: flex;
@@ -308,8 +474,8 @@
 		border-radius: 999px;
 		background: var(--color-line);
 		transition:
-			width 0.2s,
-			background 0.2s;
+			width 0.25s,
+			background 0.25s;
 	}
 	.dots i.past {
 		background: color-mix(in srgb, var(--color-brand) 45%, var(--color-line));
@@ -318,16 +484,70 @@
 		width: 16px;
 		background: var(--color-brand);
 	}
+	.count {
+		font-size: 11px;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		color: var(--color-faint);
+	}
+	.hint {
+		margin-left: auto;
+		font-size: 11px;
+		color: var(--color-faint);
+	}
+	/* every possible line sits in the same grid cell, the invisible ones set the height */
+	.stack {
+		display: grid;
+		margin-top: 4px;
+		max-height: calc(1.6em * 6);
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		scrollbar-width: thin;
+	}
+	.stack.more {
+		mask-image: linear-gradient(to bottom, #000 calc(100% - 2.2em), transparent);
+	}
+	.stack > .text {
+		grid-area: 1 / 1;
+	}
 	.text {
-		margin: 4px 0 0;
-		min-height: 3.2em;
+		margin: 0;
 		font-size: 15px;
 		line-height: 1.6;
 		color: color-mix(in srgb, var(--color-ink) 92%, transparent);
 	}
+	.stack {
+		font-size: 15px;
+	}
+	.sizer {
+		visibility: hidden;
+		pointer-events: none;
+		user-select: none;
+	}
+	.live {
+		cursor: default;
+	}
+	.live :global(.w) {
+		opacity: 0;
+		animation: word 0.3s ease-out forwards;
+		animation-delay: calc(var(--i) * 24ms);
+	}
+	.live.all :global(.w) {
+		animation: none;
+		opacity: 1;
+	}
+	@keyframes word {
+		from {
+			opacity: 0;
+			filter: blur(2px);
+		}
+		to {
+			opacity: 1;
+			filter: none;
+		}
+	}
 	.text.clamp {
-		min-height: 0;
-		margin: 0;
+		margin: 2px 0 0;
 		display: -webkit-box;
 		-webkit-line-clamp: 1;
 		line-clamp: 1;
@@ -341,34 +561,46 @@
 		gap: 6px;
 	}
 	.back {
-		border-radius: 10px;
-		padding: 8px 12px;
+		border-radius: 12px;
+		padding: 9px 12px;
 		font-size: 14px;
 		font-weight: 500;
 		color: var(--color-muted);
-		transition: color 0.15s;
+		transition:
+			color 0.15s,
+			background 0.15s;
 	}
 	.back:hover {
 		color: var(--color-ink);
+		background: var(--color-paper);
 	}
 	.next {
-		border-radius: 12px;
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		border-radius: 14px;
 		background: var(--color-brand);
-		padding: 10px 22px;
+		padding: 11px 18px 11px 22px;
 		font-size: 14px;
-		font-weight: 600;
+		font-weight: 650;
 		color: #fff;
-		box-shadow: 0 3px 0 rgba(28, 74, 160, 0.5);
+		box-shadow: 0 3px 0 rgba(28, 74, 160, 0.55);
 		transition:
 			filter 0.15s,
 			transform 0.1s;
 	}
+	.next svg {
+		transition: transform 0.2s;
+	}
 	.next:enabled:hover {
-		filter: brightness(1.1);
+		filter: brightness(1.08);
+	}
+	.next:enabled:hover svg {
+		transform: translateX(2px);
 	}
 	.next:enabled:active {
 		transform: translateY(2px);
-		box-shadow: 0 1px 0 rgba(28, 74, 160, 0.5);
+		box-shadow: 0 1px 0 rgba(28, 74, 160, 0.55);
 	}
 	.next:disabled {
 		cursor: not-allowed;
@@ -383,51 +615,95 @@
 		justify-content: center;
 		border-radius: 999px;
 		color: var(--color-faint);
-		transition: color 0.15s;
+		transition:
+			color 0.15s,
+			background 0.15s;
 	}
 	.fold:hover {
 		color: var(--color-ink);
+		background: var(--color-paper);
 	}
-	.hint {
-		grid-column: 2 / 4;
-		margin: 0;
-		text-align: right;
-		font-size: 11px;
-		color: var(--color-faint);
+	.collapsed .bubble {
+		padding-top: 7px;
+		padding-bottom: 7px;
+	}
+	.collapsed .tail {
+		bottom: 50%;
+		margin-bottom: -8px;
+	}
+	.collapsed .avatar {
+		align-self: center;
 	}
 	@media (max-width: 767px) {
 		.dock {
-			grid-template-columns: auto minmax(0, 1fr);
-			gap: 6px 10px;
-			border-radius: 20px;
-			padding: 10px 10px 10px 8px;
+			grid-template-columns: minmax(0, 1fr);
 		}
+		/* on a phone Nim peeks over the top left corner of the bubble, in a small round badge so
+		   the white cloud never melts into the white bubble */
 		.avatar {
-			margin: -18px 0 0;
-			align-self: start;
+			position: absolute;
+			left: 8px;
+			top: -26px;
+			z-index: 1;
+			margin: 0;
+			display: flex;
+			height: 50px;
+			width: 50px;
+			align-items: center;
+			justify-content: center;
+			border: 1px solid var(--color-line);
+			border-radius: 999px;
+			background: var(--color-brand-soft);
+			box-shadow: 0 4px 12px rgba(22, 40, 60, 0.12);
 		}
-		.text {
+		.bubble {
+			grid-template-columns: minmax(0, 1fr);
+			gap: 6px;
+			border-radius: 20px;
+			padding: 10px 12px 10px 14px;
+		}
+		.meta {
+			padding-left: 52px;
+		}
+		.tail {
+			display: none;
+		}
+		.text,
+		.stack {
 			font-size: 14px;
-			min-height: 0;
+		}
+		.stack {
+			max-height: calc(1.6em * 7);
+		}
+		.count {
+			display: none;
 		}
 		.controls {
-			grid-column: 1 / 3;
 			justify-content: flex-end;
 		}
-		.collapsed .controls {
-			grid-column: auto;
+		.collapsed .avatar {
+			position: static;
+			height: 40px;
+			width: 40px;
 		}
 		.collapsed.dock {
-			grid-template-columns: auto minmax(0, 1fr) auto;
+			grid-template-columns: auto minmax(0, 1fr);
+			align-items: center;
 		}
-		.hint {
-			grid-column: 1 / 3;
+		.collapsed .bubble {
+			grid-template-columns: minmax(0, 1fr) auto;
+		}
+		.collapsed .meta {
+			padding-left: 0;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.dock,
-		.dots i {
+		.bubble,
+		.dots i,
+		.live :global(.w) {
 			transition: none;
+			animation: none;
+			opacity: 1;
 		}
 	}
 
@@ -647,28 +923,5 @@
 		.fyi-tag svg {
 			animation: none;
 		}
-	}
-	/* gentle bob to signal Nim is waiting when the bubble is out */
-	@keyframes nim-bob {
-		0%,
-		100% {
-			transform: translateY(0);
-		}
-		50% {
-			transform: translateY(-5px);
-		}
-	}
-	@keyframes nim-ping {
-		0% {
-			box-shadow: 0 0 0 0 rgba(46, 111, 224, 0.45);
-		}
-		70% {
-			box-shadow: 0 0 0 9px rgba(46, 111, 224, 0);
-		}
-		100% {
-			box-shadow: 0 0 0 0 rgba(46, 111, 224, 0);
-		}
-	}
-	@media (prefers-reduced-motion: reduce) {
 	}
 </style>

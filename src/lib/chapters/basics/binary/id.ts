@@ -3,13 +3,13 @@ import type { BinaryText } from './types';
 export const id: BinaryText = {
 	title: 'Bit dan byte',
 	intro: [
-		'Jauh di dalam setiap komputer ada jutaan saklar super kecil. Tiap saklar cuma bisa <b>nyala</b> atau <b>mati</b>, persis kayak saklar lampu di kamarmu. Nyala ditulis 1, mati ditulis 0.',
+		'Jauh di dalam setiap komputer ada miliaran saklar super kecil. Tiap saklar cuma bisa <b>nyala</b> atau <b>mati</b>, persis kayak saklar lampu di kamarmu. Nyala ditulis 1, mati ditulis 0.',
 		'Satu saklar sendirian namanya <b>bit</b>. Satu bit cuma bisa jawab ya atau tidak, sedikit banget. Makanya komputer menjejerkan bit jadi barisan isi delapan, dan barisan itu namanya <b>byte</b>.',
 		'[ingat] 8 bit jadi 1 byte, kayak 8 orang yang membentuk satu regu. Tiap dengar kata byte, bayangkan delapan saklar kecil berdiri berjejer.',
 		'Terus huruf gimana? Orang orang sepakat bikin daftar, tiap huruf dapat nomornya sendiri. Huruf n kecil itu nomor 110, dan 110 punya pola saklar sendiri. Pencet n di keyboard, dan pola itulah yang disimpan komputer.',
 		'Kata itu cuma byte yang dijejer, satu byte untuk tiap huruf. Kata nimbus ada enam huruf, jadi butuh enam byte, total 48 saklar kecil.',
 		'[fyi] Daftar pertama yang populer namanya ASCII, dari tahun 1960an. Sekarang kita pakai <b>Unicode</b>, daftar yang jauh lebih panjang dan sudah mencakup huruf Jepang, Arab, aksara Jawa, sampai emoji.',
-		'Foto juga pakai trik yang sama. Foto itu kumpulan titik warna kecil, dan tiap titik isinya tiga byte yang bilang seberapa merah, hijau, dan birunya. Lagu juga begitu, suaranya diukur ribuan kali tiap detik dan tiap ukuran jadi beberapa byte.',
+		'Foto juga pakai trik yang sama. Foto itu kumpulan titik warna kecil, dan tiap titik isinya tiga byte yang bilang seberapa merah, hijau, dan birunya. Lagu juga begitu, suaranya diukur puluhan ribu kali tiap detik dan tiap ukuran jadi beberapa byte.',
 		'Byte cepat banget numpuk, jadi kita hitung pakai kotak yang lebih besar. <b>KB</b> (kilobyte) itu sekitar seribu byte, <b>MB</b> (megabyte) sekitar sejuta, dan <b>GB</b> (gigabyte) sekitar semiliar. Satu foto beberapa MB, satu film beberapa GB.',
 		'[ingat] Kilo, mega, giga, sama kayak ngitung duit, ribu, juta, miliar. Tiap naik satu tingkat, jadi seribu kali lebih besar.',
 		'Ujung ujungnya semua yang ada di komputer itu byte, termasuk aplikasi (nanti dibahas di [[Apa itu program|basics/program]]). Kalau mau, coba nyalakan dan matikan saklarnya sendiri, lihat huruf apa yang keluar.'
@@ -38,7 +38,7 @@ export const id: BinaryText = {
 		},
 		{
 			title: 'Satu foto',
-			body: 'Ribuan titik warna. Tiap titik isinya <b>3 byte</b>, satu untuk merah, satu hijau, satu biru. Lagu juga diubah jadi byte dengan cara serupa.'
+			body: 'Jutaan titik warna. Tiap titik isinya <b>3 byte</b>, satu untuk merah, satu hijau, satu biru. Lagu juga diubah jadi byte dengan cara serupa.'
 		},
 		{
 			title: 'Kotak yang makin besar',

@@ -5,7 +5,7 @@ export const en: LanguagesText = {
 	intro: [
 		'Here is a secret about every computer. The chip that does the real work, the <b>CPU</b> (the brain of the computer), cannot read words at all. It only understands <b>0 and 1</b>.',
 		'Instructions written as pure 0 and 1 are called <b>machine code</b>. Long ago people really wrote programs like this, by hand. Slow, painful, and one wrong digit broke everything.',
-		'So people invented friendlier ways to write instructions, <b>programming languages</b>. You write with words and symbols, and a translator (a [[compiler|basics/compiler]]) turns them into 0 and 1 for the CPU.',
+		'So people invented friendlier ways to write instructions, <b>programming languages</b>. You write with words and symbols, and a translator (like a [[compiler|basics/compiler]]) turns them into 0 and 1 for the CPU.',
 		'Meet <b>C</b>, one of the classics, born in the 1970s. Same job, add 2 and 3 and show the answer. It is a little fussy with brackets and semicolons, but it runs very close to the machine, so it is fast.',
 		'And here is <b>Python</b>. The exact same job, in one line. It reads almost like plain English, which is why so many people learn it first.',
 		'Notice the trade. The higher up, the easier for people to write. The lower down, the closer to the machine, faster but fussier. No language wins at everything.',
@@ -17,15 +17,15 @@ export const en: LanguagesText = {
 	reactions: {
 		machine:
 			'Nine bytes of 0 and 1, and this is only the adding part. Showing the answer on screen would take hundreds more rows. Nobody misses writing this by hand.',
-		c: 'C asks you to spell things out, which library to use, where the program starts, a semicolon after each line. In return it runs fast.',
+		c: 'C asks you to spell things out, which library (ready made code) to use, where the program starts, a semicolon after each line. In return it runs fast.',
 		python:
-			'One line, and Python handles the fussy parts for you. It still gets translated into 0 and 1 before the CPU can run it.'
+			'One line, and Python handles the fussy parts for you. Behind the scenes, a translator still turns it into steps the CPU can run.'
 	},
 	panels: [
 		{
 			tag: 'Machine code',
 			title: 'All the CPU understands',
-			body: 'The CPU reads 0 and 1 in groups of eight (each group is a <b>byte</b>). These nine bytes only put 2 in a box and add 3 to it.'
+			body: 'The CPU reads 0 and 1 in groups of eight (each group is a <b>byte</b>). These nine bytes only put 2 in a box, add 3 to it, and stop.'
 		},
 		{
 			tag: 'C',

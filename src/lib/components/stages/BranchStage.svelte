@@ -35,7 +35,9 @@
 	}
 </script>
 
-<div class="flex h-full w-full flex-col items-center gap-4 overflow-y-auto pb-28 md:pb-6">
+<div
+	class="flex h-full w-full flex-col items-center justify-center-safe gap-4 overflow-y-auto pb-28 md:pb-6"
+>
 	<div class="w-full max-w-2xl">
 		<TrackPicker topicsOnly onpick={pick} selected={picked?.id} />
 	</div>

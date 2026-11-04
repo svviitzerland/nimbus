@@ -278,7 +278,7 @@
 		height: 100%;
 		width: 100%;
 		justify-content: center;
-		align-items: flex-start;
+		align-items: safe center;
 		overflow-y: auto;
 		overflow-x: hidden;
 		padding-bottom: 16px;

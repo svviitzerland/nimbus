@@ -9,7 +9,7 @@ export interface HardwareStep {
 
 export interface HardwareText extends LessonText {
 	/**
-	 * Eleven steps, one per beat, in this order: the whole laptop, motherboard, CPU, RAM,
+	 * Twelve steps, one per beat, in this order: the whole laptop, the laptop opened, motherboard, CPU, RAM,
 	 * storage, loading (storage to RAM to CPU), the memory trick, GPU, battery, input and output,
 	 * and the whole team again.
 	 */

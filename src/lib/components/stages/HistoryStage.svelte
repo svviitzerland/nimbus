@@ -73,6 +73,23 @@
 		return pts.join(' ');
 	}
 
+	// the abacus counts up through a few numbers by itself
+	const RODS = [0, 1, 2, 3, 4, 5];
+	const rodX = (r: number) => 52 + r * 31.2;
+	const NUMBERS = [0, 7, 42, 365, 2026, 9999];
+	let numIdx = $state(0);
+	$effect(() => {
+		if (active !== 0 || reduced) {
+			numIdx = 4;
+			return;
+		}
+		numIdx = 0;
+		const t = setInterval(() => (numIdx = (numIdx + 1) % NUMBERS.length), 1800);
+		return () => clearInterval(t);
+	});
+	const abacusNum = $derived(NUMBERS[numIdx]);
+	const digitOf = (r: number) => Math.floor(abacusNum / 10 ** (RODS.length - 1 - r)) % 10;
+
 	const TICK0 = 16;
 	const GAP = 26;
 	const tickX = (k: number) => TICK0 + k * GAP;
@@ -81,22 +98,36 @@
 {#snippet machine(i: number)}
 	<svg viewBox="0 0 260 200" class="machine" aria-hidden="true">
 		{#if i === 0}
-			<!-- abacus -->
-			<rect x="34" y="34" width="192" height="132" rx="10" class="wood" />
-			{#each [62, 86, 110, 134, 158] as y, r (y)}
-				<line x1="40" y1={y} x2="220" y2={y} class="ln" />
-				{#each [58, 74, 90] as x (x)}<circle cx={x} cy={y} r="8" class="bead" />{/each}
-				{#each [170, 186, 202] as x, b (x)}
-					<circle
-						cx={x}
-						cy={y}
-						r="8"
+			<!-- abacus (a soroban). Each rod is one digit, the bead above the bar counts 5 and
+			     each bead below counts 1. A bead counts when it is pushed against the bar. -->
+			<rect x="28" y="22" width="204" height="150" rx="10" class="ab-frame" />
+			<rect x="38" y="32" width="184" height="130" rx="4" class="ab-inside" />
+			{#each RODS as r (r)}
+				<line x1={rodX(r)} y1="34" x2={rodX(r)} y2="160" class="ab-rod" />
+			{/each}
+			<rect x="38" y="62" width="184" height="6" class="ab-bar" />
+			{#each RODS as r (r)}
+				{@const d = digitOf(r)}
+				<ellipse
+					cx={rodX(r)}
+					cy="44"
+					rx="11"
+					ry="6.5"
+					class="bead heaven"
+					style="transform:translateY({d >= 5 ? 11 : 0}px)"
+				/>
+				{#each [0, 1, 2, 3] as k (k)}
+					<ellipse
+						cx={rodX(r)}
+						cy={102 + k * 14}
+						rx="11"
+						ry="6.5"
 						class="bead"
-						class:slide={b === 0 && (r === 1 || r === 3)}
-						style="animation-delay:{r * 0.9}s"
+						style="transform:translateY({k < d % 5 ? -26 : 0}px)"
 					/>
 				{/each}
 			{/each}
+			<text x="130" y="190" text-anchor="middle" class="mono abacus-num">{abacusNum}</text>
 		{:else if i === 1}
 			<!-- a human computer at a desk -->
 			<circle cx="84" cy="66" r="17" class="skin" />
@@ -391,7 +422,7 @@
 		height: 100%;
 		width: 100%;
 		justify-content: center;
-		align-items: flex-start;
+		align-items: safe center;
 		overflow-y: auto;
 		padding-bottom: 7rem;
 	}
@@ -546,13 +577,36 @@
 	.hole {
 		fill: var(--color-muted);
 	}
-	.wood {
-		fill: none;
-		stroke: var(--color-amber);
-		stroke-width: 8;
+	.ab-frame {
+		fill: color-mix(in srgb, var(--color-amber) 30%, var(--color-card));
+		stroke: color-mix(in srgb, var(--color-amber) 75%, var(--color-ink));
+		stroke-width: 2;
+	}
+	.ab-inside {
+		fill: var(--color-card);
+	}
+	.ab-rod {
+		stroke: var(--color-muted);
+		stroke-width: 2;
+	}
+	.ab-bar {
+		fill: color-mix(in srgb, var(--color-amber) 75%, var(--color-ink));
 	}
 	.bead {
 		fill: var(--color-amber);
+		stroke: color-mix(in srgb, var(--color-amber) 70%, var(--color-ink));
+		stroke-width: 1.2;
+		transition: transform 0.45s cubic-bezier(0.3, 1.3, 0.5, 1);
+	}
+	.bead.heaven {
+		fill: var(--color-brand);
+		stroke: color-mix(in srgb, var(--color-brand) 70%, var(--color-ink));
+	}
+	.abacus-num {
+		font-size: 15px;
+		font-weight: 700;
+		fill: var(--color-ink);
+		letter-spacing: 0.12em;
 	}
 	.skin {
 		fill: var(--color-amber-soft);
@@ -683,9 +737,6 @@
 
 	/* calm motion, only when the learner has not asked for less */
 	@media (prefers-reduced-motion: no-preference) {
-		.slide {
-			animation: slide 3.6s ease-in-out infinite;
-		}
 		.write {
 			opacity: 0;
 			animation: appear 4s ease infinite;
@@ -731,19 +782,6 @@
 		.progress,
 		.dot {
 			transition: none;
-		}
-	}
-	@keyframes slide {
-		0%,
-		25% {
-			transform: translateX(0);
-		}
-		45%,
-		80% {
-			transform: translateX(-64px);
-		}
-		100% {
-			transform: translateX(0);
 		}
 	}
 	@keyframes appear {

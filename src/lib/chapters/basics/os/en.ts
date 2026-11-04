@@ -7,8 +7,8 @@ export const en: OsText = {
 		'That is the job of the <b>operating system</b>, or <b>OS</b>. It is the manager sitting between the apps and the hardware. Apps never grab the CPU or RAM themselves, they ask the OS, and the OS hands it out.',
 		'[ingat] The OS is like a waiter in a restaurant. The apps are the guests and the hardware is the kitchen. Guests never walk into the kitchen, they order through the waiter.',
 		'Watch the apps open. Each one first asks the OS for a window and some memory, and only then does it show up on the screen.',
-		'There is only one CPU, so the OS lets the apps take turns. Each app gets a tiny slice of time, a few thousandths of a second, then the next one goes. It switches so fast that everything looks like it runs at once.',
-		'The OS also hands each app its own piece of RAM and keeps those pieces apart. That way a crashing game cannot mess up your chat. The OS keeps a little RAM for itself, too.',
+		'The CPU can only work on a few things at once, and there are far more apps, so the OS lets them take turns. Each app gets a tiny slice of time, a few thousandths of a second, then the next one goes. It switches so fast that everything looks like it runs at once.',
+		'The OS also hands each app its own piece of RAM and keeps those pieces apart. That way a game that crashes (suddenly breaks) cannot mess up your chat. The OS keeps a little RAM for itself, too.',
 		'[fyi] Open one app too many and RAM fills up. The OS then parks the extra on storage (this is called <b>swap</b>). Storage is much slower than RAM, and that is the moment a laptop starts to crawl.',
 		'It looks after your files as well. When the music app wants a song, it asks the OS, and the OS fetches it from storage. Folders are simply the OS keeping your files tidy.',
 		'You already know a few OSes. <b>Windows</b> and <b>macOS</b> run laptops, <b>Linux</b> runs most of the servers on the internet, and <b>Android</b> and <b>iOS</b> run phones (Android is built on Linux). You can talk to any of them with icons or typed commands, see [[CLI and GUI|foundations/cli-gui]].',
@@ -16,7 +16,7 @@ export const en: OsText = {
 	],
 	reactions: {
 		open: 'Another app, another piece of RAM. The OS slots it in and adds it to the line for CPU turns.',
-		slow: 'Uh oh, RAM is full. The OS parks the rest on slow storage, so everything stutters. This is when the fan gets loud. Try closing an app.',
+		slow: 'Uh oh, RAM is full. The OS parks the rest on slow storage, so everything stutters and every click feels late. Try closing an app.',
 		close:
 			'Closing an app gives its RAM back to the OS, and the others can breathe again. That is why closing apps you do not use helps an older laptop.'
 	},
@@ -35,7 +35,7 @@ export const en: OsText = {
 		},
 		{
 			title: 'Turns on the CPU',
-			body: 'The CPU works for one app at a time. The OS passes it around in tiny slices, round and round.'
+			body: 'Each core (a worker inside the CPU) runs one app at a time. The OS passes them around in tiny slices, round and round.'
 		},
 		{
 			title: 'Sharing RAM',
