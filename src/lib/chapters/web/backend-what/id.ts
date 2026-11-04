@@ -4,7 +4,7 @@ export const id: BackendWhatText = {
 	title: 'Apa itu backend',
 	intro: [
 		'Waktu kamu belanja di <b>nimbus.com</b>, semua yang kamu lihat dan pencet (foto topi, harga, tombol Beli yang gede itu) ada di HP kamu. Bagian yang kelihatan itu namanya <b>frontend</b>.',
-		'Tapi HP kamu nggak bisa memutuskan sendiri kalau pesananmu itu beneran. Jadi waktu kamu pencet Beli, dia membungkus pesanannya jadi pesan kecil dan mengirimnya jauh jauh.',
+		'Tapi HP kamu nggak bisa memutuskan sendiri apakah pesananmu sah. Jadi waktu kamu pencet Beli, dia membungkus pesanannya jadi pesan kecil dan mengirimnya jauh jauh.',
 		'Pesan itu sampai di <b>backend</b>, sebuah program yang jalan di server. Kamu nggak pernah melihatnya, mirip dapur di restoran. Kamu cuma lihat piring yang keluar.',
 		'Pertama, backend ngecek <b>siapa yang minta</b>. Siapa pun di internet bisa ngirim pesan, jadi dia nggak pernah percaya HP begitu saja.',
 		'Habis itu dia nanya ke <b>database</b>, buku catatan besar tempat semua produk, akun, dan pesanan disimpan. Topinya masih ada? Cuma backend yang boleh membuka buku itu.',
@@ -15,7 +15,7 @@ export const id: BackendWhatText = {
 	],
 	reactions: {
 		loggedOut:
-			'Langsung ditahan di laci pertama. Tanpa login backend nggak tahu ini pesanan siapa, jadi ditolak. HP kamu boleh punya tombol yang cantik, tapi yang memutuskan tetap backend.',
+			'Langsung ditahan di pos pertama. Tanpa login backend nggak tahu ini pesanan siapa, jadi ditolak. HP kamu boleh punya tombol yang cantik, tapi yang memutuskan tetap backend.',
 		loggedIn: 'Sudah login lagi, dan pesanannya lancar sampai akhir.'
 	},
 	steps: [
@@ -44,8 +44,8 @@ export const id: BackendWhatText = {
 			body: 'Pesanannya sekarang <b>sudah tercatat</b>, walaupun baterai HP kamu habis. Struknya dikirim backend, bukan HP kamu.'
 		},
 		{
-			title: 'Cara ingat',
-			tag: 'Cara ingat',
+			title: 'Ruang makan dan dapur',
+			tag: 'Biar nempel',
 			body: 'Frontend itu <b>ruang makan</b>, backend itu <b>dapur</b>.'
 		},
 		{

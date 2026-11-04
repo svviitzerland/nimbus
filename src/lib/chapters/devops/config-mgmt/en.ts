@@ -9,7 +9,7 @@ export const en: ConfigMgmtText = {
 		'<b>Configuration management</b> fixes this. You write down once what every server should look like (which app version, which settings), and a tool makes all of them match.',
 		'A popular tool is <b>Ansible</b>. Its list of steps lives in a file called a <b>playbook</b>. Ansible logs into all six servers for you, runs the steps on all of them at once, and reports back.',
 		'Run it again and nothing breaks. Ansible checks each server first, and if it already matches, it leaves it alone. The report simply says nothing changed.',
-		'[ingat] <b>Write once, run everywhere.</b> The playbook is one checklist read out to every server at the same time. Servers that already match just nod and wait.',
+		'[ingat] <b>Write it once, fix them all.</b> The playbook is one checklist read out to every server at the same time. Servers that already match just nod and wait.',
 		'[fyi] [[Terraform|devops/iac]] creates the servers, Ansible sets up what runs inside them, so teams often use both. Network teams love Ansible too, it can set up hundreds of routers and switches in one go.',
 		'Want to try? Tap a server to mess it up by hand, then watch the playbook bring it back in line. Or just keep watching.'
 	],
@@ -31,7 +31,7 @@ export const en: ConfigMgmtText = {
 		{
 			tag: 'The problem',
 			title: 'A typo slips in',
-			body: '<b>nimbus-ap</b> instead of nimbus-app. One letter, and that server is broken while the others moved on.'
+			body: '<b>nimbus-ap</b> instead of nimbus-app. One missing letter, and that server is broken while the others moved on.'
 		},
 		{
 			tag: 'The idea',
@@ -49,8 +49,8 @@ export const en: ConfigMgmtText = {
 			body: 'Everything already matches, so nothing is touched. You can run a playbook as often as you like.'
 		},
 		{
-			tag: 'Rule of thumb',
-			title: 'Write once, run everywhere',
+			tag: 'Make it stick',
+			title: 'Write it once, fix them all',
 			body: 'One checklist for every server. The ones that already match just nod.'
 		},
 		{

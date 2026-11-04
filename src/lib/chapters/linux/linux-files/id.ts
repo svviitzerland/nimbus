@@ -6,7 +6,7 @@ export const id: LinuxFilesText = {
 		'Website nimbus.com kamu tinggal di sebuah <b>server</b>, komputer di data center. Kayak kebanyakan server di internet, dia jalan pakai <b>Linux</b> (yang ini Ubuntu). Nggak ada desktop, nggak ada mouse, adanya cuma <b>terminal</b>, jendela tempat kamu ngetik perintah. Kamu masuk lewat SSH, pintu jarak jauh dari [[remote access|cloud/remote-access]].',
 		'Semua file di Linux tinggal di satu pohon folder yang besar. Puncaknya namanya <b>root</b> dan ditulis cuma pakai satu garis miring, <b>/</b>. Semua folder lain tumbuh dari situ, kayak cabang dari batang pohon.',
 		'Pertanyaan pertama di tempat baru, aku lagi di mana? Perintah <b>pwd</b> yang jawab (print working directory). Lihat Nim ngetik. Kamu ada di /home/nim, folder rumahmu sendiri.',
-		'Terus, lihat sekeliling. <b>ls</b> nampilin isi sebuah folder, idenya sama kayak di [[CLI vs GUI|foundations/cli-gui]]. Nim minta lihat puncaknya pakai <b>ls /</b>, dan cabang cabang pertama langsung nyala. home isinya user, etc isinya pengaturan, dan var isinya hal yang berubah terus, contohnya log.',
+		'Terus, lihat sekeliling. <b>ls</b> nampilin isi sebuah folder, idenya sama kayak di [[CLI vs GUI|foundations/cli-gui]]. Nim minta lihat puncaknya pakai <b>ls /</b>, dan cabang cabang pertama langsung nyala. home isinya folder para user, etc isinya pengaturan, dan var isinya hal yang berubah terus, contohnya log.',
 		'Sekarang jalan. <b>cd</b> (change directory) mindahin kamu ke sebuah folder. Path kayak /var/log/nimbus artinya turun dari puncak, satu folder demi satu folder. Ikutin pinnya.',
 		'Terakhir, baca. <b>cat</b> nampilin isi file ke layar. Nim lihat isi foldernya, lalu baca error.log, dan ketemu deh alasan nimbus.com mati semalam. Disknya penuh.',
 		'[ingat] Empat perintah, empat pertanyaan kecil. <b>pwd</b> nanya aku di mana, <b>ls</b> nanya ada apa di sini, <b>cd</b> bilang ayo ke sana, <b>cat</b> bilang coba lihat isinya.',
@@ -61,7 +61,7 @@ export const id: LinuxFilesText = {
 			body: '<b>cat</b> nampilin seluruh isi file. Log kayak gini itu teks biasa, memang dibuat buat dibaca manusia.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Empat pertanyaan',
 			body: 'pwd, aku di mana. ls, ada apa di sini. cd, ayo ke sana. cat, lihat isinya.'
 		},

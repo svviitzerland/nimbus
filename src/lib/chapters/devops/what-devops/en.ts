@@ -15,7 +15,7 @@ export const en: WhatDevopsText = {
 	],
 	reactions: {
 		old: 'The old way again. One giant box flies over the wall, the servers go red, and everybody starts pointing fingers. Finding one bug among hundreds of changes can take days.',
-		new: 'Back to DevOps. One team, small boxes rolling out all the time, and any problem is only one change away from being found.'
+		new: 'Back to DevOps. One team, small boxes rolling out all the time, and when something breaks, there is only one change to suspect.'
 	},
 	steps: [
 		{
@@ -30,7 +30,7 @@ export const en: WhatDevopsText = {
 		},
 		{
 			tag: 'Release day',
-			title: 'Blame and fear',
+			title: 'Pointing fingers',
 			body: 'With hundreds of changes inside, nobody knows which one broke the site. So the next release waits even longer.'
 		},
 		{
@@ -49,7 +49,7 @@ export const en: WhatDevopsText = {
 			body: 'Only one change went out, so the cause is obvious. It is pulled back and fixed in minutes, not days.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'Small beats big',
 			body: '<b>Small and often</b> beats <b>big and rare</b>. Look at the year below, lots of tiny boxes instead of one giant one.'
 		},

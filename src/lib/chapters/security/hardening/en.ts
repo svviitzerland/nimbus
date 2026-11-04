@@ -54,7 +54,7 @@ export const en: HardeningText = {
 			body: 'Phone updates and screen locks are hardening too. In the cloud, your rented server is <b>yours</b> to harden.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Close, lock, update',
 			body: 'Not used, <b>close</b> it. Used, <b>lock</b> it. Always <b>update</b>.'
 		},

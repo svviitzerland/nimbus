@@ -16,7 +16,7 @@ export const en: BackendFrameworksText = {
 		byhand:
 			'Every chore is yours again, and the line count jumps. Now imagine doing this for login, the cart, search, and payments too.',
 		framework:
-			'Framework back, and most of the code melts into it. What is left is the part only your shop has.'
+			'Framework back, and it takes over most of the code. What is left is the part only your shop has.'
 	},
 	steps: [
 		{
@@ -40,8 +40,8 @@ export const en: BackendFrameworksText = {
 			body: 'Laravel (PHP), Express (JavaScript), Django (Python), Spring (Java). You pick the one for <b>your language</b>.'
 		},
 		{
-			title: 'Remember it',
-			tag: 'Remember it',
+			title: 'The frame of a house',
+			tag: 'Make it stick',
 			body: 'A framework is the <b>frame of a house</b>, you furnish the rooms.'
 		},
 		{
@@ -51,7 +51,7 @@ export const en: BackendFrameworksText = {
 		},
 		{
 			title: 'Same result, less code',
-			body: 'Both ways save the order. The framework just means <b>far less code</b> to write and keep safe.'
+			body: 'Both ways save the order. The framework just means <b>far less code</b> to write and look after.'
 		}
 	],
 	fileName: 'orders endpoint',

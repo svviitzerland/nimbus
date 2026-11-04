@@ -3,9 +3,9 @@ import type { CicdText } from '../types';
 export const id: CicdText = {
 	title: 'Dari commit sampai live',
 	intro: [
-		'Aplikasimu sudah jalan dan dipantau. Tapi tiap ada perubahan baru dari laptopmu, gimana caranya sampai ke live tanpa merusak apa apa. Cara manual itu serem. Kamu masuk ke server, salin file, restart, lalu berdoa. Satu typo jam dua pagi, situsnya mati.',
+		'Aplikasimu sudah jalan dan dipantau. Tapi tiap ada perubahan baru dari laptopmu, gimana caranya sampai ke situs yang dipakai orang (namanya <b>live</b> atau production) tanpa merusak apa apa? Cara manual itu serem. Kamu masuk ke server, salin file, restart, lalu berdoa. Satu typo jam dua pagi, situsnya mati.',
 		'Cara yang kalem itu pakai <b>pipeline</b>. Kamu tinggal push perubahanmu. Langkah yang sama jalan otomatis tiap kali. Build, test, lalu deploy.',
-		'Pipeline ini punya dua bagian. <b>CI</b> membangun perubahanmu jadi aplikasi lalu mengetesnya. Itu bagian build dan test. <b>CD</b> mengirim yang lolos ke production. Itu bagian deploy. Jadi CI memastikan perubahanmu tidak rusak, CD yang menaruhnya ke live.',
+		'Pipeline ini punya dua bagian. <b>CI</b> (continuous integration) membangun perubahanmu jadi aplikasi lalu mengetesnya. Itu bagian build dan test. <b>CD</b> (continuous delivery) mengirim yang lolos ke production. Itu bagian deploy. Jadi CI memastikan perubahanmu tidak rusak, CD yang menaruhnya ke live.',
 		'Kalau testnya gagal, pipeline langsung berhenti di situ. Perubahan rusak nggak akan pernah sampai ke pengguna. Coba kirim perubahan yang baik, lalu yang rusak. Lihat lognya di konsol bawah.'
 	],
 	reactions: {

@@ -66,7 +66,7 @@ export const en: LlmText = {
 			body: 'Low temperature makes the top bar huge, so the answer is predictable. High temperature flattens the bars, so rare words get a real chance.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Super powered autocomplete',
 			body: 'Your keyboard guesses one word. An LLM keeps guessing, token after token, until the answer is done.'
 		},

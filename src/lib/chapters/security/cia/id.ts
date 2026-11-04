@@ -41,7 +41,7 @@ export const id: CiaText = {
 			body: 'Data ada waktu kamu butuh. Jebol kalau nggak ada yang bisa <b>menjangkaunya</b>, walau nggak ada yang dicuri.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Rahasia, Utuh, Tersedia',
 			body: 'Tiga janji. <b>C</b> bikin rahasia, <b>I</b> bikin utuh, <b>A</b> bikin tersedia.'
 		},

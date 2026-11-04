@@ -46,7 +46,7 @@ export const id: BruteForceText = {
 			body: 'Password populer dan trik umum ada di <b>daftar yang bocor</b>. Mesinnya nyoba itu sebelum yang lain.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Panjang ngalahin pintar',
 			body: 'Beberapa <b>kata acak</b> berderet ngalahin password pendek penuh simbol mana pun.'
 		},

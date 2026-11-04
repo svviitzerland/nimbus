@@ -51,7 +51,7 @@ export const id: DdosText = {
 			body: 'Banyak server di seluruh dunia <b>menyerap</b> banjirnya jauh dari servermu, dan meloloskan pengunjung asli.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Kerumunan di pintu',
 			body: 'DDoS nggak mengambil apa pun, dia <b>nutup pintu</b>. Lebarkan pintunya dan tambah satpam.'
 		},

@@ -25,6 +25,21 @@
 	} = $props();
 
 	const general = $derived(tracks[0]);
+	// stops along the Dari Nol road (computer first, then each topic track's colour)
+	const STOPS = [
+		{ x: 14, y: 96, up: true },
+		{ x: 70, y: 56, up: false },
+		{ x: 104, y: 30, up: false },
+		{ x: 150, y: 70, up: true },
+		{ x: 200, y: 80, up: false },
+		{ x: 250, y: 22, up: false }
+	];
+	const stopColor = (k: number) =>
+		k === 0
+			? 'var(--color-ink)'
+			: k === 1
+				? tracks[0].color
+				: (tracks[k - 1]?.color ?? tracks[0].color);
 	const topics = $derived(tracks.slice(1));
 
 	function doneIn(track: Track): number {
@@ -114,7 +129,55 @@
 						)}{/if}
 				{/if}
 			</span>
+			{#if big && !track.soon}
+				<span class="cta">
+					{isCurrent && done > 0 ? $t.continueTrack : $t.startHere}
+					<svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+						><path
+							d="M9 5l7 7-7 7"
+							stroke="currentColor"
+							stroke-width="3"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						/></svg
+					>
+				</span>
+			{/if}
 		</span>
+		{#if big}
+			<!-- the Dari Nol road, one stop for every subject on the way -->
+			<span class="route" aria-hidden="true">
+				<svg viewBox="-26 0 290 120">
+					<path d="M14 96 C60 96 54 30 100 30 S150 92 196 82 S236 30 250 22" class="road" />
+					<path
+						d="M14 96 C60 96 54 30 100 30 S150 92 196 82 S236 30 250 22"
+						class="road-line"
+						style="stroke-dasharray:none"
+					/>
+					{#each STOPS as st, k (k)}
+						<g class="stop" style="animation-delay:{0.15 + k * 0.12}s">
+							<circle cx={st.x} cy={st.y} r="8" fill={stopColor(k)} />
+							<circle cx={st.x} cy={st.y} r="3" fill="var(--color-card)" />
+							<text x={st.x} y={st.y + (st.up ? -15 : 22)} text-anchor="middle"
+								>{$t.pathStops[k]}</text
+							>
+						</g>
+					{/each}
+				</svg>
+			</span>
+		{:else if !compact && !track.soon}
+			<span class="go" aria-hidden="true">
+				<svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+					><path
+						d="M9 5l7 7-7 7"
+						stroke="currentColor"
+						stroke-width="2.8"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					/></svg
+				>
+			</span>
+		{/if}
 	</button>
 {/snippet}
 
@@ -274,6 +337,141 @@
 		height: 100%;
 		border-radius: 999px;
 		background: var(--tc);
+	}
+
+	/* landing and branch cards (not the compact menu ones) */
+	.track:not(.compact) {
+		position: relative;
+		overflow: hidden;
+		background:
+			radial-gradient(
+				120% 90% at 100% 0%,
+				color-mix(in srgb, var(--tc) 9%, transparent),
+				transparent 60%
+			),
+			var(--color-card);
+	}
+	.track:not(.compact):not(.big) {
+		flex-direction: column;
+		gap: 10px;
+		padding: 16px;
+		text-align: left;
+	}
+	.track:not(.compact):not(.big) .badge {
+		height: 42px;
+		width: 42px;
+	}
+	.track:not(.compact):not(.big) .body {
+		flex: 1;
+	}
+	.track:not(.compact):not(.big) .meta {
+		margin-top: auto;
+		padding-top: 8px;
+	}
+	.go {
+		position: absolute;
+		top: 16px;
+		right: 16px;
+		display: flex;
+		height: 28px;
+		width: 28px;
+		align-items: center;
+		justify-content: center;
+		border-radius: 999px;
+		background: color-mix(in srgb, var(--tc) 12%, transparent);
+		color: var(--tc);
+		transition: transform 0.2s;
+	}
+	.track:not(:disabled):hover .go {
+		transform: translateX(3px);
+	}
+	.track.big {
+		align-items: center;
+		gap: 16px;
+		padding: 20px 22px;
+		border-width: 2px;
+	}
+	.cta {
+		display: inline-flex;
+		align-self: flex-start;
+		align-items: center;
+		gap: 6px;
+		margin-top: 10px;
+		border-radius: 12px;
+		background: var(--tc);
+		padding: 8px 14px 8px 16px;
+		font-size: 13px;
+		font-weight: 700;
+		color: #fff;
+		box-shadow: 0 3px 0 color-mix(in srgb, var(--tc) 60%, #000);
+	}
+	.track:not(:disabled):hover .cta svg {
+		transform: translateX(2px);
+	}
+	.cta svg {
+		transition: transform 0.2s;
+	}
+	.route {
+		flex: none;
+		width: 270px;
+	}
+	.route svg {
+		display: block;
+		width: 100%;
+		overflow: visible;
+	}
+	.road {
+		fill: none;
+		stroke: var(--color-line);
+		stroke-width: 12;
+		stroke-linecap: round;
+	}
+	.road-line {
+		fill: none;
+		stroke: var(--color-card);
+		stroke-width: 2;
+		stroke-linecap: round;
+	}
+	.stop text {
+		font-size: 10px;
+		font-weight: 700;
+		fill: var(--color-muted);
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.stop {
+			transform-box: fill-box;
+			transform-origin: center;
+			animation: stop-in 0.45s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+		}
+	}
+	@keyframes stop-in {
+		from {
+			opacity: 0;
+			transform: translateY(6px) scale(0.6);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+	@media (max-width: 640px) {
+		.route {
+			display: none;
+		}
+		/* on a phone the topic cards lie flat, icon on the left, so the list stays short */
+		.track:not(.compact):not(.big) {
+			flex-direction: row;
+			gap: 12px;
+			padding: 14px 44px 14px 14px;
+		}
+		.go {
+			top: 50%;
+			right: 12px;
+			margin-top: -14px;
+		}
+		.track.big {
+			align-items: flex-start;
+		}
 	}
 	@media (min-width: 640px) {
 		.picker:not(.compact) .grid {

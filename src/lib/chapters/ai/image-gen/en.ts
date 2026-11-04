@@ -20,12 +20,12 @@ export const en: ImageGenText = {
 	panels: [
 		{
 			tag: 'Prompt',
-			title: 'Words in, picture out',
+			title: 'You write words, the AI makes a picture',
 			body: 'You describe the picture in plain words. A few seconds later a brand new image appears.'
 		},
 		{
 			tag: 'Noise',
-			title: 'Pure static',
+			title: 'It starts as random dots',
 			body: 'Every picture starts as random coloured dots. There is <b>nothing</b> hidden in there yet.'
 		},
 		{
@@ -49,7 +49,7 @@ export const en: ImageGenText = {
 			body: 'Your words become numbers. At each step the model asks which dots would make this look more like <b>them</b>.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'A sculptor',
 			body: 'Start with a block of noise, chip away what does not belong. What is left is the picture.'
 		},

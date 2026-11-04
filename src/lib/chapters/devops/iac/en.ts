@@ -9,8 +9,8 @@ export const en: IacText = {
 		'A tool called <b>Terraform</b> reads that file. You type <b>terraform apply</b>, it compares the file with what already exists in the cloud, and builds whatever is missing. Three servers, straight from the text.',
 		'Need more? Change one number in the file, from 3 to 5, and apply again. Terraform only builds the difference (two new servers) and leaves the other three alone.',
 		'Now the scary part. Someone deletes everything by accident. With the file in hand, one apply brings all five servers back, exactly the same as before.',
-		'[ingat] <b>The file is the recipe, Terraform is the cook.</b> Same recipe, same dish, every single time. And if something is not in the file, it does not exist.',
-		'[fyi] Since it is just text, the file lives in [[Git|compute/version-control]] next to your code, so every change to the servers has a history and can be undone. Terraform also talks to many clouds (AWS, Google Cloud, Azure) and even to your own machines on premise.',
+		'[ingat] <b>The file is the recipe, Terraform is the cook.</b> Same recipe, same dish, every single time. And anything not in the file never gets built.',
+		'[fyi] Since it is just text, the file lives in [[Git|compute/version-control]] next to your code, so every change to the servers has a history and can be undone. Terraform also talks to many clouds (AWS, Google Cloud, Azure) and even to machines you own in your office (on premise).',
 		'Want to try? Change the count with the buttons and watch Terraform build or remove servers to match the file. Or just watch, that is fine too.'
 	],
 	reactions: {
@@ -49,7 +49,7 @@ export const en: IacText = {
 			body: 'Everything is gone, but the recipe is not. One apply, and all five come back identical.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'Recipe and cook',
 			body: 'The <b>file</b> is the recipe, <b>Terraform</b> is the cook. Same recipe, same result.'
 		},

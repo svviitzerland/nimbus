@@ -39,7 +39,7 @@ export const en: GpuText = {
 			body: 'The CPU clears the pile four sums at a time. The GPU gives every core one sum, so the pile is gone in a single round.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Professors and a stadium',
 			body: 'A few brilliant professors versus a stadium of students. Easy sums in bulk? Hand them to the stadium.'
 		},

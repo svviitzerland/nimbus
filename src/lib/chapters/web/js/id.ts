@@ -53,7 +53,7 @@ export const id: JsText = {
 			body: 'Kurungnya kembali, seluruh script jalan lagi, listenernya kembali, dan pencetan terhitung.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Cari, dengar, ubah',
 			body: '<b>querySelector</b> mencari, <b>addEventListener</b> mendengar, dan baris di dalamnya mengubah halaman.'
 		},

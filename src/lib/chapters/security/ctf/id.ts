@@ -52,7 +52,7 @@ export const id: CtfText = {
 			body: '<b>picoCTF</b> gratis dan dibuat untuk pemula. Indonesia punya <b>Cyber Jawara</b>.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Geser saja',
 			body: 'Maju untuk <b>sembunyi</b>, mundur untuk <b>baca</b>. Cuma 25 geseran yang perlu dicoba.'
 		},

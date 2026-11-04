@@ -49,7 +49,7 @@ export const id: ConfigMgmtText = {
 			body: 'Semuanya udah sesuai, jadi nggak ada yang disentuh. Playbook boleh dijalanin sesering yang kamu mau.'
 		},
 		{
-			tag: 'Cara gampang',
+			tag: 'Biar nempel',
 			title: 'Tulis sekali, beres semua',
 			body: 'Satu daftar cek buat semua server. Yang udah sesuai cukup ngangguk.'
 		},

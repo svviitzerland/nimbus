@@ -17,7 +17,7 @@ export const id: PackagesText = {
 		installed:
 			'Sampai! htop udah ada di server. Ketik <b>htop</b> buat ngintip apa aja yang jalan. Di server beneran dia menuhin layar, dan keluarnya pakai q.',
 		other:
-			'Sampai. Satu perintah, dan programnya plus dependency nya udah ada di server. Itu keajaiban package manager.',
+			'Sampai. Satu perintah, dan programnya plus semua dependency yang dia butuhin udah ada di server. Itu keajaiban package manager.',
 		already:
 			'apt ngecek, dan yang itu udah terpasang, versi terbaru pula. Nggak ada yang perlu dikerjain.',
 		updated: 'Daftar tokonya segar lagi. Sekarang apt tau versi terbaru di tiap rak.',
@@ -27,7 +27,7 @@ export const id: PackagesText = {
 		notInstalled:
 			'Server belum punya program itu, dan dia malah ngasih tau cara dapetinnya. Minta ke apt pakai sudo.',
 		needSudo:
-			'apt nolak, are you root? Masang program butuh admin. Taruh <b>sudo</b> di depan, kayak <b>sudo apt install htop</b>.',
+			'apt nolak dan nanya "are you root?" Masang program butuh admin. Taruh <b>sudo</b> di depan, kayak <b>sudo apt install htop</b>.',
 		noPackage:
 			'Tokonya nggak punya kotak dengan nama itu. Cek ejaannya, yang kamu cari itu <b>htop</b>.',
 		missing: 'Nggak ada yang namanya itu di sini. Coba <b>sudo apt install htop</b>.',
@@ -53,7 +53,7 @@ export const id: PackagesText = {
 		{
 			tag: 'apt install',
 			title: 'Kotaknya datang',
-			body: 'apt download package nya, buka, lalu pasang. <b>Dependency</b> nya ikut datang sendiri.'
+			body: 'apt download package itu, buka, lalu pasang. Semua <b>dependency</b> ikut datang sendiri.'
 		},
 		{
 			tag: 'sudo',
@@ -63,10 +63,10 @@ export const id: PackagesText = {
 		{
 			tag: 'Cek',
 			title: 'Tanya versinya',
-			body: '<b>nginx -v</b> nampilin versinya. Kalau perintahnya belum ada, Ubuntu malah nyaranin baris install nya.'
+			body: '<b>nginx -v</b> nampilin versinya. Kalau perintahnya belum ada, Ubuntu malah nyaranin perintah buat masangnya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Lihat menu, baru pesan',
 			body: '<b>sudo apt update</b>, lalu <b>sudo apt install</b> plus nama. <b>sudo apt remove</b> buat nyabut lagi.'
 		},

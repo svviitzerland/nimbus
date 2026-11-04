@@ -54,7 +54,7 @@ export const id: HardeningText = {
 			body: 'Update HP dan kunci layar juga hardening. Di cloud, server yang kamu sewa tetap <b>tanggung jawabmu</b>.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Tutup, gembok, update',
 			body: 'Nggak dipakai, <b>tutup</b>. Dipakai, <b>gembok</b>. Selalu <b>update</b>.'
 		},

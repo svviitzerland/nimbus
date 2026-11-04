@@ -43,7 +43,7 @@ export const en: SupervisedText = {
 			body: 'The machine finds the groups, but calls them group 1, 2, and 3. A person decides what they mean.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Answer key or not',
 			body: 'With the answer key, supervised. Without it, unsupervised.'
 		},

@@ -53,8 +53,8 @@ export const id: BuildToolsText = {
 			body: '<b>Vite</b>, <b>webpack</b>, dan <b>esbuild</b> yang paling sering dipakai. Nimbus dibangun pakai Vite.'
 		},
 		{
-			title: 'Cara ingat',
-			tag: 'Cara ingat',
+			title: 'Packing mudik',
+			tag: 'Biar nempel',
 			body: 'Bundle itu <b>satu koper</b>, minify itu <b>tinggalkan yang nggak perlu</b>, compress itu <b>plastik vakum</b>.'
 		}
 	],

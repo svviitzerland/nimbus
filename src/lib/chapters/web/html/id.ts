@@ -7,7 +7,7 @@ export const id: HtmlText = {
 		'Teks biasa itu nggak punya bentuk. Browser nggak tahu baris mana yang judul besar, mana yang kalimat, atau di mana tombolnya. Jadi semuanya dia gabung jadi satu baris panjang. Lihat pratinjaunya.',
 		'Di sinilah <b>HTML</b> masuk. Dia membungkus tiap potongan teks pakai label kecil yang namanya <b>tag</b>, jadi tiap potongan tahu dirinya itu apa. Lihat baris pertama dibungkus pakai <b>&lt;h1&gt;</b>, tag buat judul besar.',
 		'Tag itu dibuka lalu ditutup, kayak sepasang kurung. <b>&lt;h1&gt;</b> membuka judul dan <b>&lt;/h1&gt;</b> menutupnya (perhatikan garis miringnya). Apa pun yang ada di antara keduanya jadi judul.',
-		'Baris berikutnya, <b>&lt;p&gt;</b>, singkatan dari paragraph. Dia bilang ke browser ini blok teks biasa, jadi dapat barisnya sendiri dengan sedikit jarak di sekitarnya.',
+		'Baris berikutnya, <b>&lt;p&gt;</b>, singkatan dari paragraph. Tag ini bilang ke browser bahwa isinya blok teks biasa, jadi dapat barisnya sendiri dengan sedikit jarak di sekitarnya.',
 		'Lalu <b>&lt;button&gt;</b>. Satu tag dan browser langsung menggambar tombol beneran. Dipencet belum ngapa ngapain, soalnya HTML cuma bikin bentuknya.',
 		'Terakhir, gambar pakai <b>&lt;img&gt;</b>. Dia nunjuk file gambarnya lewat <b>src</b> dan menjelaskannya lewat <b>alt</b>, buat yang nggak bisa melihat. Nggak ada teks di dalamnya, jadi nggak perlu tag penutup.',
 		'[ingat] <b>HTML itu kerangka, CSS itu baju, JavaScript itu otot.</b> Kerangka cuma bilang tiap bagian itu apa. Mendandaninya tugas [[CSS|web/css]], bikin dia bergerak tugas [[JavaScript|web/js]].',
@@ -56,7 +56,7 @@ export const id: HtmlText = {
 			body: 'Gambar. <b>src</b> bilang file yang mana, <b>alt</b> bilang isinya apa. Nggak perlu tag penutup.'
 		},
 		{
-			tag: 'Cara gampang',
+			tag: 'Biar nempel',
 			title: 'Kerangka, baju, otot',
 			body: '<b>HTML</b> kerangkanya, <b>CSS</b> bajunya, <b>JavaScript</b> ototnya.'
 		},

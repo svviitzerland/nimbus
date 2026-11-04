@@ -44,8 +44,8 @@ export const en: RenderingText = {
 			body: '<b>Next.js</b>, <b>Nuxt</b>, and <b>SvelteKit</b> let each page choose. Watch the three ways take turns.'
 		},
 		{
-			title: 'Remember it',
-			tag: 'Remember it',
+			title: 'Flat pack, restaurant, bakery',
+			tag: 'Make it stick',
 			body: 'CSR is <b>flat pack</b>, SSR is a <b>restaurant</b>, SSG is the <b>bakery shelf</b>.'
 		}
 	],

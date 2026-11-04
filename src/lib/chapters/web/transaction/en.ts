@@ -24,7 +24,7 @@ export const en: TransactionText = {
 		{
 			tag: 'The crash',
 			title: 'Stuck halfway',
-			body: 'The first write is already saved, the second never runs. The bank now holds less money than before.'
+			body: 'The first write is already saved, the second never runs. Add up all the balances and you now get less than before.'
 		},
 		{
 			tag: 'Transaction',
@@ -37,7 +37,7 @@ export const en: TransactionText = {
 			body: 'With no COMMIT yet, the database reads its journal after the crash and puts every changed value back.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'All or nothing',
 			body: 'Either every step happens, or none of them do. There is no in between.'
 		},

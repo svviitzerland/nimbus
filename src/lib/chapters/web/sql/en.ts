@@ -47,7 +47,7 @@ export const en: SqlText = {
 			body: 'After the filter, the leftover rows are lined up. Here by price, from cheapest to priciest.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'What, where, which',
 			body: 'SELECT is what, FROM is where, WHERE is which ones, and ORDER BY is in what order. Four words, almost every query you will ever read.'
 		},

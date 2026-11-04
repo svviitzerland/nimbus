@@ -44,8 +44,8 @@ export const id: RenderingText = {
 			body: '<b>Next.js</b>, <b>Nuxt</b>, dan <b>SvelteKit</b> membiarkan tiap halaman memilih. Lihat ketiga cara bergantian.'
 		},
 		{
-			title: 'Cara ingat',
-			tag: 'Cara ingat',
+			title: 'Lemari rakitan, warung, roti',
+			tag: 'Biar nempel',
 			body: 'CSR itu <b>lemari rakitan</b>, SSR itu <b>warung</b>, SSG itu <b>roti di etalase</b>.'
 		}
 	],

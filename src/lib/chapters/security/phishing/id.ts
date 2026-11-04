@@ -8,7 +8,7 @@ export const id: PhishingText = {
 		'Kabar baiknya, kebanyakan email palsu ninggalin petunjuk. Yuk baca yang ini pelan pelan, kayak detektif, dan biarin petunjuknya nyala satu per satu.',
 		'Petunjuk pertama, <b>pengirimnya</b>. Namanya nimbus.com Security, tapi alamat di belakangnya <b>nimbuss.com</b>, kelebihan satu huruf. Siapa pun bisa ngetik nama apa aja, alamatnya jauh lebih susah dipalsukan.',
 		'Petunjuk kedua, <b>tekanannya</b>. Ditutup dalam 24 jam, semua datamu hilang! Email palsu senang bikin kamu buru buru, karena orang yang panik lupa mikir. Perusahaan asli jarang ngancam kayak gitu.',
-		'Petunjuk ketiga, <b>linknya</b>. Tombolnya bilang verifikasi, tapi sebenarnya ke mana? Tahan jari atau mouse di atasnya tanpa ngetuk. Alamatnya diawali nimbus.com, padahal pemilik aslinya adalah nama tepat sebelum garis miring pertama, <b>verify.xyz</b>.',
+		'Petunjuk ketiga, <b>linknya</b>. Tombolnya bilang verifikasi, tapi sebenarnya ke mana? Tahan jari atau mouse di atasnya tanpa ngetuk. Alamatnya diawali nimbus.com, padahal pemilik aslinya ditentukan oleh bagian paling ujung sebelum garis miring pertama, <b>verify.xyz</b>.',
 		'[ingat] <b>Tenang dulu, cek pengirim, cek link.</b> Tiga kebiasaan kecil, dan kebanyakan phishing langsung ketahuan di situ.',
 		'[fyi] Trik yang sama juga lewat jalan lain. Lewat SMS namanya smishing, lewat telepon namanya vishing. Di Indonesia kamu mungkin pernah lihat versi WhatsApp, file "undangan pernikahan" yang ternyata aplikasi. Kalaupun password sempat bocor, [[MFA|security/mfa]] masih bisa menahan pintunya.',
 		'Mau bandingin? Ganti ganti antara email palsu ini dan email asli dari nimbus.com, lihat gimana petunjuknya berubah. Inbox ini cuma pura pura, nggak ada yang bisa melukaimu.'
@@ -46,10 +46,10 @@ export const id: PhishingText = {
 		{
 			tag: 'Petunjuk tiga',
 			title: 'Linknya',
-			body: 'Baca alamatnya <b>sebelum</b> ngetuk. Nama tepat sebelum garis miring pertama itulah pemilik aslinya, di sini <b>verify.xyz</b>.'
+			body: 'Baca alamatnya <b>sebelum</b> ngetuk. Bagian paling ujung sebelum garis miring pertama itulah pemilik aslinya, di sini <b>verify.xyz</b>.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Tenang, cek, cek',
 			body: '<b>Tenang dulu</b>, cek <b>pengirim</b>, cek <b>link</b>. Urutannya gitu, tiap kali.'
 		},

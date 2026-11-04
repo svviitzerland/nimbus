@@ -5,13 +5,13 @@ export const id: PwaText = {
 	intro: [
 		'Ingat tarik ulur di [[native dan cross platform|web/mobile-apps]]? Situs menjangkau semua orang tanpa perlu dipasang, tapi belum terasa seperti aplikasi. Ini nimbus.com biasa di HP, dan semua filenya datang langsung dari server.',
 		'Sekarang lihat internetnya putus. Situs biasa tinggal di server, jadi tanpa koneksi browser sama sekali nggak punya apa apa buat ditampilkan.',
-		'<b>PWA</b>, singkatan dari Progressive Web App, membereskan dua hal itu. Dia tetap situs yang sama, tapi bisa nangkring di layar utama kayak aplikasi, terbuka penuh tanpa kolom alamat, dan tetap jalan waktu offline.',
+		'<b>PWA</b>, singkatan dari Progressive Web App, membereskan dua masalah tadi. Dia tetap situs yang sama, tapi bisa nangkring di layar utama kayak aplikasi, terbuka penuh tanpa kolom alamat, dan tetap jalan waktu offline.',
 		'Bahan pertama adalah file kecil bernama <b>manifest</b>. Isinya memberi tahu HP nama aplikasinya, ikonnya, dan warnanya. Begitu HP menemukannya, dia menawarkan untuk memasang situs itu.',
 		'Bahan kedua adalah <b>service worker</b>, skrip kecil yang berdiri di antara halaman dan internet, kayak satpam di pintu. Di kunjungan pertama dia menyimpan file file penting ke dalam <b>cache</b>, kotak penyimpanan langsung di HP.',
 		'Ketuk pasang, dan nimbus.com dapat ikonnya sendiri di samping aplikasi lain. Tanpa toko aplikasi, tanpa menunggu disetujui.',
 		'Sekarang putus lagi internetnya dan buka aplikasinya. Tetap terbuka! Service worker menjawab dari cache, bukan dari server.',
 		'[ingat] Manifest itu KTP, service worker itu satpam yang bawa bekal. KTP bikin bisa dipasang, bekal bikin tetap jalan waktu offline.',
-		'[fyi] Waktu Twitter meluncurkan Twitter Lite sebagai PWA tahun 2017, ukurannya kurang dari 1 MB di HP, sementara aplikasi Android-nya butuh berkali kali lipat. Starbucks dan Pinterest juga membuat PWA, supaya orang dengan sinyal lemah tetap bisa memesan dan scroll.',
+		'[fyi] Waktu Twitter meluncurkan Twitter Lite sebagai PWA tahun 2017, ukurannya kurang dari 1 MB di HP, sementara aplikasi Android biasanya butuh berkali kali lipat. Starbucks dan Pinterest juga membuat PWA, supaya orang dengan sinyal lemah tetap bisa memesan dan scroll.',
 		'Kalau mau, matikan dan nyalakan internetnya, lalu lihat aplikasinya tetap terbuka. Ini opsional kok.'
 	],
 	reactions: {
@@ -57,7 +57,7 @@ export const id: PwaText = {
 			body: 'Service worker menangkap permintaannya dan menyerahkan salinan yang tersimpan. Server sama sekali nggak ditanya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'KTP dan satpam',
 			body: 'Manifest berarti bisa dipasang. Service worker berarti bisa offline. PWA butuh keduanya.'
 		},

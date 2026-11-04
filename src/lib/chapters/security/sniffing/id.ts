@@ -9,7 +9,7 @@ export const id: SniffingText = {
 		'Sekarang login yang sama lewat <b>HTTPS</b>. Semuanya diacak dulu sebelum keluar dari laptop, kayak amplop yang disegel. Pengintipnya tetap merekam, tapi cuma dapat acakan. Cara gembok itu dibuat ada di [[SSL dan TLS|security/tls]].',
 		'Pengintip yang lebih licik nggak cuma nguping. Dia bikin hotspot palsu dengan nama mirip WiFi kafe, jadi semua lewat laptop <b>dia</b> dulu. Itu serangan <b>man in the middle</b>. HTTPS tetap bertahan, browser ngecek siapa yang sebenarnya menjawab dan ngasih peringatan kalau itu bukan nimbus.com.',
 		'[ingat] <b>Nggak ada gembok, jangan ketik password.</b> Sebelum ngetik apa pun yang rahasia, cari gembok kecil di sebelah alamat. Nggak ada gembok, nggak usah ngetik.',
-		'[fyi] Alatnya sama, dunianya beda. Engineer jaringan sengaja merekam lalu lintas buat benerin masalah, pakai alat kayak [[Wireshark|network/wireshark]]. Alatnya sama, yang penting jaringan siapa itu. Di WiFi umum, [[VPN|network/vpn]] nambah satu gembok lagi di atasnya.',
+		'[fyi] Alatnya sama, dunianya beda. Engineer jaringan sengaja merekam lalu lintas buat benerin masalah, pakai alat kayak [[Wireshark|network/wireshark]]. Yang membedakan cuma jaringan siapa yang direkam. Di WiFi umum, [[VPN|network/vpn]] nambah satu gembok lagi di atasnya.',
 		'Mau lihat lagi? Ganti ganti antara HTTP dan HTTPS, terus lihat apa yang didapat si pengintip. Atau santai aja nikmatin kopinya, itu juga boleh.'
 	],
 	reactions: {
@@ -44,7 +44,7 @@ export const id: SniffingText = {
 			body: 'Hotspot palsu menaruh si pengintip <b>di tengah jalan</b>. HTTPS tetap bertahan, dan browser ngasih peringatan kalau ada yang pura pura jadi nimbus.com.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Nggak ada gembok, jangan ketik',
 			body: 'Cari <b>gembok</b> di sebelah alamat sebelum ngetik apa pun yang rahasia.'
 		},

@@ -49,7 +49,7 @@ export const en: EmbeddingsText = {
 			body: 'The question becomes numbers too. Whatever sits closest to it is the best match, even with no shared letters.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'A supermarket of words',
 			body: 'Similar things share an aisle. Close on the map means close in meaning.'
 		},

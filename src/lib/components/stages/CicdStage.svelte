@@ -118,14 +118,11 @@
 			badTried = true;
 			lastNote = tx.badNote;
 		}
-		if (goodTried && badTried) {
-			if (!done) {
-				done = true;
-				oncomplete?.();
-			}
+		onstate?.(kind === 'good' ? 'pass' : 'caught');
+		if (goodTried && badTried && !done) {
+			done = true;
+			oncomplete?.();
 			onstate?.('both');
-		} else {
-			onstate?.(kind === 'good' ? 'pass' : 'caught');
 		}
 	}
 

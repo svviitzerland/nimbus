@@ -3,8 +3,8 @@ import type { ServerlessText } from '../types';
 export const id: ServerlessText = {
 	title: 'Serverless',
 	intro: [
-		'Kadang kamu cuma butuh sepotong kode yang jalan sesekali, kirim email OTP, resize foto, terima webhook pembayaran. Kalau pakai server biasa, dia menyala 24 jam dan meterannya jalan terus, padahal kerjanya cuma sesekali.',
-		'Arsitektur <b>serverless</b> membereskan itu. Ikuti alurnya. Permintaan datang ke gerbang penyedia, penyedia menyalakan sebuah sandbox kecil dalam sekejap, fungsimu jalan di dalamnya, selesai, kotaknya langsung dimatikan. Sepi berarti benar benar nol.',
+		'Kadang kamu cuma butuh sepotong kode yang jalan sesekali, kirim email OTP (kode sekali pakai), resize foto, terima kabar pembayaran (webhook). Kalau pakai server biasa, dia menyala 24 jam dan meterannya jalan terus, padahal kerjanya cuma sesekali.',
+		'Arsitektur <b>serverless</b> membereskan itu. Ikuti alurnya. Permintaan datang ke gerbang penyedia, penyedia menyalakan sebuah sandbox kecil dalam sekejap, fungsimu jalan di dalamnya, selesai, kotaknya langsung dimatikan. Kalau sepi, biayanya benar benar nol.',
 		'Sandbox itu bukan sihir. AWS Lambda menyalakan micro VM bernama <b>Firecracker</b>, Google Cloud memakai <b>gVisor</b>. Dua duanya menyala dalam sepersekian detik, makanya penyedia berani mulai dari nol.',
 		'HP penggunanya sudah menunggu di samping alur tadi. Kirim sebuah permintaan dan amati fungsinya bangun, kerja, lalu tidur lagi. Ini baru kulit luarnya saja, nanti ada bab sendiri yang menyelam jauh lebih dalam ke dunia serverless.'
 	],
@@ -24,7 +24,13 @@ export const id: ServerlessText = {
 	resTag: 'OTP terkirim',
 	alwaysName: 'Server biasa',
 	alwaysTag: 'menagih 24 jam, kerja sesekali',
-	archSteps: ['Permintaan datang', 'Gerbang penyedia', 'Sandbox menyala', 'Fungsimu jalan', 'Langsung dimatikan'],
+	archSteps: [
+		'Permintaan datang',
+		'Gerbang penyedia',
+		'Sandbox menyala',
+		'Fungsimu jalan',
+		'Langsung dimatikan'
+	],
 	behindItems: ['Firecracker, micro VM punya AWS', 'gVisor, sandbox punya Google'],
 	noteIdle: 'Fungsinya tidur, tidak menagih sepeser pun',
 	noteRun: 'Bangun sekejap, kerja, lalu pamit',

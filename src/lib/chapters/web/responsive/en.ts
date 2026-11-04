@@ -47,7 +47,7 @@ export const en: ResponsiveText = {
 			body: 'In debugging, a breakpoint pauses a running program. Same word, a completely different tool.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Small first, then wider',
 			body: '<b>min-width</b> means "from this width and up". Phone layout first, one media query per bigger screen.'
 		},

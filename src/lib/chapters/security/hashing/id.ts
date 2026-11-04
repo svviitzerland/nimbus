@@ -40,14 +40,14 @@ export const id: HashingText = {
 			body: 'Password sama, hash sama, selalu. Beda satu karakter, hashnya <b>beda total</b>.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Nggak bisa balik',
 			body: 'Jus <b>nggak bisa dibalikin jadi buah</b>. Hash cuma jalan satu arah.'
 		},
 		{
 			tag: 'Login',
 			title: 'Bandingkan acakannya',
-			body: 'Blender yang barusan kamu ketik, lalu bandingkan dengan acakan yang disimpan. Cocok berarti boleh masuk.'
+			body: 'Situsnya memblender yang barusan kamu ketik, lalu membandingkannya dengan acakan yang disimpan. Cocok berarti boleh masuk.'
 		},
 		{
 			tag: 'LinkedIn, 2012',

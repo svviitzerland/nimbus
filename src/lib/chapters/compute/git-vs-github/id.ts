@@ -11,7 +11,7 @@ export const id: GitRemoteText = {
 		committed:
 			'Commit dibuat oleh Git, di laptopmu. Ini masih lokal, cuma ada di mesinmu, belum ke mana mana.',
 		pushed:
-			'Kamu push ke GitHub. Sekarang commit-mu punya salinan online, aman walau laptopmu kenapa napa, dan siap dibagi.',
+			'Kamu push ke GitHub. Sekarang commit kamu punya salinan online, aman walau laptopmu kenapa napa, dan siap dibagi.',
 		cloned:
 			'Temanmu clone dari GitHub. Dia menarik seluruh repo plus riwayatnya ke laptopnya sendiri. Begini tim kerja bareng di satu proyek.'
 	},

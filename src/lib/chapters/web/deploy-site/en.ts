@@ -43,7 +43,7 @@ export const en: DeploySiteText = {
 			body: 'The host serves the fresh files at <b>nimbus.com</b>. Every visitor gets the new version the next time they open it.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Push, build, live',
 			body: 'You push, the host builds, the world sees it. The same three steps, every single time.'
 		},

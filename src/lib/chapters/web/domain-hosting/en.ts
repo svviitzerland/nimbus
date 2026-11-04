@@ -9,8 +9,8 @@ export const en: DomainHostingText = {
 		'Hosting comes in sizes, like places to live. <b>Shared hosting</b> is a boarding house, cheap but shared with many sites. A <b>VPS</b> is your own room, a [[virtual machine|foundations/virtual-machine]] only you control. <b>Cloud</b> hosting stretches to fit as you grow.',
 		'Now a friend types nimbus.com on their phone, and... nothing. Having a name and a host does not link them. The phone asks around, but nobody knows where that name lives.',
 		'The link lives in [[DNS|networking/dns]], the phone book of the internet. You add one line saying nimbus.com lives at 203.0.113.10. That line is called an <b>A record</b>.',
-		'Try again. The phone asks DNS, gets the IP address, knocks on the host, and the page comes back. nimbus.com is live! In real life a new record can take a few minutes to spread, so no panic if it is not instant.',
-		'[ingat] <b>The domain is the address, the host is the house, and DNS is the map</b> that connects them. An address with no house on the map leads nowhere.',
+		'Try again. The phone asks DNS, gets the IP address, knocks on the host, and the page comes back. nimbus.com is live! In real life a new record can take minutes or even hours to spread, so no panic if it is not instant.',
+		'[ingat] <b>The domain is the address, the host is the house, and DNS is the map</b> that connects them. If the address is not on the map, your guests get lost.',
 		'[fyi] Same word, different world. In an office, a <b>domain</b> (like a Windows domain) is a group of computers sharing one login system. It has nothing to do with web addresses, only the name is the same.',
 		'Want to see what a typo in DNS does? Point the A record at the wrong IP and watch the phone get lost. Then put it back.'
 	],
@@ -57,7 +57,7 @@ export const en: DomainHostingText = {
 			body: 'The phone asks DNS, DNS answers with the IP, the host sends the page.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'Address, house, map',
 			body: '<b>Domain</b> is the address, <b>host</b> is the house, <b>DNS</b> is the map between them.'
 		},

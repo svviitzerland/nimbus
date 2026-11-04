@@ -7,8 +7,8 @@ export const en: BackupText = {
 		'Disks are machines, and machines wear out. One day this one simply stops. Every order and every account on it, gone with one broken part. Somewhere in every data center, a disk dies like this every single day.',
 		'So teams keep a <b>backup</b>, a copy of the data stored somewhere else. Here a second box in the same building quietly copies the database on a schedule, like a photocopy of your notebook.',
 		'Now watch the bad day again. The disk dies, a fresh disk slides in, and the copy flows back. Putting the copy back is called <b>recovery</b>, or a <b>restore</b>. The orders are home again.',
-		'But a backup is only as fresh as the last copy. Anything written after it is lost. Copy once a day and a crash late in the afternoon loses the whole day. Copy every hour and you lose minutes.',
-		'[fyi] Same word, different world. A backup is not the standby region from [[failover|resilience/failover]]. Failover keeps the site running, a backup brings data back, even data someone deleted by mistake or [[ransomware|security/malware]] locked up.',
+		'But a backup is only as fresh as the last copy. Anything written after it is lost. Copy once a day and a crash late in the afternoon loses almost a whole day. Copy every hour and you lose minutes.',
+		'[fyi] Do not mix these up. A backup is not the standby region from [[failover|resilience/failover]]. Failover keeps the site running, a backup brings data back, even data someone deleted by mistake or [[ransomware|security/malware]] locked up.',
 		'Where the copies live matters just as much. Experienced teams follow the <b>3 2 1 rule</b>. Three copies of the data, on two kinds of storage, with one kept off site, far away in another city.',
 		'[ingat] Count it on your fingers. <b>3 copies, 2 kinds, 1 far away.</b> If one bad day can reach every copy at once, you do not really have a backup.',
 		'Here is why the far copy matters. A fire takes the whole Jakarta building, the server and the backup box together. The copy in Singapore never felt a thing, and it brings nimbus.com back.',
@@ -57,7 +57,7 @@ export const en: BackupText = {
 			body: '<b>3</b> copies, on <b>2</b> kinds of storage, <b>1</b> of them off site.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: '3, 2, 1',
 			body: 'Three copies, two kinds, one far away. One bad day should never reach them all.'
 		},

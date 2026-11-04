@@ -9,7 +9,7 @@ export const en: PermissionsText = {
 		'Now Nim tries to run the script with <b>./backup.sh</b> (the ./ means the one right here). Permission denied! The run switch is off for everybody, so Linux refuses.',
 		'The fix is <b>chmod</b> (change mode). <b>chmod u+x</b> means for the user, add run. One switch flips on, and this time ./backup.sh runs.',
 		'Admins usually write permissions as three digits, one per row. Read is worth 4, write 2, run 1, and you add them up. So <b>chmod 755</b> gives the owner everything (4+2+1), and the others read and run (4+1).',
-		'[ingat] rwx is read, write, run, worth 4, 2 and 1. Add them up, and <b>7 means all three</b>, 5 means read and run, 0 means nothing at all.',
+		'[ingat] Picture three coins, read 4, write 2, run 1. A pocket holding <b>7 has every coin</b>, 5 is read and run, 0 is an empty pocket.',
 		"Some files belong to <b>root</b>, the admin who may do anything. nimbus.conf holds a password, so even reading it is denied. Put <b>sudo</b> in front and you borrow root's power for that one command.",
 		'[ingat] <b>sudo</b> means "please, as the boss". It is powerful, so use it only when a command really needs it. On a real server it asks for your password and writes every use into a log.',
 		'Your turn. backup.sh is yours alone, so lock it down. Type <b>chmod 700 backup.sh</b>. Seven for you (all three), zero for the group, zero for everyone else.'
@@ -42,7 +42,7 @@ export const en: PermissionsText = {
 		},
 		{
 			tag: 'The table',
-			title: 'Who times what',
+			title: 'Three people, three actions',
 			body: 'Three kinds of people (owner, group, others) times three kinds of action (read, write, run) makes nine switches.'
 		},
 		{
@@ -61,7 +61,7 @@ export const en: PermissionsText = {
 			body: 'Each row adds up its switches, 4 for read, 2 for write, 1 for run. 755 is the most common setting for scripts.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Seven means all three',
 			body: '4 plus 2 plus 1 is 7. 6 is read and write, 5 is read and run, 4 is read only, 0 is nothing.'
 		},
@@ -71,7 +71,7 @@ export const en: PermissionsText = {
 			body: '<b>root</b> may do anything. <b>sudo</b> in front of one command runs just that command as root.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Please, as the boss',
 			body: 'Reach for sudo only when a command needs it. Opening a file up for everyone is never the safer fix.'
 		},

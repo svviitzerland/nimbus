@@ -7,7 +7,7 @@ export const id: LogsText = {
 		'Kalau servernya cuma satu, membaca log itu gampang. Tapi nimbus.com sekarang jalan di dua puluh server di belakang [[load balancer|traffic/load-balancer]], dan yang rusak bisa yang mana saja. Login ke satu per satu buat membaca buku hariannya makan waktu lama banget.',
 		'Makanya tim mengirim setiap baris ke satu tempat begitu baris itu ditulis. Itulah <b>logging terpusat</b>. Lihat baris dari dua puluh server mengalir turun ke satu log, berjejer rapi, urut sesuai jam.',
 		'Ada bonusnya. Server di cloud datang dan pergi sepanjang hari. Barusan web-07 dimatikan, tapi baris barisnya tetap aman di log terpusat, siap dibaca.',
-		'Ada pembeli bilang checkout gagal sekitar jam 14.01. Daripada dua puluh kali login, log terpusat cukup dicari sekali. Lihat dia mengetik <b>error</b>, dan semua keramaian lenyap.',
+		'Ada pembeli bilang checkout gagal sekitar jam 14.01. Daripada dua puluh kali login, log terpusat cukup dicari sekali. Lihat Nim mengetik <b>error</b> di kotak pencarian, dan semua baris lain lenyap.',
 		'Itu dia. <b>web-14</b> menyerah menunggu layanan pembayaran jam 14.01, tepat di menit pembeli itu komplain. Ketemu dalam hitungan detik, bukan sejam login sana sini.',
 		'[ingat] <b>Banyak server, satu tempat cari.</b> Log itu buku harian server, dan logging terpusat menaruh semua buku harian di satu rak, jadi kamu cukup mencari di satu tempat.',
 		'[fyi] Log bekerja bareng [[monitoring|compute/monitoring]]. Metrik bilang ada yang salah, log bilang persisnya apa yang terjadi. Tim keamanan juga menyisir log yang sama untuk menangkap penyerang, pakai alat yang disebut [[SIEM|security/detection]]. Alat sungguhannya antara lain Elasticsearch dengan Kibana dan Grafana Loki.',
@@ -52,7 +52,7 @@ export const id: LogsText = {
 			body: '<b>web-14</b>, jam 14.01, kehabisan waktu menunggu pembayaran. Server, jam, dan alasannya di satu baris.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Banyak server, satu tempat cari',
 			body: 'Log itu buku harian. Taruh semua buku harian di satu rak, dan kamu cukup mencari di satu tempat.'
 		},

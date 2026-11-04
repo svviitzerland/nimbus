@@ -5,7 +5,7 @@ export const en: RelationsText = {
 	intro: [
 		'In [[What is SQL|web/sql]] everything lived in one table. A real shop keeps more than one kind of thing though. There are <b>customers</b> and there are <b>products</b>, and each kind gets a table of its own.',
 		'Then come the <b>orders</b>, who bought what. The lazy way is to copy the name onto every order. But Adi ordered twice, so his name is written twice, and the day he changes it you have to hunt down every copy. Miss one and the shop gets confused.',
-		'So every table gives each row its own number, the <b>id</b>. It belongs to exactly one row and never changes, like the queue number you get at the bank. This number is called the <b>primary key</b>.',
+		'So every table gives each row its own number, the <b>id</b>. It belongs to exactly one row and never changes, like a student number at school. This number is called the <b>primary key</b>.',
 		'Now the orders table stops copying names. It only writes the customer number and the product number, like <b>customer_id 1</b>. A number that points at a row in another table is called a <b>foreign key</b>.',
 		'Follow a number and you land on the right row. That link between two tables is a <b>relation</b>, which is why these are called relational databases. Watch each order point at its customer and its product.',
 		'Numbers are hard for people to read, though. A <b>JOIN</b> follows the keys for you and stitches the tables back into one plain answer, who bought what.',
@@ -50,7 +50,7 @@ export const en: RelationsText = {
 			body: 'A <b>JOIN</b> follows every key and builds one readable answer from the three tables.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Own number, borrowed number',
 			body: "The primary key is a row's own number. A foreign key is that number borrowed by another table to point back at it."
 		},

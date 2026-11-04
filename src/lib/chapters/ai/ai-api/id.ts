@@ -6,7 +6,7 @@ export const id: AiApiText = {
 		'Sekarang banyak aplikasi punya chatbot di dalamnya. Ini aplikasi nimbus, dan seseorang baru saja bertanya. Tapi aplikasinya nggak punya AI sendiri. Dia bakal <b>bertanya ke pihak lain</b> lewat internet.',
 		'Pihak lain itu adalah <b>penyedia AI</b>, perusahaan yang menjalankan model raksasa di komputer besar mereka sendiri. Aplikasimu ngobrol dengannya lewat [[API|foundations/api]], pelayan yang sama antara aplikasi dan dapur yang sudah kamu kenal.',
 		'Aplikasi mengemas sebuah <b>request</b>, mirip amplop. Isinya dua hal, <b>model</b> mana yang harus menjawab dan <b>pesannya</b> sendiri. Lalu amplopnya berangkat.',
-		'Di amplop itu ada <b>API key</b>, kode rahasia yang panjang. Kode ini memberi tahu penyedia siapa yang bertanya, jadi siapa yang bayar tagihannya. Makanya key disimpan di servermu sendiri, bukan di dalam aplikasi yang diunduh orang.',
+		'Di amplop itu ada <b>API key</b>, kode rahasia yang panjang. Kode ini memberi tahu penyedia siapa yang bertanya, dan dari situ, siapa yang harus bayar tagihannya. Makanya key disimpan di servermu sendiri, bukan di dalam aplikasi yang diunduh orang.',
 		'Model nggak membaca kalimat utuh sekaligus. Dia memotong teks jadi <b>token</b>, potongan kecil yang sering berupa kata pendek atau bagian dari kata yang panjang ([[LLM dan token|ai/llm]]). Pertanyaan kecil ini cuma lima token.',
 		'Jawabannya kembali dalam bentuk <b>JSON</b>, format teks rapi yang gampang dibaca aplikasi, dengan nama di kiri tiap baris dan nilainya di kanan. Isinya balasan, plus hitungan token yang masuk dan token yang ditulis model.',
 		'Hitungan itulah tagihanmu. Penyedia menagih harga mungil untuk setiap token masuk dan setiap token keluar. Satu pertanyaan pendek harganya cuma sepersekian sen.',
@@ -56,7 +56,7 @@ export const id: AiApiText = {
 			body: 'Token masuk ditambah token keluar, dikali harga mungil per token. Itulah seluruh tagihan untuk satu pertanyaan.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Argo taksi',
 			body: 'Makin banyak teks ke arah mana pun, makin jauh perjalanannya. Tanya singkat dan jawab singkat bikin ongkosnya tetap kecil.'
 		},

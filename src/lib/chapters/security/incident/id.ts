@@ -54,7 +54,7 @@ export const id: IncidentText = {
 			body: 'Tulis laporannya tanpa menyalahkan, dan tambal celahnya supaya nggak terulang dengan <b>cara yang sama</b>.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Dapur kebakaran',
 			body: '<b>Kurung</b>, bersihkan, pulihkan, belajar.'
 		},

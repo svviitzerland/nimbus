@@ -34,7 +34,7 @@ export const id: AiSafetyText = {
 			body: 'Halaman bantuan asli mendukung kalimat pertama dan membantah yang kedua. Satu kali cek sudah cukup buat menangkapnya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Yakin belum tentu benar',
 			body: 'Pakai AI buat memulai, lalu cek hal yang penting ke sumber asli, misalnya halaman resmi atau orang yang paham.'
 		},

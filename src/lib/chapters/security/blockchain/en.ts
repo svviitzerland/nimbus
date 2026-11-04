@@ -41,7 +41,7 @@ export const en: BlockchainText = {
 			body: 'Edit an old block and its fingerprint changes. The next block no longer fits, so the edit is visible at once.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'One edit, all redone',
 			body: 'Hiding a change means redoing <b>every</b> block after it. The further back, the more work.'
 		},
@@ -56,7 +56,7 @@ export const en: BlockchainText = {
 			body: 'To add a block, a computer changes one number (the <b>nonce</b>) again and again until the fingerprint starts with zeros. Slow on purpose, so redoing history costs a fortune.'
 		},
 		{
-			tag: 'Same word',
+			tag: 'Same trick',
 			title: 'Git does it too',
 			body: 'Every Git commit stores the fingerprint of the commit before it. A chain of blocks, without the coins.'
 		},

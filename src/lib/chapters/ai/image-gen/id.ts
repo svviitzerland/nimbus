@@ -19,12 +19,12 @@ export const id: ImageGenText = {
 	panels: [
 		{
 			tag: 'Prompt',
-			title: 'Kata masuk, gambar keluar',
+			title: 'Kamu tulis kata, AI bikin gambar',
 			body: 'Kamu jelaskan gambarnya pakai kata kata biasa. Beberapa detik kemudian muncul gambar yang benar benar baru.'
 		},
 		{
 			tag: 'Noise',
-			title: 'Semut TV',
+			title: 'Mulai dari titik acak',
 			body: 'Setiap gambar dimulai dari titik warna acak. <b>Belum ada</b> apa apa di dalamnya.'
 		},
 		{
@@ -48,7 +48,7 @@ export const id: ImageGenText = {
 			body: 'Kata katamu jadi angka. Di tiap langkah model bertanya titik mana yang bikin gambar ini makin mirip <b>kata itu</b>.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Pemahat',
 			body: 'Mulai dari bongkahan noise, pahat yang bukan bagiannya. Yang tersisa itulah gambarnya.'
 		},

@@ -4,7 +4,7 @@ export const en: AuthText = {
 	title: 'Sessions, cookies, and tokens',
 	intro: [
 		'Here is a funny thing about the web. Every request reaches the <b>nimbus.com</b> server like a stranger. The server answers, then forgets it ever happened.',
-		'So how does the shop know it is still you on the next page? You log in once, with your email and password.',
+		'So how does the shop know it is still you on the next page? It all starts with logging in once, with your email and password.',
 		'In return the server hands your browser a <b>cookie</b>, a tiny note the browser keeps. From then on the browser clips that note to every request it sends to nimbus.com, all by itself.',
 		'The classic way is called a <b>session</b>. The cookie only holds a random number, and the server keeps a list of which number belongs to whom.',
 		'On the next page the cookie rides along, the server finds the number on its list, and greets you by name. No new login needed.',
@@ -45,8 +45,8 @@ export const en: AuthText = {
 			body: 'The note <b>carries your name</b> and a stamp from the server. The server checks the stamp, no list needed.'
 		},
 		{
-			title: 'Remember it',
-			tag: 'Remember it',
+			title: 'Cloakroom ticket and wristband',
+			tag: 'Make it stick',
 			body: 'Session is a <b>cloakroom ticket</b>, token is a <b>concert wristband</b>.'
 		},
 		{
@@ -60,7 +60,7 @@ export const en: AuthText = {
 			body: 'In AI, a token is <b>a piece of a word</b>. Same name, unrelated idea.'
 		},
 		{
-			title: 'No cookie, no you',
+			title: 'No cookie, who are you?',
 			body: 'Without the cookie the request is a <b>stranger</b> again, and you have to log in.'
 		}
 	],

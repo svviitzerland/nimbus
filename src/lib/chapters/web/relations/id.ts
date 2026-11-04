@@ -5,7 +5,7 @@ export const id: RelationsText = {
 	intro: [
 		'Di [[Apa itu SQL|web/sql]] semuanya tinggal di satu tabel. Padahal toko beneran menyimpan lebih dari satu jenis hal. Ada <b>pelanggan</b>, ada <b>produk</b>, dan tiap jenis dapat tabelnya sendiri.',
 		'Lalu ada <b>pesanan</b>, siapa beli apa. Cara malasnya, salin nama pembeli ke tiap pesanan. Tapi Adi pesan dua kali, jadi namanya ditulis dua kali, dan begitu dia ganti nama kamu harus cari semua salinannya. Kelewat satu, tokonya bingung.',
-		'Makanya tiap tabel kasih nomor sendiri ke tiap baris, namanya <b>id</b>. Nomor itu cuma milik satu baris dan nggak pernah berubah, kayak nomor antrean di bank. Nomor ini disebut <b>primary key</b>.',
+		'Makanya tiap tabel kasih nomor sendiri ke tiap baris, namanya <b>id</b>. Nomor itu cuma milik satu baris dan nggak pernah berubah, kayak nomor induk siswa di sekolah. Nomor ini disebut <b>primary key</b>.',
 		'Sekarang tabel pesanan berhenti menyalin nama. Dia cuma nulis nomor pelanggan dan nomor produk, misalnya <b>pelanggan_id 1</b>. Nomor yang menunjuk ke baris di tabel lain disebut <b>foreign key</b>.',
 		'Ikuti nomornya, kamu sampai di baris yang tepat. Sambungan antar tabel itu namanya <b>relasi</b>, makanya database kayak gini disebut database relasional. Lihat tiap pesanan menunjuk ke pelanggan dan produknya.',
 		'Tapi angka itu susah dibaca manusia. <b>JOIN</b> mengikuti semua nomor itu buat kamu dan menjahit tabelnya jadi satu jawaban yang gampang dibaca, siapa beli apa.',
@@ -50,7 +50,7 @@ export const id: RelationsText = {
 			body: '<b>JOIN</b> mengikuti semua nomor dan menyusun satu jawaban yang bisa dibaca dari tiga tabel itu.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Nomor sendiri, nomor pinjaman',
 			body: 'Primary key itu nomor milik baris itu sendiri. Foreign key itu nomor yang dipinjam tabel lain buat menunjuk balik ke baris itu.'
 		},

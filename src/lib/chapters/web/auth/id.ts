@@ -4,7 +4,7 @@ export const id: AuthText = {
 	title: 'Session, cookie, dan token',
 	intro: [
 		'Ada hal lucu soal web. Tiap request datang ke server <b>nimbus.com</b> kayak orang asing. Server menjawabnya, terus langsung lupa kalau tadi pernah ada request itu.',
-		'Terus gimana toko tahu kalau di halaman berikutnya itu masih kamu? Kamu login sekali, pakai email dan password.',
+		'Terus gimana toko tahu kalau di halaman berikutnya itu masih kamu? Semuanya dimulai dari login, sekali saja, pakai email dan password.',
 		'Sebagai gantinya, server ngasih browser kamu sebuah <b>cookie</b>, catatan kecil yang disimpan browser. Sejak itu browser otomatis menjepitkan catatan itu ke setiap request yang dikirim ke nimbus.com.',
 		'Cara klasiknya namanya <b>session</b>. Cookie cuma berisi angka acak, dan server menyimpan daftar angka mana punya siapa.',
 		'Di halaman berikutnya cookienya ikut terbawa, server menemukan angka itu di daftarnya, lalu menyapa kamu pakai nama. Nggak perlu login lagi.',
@@ -45,8 +45,8 @@ export const id: AuthText = {
 			body: 'Catatannya <b>membawa namamu</b> dan stempel dari server. Server cukup ngecek stempelnya, nggak perlu daftar.'
 		},
 		{
-			title: 'Cara ingat',
-			tag: 'Cara ingat',
+			title: 'Karcis jaket dan gelang konser',
+			tag: 'Biar nempel',
 			body: 'Session itu <b>karcis penitipan jaket</b>, token itu <b>gelang konser</b>.'
 		},
 		{

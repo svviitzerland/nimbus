@@ -7,7 +7,7 @@ export const id: ServicesText = {
 		'Website harus jalan siang malam tanpa ada yang nungguin. Program yang jalan diam diam di belakang layar kayak gitu namanya <b>service</b>. Di Ubuntu ada penjaga namanya <b>systemd</b> yang nyalain service, ngawasin, dan bangunin lagi kalau dia jatuh.',
 		'Kamu ngobrol sama systemd pakai <b>systemctl</b>. Pertama Nim nanya kabar appnya, <b>systemctl status nimbus</b>. Jawabannya inactive (dead). Sama sekali nggak jalan.',
 		'Jadi Nim nyalain, <b>sudo systemctl start nimbus</b> (ngatur service itu kerjaan admin, makanya pakai sudo). Lampunya hijau dan situsnya balik.',
-		'Sekarang bagian kerennya. Nim sengaja bikin appnya mati pakai <b>pkill</b>. Lampunya merah, dan sebentar kemudian systemd sadar lalu nyalain lagi sendiri. Nggak ada yang perlu bangun jam 3 pagi.',
+		'Sekarang bagian kerennya. Nim sengaja bikin appnya mati pakai <b>pkill</b> (perintah buat matiin program). Lampunya merah, dan sebentar kemudian systemd sadar lalu nyalain lagi sendiri. Nggak ada yang perlu bangun jam 3 pagi.',
 		'Tinggal satu masalah. Kalau seluruh server restart (update, listrik mati), appnya balik nggak? Cuma kalau kamu minta. <b>sudo systemctl enable nimbus</b> nyuruh systemd nyalain dia tiap kali server boot. Lihat saklarnya.',
 		'[ingat] <b>start</b> itu buat sekarang, <b>enable</b> itu buat tiap kali nyala. Biasanya kamu mau dua duanya. stop dan disable itu kebalikannya.',
 		'[fyi] Kata yang sama, dunia yang beda. Provider cloud jualan "managed services", dan Windows punya jendela Services sendiri. Tempatnya beda, idenya sama, program yang dijagain biar terus jalan di belakang layar.',
@@ -47,7 +47,7 @@ export const id: ServicesText = {
 		{
 			tag: 'status',
 			title: 'Gimana kabarnya',
-			body: '<b>systemctl status</b> nunjukin service nya jalan atau nggak, dan diset nyala waktu boot atau nggak.'
+			body: '<b>systemctl status</b> nunjukin apakah service jalan atau nggak, dan diset nyala waktu boot atau nggak.'
 		},
 		{
 			tag: 'start',
@@ -65,8 +65,8 @@ export const id: ServicesText = {
 			body: '<b>enable</b> nggak nyalain apa pun sekarang. Dia cuma nyalain saklar biar app ikut nyala tiap server boot.'
 		},
 		{
-			tag: 'Cara ingat',
-			title: 'Sekarang lawan selamanya',
+			tag: 'Biar nempel',
+			title: 'Sekarang atau tiap boot',
 			body: 'start, sekarang. enable, tiap nyala. stop dan disable ngebatalin, dan restart itu stop plus start yang cepat.'
 		},
 		{

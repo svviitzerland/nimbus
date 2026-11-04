@@ -8,7 +8,7 @@ export const en: PhishingText = {
 		'The good news is that most fakes leave clues. Let us read this one slowly, like a detective, and let the clues light up one by one.',
 		'Clue one, the <b>sender</b>. The name says nimbus.com Security, but the address behind it is <b>nimbuss.com</b>, with one extra letter. Anyone can type any name, the address is much harder to fake.',
 		'Clue two, the <b>pressure</b>. Close in 24 hours, lose all your data! A fake loves to rush you, because a rushed person skips the thinking part. Real companies rarely threaten you like that.',
-		'Clue three, the <b>link</b>. The button says verify, but where does it really go? Rest your finger or mouse on it without tapping. The address starts with nimbus.com, yet the real owner is the name just before the first slash, <b>verify.xyz</b>.',
+		'Clue three, the <b>link</b>. The button says verify, but where does it really go? Rest your finger or mouse on it without tapping. The address starts with nimbus.com, yet the real owner is the very last part before the first slash, <b>verify.xyz</b>.',
 		'[ingat] <b>Slow down, check the sender, check the link.</b> Three small habits, and most phishing falls apart right there.',
 		'[fyi] The same trick travels on other roads. By SMS it is called smishing, by phone call it is vishing. In Indonesia you may have seen the WhatsApp version, a "wedding invitation" file that is really an app. Even if a password does slip out, [[MFA|security/mfa]] can still keep the door shut.',
 		'Want to compare? Flip between this fake and a real email from nimbus.com, and watch how the clues change. This inbox is pretend, nothing in it can hurt you.'
@@ -46,10 +46,10 @@ export const en: PhishingText = {
 		{
 			tag: 'Clue three',
 			title: 'The link',
-			body: 'Read the address <b>before</b> tapping. The name right before the first slash is the true owner, here <b>verify.xyz</b>.'
+			body: 'Read the address <b>before</b> tapping. The very last part before the first slash is the true owner, here <b>verify.xyz</b>.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Slow down, check, check',
 			body: '<b>Slow down</b>, check the <b>sender</b>, check the <b>link</b>. In that order, every time.'
 		},

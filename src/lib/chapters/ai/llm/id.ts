@@ -66,7 +66,7 @@ export const id: LlmText = {
 			body: 'Suhu rendah bikin batang teratas jadi besar banget, jadi jawabannya gampang ditebak. Suhu tinggi meratakan batangnya, jadi kata yang jarang juga dapat kesempatan.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Tebak kata versi super',
 			body: 'Keyboard menebak satu kata. LLM terus menebak, token demi token, sampai jawabannya selesai.'
 		},

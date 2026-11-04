@@ -7,7 +7,7 @@ export const en: ServicesText = {
 		'Websites need to run day and night with nobody watching. A program that runs quietly in the background like that is called a <b>service</b>. On Ubuntu, a caretaker named <b>systemd</b> starts the services, watches them, and wakes them up again when they fall over.',
 		'You talk to systemd with <b>systemctl</b>. First Nim asks how the app is doing, <b>systemctl status nimbus</b>. The answer is inactive (dead). Not running at all.',
 		'So Nim starts it, <b>sudo systemctl start nimbus</b> (changing services is admin work, hence sudo). The lamp turns green and the site is back.',
-		'Now the clever part. Nim crashes the app on purpose with <b>pkill</b>. The lamp goes red, and a moment later systemd notices and brings it back by itself. Nobody had to wake up at 3 in the morning.',
+		'Now the clever part. Nim crashes the app on purpose with <b>pkill</b> (a command that kills a program). The lamp goes red, and a moment later systemd notices and brings it back by itself. Nobody had to wake up at 3 in the morning.',
 		'One problem left. If the whole server restarts (an update, a power cut), will the app come back? Only if you ask. <b>sudo systemctl enable nimbus</b> tells systemd to start it at every boot. Watch the switch.',
 		'[ingat] <b>start</b> is for right now, <b>enable</b> is for every boot. You usually want both. And stop and disable are their opposites.',
 		'[fyi] Same word, different world. Cloud providers sell "managed services", and Windows has its own Services window. Different places, same idea, a program kept running for you in the background.',
@@ -64,8 +64,8 @@ export const en: ServicesText = {
 			body: '<b>enable</b> does not start anything now. It only flips the switch so the app starts whenever the server boots.'
 		},
 		{
-			tag: 'Remember',
-			title: 'Now versus forever',
+			tag: 'Make it stick',
+			title: 'Now or every boot',
 			body: 'start, now. enable, every boot. stop and disable undo them, and restart is a quick stop plus start.'
 		},
 		{

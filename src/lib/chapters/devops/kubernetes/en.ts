@@ -10,7 +10,7 @@ export const en: KubernetesText = {
 		'Watch. A pod crashes, so only four are running. The control plane spots the gap and starts a fresh pod right away. Five again, and nobody had to wake up.',
 		'Even a whole node can fail. Kubernetes moves its pods onto the nodes that are still healthy, and when the node comes back, it simply joins in again.',
 		'[ingat] Kubernetes is Greek for the one who steers a ship, the <b>captain at the wheel</b>. That is why its logo is a ship wheel. You say five containers, the captain keeps five containers, whatever the sea throws at it.',
-		'[fyi] In networking, a node means any device on a network. In Kubernetes, a node is one machine that runs your pods. Same word, different world. Kubernetes was born at Google, inspired by their internal system called Borg, and shared with everyone in 2014. It can even raise the count by itself when traffic grows, much like [[auto scaling|traffic/auto-scaling]].',
+		'[fyi] In networking, a node means any device on a network. In Kubernetes, a node is one machine that runs your pods. Same word, different world. Kubernetes was born at Google, inspired by their internal system called Borg, and shared with everyone in 2014. It can even add more pods by itself when traffic grows, much like [[auto scaling|traffic/auto-scaling]].',
 		'Want to be the storm? Tap any pod to knock it over and watch the captain replace it. Or just enjoy the calm sea.'
 	],
 	reactions: {
@@ -49,7 +49,7 @@ export const en: KubernetesText = {
 			body: 'Its pods are rebuilt on the healthy nodes. The count never stays wrong for long.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'The captain',
 			body: 'Kubernetes is the ship captain. It keeps the number of containers you asked for.'
 		},

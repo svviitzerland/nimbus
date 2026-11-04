@@ -29,7 +29,7 @@ export const id: BrowserText = {
 		{
 			tag: 'File 1',
 			title: 'index.html',
-			body: 'Halamannya, ditulis sebagai teks dengan tag. Dia bilang <b>apa</b> isi halamannya, bukan gimana tampilannya.'
+			body: 'Isi halaman, ditulis sebagai teks bertag. File ini bilang <b>apa</b> isinya, bukan gimana tampilannya.'
 		},
 		{
 			tag: 'Pohonnya',
@@ -49,7 +49,7 @@ export const id: BrowserText = {
 		{
 			tag: 'File 3',
 			title: 'nim.png',
-			body: 'Gambar itu file sendiri dengan request sendiri. Teksnya nggak pernah nungguin dia.'
+			body: 'Gambar itu file sendiri dengan request sendiri. Teks halaman nggak perlu nunggu gambarnya.'
 		},
 		{
 			tag: 'File 4',
@@ -57,7 +57,7 @@ export const id: BrowserText = {
 			body: 'JavaScript mengubah pohonnya sambil kamu lihat, jadi halamannya bereaksi tanpa dimuat ulang.'
 		},
 		{
-			tag: 'Cara gampang',
+			tag: 'Biar nempel',
 			title: '3K',
 			body: '<b>Kerangka</b> itu HTML, <b>Kostum</b> itu CSS, <b>Kelakuan</b> itu JavaScript. Biasanya datang dengan urutan itu juga.'
 		},
@@ -68,7 +68,7 @@ export const id: BrowserText = {
 		},
 		{
 			tag: 'Opsional',
-			title: 'Copot CSS nya',
+			title: 'Copot CSS',
 			body: 'Geser tombolnya dan halamannya balik ke kerangka polos. Semua isinya masih ada, cuma tampilannya yang hilang.'
 		}
 	],

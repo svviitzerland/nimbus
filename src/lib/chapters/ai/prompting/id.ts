@@ -8,14 +8,14 @@ export const id: PromptingText = {
 		'Yuk perbaiki promptnya sedikit demi sedikit. Pertama <b>tugasnya</b>, bilang persis apa yang harus ditulis dan soal apa. Lihat jawabannya mulai nyambung ke promo.',
 		'Berikutnya <b>konteks</b>. Siapa yang bakal baca, dan kenapa? Pembacanya mahasiswa yang punya proyek kuliah, jadi sekarang captionnya ngomong ke mereka.',
 		'Lalu <b>format</b>, bentuk jawaban yang kamu mau. Tiga baris pendek dan cuma satu hashtag. Nggak ada lagi kalimat yang muter muter, nggak ada lagi tumpukan hashtag.',
-		'Terakhir, <b>contoh</b>. Satu caption lama yang kamu suka mengajarkan gayanya lebih cepat dari penjelasan apa pun. Sekarang rasanya nimbus banget. AI nya sama dari tadi, yang berubah cuma promptnya.',
-		'[ingat] Tulis prompt kayak lagi nge brief anak magang baru di hari pertamanya. Dia pintar, tapi belum tahu apa apa soal kamu. Kasih tugasnya, konteksnya, formatnya, dan tunjukkan contohnya. Kalau si anak magang masih harus nanya balik, berarti promptmu masih bolong.',
+		'Terakhir, <b>contoh</b>. Satu caption lama yang kamu suka mengajarkan gayanya lebih cepat dari penjelasan apa pun. Sekarang rasanya nimbus banget. AI yang dipakai sama dari tadi, yang berubah cuma promptnya.',
+		'[ingat] Tulis prompt kayak lagi kasih arahan ke anak magang baru di hari pertamanya. Dia pintar, tapi belum tahu apa apa soal kamu. Kasih tugasnya, konteksnya, formatnya, dan tunjukkan contohnya. Kalau si anak magang masih harus nanya balik, berarti promptmu masih bolong.',
 		'[fyi] Kata sama, dunia beda. Di terminal, "prompt" adalah tanda $ kecil yang menunggu perintahmu. Bendanya beda, tapi idenya mirip, tempat komputer menunggu kata katamu.',
 		'Kalau mau, ketuk salah satu baris prompt buat mencabutnya (ketuk lagi buat mengembalikan) dan lihat jawabannya ikut melorot. Ini opsional kok.'
 	],
 	reactions: {
 		off_task:
-			'Tanpa tugas, AI nya balik lagi menebak caption ini sebenarnya soal apa. Promonya hilang.',
+			'Tanpa tugas, AI balik lagi menebak caption ini sebenarnya soal apa. Promonya hilang.',
 		off_context:
 			'Tanpa konteks, dia berhenti ngomong ke mahasiswa dan balik ngomong ke semua orang, alias nggak ke siapa siapa.',
 		off_format:
@@ -57,7 +57,7 @@ export const id: PromptingText = {
 			body: 'Satu contoh yang kamu suka mengajarkan nada tulisannya lebih baik dari satu paragraf penjelasan.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Brief anak magang baru',
 			body: 'Tugas, konteks, format, contoh. Kalau anak magang baru masih perlu nanya balik, tambahkan bagian yang kurang.'
 		},

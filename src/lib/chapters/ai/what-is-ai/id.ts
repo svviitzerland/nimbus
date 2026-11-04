@@ -3,11 +3,11 @@ import type { WhatIsAiText } from './types';
 export const id: WhatIsAiText = {
 	title: 'Apa itu AI',
 	intro: [
-		'Bayangin kalkulator. Kamu ketik 7 kali 8, dia jawab 56. Dia sama sekali nggak mikir. Ada orang yang menulis aturan perkalian, dan mesinnya cuma mengikuti. Itu <b>program biasa</b>, jadi dia nunggu di luar gambar kita.',
+		'Bayangin kalkulator. Kamu ketik 7 kali 8, dia jawab 56. Dia sama sekali nggak mikir. Ada orang yang menulis aturan perkalian, dan mesinnya cuma mengikuti. Itu <b>program biasa</b>, jadi dia berdiri di luar semua lingkaran di gambar.',
 		'Orang sudah lama memimpikan mesin yang lebih pintar. Tahun 1950, matematikawan Inggris bernama <b>Alan Turing</b> melempar pertanyaan terkenal, "bisakah mesin berpikir?" Tahun 1956, sekelompok ilmuwan kumpul di sebuah lokakarya musim panas soal mimpi itu dan memberinya nama, <b>artificial intelligence</b> (kecerdasan buatan).',
 		'Jadi <b>AI</b> itu lingkaran paling besar. Isinya semua mesin yang melakukan sesuatu yang <i>kelihatan</i> pintar. Bot catur masuk sini. Mainnya kayak lawan yang cerdik, tapi semua aturannya diketik manual oleh orang.',
 		'Di dalam AI ada <b>machine learning</b>, disingkat <b>ML</b>. Di sini nggak ada yang menulis aturan. Kamu kasih mesinnya banyak contoh, dan dia cari polanya sendiri. Filter spam belajar dari jutaan email yang sudah ditandai spam oleh orang, lalu paham spam itu kayak gimana.',
-		'[ingat] Dikasih aturan, itu program biasa. Dikasih contoh lalu cari aturannya sendiri, itu machine learning. Gampangnya, aturan masuk berarti program, contoh masuk berarti ML.',
+		'[ingat] Program biasa itu resep yang ditulis orang. Machine learning itu anak yang nyicip banyak masakan, lalu nemu resepnya sendiri.',
 		'Di dalam ML ada <b>deep learning</b>. Ini machine learning yang pakai [[neural network|ai/neural-net]], banyak lapisan potongan kecil yang ditumpuk. Kalau contohnya cukup banyak, dia jago banget urusan yang berantakan kayak wajah, suara, dan bahasa. Begitulah face unlock tahu itu kamu.',
 		'Paling tengah ada <b>generative AI</b>. Dia nggak cuma mengenali, dia <i>membuat</i> hal baru. Chatbot yang menulis jawaban dan aplikasi yang melukis gambar dari satu kalimat tinggal di sini.',
 		'[ingat] Lingkarannya bersarang kayak lapisan bawang, dan lapisan dalam selalu bagian dari lapisan luarnya. Semua chatbot itu AI, tapi nggak semua AI itu chatbot, sama kayak semua anak kucing itu kucing, tapi nggak semua kucing itu anak kucing.',
@@ -45,9 +45,9 @@ export const id: WhatIsAiText = {
 			body: 'Bagian dari AI yang belajar dari <b>contoh</b>, bukan dikasih tahu aturannya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Aturan atau contoh',
-			body: 'Aturan masuk, program biasa. Contoh masuk, machine learning.'
+			body: 'Dikasih aturan, itu program biasa. Dikasih contoh lalu cari aturannya sendiri, itu machine learning.'
 		},
 		{
 			tag: 'Lingkaran 3',
@@ -60,7 +60,7 @@ export const id: WhatIsAiText = {
 			body: 'Deep learning yang <b>membuat</b> hal baru (teks, gambar, musik), bukan cuma memilah yang dia lihat.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Lingkaran di dalam lingkaran',
 			body: 'Tiap lingkaran adalah bagian dari lingkaran di luarnya. Kalau orang sekarang bilang AI, sering yang dimaksud cuma lingkaran paling kecil.'
 		},
@@ -87,7 +87,7 @@ export const id: WhatIsAiText = {
 	quote: 'Bisakah mesin berpikir?',
 	quoteBy: 'Alan Turing, 1950',
 	photo: { alt: 'Foto Alan Turing saat remaja', caption: 'Alan Turing, sekitar 1928' },
-	rule: 'Aturan masuk, program. Contoh masuk, machine learning.',
+	rule: 'Dikasih aturan, program. Dikasih contoh, machine learning.',
 	nest: 'Semua chatbot itu AI, nggak semua AI itu chatbot.',
 	tapHint: 'Ketuk contoh mana aja'
 };

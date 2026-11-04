@@ -13,7 +13,7 @@ export const en: IdsText = {
 		'Your turn, if you like. Switch the guard between camera mode and guard mode, and watch what happens to the very same attacks.'
 	],
 	reactions: {
-		ids: 'Camera mode. Every attack still reaches the server, but now someone gets told about it. Useful, just slower.',
+		ids: 'Camera mode. Every attack still reaches the server, but now someone gets told about it. Useful, but slower, since a human has to step in.',
 		ips: 'Guard mode. The attacks stop at the booth and never touch nimbus.com.'
 	},
 	steps: [
@@ -43,7 +43,7 @@ export const en: IdsText = {
 			body: 'Snort is still free. Cloud providers sell the same idea as a service, often called a <b>WAF</b> (web application firewall).'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'D or P',
 			body: 'D is for <b>detect</b>, P is for <b>prevent</b>.'
 		},

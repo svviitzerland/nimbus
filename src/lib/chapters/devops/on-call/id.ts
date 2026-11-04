@@ -5,10 +5,10 @@ export const id: OnCallText = {
 	intro: [
 		'Website nggak pernah tidur, jadi harus ada orang yang bisa dihubungi waktu ada yang rusak jam tiga pagi. Orang itu sedang <b>on call</b>. Tim bergiliran, biasanya seminggu sekali ganti, jadi nggak ada yang pegang HP darurat selamanya. Minggu ini giliranmu.',
 		'Jam 02.58 garis error di grafik [[monitoring|compute/monitoring]] melonjak. Checkout mulai gagal buat kebanyakan pembeli, dan alarm memanggil siapa pun yang sedang on call. Masa rusak itu namanya <b>incident</b>.',
-		'HP terus berdering sampai ada manusia yang menjawab. Menekan <b>acknowledge</b> memberi tahu pager bahwa kamu sedang menangani. Kalau lima menit nggak dijawab, giliran orang berikutnya yang dibangunkan.',
+		'HP terus berdering sampai ada manusia yang menjawab. Menekan <b>acknowledge</b> memberi tahu sistem pemanggilnya (pager) bahwa kamu sedang menangani. Kalau lima menit nggak dijawab, giliran orang berikutnya yang dibangunkan.',
 		'Orang setengah tidur susah mikir jernih, makanya tim menulis <b>runbook</b> dari jauh hari, resep singkat untuk satu jenis masalah. Cek ini, lalu itu, lalu lakukan ini. Kamu tinggal ikuti, nggak perlu improvisasi.',
 		'Langkah satu, buka dashboard error. Error melonjak dari hampir nol ke 38 persen jam 02.58. Langkah dua, cek apa yang berubah. Ada rilis baru, v2.4.1, keluar jam 02.57, semenit sebelumnya.',
-		'Langkah tiga, <b>rollback</b>, artinya memasang lagi rilis terakhir yang sehat. Errornya mencair, dan langkah empat menutup incidentnya. Kamu nggak perlu paham bugnya jam tiga pagi, cukup hentikan kerusakannya dulu.',
+		'Langkah tiga, <b>rollback</b>, artinya memasang lagi rilis terakhir yang sehat. Errornya turun lagi, dan langkah empat menutup incidentnya. Kamu nggak perlu paham bugnya jam tiga pagi, cukup hentikan kerusakannya dulu.',
 		'[ingat] <b>Yang terakhir berubah, yang pertama dicurigai.</b> Kebanyakan incident muncul tepat setelah ada perubahan, rilis baru, setelan baru, server baru. Cek di situ dulu sebelum ke mana mana.',
 		'Siang harinya tim menulis <b>post mortem</b>, cerita tentang apa yang terjadi dan apa yang diubah setelahnya. Yang bagus itu <b>blameless</b>, tanpa menyalahkan orang. Lihat kalimat yang menyalahkan orang dicoret. Orang yang takut disalahkan akan menyembunyikan kesalahan, dan kesalahan yang disembunyikan pasti datang lagi.',
 		'[fyi] Kata yang sama, dunia yang beda. Tim keamanan juga menangani incident, tapi untuk pembobolan, bukan kerusakan, di [[incident response|security/incident]]. Dan kalau satu region padam total, rencananya adalah [[failover|resilience/failover]].',
@@ -50,7 +50,7 @@ export const id: OnCallText = {
 			body: 'Pasang lagi versi sehat terakhir. Situsnya pulih dalam hitungan menit, perbaikan sungguhannya menunggu pagi.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Terakhir berubah, pertama dicurigai',
 			body: 'Ada yang rusak? Tanya apa yang terakhir berubah. Lebih sering benar daripada salah.'
 		},

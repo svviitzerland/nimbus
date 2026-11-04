@@ -43,8 +43,8 @@ export const en: WhyFrameworkText = {
 			body: 'Nimbus is built with <b>Svelte</b>. Nim and the speech bubble are written once and reused in every lesson.'
 		},
 		{
-			title: 'Remember it',
-			tag: 'Remember it',
+			title: 'One fact, one place',
+			tag: 'Make it stick',
 			body: '<b>One fact, one place.</b> Like a group chat announcement, send once and everyone knows.'
 		}
 	],

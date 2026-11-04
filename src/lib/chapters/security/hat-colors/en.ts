@@ -7,7 +7,7 @@ export const en: HatColorsText = {
 		'A <b>hacker</b> is simply someone who knows a system so well they can make it do things nobody planned. The skill itself is neutral, a bit like a locksmith who can open any door.',
 		'A <b>white hat</b> works with permission. A company asks them, usually with a signed contract, to break in and report every hole so it can be fixed.',
 		'A <b>black hat</b> breaks in without permission, to steal, spy, or blackmail. Same skills, used against the owner.',
-		'A <b>gray hat</b> sits in between. No permission, but no bad intent either, like someone who sneaks in and then warns the owner. Kind, maybe, yet the law still sees it as breaking in.',
+		'A <b>gray hat</b> sits in between. No permission, but no bad intent either, like someone who sneaks in and then warns the owner. It may be well meant, yet the law still sees it as breaking in.',
 		'A real story. In the 1980s and 90s Kevin Mitnick was the most wanted hacker in America. He was caught in 1995 and spent about five years in prison. Later he ran a security company and got paid to break in, this time with permission. Same skills, the other side of the line.',
 		"That line has a name, <b>permission</b>. Most countries put it into law. In Indonesia it is the UU ITE, in the United States the Computer Fraud and Abuse Act. Getting into a system without the owner's permission is a crime even if you take nothing.",
 		'[ingat] <b>Permission paints the hat.</b> With permission, white. Without it, black, and good intentions only make it gray.',
@@ -58,7 +58,7 @@ export const en: HatColorsText = {
 			body: 'In Indonesia the <b>UU ITE</b> draws it. Getting in without the owner&#39;s yes is a crime, even if nothing is taken.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'Permission paints the hat',
 			body: 'Yes from the owner, <b>white</b>. No yes, <b>black</b>. Good intent without a yes, <b>gray</b>.'
 		},

@@ -44,7 +44,7 @@ export const en: SniffingText = {
 			body: 'A fake hotspot puts the snooper <b>on the path</b>. HTTPS still holds, and the browser warns if someone pretends to be nimbus.com.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'No padlock, no password',
 			body: 'Look for the <b>lock</b> next to the address before typing anything secret.'
 		},

@@ -31,7 +31,7 @@ export const en: AiEthicsText = {
 			body: 'It may be <b>kept</b> for a while, <b>read</b> by staff who check for abuse, or used to <b>train</b> later models.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'The billboard test',
 			body: 'Picture the message on a giant sign by the road. Fine up there means fine to paste.'
 		},
@@ -48,7 +48,7 @@ export const en: AiEthicsText = {
 		{
 			tag: 'Keep it out',
 			title: 'Not yours to share',
-			body: "Someone else's secret stays out of every chat. When the secret is the whole message, cleaning can not fix it."
+			body: "Someone else's secret stays out of every chat. When the secret is the whole message, cleaning cannot fix it."
 		},
 		{
 			tag: 'Recap',

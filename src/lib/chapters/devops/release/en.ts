@@ -51,7 +51,7 @@ export const en: ReleaseText = {
 			body: '1 in 10, then 3, then 5, then all 10. Each step waits to see that errors stay at zero.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'The little bird',
 			body: 'A few users first, then everyone. The canary warns you before the whole mine is in trouble.'
 		},

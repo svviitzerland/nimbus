@@ -51,7 +51,7 @@ export const id: ReleaseText = {
 			body: '1 dari 10, lalu 3, lalu 5, lalu semua 10. Tiap langkah nunggu dulu, errornya harus tetap nol.'
 		},
 		{
-			tag: 'Cara gampang',
+			tag: 'Biar nempel',
 			title: 'Burung kecil',
 			body: 'Sedikit user dulu, baru semuanya. Kenarinya ngasih tanda sebelum seisi tambang kena masalah.'
 		},

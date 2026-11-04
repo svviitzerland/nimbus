@@ -4,14 +4,14 @@ export const id: CssText = {
 	title: 'Apa itu CSS',
 	intro: [
 		'Masih ingat halaman nimbus.com yang kamu bangun pakai [[HTML|web/html]]? Ada judul, paragraf, tombol, dan Nim. Halamannya jalan, tapi polos banget, huruf hitam di atas putih, kayak formulir sekolah tahun 1995.',
-		'Soalnya HTML cuma bilang tiap bagian itu apa. Soal tampilannya itu tugas lain, punyanya <b>CSS</b> (singkatan dari Cascading Style Sheets). Kalau HTML itu kerangka, CSS itu bajunya. Lihat, Nim mulai nulis satu aturan.',
+		'Soalnya HTML cuma bilang tiap bagian itu apa. Soal tampilannya itu tugas lain, punyanya <b>CSS</b> (singkatan dari Cascading Style Sheets). Kalau HTML itu kerangka, CSS itu bajunya. Lihat, Nim mulai nulis satu aturan buat <b>body</b>, seluruh halaman.',
 		'Di dalam kurung kurawal ada perintah kecil, masing masing pasangan <b>property</b> dan <b>value</b>. Di sini propertynya background dan valuenya biru muda. Satu baris, dan seluruh halaman berubah.',
 		'Sekarang aturan yang cuma milih <b>h1</b>, si judul. Warnanya jadi merah tomat, dan bagian lain nggak bergeser sedikit pun. Bagian sebelum kurung, namanya <b>selector</b>, yang menentukan siapa yang kena.',
 		'Balik ke body, satu baris lagi mengganti huruf. Semua teks ikut ganti sekaligus, karena tag di dalam body meminjam hurufnya dari body. Pinjam meminjam ini namanya <b>inheritance</b> (pewarisan).',
 		'Tombolnya dapat aturan sendiri, warna, tanpa garis tepi, sudut bulat, dan sedikit padding (ruang di dalam kotak). Semua tombol yang pernah kamu pencet di aplikasi dibentuk pakai baris kayak gini.',
-		'[fyi] Kata cascading artinya aturan bisa bertumpuk. Nim menambah aturan h1 kedua di bawah, dan judulnya jadi biru. Kalau dua aturan sama spesifiknya, yang ditulis belakangan yang menang.',
+		'[fyi] Kata cascading artinya aturan bisa bertumpuk. Nim menambah aturan h1 kedua di bawah, dan judulnya jadi biru. Kalau dua aturan menunjuk hal yang sama dengan cara yang sama, yang ditulis belakangan yang menang.',
 		'[ingat] Baca tiap aturan kayak kalimat pendek. Selector itu <b>siapa</b>, property itu <b>apa</b>, value itu <b>gimana</b>. Jadi h1, color, tomato artinya si judul, warnanya, merah tomat. Siapa, apa, gimana.',
-		'HTML nya sama terus dari tadi, cuma bajunya yang ganti. Kalau mau, pencet salah satu warna di bawah kode dan lihat judulnya ikut. Berikutnya, tombol itu belajar ngapa ngapain pakai [[JavaScript|web/js]].'
+		'Dari tadi HTML sama sekali nggak berubah, cuma bajunya yang ganti. Kalau mau, pencet salah satu warna di bawah kode dan lihat judulnya ikut. Berikutnya, tombol itu belajar ngapa ngapain pakai [[JavaScript|web/js]].'
 	],
 	reactions: {
 		color:
@@ -45,10 +45,10 @@ export const id: CssText = {
 		},
 		{
 			title: 'Cascade',
-			body: 'Dua aturan h1 beda pendapat soal warna. Sama spesifiknya, jadi yang posisinya lebih bawah yang menang.'
+			body: 'Dua aturan h1 beda pendapat soal warna. Keduanya menunjuk judul dengan cara yang sama, jadi yang lebih bawah yang menang.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Siapa, apa, gimana',
 			body: '<b>h1</b> itu siapa, <b>color</b> itu apa, <b>tomato</b> itu gimana. Semua baris CSS yang bakal kamu baca ikut pola ini.'
 		},

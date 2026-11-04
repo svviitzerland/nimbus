@@ -39,7 +39,7 @@ export const id: GpuText = {
 			body: 'CPU membereskan tumpukannya empat hitungan sekali jalan. GPU memberi tiap core satu hitungan, jadi tumpukannya habis dalam satu putaran.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Profesor dan stadion',
 			body: 'Beberapa profesor jenius lawan satu stadion anak sekolah. Hitungan gampang dalam jumlah banyak? Serahkan ke stadion.'
 		},

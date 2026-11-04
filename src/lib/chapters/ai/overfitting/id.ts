@@ -45,7 +45,7 @@ export const id: OverfittingText = {
 			body: 'Rumah hijau disisihkan dari awal, namanya <b>test set</b>. Garis merah menunjukkan seberapa jauh tiap tebakan meleset. Nilai inilah yang dihitung.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Menghafal kunci jawaban',
 			body: 'Jago di soal yang sudah dilihat, payah di soal baru. Tim sungguhan memilih model dari nilai ujian beneran, dan data yang lebih banyak biasanya bikin liukannya lebih tenang.'
 		},
@@ -68,7 +68,7 @@ export const id: OverfittingText = {
 	},
 	trainScore: 'Soal latihan',
 	testScore: 'Ujian beneran',
-	hidden: 'belum',
+	hidden: 'belum ada',
 	legendTrain: 'dipelajari',
 	legendTest: 'belum pernah dilihat',
 	rule: 'Nilai dari ujian beneran, bukan dari soal latihan',

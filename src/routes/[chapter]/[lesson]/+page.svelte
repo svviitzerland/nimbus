@@ -33,6 +33,7 @@
 		beat = 0;
 		reaction = null;
 		reactionToken = null;
+		queue = [];
 		// coming back from a detour lands on the beat the learner left from
 		untrack(() => {
 			path.adoptVariant({ chapterId: data.chapterId, lessonId: data.lessonId });
@@ -105,11 +106,32 @@
 	function onShow(v: boolean) {
 		shown = v;
 	}
-	function onState(s: string) {
+	// A single tap on the stage can produce two reactions at once (the part you tried, then a wrap
+	// up once every part has been tried). They are queued so the learner reads them in order, and
+	// Next walks through the queue before it moves on.
+	let queue = $state<string[]>([]);
+	let lastReactionAt = 0;
+	function show(s: string) {
 		reactionToken = s;
 		reaction = text.reactions[s] ?? null;
+		lastReactionAt = performance.now();
+	}
+	function onState(s: string) {
+		if (!text.reactions[s]) return;
+		if (reaction && performance.now() - lastReactionAt < 700) {
+			queue = [...queue, s];
+			return;
+		}
+		queue = [];
+		show(s);
 	}
 	function next() {
+		if (queue.length) {
+			const [head, ...rest] = queue;
+			queue = rest;
+			show(head);
+			return;
+		}
 		reaction = null;
 		reactionToken = null;
 		if (beat < text.intro.length - 1) {
@@ -133,6 +155,7 @@
 		else goto(`/${chapter.id}/${chapter.lessons[data.index + 1].id}`);
 	}
 	function back() {
+		queue = [];
 		reaction = null;
 		reactionToken = null;
 		if (beat > 0) {

@@ -3,7 +3,7 @@ import type { PredictText } from './types';
 export const id: PredictText = {
 	title: 'Regresi dan klasifikasi',
 	intro: [
-		'Kemarin modelnya menyortir buah ke keranjang. Itu baru salah satu dari dua tugas besar model machine learning. Yuk kenalan dengan keduanya, mulai dari rumah. Ini beberapa rumah yang sudah laku, ditaruh sesuai luas dan harganya.',
+		'Di pelajaran sebelumnya, model menyortir buah ke keranjang. Itu baru salah satu dari dua tugas besar model machine learning. Yuk kenalan dengan keduanya, mulai dari rumah. Ini beberapa rumah yang sudah laku, ditaruh sesuai luas dan harganya.',
 		'Tugas pertama itu <b>regresi</b> (regression), menebak sebuah <b>angka</b>. Lihat garisnya miring ke sana ke mari sampai lewat sedekat mungkin dengan semua rumah. Celah kecil antara rumah dan garis makin pendek waktu garisnya tenang. Garis itulah modelnya.',
 		'Sekarang ada rumah baru yang mau dijual. Naik dari luasnya ke garis, lalu ke samping sampai skala harga, dan itulah prediksinya. Jawabannya bisa angka berapa saja di sepanjang skala.',
 		'Tugas kedua itu <b>klasifikasi</b> (classification), memilih sebuah <b>kelompok</b> (disebut juga kelas). Email ini spam atau bukan? Model membagi gambarnya jadi dua zona, dan tiap email baru tinggal jatuh di salah satunya.',
@@ -36,7 +36,7 @@ export const id: PredictText = {
 			body: 'Tiap email ditaruh sesuai jumlah link dan tanda serunya. Model menggambar garis batas, dan sisi tempatnya jatuh menentukan <b>kelompok</b>nya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Berapa atau yang mana',
 			body: 'Berapa itu regresi, yang mana itu klasifikasi.'
 		},

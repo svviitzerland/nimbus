@@ -40,14 +40,14 @@ export const en: HashingText = {
 			body: 'Same password, same hash, every time. One character different, a <b>totally different</b> hash.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'No way back',
 			body: 'You cannot <b>unblend a smoothie</b>. A hash only ever goes one way.'
 		},
 		{
 			tag: 'Logging in',
 			title: 'Compare the jumbles',
-			body: 'Blend what you typed just now and compare it with the saved jumble. A match means you are in.'
+			body: 'The site blends what you just typed and compares it with the saved jumble. A match means you are in.'
 		},
 		{
 			tag: 'LinkedIn, 2012',

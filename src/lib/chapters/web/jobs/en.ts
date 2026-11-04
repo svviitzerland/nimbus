@@ -7,14 +7,14 @@ export const en: JobsText = {
 		'If the backend finishes everything before it answers, you just stare at a spinning wheel. Plenty of people give up and close the tab, and the shop loses the sale.',
 		'The fix is a <b>queue</b>, a waiting line for work. The backend saves the order, drops the slow work into the queue as small tickets called <b>jobs</b>, and answers you right away.',
 		'Behind the scenes a separate program called a <b>worker</b> takes jobs from the queue one by one and does them. Your email still arrives, a few seconds later, and you never had to wait for it.',
-		'[ingat] Answer first, work later. Like a busy café, the cashier takes your order and hands you a number, and the kitchen cooks while you sit down.',
+		'[ingat] Answer first, work later. Like a busy café, the cashier takes your order and hands you a number, and the barista makes your coffee while you sit down.',
 		'At rush hour the tickets pile up faster than one worker can finish them. So shops simply add more workers, and they all pull from the same queue.',
 		'[fyi] Same word, different world. Routers have queues too, lines of packets waiting for a busy link. See [[bandwidth management|netlab/router-queue]].',
 		'Watch the rush hour queue drain by itself. Want it to go faster? Add a worker.'
 	],
 	reactions: {
 		w2: 'Two workers now, pulling from the same line. The queue shrinks noticeably faster.',
-		w3: 'Three workers, and the pile melts away. Big shops add and remove workers the same way they add servers.',
+		w3: 'Three workers, and the pile clears fast. Big shops add and remove workers the same way they add servers.',
 		w1: 'Back to one worker. Nothing gets lost, it just takes longer to empty the line.'
 	},
 	steps: [
@@ -35,9 +35,9 @@ export const en: JobsText = {
 			body: 'A separate program that <b>takes jobs one by one</b> from the queue and does them in the background.'
 		},
 		{
-			title: 'Remember it',
-			tag: 'Remember it',
-			body: '<b>Answer first, work later.</b> The cashier takes orders, the kitchen cooks.'
+			title: 'Answer first, work later',
+			tag: 'Make it stick',
+			body: '<b>Answer first, work later.</b> The cashier takes orders, the barista makes them.'
 		},
 		{
 			title: 'More workers',

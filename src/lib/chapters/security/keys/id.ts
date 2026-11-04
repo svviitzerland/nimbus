@@ -52,7 +52,7 @@ export const id: KeysText = {
 			body: 'Yang jalan cuma gembok terbuka. Menyalinnya nggak ada gunanya, karena gembok cuma bisa mengunci.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Gembok dan anak kunci',
 			body: 'Kunci publik, gembok terbuka yang <b>bisa dikunci siapa saja</b>. Kunci privat, <b>satu satunya</b> anak kunci yang bisa membukanya.'
 		},

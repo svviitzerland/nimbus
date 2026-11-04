@@ -36,7 +36,7 @@ export const en: PredictText = {
 			body: 'Each email is placed by its links and its exclamation marks. The model draws a border, and the side decides the <b>group</b>.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'How much or which one',
 			body: 'How much is regression, which one is classification.'
 		},

@@ -52,7 +52,7 @@ export const en: KeysText = {
 			body: 'Only the open padlock travels. Copying it gains nothing, because locking is all a padlock can do.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Padlock and key',
 			body: 'Public key, an open padlock <b>anyone can snap shut</b>. Private key, the <b>only key that opens it</b>.'
 		},

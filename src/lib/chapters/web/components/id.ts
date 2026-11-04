@@ -45,8 +45,8 @@ export const id: ComponentsText = {
 			body: 'Nim, balon bicara, dan tombol Lanjut itu komponen, ditulis sekali dan dipakai ulang di tiap pelajaran.'
 		},
 		{
-			title: 'Cara ingat',
-			tag: 'Cara ingat',
+			title: 'Cetakan kue dan topping',
+			tag: 'Biar nempel',
 			body: 'Komponen itu <b>cetakan kue</b>, props itu <b>toppingnya</b>.'
 		}
 	],

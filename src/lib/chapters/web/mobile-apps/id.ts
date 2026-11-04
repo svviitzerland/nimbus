@@ -4,7 +4,7 @@ export const id: MobileAppsText = {
 	title: 'Native dan cross platform',
 	intro: [
 		'nimbus.com makin populer, dan orang terus menanyakan hal yang sama. Ada aplikasinya nggak? <b>Aplikasi</b> itu program yang kamu pasang di HP dari Play Store atau App Store, dengan ikonnya sendiri di layar utama.',
-		'Masalahnya begini. HP itu bicara dengan bahasa yang berbeda. Aplikasi Android kebanyakan ditulis dengan <b>Kotlin</b>, aplikasi iPhone dengan <b>Swift</b>. Aplikasi yang ditulis dengan bahasa asli HP-nya disebut <b>native</b>, kayak penutur asli yang besar di sana. Lihat aplikasinya ditulis.',
+		'Masalahnya begini. HP itu bicara dengan bahasa yang berbeda. Aplikasi Android kebanyakan ditulis dengan <b>Kotlin</b>, aplikasi iPhone dengan <b>Swift</b>. Aplikasi yang ditulis dengan bahasa asli HP itu disebut <b>native</b>, kayak penutur asli yang besar di sana. Lihat aplikasinya ditulis.',
 		'Aplikasi native paling cepat dan bisa memakai semua isi HP, kamera, sensor, notifikasi. Harganya, kamu menulis seluruh aplikasinya dua kali, sering kali oleh dua tim yang berbeda.',
 		'Di ujung yang lain ada situs biasa, seperti yang kamu buat di [[HTML|web/html]]. Satu kode jalan di browser semua HP dan laptop, tanpa perlu dipasang. Rasanya sedikit kurang mulus dan nggak bisa menjangkau semua bagian HP.',
 		'Di tengahnya ada <b>cross platform</b>. Kamu menulis sekali dengan <b>Flutter</b> (buatan Google, pakai bahasa Dart) atau <b>React Native</b> (buatan Meta, pakai JavaScript), dan jadilah aplikasi Android sekaligus aplikasi iPhone. Hampir secepat native, cukup satu tim.',
@@ -49,9 +49,9 @@ export const id: MobileAppsText = {
 			body: 'Butuh kecepatan penuh, pilih native. Butuh dua toko dengan tim kecil, pilih cross platform. Butuh semua orang bisa buka seketika, pilih web.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Hitung kodenya',
-			body: 'Dua kali, sekali jadi dua, sekali buat semua. Makin sedikit kode makin ringan kerjanya, tapi tenaga dari HP juga sedikit berkurang.'
+			body: 'Native ditulis dua kali, cross platform sekali jadi dua aplikasi, web sekali buat semua. Makin sedikit kode makin ringan kerjanya, tapi tenaga dari HP juga sedikit berkurang.'
 		},
 		{
 			tag: 'Coba',
@@ -70,7 +70,7 @@ export const id: MobileAppsText = {
 		web: '1 codebase, di mana saja'
 	},
 	examples: { native: 'Game balap 3D', cross: 'Startup berdua', web: 'Menu kafe' },
-	rule: 'Dua kali, sekali jadi dua, sekali buat semua',
+	rule: 'Native dua kali, cross sekali, web sekali buat semua',
 	featureBtn: 'Tambah fitur baru',
 	featureDone: 'Dua fitur sudah ditambah'
 };

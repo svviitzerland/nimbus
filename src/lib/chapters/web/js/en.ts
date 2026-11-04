@@ -11,7 +11,7 @@ export const en: JsText = {
 		'[fyi] Despite the name, JavaScript has nothing to do with Java. It was built in about ten days in 1995 for the Netscape browser, and the name was mostly marketing, since Java was the hot thing back then.',
 		'JavaScript is strict though. Nim deletes one tiny bracket, and the browser stops reading the whole script. Look, the taps keep coming but nothing counts, and the console shows an error.',
 		'Put the bracket back and everything works again. Developers do this all day long, read the error, find the line, fix it.',
-		'[ingat] Almost all JavaScript on a page does three things. <b>Find</b> something, <b>listen</b> for something, <b>change</b> something. Find, listen, change.',
+		'[ingat] Almost all JavaScript on a page does three things, <b>find, listen, change</b>. Like a doorman, it knows which door to watch, waits for the bell, then opens up.',
 		'Now it is your shop. Tap Add to cart yourself if you like, or switch it to add 2 per tap and watch the code rewrite itself. Next, we peek at what JavaScript really changes, the [[DOM|web/dom]].'
 	],
 	reactions: {
@@ -53,7 +53,7 @@ export const en: JsText = {
 			body: 'With the bracket back the whole script runs again, the listener returns, and taps count.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Find, listen, change',
 			body: '<b>querySelector</b> finds, <b>addEventListener</b> listens, and the lines inside change the page.'
 		},

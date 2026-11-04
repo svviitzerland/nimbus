@@ -6,7 +6,7 @@ export const en: LinuxFilesText = {
 		'Your nimbus.com website lives on a <b>server</b>, a computer in a data center. Like most servers on the internet it runs <b>Linux</b> (this one is Ubuntu). It has no desktop and no mouse, only a <b>terminal</b>, a window where you type commands. You reach it through SSH, the remote door from [[remote access|cloud/remote-access]].',
 		'Every file on Linux lives in one big tree of folders. The very top is called <b>root</b> and is written as a single slash, <b>/</b>. Every other folder grows out of it, like branches out of a trunk.',
 		'First question in any new place, where am I? The command <b>pwd</b> answers it (print working directory). Watch Nim type it. You are in /home/nim, your very own home folder.',
-		'Next, look around. <b>ls</b> lists what is inside a folder, the same idea as in [[CLI vs GUI|foundations/cli-gui]]. Nim asks for the top with <b>ls /</b>, and the first branches light up. home holds the users, etc holds settings, and var holds things that keep changing, like logs.',
+		"Next, look around. <b>ls</b> lists what is inside a folder, the same idea as in [[CLI vs GUI|foundations/cli-gui]]. Nim asks for the top with <b>ls /</b>, and the first branches light up. home holds the users' folders, etc holds settings, and var holds things that keep changing, like logs.",
 		'Now walk. <b>cd</b> (change directory) moves you into a folder. A path like /var/log/nimbus simply walks down from the top, one folder at a time. Follow the pin.',
 		'Last, read. <b>cat</b> prints a file on the screen. Nim lists the folder, then reads error.log, and there is the reason nimbus.com stopped last night. The disk was full.',
 		'[ingat] Four commands, four little questions. <b>pwd</b> asks where am I, <b>ls</b> asks what is here, <b>cd</b> says go there, and <b>cat</b> says show me.',
@@ -61,7 +61,7 @@ export const en: LinuxFilesText = {
 			body: '<b>cat</b> prints a whole file. Logs like this one are plain text, made to be read by people.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Four questions',
 			body: 'pwd, where am I. ls, what is here. cd, go there. cat, show me.'
 		},

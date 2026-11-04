@@ -6,7 +6,7 @@ export const en: UiUxText = {
 		'Think of your favourite app. Part of why you like it is how it <b>looks</b>, and part of it is how <b>easy</b> it is to get things done. Those are two different jobs, and each one has its own name.',
 		'<b>UI</b> stands for user interface. It is everything you see and touch on the screen, the colours, the letters, the buttons, the space between things.',
 		'<b>UX</b> stands for user experience. It is how it feels to actually use the thing. Watch someone buy a mug. Find the button, tap it, done, nothing to think about. That smooth feeling is good UX.',
-		'Now the same shop, made carelessly. Two buttons that look exactly alike, a label that says nothing (Proceed to what?), and a fee that only shows up at the very end. The paint is fine, the experience is not.',
+		'Now the same shop, made carelessly. Two buttons that look exactly alike, a label that says nothing (Proceed to what?), and a fee that only shows up at the very end. It looks fine, but using it is a pain.',
 		'Here it is made with care. One clear main button that says exactly what happens, and the full price shown from the start. Same colours, same letters, yet it feels completely different.',
 		'[fyi] UX is not only about screens. Ever pulled a door that should have been pushed? People call those Norman doors, after Don Norman, the designer who made the words user experience popular in the 1990s.',
 		'[ingat] UI is the shirt, UX is how comfy it is to wear. A shirt can look great and still itch all day. Good products need both, and next you will see how a design becomes real [[CSS|web/css]] in [[design to code|web/design-to-code]].',
@@ -45,8 +45,8 @@ export const en: UiUxText = {
 			body: 'A door whose handle says pull while the sign says push is bad UX too. Good design tells you what to do without a sign.'
 		},
 		{
-			title: 'Remember it',
-			tag: 'Remember it',
+			title: 'The shirt and how it feels',
+			tag: 'Make it stick',
 			body: 'UI is the <b>shirt</b>, UX is how <b>comfy</b> it is to wear. You need both.'
 		}
 	],

@@ -45,7 +45,7 @@ export const en: InferenceText = {
 			body: 'Each answer is tiny, but there are millions of them. That is why companies care about the cost of inference too, not just training.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Cook once, serve many times',
 			body: 'Training happens once (or once in a while, for a new version) and is slow. Inference happens on every question and is fast.'
 		},

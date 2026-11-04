@@ -52,7 +52,7 @@ export const id: ThreatsText = {
 			body: 'Begitu di dalam, mereka sampai ke <b>mesin kasir</b> dan menyalin sekitar 40 juta kartu.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Pintu terlemah',
 			body: 'Keamananmu cuma sebagus bagian yang <b>paling lemah</b>. Temukan duluan sebelum mereka.'
 		},

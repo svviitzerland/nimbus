@@ -5,7 +5,7 @@ export const en: DomText = {
 	intro: [
 		'When the browser reads your HTML, it does not keep it as text. It turns every tag into an object and hangs them together in a tree. Watch it grow. This tree is called the <b>DOM</b> (Document Object Model).',
 		'Picture a family tree. <b>html</b> sits at the top, <b>body</b> is its child, and inside body live header, main, and footer, each with children of their own. Every tag has exactly one parent.',
-		'The page you see and the tree are the same thing, just drawn two ways. Every box on the page is a node in the tree, and the browser keeps them in sync all the time.',
+		'The page you see and the tree are the same thing, just drawn two ways. Every box on the page is a <b>node</b>, one point in the tree, and the browser keeps them in sync all the time.',
 		'Here is the twist. [[JavaScript|web/js]] never touches your HTML file. It changes this living tree. Watch it hang a new <b>li</b> on the cart list, and the page shows a new line instantly.',
 		'Things that happen on a page are called <b>events</b>. A tap is a click event, typing is an input event. When you tap the button, the click starts right there, at the button.',
 		'Then it travels. The click climbs from the button to its parent, then the parent of that, all the way up to html. That trip is called <b>bubbling</b>.',
@@ -53,7 +53,7 @@ export const en: DomText = {
 			body: 'DOM events stay in your browser tab. Messages between servers are a different kind of event.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Bubbles float up',
 			body: 'Tap low, the event floats up. A listener only hears it when it sits on the way up.'
 		},

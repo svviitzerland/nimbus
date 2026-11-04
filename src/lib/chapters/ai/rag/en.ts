@@ -51,7 +51,7 @@ export const en: RagText = {
 			body: 'The model writes its answer from the document in front of it, and points to its source.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'An open book exam',
 			body: 'Without RAG the AI takes a closed book exam. With RAG it gets to open the book first.'
 		},

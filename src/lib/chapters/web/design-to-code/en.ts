@@ -9,7 +9,7 @@ export const en: DesignToCodeText = {
 		'Now the browser reads the CSS and draws the button. Watch it change one line at a time, first a plain grey box, then the colour, the round corners, the breathing room, and finally the letter size.',
 		'Put the two side by side. The design and the real page now look exactly the same. Turning a drawing into matching code like this is the everyday job of a frontend developer.',
 		'[fyi] Teams often give their common values a name, like brand blue or space 24, and keep them in one shared list called a <b>design system</b>. Then designers and developers say the same words and nothing drifts apart.',
-		'[ingat] Do not eyeball it, read the numbers. Colour, corners, padding, letter size, four numbers make one button.',
+		'[ingat] Work like a tailor, not a painter. A tailor never guesses a size, they read the tape. Colour, corners, padding, letter size, four numbers make one button.',
 		'Your turn, if you like. Leave out the padding line and see how fast the button stops looking like the design.'
 	],
 	reactions: {
@@ -44,8 +44,8 @@ export const en: DesignToCodeText = {
 			body: 'Shared names for shared values, like <b>brand blue</b>. Change it once in the list and both the design and the code follow.'
 		},
 		{
-			title: 'Remember it',
-			tag: 'Remember it',
+			title: 'A tailor, not a painter',
+			tag: 'Make it stick',
 			body: 'Do not guess, <b>read the numbers</b>. Colour, corners, padding, letter size.'
 		}
 	],

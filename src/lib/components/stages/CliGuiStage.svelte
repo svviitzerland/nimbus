@@ -35,14 +35,11 @@
 			if (cliDone) return;
 			cliDone = true;
 		}
-		if (guiDone && cliDone) {
-			if (!done) {
-				done = true;
-				onstate?.('both');
-				oncomplete?.();
-			}
-		} else {
-			onstate?.(which);
+		onstate?.(which);
+		if (guiDone && cliDone && !done) {
+			done = true;
+			onstate?.('both');
+			oncomplete?.();
 		}
 	}
 

@@ -4,7 +4,7 @@ export const en: BackendWhatText = {
 	title: 'What is a backend',
 	intro: [
 		'When you shop on <b>nimbus.com</b>, everything you see and tap (the cap photo, the price, the big Buy button) lives on your phone. That visible part is called the <b>frontend</b>.',
-		'But your phone cannot decide on its own that your order is real. So when you tap Buy, it packs the order into a little message and sends it far away.',
+		'But your phone cannot decide on its own whether your order is valid. So when you tap Buy, it packs the order into a little message and sends it far away.',
 		'The message lands at the <b>backend</b>, a program running on a server. You never see it, a bit like the kitchen of a restaurant. You only see the plate that comes out.',
 		'First the backend checks <b>who is asking</b>. Anyone on the internet can send a message, so it never trusts the phone blindly.',
 		'Then it asks the <b>database</b>, the big notebook where every product, account, and order is kept. Is a cap still in stock? Only the backend may open that notebook.',
@@ -15,7 +15,7 @@ export const en: BackendWhatText = {
 	],
 	reactions: {
 		loggedOut:
-			'Stopped right at the first drawer. Without a login the backend has no idea whose order this is, so it says no. Your phone can show a pretty button, but the backend decides.',
+			'Stopped right at the first checkpoint. Without a login the backend has no idea whose order this is, so it says no. Your phone can show a pretty button, but the backend decides.',
 		loggedIn: 'Logged back in, and the order goes all the way through again.'
 	},
 	steps: [
@@ -44,8 +44,8 @@ export const en: BackendWhatText = {
 			body: 'The order is now <b>written down</b>, even if your battery dies. The receipt comes from the backend, not from your phone.'
 		},
 		{
-			title: 'Remember it',
-			tag: 'Remember it',
+			title: 'Dining room and kitchen',
+			tag: 'Make it stick',
 			body: 'Frontend is the <b>dining room</b>, backend is the <b>kitchen</b>.'
 		},
 		{
@@ -55,7 +55,7 @@ export const en: BackendWhatText = {
 		},
 		{
 			title: 'Who decides',
-			body: 'The button lives on your phone, but <b>the backend decides</b> whether the order is real.'
+			body: 'The button lives on your phone, but <b>the backend decides</b> whether the order is valid.'
 		}
 	],
 	frontLabel: 'Frontend',

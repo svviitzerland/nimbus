@@ -55,7 +55,7 @@ export const en: SsoText = {
 			body: 'nimbus.com gets a <b>token</b>, a limited pass, plus the details you allowed. Never the password.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'Passwords go home',
 			body: 'A Google password belongs on <b>google.com</b>. Check the address bar before you type it.'
 		},

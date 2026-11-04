@@ -14,7 +14,7 @@ export const id: JobsText = {
 	],
 	reactions: {
 		w2: 'Sekarang ada dua worker yang ngambil dari barisan yang sama. Antreannya kerasa lebih cepat menyusut.',
-		w3: 'Tiga worker, tumpukannya langsung cair. Toko besar menambah dan mengurangi worker persis kayak nambah server.',
+		w3: 'Tiga worker, tumpukannya cepat habis. Toko besar menambah dan mengurangi worker persis kayak nambah server.',
 		w1: 'Balik ke satu worker. Nggak ada yang hilang, cuma butuh waktu lebih lama buat mengosongkan antrean.'
 	},
 	steps: [
@@ -35,8 +35,8 @@ export const id: JobsText = {
 			body: 'Program terpisah yang <b>ngambil job satu per satu</b> dari antrean dan mengerjakannya di belakang layar.'
 		},
 		{
-			title: 'Cara ingat',
-			tag: 'Cara ingat',
+			title: 'Jawab dulu, kerjakan belakangan',
+			tag: 'Biar nempel',
 			body: '<b>Jawab dulu, kerjakan belakangan.</b> Kasir terima pesanan, barista yang bikin.'
 		},
 		{

@@ -51,7 +51,7 @@ export const en: DdosText = {
 			body: 'Many servers worldwide <b>soak up</b> the flood far from yours, and let real visitors through.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'A crowd at the door',
 			body: 'DDoS takes nothing, it <b>blocks the door</b>. Widen the doorway and add a bouncer.'
 		},

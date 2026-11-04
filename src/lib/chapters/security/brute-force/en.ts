@@ -46,7 +46,7 @@ export const en: BruteForceText = {
 			body: 'Popular passwords and common tricks sit on <b>leaked lists</b>. The machine tries them before anything else.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Long beats clever',
 			body: 'A few <b>random words</b> in a row beat any short password full of symbols.'
 		},

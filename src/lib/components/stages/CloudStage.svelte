@@ -32,7 +32,8 @@
 	}
 
 	function pick(which: 'home' | 'cloud') {
-		const firstClick = !explored.home && !explored.cloud;
+		const fresh = !explored[which];
+		const wasBoth = explored.home && explored.cloud;
 		open = which;
 		explored = { ...explored, [which]: true };
 
@@ -53,11 +54,11 @@
 			);
 		}
 
-		if (explored.home && explored.cloud) {
+		// the side you just opened speaks first, then the wrap up once both are seen
+		if (fresh) onstate?.(which);
+		if (explored.home && explored.cloud && !wasBoth) {
 			onstate?.('both');
 			oncomplete?.();
-		} else if (firstClick) {
-			onstate?.(which);
 		}
 	}
 

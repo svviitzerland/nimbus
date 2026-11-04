@@ -3,8 +3,8 @@ import type { CapstoneText } from '../types';
 export const id: CapstoneText = {
 	title: 'Pilih provider',
 	intro: [
-		'Sampai juga di ujung jalur Cloud. Dari satu server di laptop sampai arsitektur yang tahan banting, kamu sudah pegang semua konsep besarnya.',
-		'Cabang berikutnya turun ke dunia nyata per penyedia. Konsep yang sama persis, tapi dengan nama dan tombol aslinya, EC2, Cloud Run, dan kawan kawannya.',
+		'Sampai juga di ujung jalur Cloud. Dari satu server di laptop sampai arsitektur yang tahan banting, kamu sudah paham semua konsep besarnya.',
+		'Cabang berikutnya membawa konsep itu ke dunia nyata, satu penyedia demi satu. Konsepnya sama persis, cuma sekarang pakai nama dan tombol aslinya, misalnya EC2 dan Cloud Run.',
 		'Pilih penyedia yang paling ingin kamu pelajari duluan. Ketiganya masih tahap pembangunan, dan kamu bisa titip email biar dikabari begitu jalurnya siap.'
 	],
 	reactions: {

@@ -54,7 +54,7 @@ export const en: HttpText = {
 			body: 'Three digits on top of every response. The first digit tells you the whole story.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'Read the first digit',
 			body: "<b>2</b> fine, <b>3</b> go elsewhere, <b>4</b> your mistake, <b>5</b> the server's mistake."
 		},

@@ -27,7 +27,7 @@ export const id: TrainingText = {
 			body: 'Tiap contoh datang dengan jawaban benarnya, yaitu <b>label</b>. Di sini labelnya cukup keranjang tempat buah itu berada.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Dikasih tahu atau dikasih lihat',
 			body: 'Kode biasa dikasih tahu aturannya. Machine learning dikasih lihat contoh dan menemukan aturannya sendiri.'
 		},

@@ -51,7 +51,7 @@ export const en: WebAttacksText = {
 			body: 'Special characters become harmless look alikes. The browser <b>shows</b> the tag instead of running it.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'A guest, never the boss',
 			body: 'Input may sit in the room, it never <b>gives orders</b>.'
 		},

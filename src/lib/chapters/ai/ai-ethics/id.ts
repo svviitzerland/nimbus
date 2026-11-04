@@ -3,7 +3,7 @@ import type { AiEthicsText } from './types';
 export const id: AiEthicsText = {
 	title: 'Etika AI',
 	intro: [
-		'Chatbot itu berguna buat menulis, menerjemahkan, dan menjelaskan PR yang susah. Tapi sebelum menekan kirim, ada baiknya tahu ke mana pesanmu pergi. Pesan itu meninggalkan HP-mu dan berjalan ke server penyedianya ([[AI lewat API|ai/ai-api]]).',
+		'Chatbot itu berguna buat menulis, menerjemahkan, dan menjelaskan PR yang susah. Tapi sebelum menekan kirim, ada baiknya tahu ke mana pesanmu pergi. Pesan itu meninggalkan HP kamu dan berjalan ke server penyedianya ([[AI lewat API|ai/ai-api]]).',
 		'Di sana pesanmu biasanya <b>disimpan</b> untuk sementara. Staf bisa <b>membacanya</b> waktu memeriksa penyalahgunaan, dan dengan pengaturan tertentu pesanmu bahkan bisa ikut <b>melatih</b> model berikutnya. Jadi chatbot itu orang asing yang baik hati, bukan buku harian.',
 		'[ingat] Tes baliho. Sebelum menempel apa pun, bayangkan tulisannya terpampang di baliho raksasa di pinggir jalan. Kalau nggak berani dipasang di baliho, jangan ditempel ke chatbot.',
 		'Pesan pertama, pertanyaan soal artikel berita yang sudah publik. Di baliho, nggak ada yang pribadi. Kirim saja, ini memang keahlian chatbot.',
@@ -17,7 +17,7 @@ export const id: AiEthicsText = {
 		news: 'Nggak ada yang pribadi di situ, jadi langsung berangkat. Tapi ingat, jawabannya tetap bisa keliru di detailnya.',
 		cv: 'Bot nggak butuh nomor HP atau alamatmu buat merapikan tulisan. Pengalamanmu berangkat, data pribadimu tetap di rumah.',
 		friend:
-			'Yang ini nggak pernah keluar dari HP-mu. Itu berita Rina untuk dia bagikan sendiri, bukan kamu, ke bot atau ke siapa pun.'
+			'Yang ini nggak pernah keluar dari HP kamu. Itu berita Rina untuk dia bagikan sendiri, bukan kamu, ke bot atau ke siapa pun.'
 	},
 	panels: [
 		{
@@ -31,7 +31,7 @@ export const id: AiEthicsText = {
 			body: 'Pesanmu bisa <b>disimpan</b> sementara, <b>dibaca</b> staf yang memeriksa penyalahgunaan, atau dipakai untuk <b>melatih</b> model berikutnya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Tes baliho',
 			body: 'Bayangkan pesannya di papan raksasa pinggir jalan. Aman di sana berarti aman ditempel.'
 		},
@@ -79,9 +79,9 @@ export const id: AiEthicsText = {
 		},
 		{
 			id: 'cv',
-			label: 'CV-ku',
+			label: 'CV aku',
 			lines: [
-				[{ t: 'Tolong bikin CV-ku lebih menarik.' }],
+				[{ t: 'Tolong bikin CV aku lebih menarik.' }],
 				[{ t: 'HP ' }, { t: '0812 3456 7890', secret: true }],
 				[{ t: 'Alamat ' }, { t: 'Jl. Melati 5, Bandung', secret: true }],
 				[{ t: 'Keahlian, desain dan kerja tim.' }]

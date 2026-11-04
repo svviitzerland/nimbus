@@ -42,7 +42,7 @@ export const en: FineTuningText = {
 			body: 'Same base model, new habits. It names our menus and signs off like our team does.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'A new employee',
 			body: 'Already smart, just not used to <b>your</b> way yet. A few good examples teach the house style.'
 		},

@@ -8,7 +8,7 @@ export const en: MobileAppsText = {
 		'Native apps are the fastest and can use everything on the phone, the camera, the sensors, the notifications. The price is that you write the whole app twice, often with two separate teams.',
 		'At the other end sits a plain website, the kind you built with [[HTML|web/html]]. One code runs in the browser of every phone and laptop, with nothing to install. It feels a little less smooth and cannot reach every part of the phone.',
 		'In between is <b>cross platform</b>. You write once with <b>Flutter</b> (from Google, in a language called Dart) or <b>React Native</b> (from Meta, in JavaScript), and out come both an Android app and an iPhone app. Nearly native speed, one team.',
-		'So which one wins? None of them, everywhere. A smooth 3D racing game goes native. A two person startup that wants both app stores goes cross platform. A cafe menu behind a QR code is simply a website.',
+		'So which one wins? None of them wins at everything. A smooth 3D racing game goes native. A two person startup that wants both app stores goes cross platform. A cafe menu behind a QR code is simply a website.',
 		'[ingat] Count the codes. Native, two codes for two phones. Cross platform, one code for two phones. Web, one code for everyone, nothing to install.',
 		'[fyi] Parts of Instagram are built with React Native, and the My BMW app is built with Flutter. Big companies mix and match, picking the way that fits each screen.',
 		'Curious how the work adds up? Add a new feature and watch who has to write it twice. Totally optional.'
@@ -46,12 +46,12 @@ export const en: MobileAppsText = {
 		{
 			tag: 'Choosing',
 			title: 'Each wins a different job',
-			body: 'Need raw speed, go native. Need both stores with a small team, go cross platform. Need everyone in a second, go web.'
+			body: 'Need raw speed, go native. Need both stores with a small team, go cross platform. Need everyone to open it in a second, go web.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Count the codes',
-			body: 'Two codes, one code for two, one code for all. Fewer codes means less work, and a little less power from the phone.'
+			body: 'Native is written twice, cross platform once for two apps, web once for everyone. Fewer codes means less work, and a little less power from the phone.'
 		},
 		{
 			tag: 'Try it',
@@ -66,7 +66,7 @@ export const en: MobileAppsText = {
 	devices: { android: 'Android', iphone: 'iPhone', phone: 'Phone', laptop: 'Laptop' },
 	counts: { native: '2 codebases', cross: '1 codebase, 2 apps', web: '1 codebase, everywhere' },
 	examples: { native: '3D racing game', cross: 'Two person startup', web: 'Cafe menu' },
-	rule: 'Two codes, one for two, one for all',
+	rule: 'Native twice, cross once, web once for all',
 	featureBtn: 'Add a new feature',
 	featureDone: 'Two features added'
 };

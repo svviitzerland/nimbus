@@ -52,7 +52,7 @@ export const id: EvaluationText = {
 			body: 'Kalau satu kelompok jarang, model bisa dapat nilai tinggi dengan mengabaikannya. Selalu tanya berapa kasus penting yang tertangkap.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Pilih jaringmu',
 			body: 'Jaring lebar (garis rendah) dapat semuanya, sampah pun ikut. Jaring sempit (garis tinggi) bersih, tapi ada yang lolos.'
 		},

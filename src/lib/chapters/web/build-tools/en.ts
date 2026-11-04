@@ -11,7 +11,7 @@ export const en: BuildToolsText = {
 		'Job three, <b>compress</b>. The files are squeezed like a zip file, so they travel even lighter, and the browser unsqueezes them on arrival.',
 		'You keep editing the friendly version, and the build tool makes the tiny version only for browsers. Frameworks lean on this a lot, since your [[components|web/components]] all have to become plain [[JavaScript|web/js]] and CSS in the end.',
 		'[fyi] Popular build tools include <b>Vite</b>, <b>webpack</b>, and <b>esbuild</b>. Vite comes from the creator of Vue, and it is what builds this very site.',
-		'[ingat] Packing for a trip home. Bundle is putting everything into one suitcase, minify is leaving out what you do not need, compress is the vacuum bag that squeezes the air out.',
+		'[ingat] It is like packing for a trip home. Bundle is putting everything into one suitcase, minify is leaving out what you do not need, compress is the vacuum bag that squeezes the air out.',
 		'Your turn, if you like. Switch the build tool off and on, and watch the download change.'
 	],
 	reactions: {
@@ -53,8 +53,8 @@ export const en: BuildToolsText = {
 			body: '<b>Vite</b>, <b>webpack</b>, and <b>esbuild</b> are the common ones. Nimbus is built with Vite.'
 		},
 		{
-			title: 'Remember it',
-			tag: 'Remember it',
+			title: 'Packing for a trip',
+			tag: 'Make it stick',
 			body: 'Bundle is <b>one suitcase</b>, minify is <b>leave the extras</b>, compress is the <b>vacuum bag</b>.'
 		}
 	],

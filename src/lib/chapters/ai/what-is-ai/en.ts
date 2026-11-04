@@ -3,11 +3,11 @@ import type { WhatIsAiText } from './types';
 export const en: WhatIsAiText = {
 	title: 'What is AI',
 	intro: [
-		'Picture a calculator. You type 7 times 8 and it says 56. It is not thinking at all. A person wrote the rule for multiplying, and the machine just follows it. That is a <b>normal program</b>, so it waits outside our picture.',
+		'Picture a calculator. You type 7 times 8 and it says 56. It is not thinking at all. A person wrote the rule for multiplying, and the machine just follows it. That is a <b>normal program</b>, so it stands outside every circle in the picture.',
 		'People dreamed of smarter machines for a long time. In 1950 a British mathematician named <b>Alan Turing</b> asked a famous question, "can machines think?" In 1956 a group of scientists met for a summer workshop about that dream and gave it a name, <b>artificial intelligence</b>.',
 		'So <b>AI</b> is the big circle. It holds every machine that does something that <i>looks</i> smart. A chess bot lands here. It plays like a clever opponent, but people typed in every rule it uses.',
 		'Inside AI sits <b>machine learning</b>, or <b>ML</b> for short. Here nobody writes the rules. You show the machine lots of examples and it works out the pattern by itself. A spam filter studied millions of emails that people marked as spam, and learned what spam looks like.',
-		'[ingat] A normal program gets the rules. Machine learning gets examples and finds the rules itself. Rules in means a program, examples in means ML.',
+		'[ingat] A normal program is a recipe a person wrote down. Machine learning is a kid who tastes lots of dishes and works out the recipe alone.',
 		'Inside ML sits <b>deep learning</b>. It is machine learning built on a [[neural network|ai/neural-net]], many layers of tiny pieces stacked up. With enough examples it gets really good at messy things like faces, voices, and language. That is how face unlock knows it is you.',
 		'Right in the middle sits <b>generative AI</b>. It does not just recognise things, it <i>creates</i> new ones. Chatbots that write answers and apps that paint a picture from one sentence live here.',
 		'[ingat] The circles nest like the layers of an onion, and every inner layer is still part of the outer ones. Every chatbot is AI, but not every AI is a chatbot, just like every kitten is a cat but not every cat is a kitten.',
@@ -45,9 +45,9 @@ export const en: WhatIsAiText = {
 			body: 'A part of AI that learns from <b>examples</b> instead of being told the rules.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Rules or examples',
-			body: 'Rules in, program. Examples in, machine learning.'
+			body: 'Given the rules, it is a normal program. Given examples and left to find the rules, it is machine learning.'
 		},
 		{
 			tag: 'Circle 3',
@@ -60,7 +60,7 @@ export const en: WhatIsAiText = {
 			body: 'Deep learning that <b>makes</b> new things (text, pictures, music) instead of only sorting what it sees.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Circles inside circles',
 			body: 'Each circle is part of the one around it. When people say AI today, they often mean only the smallest one.'
 		},
@@ -87,7 +87,7 @@ export const en: WhatIsAiText = {
 	quote: 'Can machines think?',
 	quoteBy: 'Alan Turing, 1950',
 	photo: { alt: 'Photo of Alan Turing as a teenager', caption: 'Alan Turing, about 1928' },
-	rule: 'Rules in, program. Examples in, machine learning.',
+	rule: 'Given rules, a program. Given examples, machine learning.',
 	nest: 'Every chatbot is AI, not every AI is a chatbot.',
 	tapHint: 'Tap any example'
 };

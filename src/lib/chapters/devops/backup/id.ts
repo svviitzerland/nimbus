@@ -7,8 +7,8 @@ export const id: BackupText = {
 		'Disk itu mesin, dan mesin bisa aus. Suatu hari disk ini berhenti begitu saja. Semua pesanan dan semua akun di dalamnya, hilang bareng satu bagian yang rusak. Di setiap data center, ada disk yang mati seperti ini tiap hari.',
 		'Makanya tim menyimpan <b>backup</b>, salinan data yang disimpan di tempat lain. Di sini ada kotak kedua di gedung yang sama yang diam diam menyalin database sesuai jadwal, kayak fotokopi buku catatanmu.',
 		'Sekarang lihat hari sialnya sekali lagi. Disknya mati, disk baru dipasang, lalu salinannya mengalir balik. Memasang salinan itu kembali namanya <b>recovery</b>, atau <b>restore</b>. Pesanannya pulang lagi.',
-		'Tapi backup cuma sesegar salinan terakhirnya. Apa pun yang ditulis setelah itu hilang. Salin sekali sehari, lalu rusak sore hari, hilang satu hari penuh. Salin tiap jam, yang hilang cuma beberapa menit.',
-		'[fyi] Kata yang sama, dunia yang beda. Backup itu bukan region cadangan di [[failover|resilience/failover]]. Failover menjaga situs tetap jalan, backup mengembalikan data, bahkan data yang nggak sengaja dihapus atau dikunci [[ransomware|security/malware]].',
+		'Tapi backup cuma sesegar salinan terakhirnya. Apa pun yang ditulis setelah itu hilang. Salin sekali sehari, lalu rusak sore hari, hilang hampir satu hari penuh. Salin tiap jam, yang hilang cuma beberapa menit.',
+		'[fyi] Jangan ketuker. Backup itu bukan region cadangan di [[failover|resilience/failover]]. Failover menjaga situs tetap jalan, backup mengembalikan data, bahkan data yang nggak sengaja dihapus atau dikunci [[ransomware|security/malware]].',
 		'Tempat menyimpan salinannya juga penting banget. Tim yang berpengalaman memakai <b>aturan 3 2 1</b>. Tiga salinan data, di dua jenis penyimpanan, dengan satu disimpan di luar lokasi, jauh di kota lain.',
 		'[ingat] Hitung pakai jari. <b>Tiga salinan, dua wadah, satu di luar rumah.</b> Kalau satu hari sial bisa menjangkau semua salinan sekaligus, itu belum backup namanya.',
 		'Ini alasan salinan jauh itu penting. Kebakaran melahap seluruh gedung Jakarta, server dan kotak backupnya sekaligus. Salinan di Singapura nggak merasakan apa apa, dan dialah yang menghidupkan nimbus.com lagi.',
@@ -57,7 +57,7 @@ export const id: BackupText = {
 			body: '<b>3</b> salinan, di <b>2</b> jenis penyimpanan, <b>1</b> di luar lokasi.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: '3, 2, 1',
 			body: 'Tiga salinan, dua wadah, satu di luar rumah. Satu hari sial nggak boleh menjangkau semuanya.'
 		},

@@ -9,7 +9,7 @@ export const en: TlsText = {
 		'Every TLS connection opens with a short <b>handshake</b>, a few quick messages before any real data flows. First your browser says hello, and lists the ways of locking it understands.',
 		'nimbus.com answers with its <b>certificate</b>, a digital ID card. It says "this public key belongs to nimbus.com", and it is signed by a <b>Certificate Authority</b> (CA), a company your browser already trusts.',
 		'Your browser checks the ID card carefully. Is the name really nimbus.com? Is it signed by a CA it trusts? Has it expired? Only if all three pass does the handshake go on.',
-		'Now the clever part. Using the public key from that card (the open padlock from [[asymmetric keys|security/keys]]), both sides end up with the same fresh <b>session key</b>. Anyone listening sees the messages fly by but cannot work the key out.',
+		'Now the clever part. With help from the public key on that card (the open padlock from [[asymmetric keys|security/keys]]), both sides build the same fresh <b>session key</b>. Anyone listening sees the messages fly by but cannot work the key out.',
 		'From here on, every byte is scrambled with that one shared session key, the fast symmetric kind. The padlock lights up. All of this took a few hundredths of a second.',
 		'[ingat] <b>Meet with a padlock, talk with a shared key.</b> The certificate and its public key are for meeting safely, the session key is for the fast chat after.',
 		'Now you are on a shady café WiFi. Someone in the middle pretends to be nimbus.com and hands over a fake ID card, signed by himself. Watch the browser check it, and stop you with a warning.',
@@ -33,7 +33,7 @@ export const en: TlsText = {
 		{
 			tag: 'Same word',
 			title: 'HTTPS',
-			body: 'HTTP inside a TLS tunnel. The letters inside stay the same, the tunnel just hides them.'
+			body: 'HTTP inside a TLS tunnel. What is inside stays the same, the tunnel just hides it.'
 		},
 		{
 			tag: 'Step 1',
@@ -61,8 +61,8 @@ export const en: TlsText = {
 			body: 'Everything after the handshake is scrambled with the session key, both ways.'
 		},
 		{
-			tag: 'Remember it',
-			title: 'Padlock, then key',
+			tag: 'Make it stick',
+			title: 'Padlock first, then a shared key',
 			body: 'Asymmetric to <b>meet</b>, symmetric to <b>talk</b>. Slow and safe first, then fast.'
 		},
 		{

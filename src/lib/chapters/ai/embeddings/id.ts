@@ -20,7 +20,7 @@ export const id: EmbeddingsText = {
 		noodles:
 			'Mie gabung ke makanan, nempel dekat sup. Embedding bisa menangkap nuansa makna, dan dua duanya sama sama berkuah.',
 		nimbus:
-			'nimbus.com mendarat bareng server, cloud, dan situs web. AI nya belum pernah dengar soal situsmu, tapi dari kata kata di sekitarnya, dia tetap bisa menebak ini benda jenis apa.'
+			'nimbus.com mendarat bareng server, cloud, dan situs web. AI ini belum pernah dengar soal situsmu, tapi dari kata kata di sekitarnya, dia tetap bisa menebak ini benda jenis apa.'
 	},
 	panels: [
 		{
@@ -31,7 +31,7 @@ export const id: EmbeddingsText = {
 		{
 			tag: 'Embedding',
 			title: 'Kata jadi angka',
-			body: 'Tiap kata dapat deretan angka, yaitu <b>embedding</b> nya. Di sini tiap kata punya dua angka, jadi bisa dipakai kayak alamat di peta.'
+			body: 'Tiap kata dapat deretan angka, yaitu <b>embedding</b> kata itu. Di sini tiap kata punya dua angka, jadi bisa dipakai kayak alamat di peta.'
 		},
 		{
 			tag: 'Belajar',
@@ -49,7 +49,7 @@ export const id: EmbeddingsText = {
 			body: 'Pertanyaannya juga diubah jadi angka. Apa pun yang paling dekat dengannya adalah jawaban yang paling cocok, walau hurufnya beda semua.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Supermarket kata',
 			body: 'Yang sejenis satu lorong. Dekat di peta berarti dekat juga artinya.'
 		},

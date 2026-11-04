@@ -55,7 +55,7 @@ export const en: AgentsText = {
 			body: 'The calendar now shows the meeting at eleven, and the agent explains what it changed and why.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'A model with hands',
 			body: '<b>Think, act, check</b>, then go round again. That loop is the whole agent.'
 		},

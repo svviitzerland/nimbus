@@ -3,7 +3,7 @@ import type { GitHostsText } from '../../types';
 export const id: GitHostsText = {
 	title: 'Bukan cuma GitHub',
 	intro: [
-		'GitHub memang paling terkenal, tapi dia bukan satu satunya. Git itu alatnya, dan tempat menaruhnya bisa macam macam. Ada <b>GitLab</b>, <b>Bitbucket</b>, sampai <b>Gitea</b> yang bisa kamu pasang di servermu sendiri.',
+		'GitHub memang paling terkenal, tapi dia bukan satu satunya. Git itu alatnya, dan tempat menaruh kodenya online bisa macam macam. Ada <b>GitLab</b>, <b>Bitbucket</b>, sampai <b>Gitea</b> yang bisa kamu pasang di servermu sendiri.',
 		'Yang penting, semuanya ngomong Git yang sama. Repo yang sama bisa kamu pindah dari satu ke lainnya tanpa mengubah caramu commit atau push. Ketuk tiap layanan buat lihat gayanya masing masing.',
 		'Lalu satu pertanyaan, kalau semua bisa dipakai, kenapa kebanyakan orang tetap milih GitHub? Buka jawabannya.'
 	],
@@ -15,7 +15,7 @@ export const id: GitHostsText = {
 		bitbucket:
 			'Bitbucket dekat dengan alat Atlassian seperti Jira dan Trello, jadi enak buat tim yang sudah pakai itu.',
 		gitea: 'Gitea itu ringan dan kamu pasang di servermu sendiri, jadi datanya penuh di tanganmu.',
-		why: 'Intinya begini. Yang menang bukan Git-nya, tapi keramaiannya. Makin banyak orang dan proyek di GitHub, makin gampang ketemu, belajar, dan direkrut dari situ.'
+		why: 'Intinya begini. Yang bikin menang bukan soal Git, tapi soal keramaian. Makin banyak orang dan proyek di GitHub, makin gampang ketemu, belajar, dan direkrut dari situ.'
 	},
 	sameGitChip: 'Semua pakai Git yang sama',
 	exploreHint: 'Ketuk tiap layanan buat membandingkan',
@@ -25,7 +25,7 @@ export const id: GitHostsText = {
 			name: 'GitHub',
 			tagline:
 				'Tempat menaruh kode paling ramai, rumahnya banyak proyek open source dan komunitas terbesar.',
-			traits: ['Komunitas terbesar', 'Actions bawaan', 'Gratis buat publik']
+			traits: ['Komunitas terbesar', 'Actions bawaan', 'Gratis buat repo publik']
 		},
 		{
 			id: 'gitlab',

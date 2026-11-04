@@ -37,7 +37,7 @@ export const id: SignatureText = {
 			body: '<b>Kunci privat</b> tetap di developer dan dipakai membuat tanda tangan. <b>Kunci publik</b> ada di tiap HP dan dipakai memeriksanya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Cuma aku nulis, semua ngecek',
 			body: 'Membuat tanda tangan butuh kunci privat. Memeriksanya cukup pakai kunci publik, yang boleh dimiliki siapa saja.'
 		},

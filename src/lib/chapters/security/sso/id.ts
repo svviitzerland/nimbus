@@ -55,7 +55,7 @@ export const id: SsoText = {
 			body: 'nimbus.com dapat <b>token</b>, tiket terbatas, plus data yang kamu izinkan. Bukan passwordnya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Password pulang',
 			body: 'Password Google tempatnya di <b>google.com</b>. Cek address bar sebelum mengetiknya.'
 		},

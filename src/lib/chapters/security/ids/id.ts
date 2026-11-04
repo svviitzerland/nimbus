@@ -13,7 +13,7 @@ export const id: IdsText = {
 		'Kalau mau, giliran kamu. Ganti penjaganya antara mode kamera dan mode satpam, lalu lihat apa yang terjadi pada serangan yang sama.'
 	],
 	reactions: {
-		ids: 'Mode kamera. Semua serangan tetap sampai ke server, tapi sekarang ada yang dikabari. Berguna, cuma lebih lambat.',
+		ids: 'Mode kamera. Semua serangan tetap sampai ke server, tapi sekarang ada yang dikabari. Berguna, tapi lebih lambat karena harus nunggu manusia bertindak.',
 		ips: 'Mode satpam. Serangannya berhenti di pos jaga dan nggak pernah menyentuh nimbus.com.'
 	},
 	steps: [
@@ -43,7 +43,7 @@ export const id: IdsText = {
 			body: 'Snort masih gratis. Provider cloud menjual ide yang sama sebagai layanan, sering disebut <b>WAF</b> (web application firewall).'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'D atau P',
 			body: 'D untuk <b>Detektif</b>, P untuk <b>Penjaga</b>.'
 		},

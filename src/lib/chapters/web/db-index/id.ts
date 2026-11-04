@@ -38,7 +38,7 @@ export const id: DbIndexText = {
 		{
 			tag: 'Index database',
 			title: 'Potong daftarnya jadi dua',
-			body: 'Lihat entri di tengah. Masih kecepetan di abjad? Buang separuh awal. Ulangi, dan daftarnya menyusut cepat banget.'
+			body: 'Lihat entri di tengah. Yang kamu cari ada lebih jauh di abjad? Buang separuh awal. Ulangi, dan daftarnya menyusut cepat banget.'
 		},
 		{
 			tag: 'Balapan',
@@ -46,7 +46,7 @@ export const id: DbIndexText = {
 			body: 'Dua duanya mencari email yang sama di tabel yang sama. Yang satu baca baris demi baris, yang lain langsung loncat ke sana.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Halaman belakang buku',
 			body: 'Loncat, jangan baca. Baris dua kali lipat cuma bikin index nambah satu loncatan, jadi tetap cepat walau tabelnya raksasa.'
 		},

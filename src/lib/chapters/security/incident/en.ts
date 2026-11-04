@@ -54,7 +54,7 @@ export const en: IncidentText = {
 			body: 'Write it up without blame, and fix the hole so it cannot happen the <b>same way</b> twice.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Kitchen fire',
 			body: '<b>Stop it spreading</b>, clean, recover, learn.'
 		},

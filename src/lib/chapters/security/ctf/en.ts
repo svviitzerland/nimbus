@@ -52,7 +52,7 @@ export const en: CtfText = {
 			body: '<b>picoCTF</b> is free and made for beginners. Indonesia has <b>Cyber Jawara</b>.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Slide it',
 			body: 'Forward to <b>hide</b>, back to <b>read</b>. Only 25 slides to try.'
 		},

@@ -4,11 +4,11 @@ export const en: OnCallText = {
 	title: 'Incidents and on call',
 	intro: [
 		'Websites never sleep, so somebody has to be reachable when one breaks at three in the morning. That person is <b>on call</b>. Teams take turns, usually a week each, so nobody carries the phone forever. This week it is you.',
-		'At 02.58 the error line on the [[monitoring|compute/monitoring]] chart jumps. Checkout starts failing for most buyers, and an alarm pages whoever is on call. That stretch of broken time is called an <b>incident</b>.',
-		'The phone keeps ringing until a human answers. Tapping <b>acknowledge</b> tells the pager you are on it. If nobody answers in five minutes, it wakes the next person on the list.',
+		'At 02.58 the error line on the [[monitoring|compute/monitoring]] chart jumps. Checkout starts failing for most buyers, and an alarm calls whoever is on call. That stretch of broken time is called an <b>incident</b>.',
+		'The phone keeps ringing until a human answers. Tapping <b>acknowledge</b> tells the calling system (the pager) you are on it. If nobody answers in five minutes, it wakes the next person on the list.',
 		'Nobody thinks clearly half asleep, so teams write a <b>runbook</b> ahead of time, a short recipe for one kind of trouble. Check this, then that, then do this. You follow it, you do not improvise.',
 		'Step one, open the error dashboard. Errors jumped from almost nothing to 38 percent at 02.58. Step two, check what changed. A new release, v2.4.1, went out at 02.57, one minute before.',
-		'Step three, <b>roll back</b>, which means putting the last good release back. The errors melt away, and step four closes the incident. You do not need to understand the bug at three in the morning, only to stop the bleeding.',
+		'Step three, <b>roll back</b>, which means putting the last good release back. The errors drop back down, and step four closes the incident. You do not need to understand the bug at three in the morning, only to stop the bleeding.',
 		'[ingat] <b>What changed last is the first suspect.</b> Most incidents start right after a change, a new release, a new setting, a new server. Look there before anywhere else.',
 		'In daylight the team writes a <b>post mortem</b>, the story of what happened and what changes next. Good ones are <b>blameless</b>. Watch the line that blames a person get crossed out. People who fear blame hide their mistakes, and hidden mistakes come back.',
 		'[fyi] Same word, different world. Security teams run incidents too, for a break in rather than a breakdown, in [[incident response|security/incident]]. And when a whole region goes dark, the plan is [[failover|resilience/failover]].',
@@ -50,7 +50,7 @@ export const en: OnCallText = {
 			body: 'Put the last good version back. The site heals in minutes, and the real fix waits for morning.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'Newest change, first suspect',
 			body: 'Something broke? Ask what changed last. It is the right answer more often than not.'
 		},
@@ -75,7 +75,7 @@ export const en: OnCallText = {
 	alertTitle: 'Errors at 38%',
 	alertBody: 'nimbus.com checkout',
 	ackBtn: 'Acknowledge',
-	ackedTag: 'Acked',
+	ackedTag: 'On it',
 	resolvedTag: 'Resolved',
 	runbookTitle: 'Runbook, high error rate',
 	runbook: [

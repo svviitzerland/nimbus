@@ -5,7 +5,7 @@ export const id: DomText = {
 	intro: [
 		'Waktu browser membaca HTML kamu, dia nggak menyimpannya sebagai teks. Tiap tag diubah jadi objek lalu digantung jadi satu pohon. Lihat pohonnya tumbuh. Pohon ini namanya <b>DOM</b> (Document Object Model).',
 		'Bayangin pohon silsilah keluarga. <b>html</b> di paling atas, <b>body</b> anaknya, dan di dalam body tinggal header, main, dan footer, masing masing punya anak sendiri. Tiap tag punya tepat satu orang tua.',
-		'Halaman yang kamu lihat dan pohon ini sebenarnya hal yang sama, cuma digambar dengan dua cara. Tiap kotak di halaman itu satu node di pohon, dan browser menjaga keduanya selalu sama.',
+		'Halaman yang kamu lihat dan pohon ini sebenarnya hal yang sama, cuma digambar dengan dua cara. Tiap kotak di halaman itu satu <b>node</b>, satu titik di pohon, dan browser menjaga keduanya selalu sama.',
 		'Ini bagian serunya. [[JavaScript|web/js]] nggak pernah menyentuh file HTML kamu. Yang dia ubah itu pohon yang hidup ini. Lihat dia menggantung <b>li</b> baru di daftar keranjang, dan halamannya langsung menampilkan baris baru.',
 		'Hal hal yang terjadi di halaman namanya <b>event</b>. Pencetan itu event click, mengetik itu event input. Waktu kamu pencet tombol, kliknya mulai tepat di situ, di tombolnya.',
 		'Lalu dia jalan. Kliknya naik dari tombol ke orang tuanya, lalu ke orang tua dari orang tuanya, sampai ke html. Perjalanan ini namanya <b>bubbling</b> (menggelembung naik).',
@@ -53,7 +53,7 @@ export const id: DomText = {
 			body: 'Event DOM tetap di tab browsermu. Pesan antar server itu jenis event yang lain lagi.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Gelembung naik',
 			body: 'Pencet di bawah, eventnya naik. Listener cuma dengar kalau dia ada di jalur naiknya.'
 		},

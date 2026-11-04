@@ -37,7 +37,7 @@ export const en: DataText = {
 			body: 'The model cannot tell a wrong label from a right one. Whatever the table says, it learns.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Garbage in, garbage out',
 			body: 'Bad examples in, bad answers out. Good data matters more than a clever model.'
 		},

@@ -56,7 +56,7 @@ export const id: AgentsText = {
 			body: 'Kalender sekarang menampilkan janji jam sebelas, dan agennya menjelaskan apa yang diubah dan kenapa.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Model yang punya tangan',
 			body: '<b>Pikir, Pakai alat, Periksa</b>, lalu ulangi. Putaran itulah seluruh isi sebuah agen.'
 		},

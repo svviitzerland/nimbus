@@ -27,7 +27,7 @@ export const en: TrainingText = {
 			body: 'Each example comes with its right answer, its <b>label</b>. Here the label is simply the basket it sits in.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Told or shown',
 			body: 'Normal code is told the rule. Machine learning is shown examples and finds the rule itself.'
 		},

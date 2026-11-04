@@ -41,7 +41,7 @@ export const en: CiaText = {
 			body: 'Data is there when you need it. It breaks when nobody can <b>reach</b> it, even if nothing was stolen.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'Secret, true, there',
 			body: 'Three promises. <b>C</b> keeps it secret, <b>I</b> keeps it true, <b>A</b> keeps it there.'
 		},

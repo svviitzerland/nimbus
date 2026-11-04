@@ -8,9 +8,9 @@ export const id: IacText = {
 		'<b>Infrastructure as Code</b> (IaC) ngebalik caranya. <b>Infrastruktur</b> itu mesin dan jaringan tempat aplikasimu jalan. Daripada ngeklik, kamu tulis semuanya di file teks biasa, kayak resep.',
 		'Ada alat namanya <b>Terraform</b> yang baca file itu. Kamu ketik <b>terraform apply</b>, dia ngebandingin isi file sama yang udah ada di cloud, terus bikin yang belum ada. Tiga server, langsung dari teks.',
 		'Butuh lebih banyak? Ganti satu angka di file, dari 3 jadi 5, terus apply lagi. Terraform cuma bikin selisihnya (dua server baru) dan nggak ngutak atik tiga yang lama.',
-		'Sekarang bagian serem. Ada yang nggak sengaja ngehapus semuanya. Selama filenya ada, sekali apply semua lima server balik lagi, persis kayak sebelumnya.',
-		'[ingat] <b>File itu resepnya, Terraform yang masak.</b> Resep sama, masakannya pasti sama. Dan kalau nggak ada di file, berarti nggak ada.',
-		'[fyi] Karena cuma teks, filenya bisa disimpan di [[Git|compute/version-control]] bareng kodemu, jadi tiap perubahan server punya riwayat dan bisa dibatalin. Terraform juga bisa ngobrol sama banyak cloud (AWS, Google Cloud, Azure) bahkan sama mesinmu sendiri yang on premise.',
+		'Sekarang bagian yang serem. Ada yang nggak sengaja ngehapus semuanya. Selama filenya ada, sekali apply semua lima server balik lagi, persis kayak sebelumnya.',
+		'[ingat] <b>File itu resepnya, Terraform yang masak.</b> Resep sama, masakannya pasti sama. Dan yang nggak ada di file, nggak bakal dibikin.',
+		'[fyi] Karena cuma teks, filenya bisa disimpan di [[Git|compute/version-control]] bareng kodemu, jadi tiap perubahan server punya riwayat dan bisa dibatalin. Terraform juga bisa ngobrol sama banyak cloud (AWS, Google Cloud, Azure) bahkan sama mesin milikmu sendiri di kantor (on premise).',
 		'Mau coba? Ubah jumlahnya pakai tombol, terus lihat Terraform nambah atau ngurangin server biar sama kayak isi file. Atau tonton aja, itu juga boleh.'
 	],
 	reactions: {
@@ -49,7 +49,7 @@ export const id: IacText = {
 			body: 'Semuanya hilang, tapi resepnya nggak. Sekali apply, kelimanya balik dan sama persis.'
 		},
 		{
-			tag: 'Cara gampang',
+			tag: 'Biar nempel',
 			title: 'Resep dan koki',
 			body: '<b>File</b> itu resepnya, <b>Terraform</b> kokinya. Resep sama, hasil sama.'
 		},

@@ -38,7 +38,7 @@ export const en: DbIndexText = {
 		{
 			tag: 'Database index',
 			title: 'Cut the list in half',
-			body: 'Look at the middle entry. Too early in the alphabet? Throw away the first half. Repeat, and the list shrinks very fast.'
+			body: 'Look at the middle entry. Is the one you want further along the alphabet? Throw away the first half. Repeat, and the list shrinks very fast.'
 		},
 		{
 			tag: 'The race',
@@ -46,7 +46,7 @@ export const en: DbIndexText = {
 			body: 'Both look for the same email in the same table. One reads row after row, the other hops straight to it.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'The back of the book',
 			body: 'Jump, do not read. Twice the rows only costs the index one more hop, so it stays quick even when the table is huge.'
 		},

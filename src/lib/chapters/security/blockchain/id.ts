@@ -8,7 +8,7 @@ export const id: BlockchainText = {
 		'Ini triknya. Tiap blok juga mencatat sidik jari blok <b>sebelumnya</b>. Jadi blok blok itu saling bergantung seperti mata rantai, terus sampai ke blok pertama.',
 		'Sekarang lihat ada yang diam diam mengubah nominal lama, 5 jadi 50. Blok itu dapat sidik jari baru, padahal blok berikutnya masih ingat yang lama. Rantainya putus, dan semua orang bisa melihatnya.',
 		'[ingat] <b>Ubah satu halaman lama, semua halaman sesudahnya harus ditulis ulang.</b> Buat menyembunyikan editannya, si curang harus mengulang semua blok sesudahnya, dan justru itu yang dibuat susah.',
-		'Dan ini bukan satu buku, tapi ribuan salinan. Salinanmu yang diedit nggak cocok dengan yang lain, jadi jaringan cuek saja. Versi yang disepakati kebanyakan komputer yang menang.',
+		'Dan ini bukan satu buku, tapi ribuan salinan. Salinanmu yang diedit nggak cocok dengan yang lain, jadi jaringan mengabaikannya. Versi yang disepakati kebanyakan komputer yang menang.',
 		'Ide ini lebih tua dari dugaanmu. Tahun 1991, Stuart Haber dan W. Scott Stornetta merangkai dokumen pakai sidik jari supaya tanggalnya nggak bisa dimundurkan. Tahun 2008, seseorang yang menyebut dirinya <b>Satoshi Nakamoto</b> menambahkan <b>mining</b>, di mana komputer harus mencoba angka satu per satu sampai sidik jarinya diawali nol, lalu lahirlah <b>Bitcoin</b> (jalan Januari 2009). Siapa Satoshi sebenarnya, sampai sekarang nggak ada yang tahu.',
 		'[fyi] Trik sama, dunia beda. [[Git|compute/version-control]] menyambung tiap commit ke sidik jari commit sebelumnya, jadi commit lama yang diam diam diubah juga langsung ketahuan. Bedanya, Git nggak punya koin dan nggak ada mining.',
 		'Jujur saja ya. Blockchain itu lambat dan mahal dibanding database biasa. Dia cuma berguna kalau banyak pihak butuh catatan bersama dan nggak percaya satu penjaga pun. Banyak proyek "taruh saja di blockchain" yang akhirnya tutup diam diam, karena database biasa sebenarnya sudah cukup.',
@@ -41,9 +41,9 @@ export const id: BlockchainText = {
 			body: 'Edit blok lama, sidik jarinya berubah. Blok berikutnya nggak cocok lagi, jadi editannya langsung kelihatan.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Satu diedit, semua diulang',
-			body: 'Menyembunyikan perubahan berarti mengulang <b>semua</b> blok sesudahnya. Makin lama bloknya, makin banyak kerjanya.'
+			body: 'Menyembunyikan perubahan berarti mengulang <b>semua</b> blok sesudahnya. Makin tua bloknya, makin banyak kerjanya.'
 		},
 		{
 			tag: 'Banyak salinan',
@@ -56,7 +56,7 @@ export const id: BlockchainText = {
 			body: 'Buat menambah blok, komputer mengganti satu angka (<b>nonce</b>) terus menerus sampai sidik jarinya diawali nol. Sengaja dibuat lambat, supaya mengulang sejarah mahalnya bukan main.'
 		},
 		{
-			tag: 'Istilah sama',
+			tag: 'Trik sama',
 			title: 'Git juga begitu',
 			body: 'Tiap commit Git menyimpan sidik jari commit sebelumnya. Rantai blok, tanpa koin.'
 		},

@@ -37,7 +37,7 @@ export const id: LearningLoopText = {
 			body: 'Tiap langkah memutar kenop sedikit ke arah turun, dan bar <b>seberapa salah</b> ikut menyusut. Melatih model itu ya putaran ini, ribuan kali.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Turun bukit dalam kabut',
 			body: 'Nggak perlu peta. Raba lerengnya pakai kaki, melangkah ke arah turun, ulangi sampai tanahnya datar.'
 		},

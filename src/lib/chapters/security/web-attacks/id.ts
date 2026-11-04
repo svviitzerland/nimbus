@@ -51,7 +51,7 @@ export const id: WebAttacksText = {
 			body: 'Karakter spesial jadi kembaran yang aman. Browser <b>menampilkan</b> tagnya, bukan menjalankannya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Tamu, bukan tuan rumah',
 			body: 'Input boleh duduk di ruangan, tapi nggak boleh <b>ngasih perintah</b>.'
 		},

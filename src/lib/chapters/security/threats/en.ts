@@ -52,7 +52,7 @@ export const en: ThreatsText = {
 			body: 'Once inside they reached the <b>cash registers</b> and copied about 40 million cards.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'The weakest door',
 			body: 'Your security is only as good as its <b>weakest</b> spot. Find it before they do.'
 		},
@@ -95,7 +95,7 @@ export const en: ThreatsText = {
 	},
 	news: {
 		tag: 'Target, 2013',
-		head: 'About 40 million card numbers stolen, starting from a supplier login'
+		head: 'About 40 million card numbers stolen, starting from a partner login'
 	},
 	registerLabel: 'cash registers',
 	cardsLabel: '40 million cards',

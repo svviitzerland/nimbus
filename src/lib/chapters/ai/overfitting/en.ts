@@ -45,7 +45,7 @@ export const en: OverfittingText = {
 			body: 'The green houses were kept aside, people call them the <b>test set</b>. The red lines show how far each guess is off. This is the score that counts.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Memorising the practice exam',
 			body: 'Great on what it has seen, poor on what it has not. Teams pick a model by its real exam score, and more data usually calms the wiggles down.'
 		},

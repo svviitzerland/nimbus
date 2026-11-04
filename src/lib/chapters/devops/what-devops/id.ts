@@ -15,7 +15,7 @@ export const id: WhatDevopsText = {
 	],
 	reactions: {
 		old: 'Cara lama lagi. Satu kotak raksasa terbang lewat tembok, servernya merah, dan semua orang mulai saling tunjuk. Nyari satu bug di antara ratusan perubahan bisa makan waktu berhari hari.',
-		new: 'Balik ke DevOps. Satu tim, kotak kecil terus mengalir, dan tiap masalah cuma berjarak satu perubahan buat ketemu.'
+		new: 'Balik ke DevOps. Satu tim, kotak kecil terus mengalir, dan kalau ada masalah, tersangkanya cuma satu perubahan.'
 	},
 	steps: [
 		{
@@ -49,7 +49,7 @@ export const id: WhatDevopsText = {
 			body: 'Yang keluar cuma satu perubahan, jadi penyebabnya jelas. Ditarik balik dan dibenerin dalam hitungan menit, bukan hari.'
 		},
 		{
-			tag: 'Cara gampang',
+			tag: 'Biar nempel',
 			title: 'Kecil menang',
 			body: '<b>Kecil tapi sering</b> ngalahin <b>besar tapi jarang</b>. Lihat setahun di bawah, banyak kotak mungil, bukan satu kotak raksasa.'
 		},

@@ -45,7 +45,7 @@ export const id: InferenceText = {
 			body: 'Tiap jawaban kecil, tapi jumlahnya jutaan. Makanya perusahaan juga peduli biaya inference, bukan cuma training.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Masak sekali, sajikan berkali kali',
 			body: 'Training terjadi sekali (atau sesekali, untuk versi baru) dan lama. Inference terjadi di setiap pertanyaan dan cepat.'
 		},

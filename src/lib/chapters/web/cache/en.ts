@@ -36,7 +36,7 @@ export const en: CacheText = {
 		{
 			tag: 'Redis',
 			title: 'Memory is fast',
-			body: 'Redis keeps everything in RAM, about a millisecond away. The database keeps its data on disk, much slower to reach.'
+			body: 'Redis keeps everything in RAM, so an answer comes back in about a millisecond. The database keeps its data on disk, much slower to reach.'
 		},
 		{
 			tag: 'Miss',
@@ -49,7 +49,7 @@ export const en: CacheText = {
 			body: 'The key is there, so the answer comes straight back from Redis. The database is not asked at all.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Miss once, hit many times',
 			body: 'The first visit pays the full price. Every visit after it gets the answer almost for free.'
 		},

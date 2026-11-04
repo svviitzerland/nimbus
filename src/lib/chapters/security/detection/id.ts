@@ -45,7 +45,7 @@ export const id: DetectionText = {
 			body: 'Alert yang nggak dibaca nggak melindungi siapa siapa. Tim yang baik menentukan dari awal <b>siapa</b> yang menjawab tiap alert.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Typo atau serangan',
 			body: 'Sekali gagal itu <b>typo</b>. Berkali kali dari satu alamat itu <b>serangan</b>.'
 		},

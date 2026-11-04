@@ -9,7 +9,7 @@ export const id: PermissionsText = {
 		'Sekarang Nim coba jalanin scriptnya pakai <b>./backup.sh</b> (./ artinya yang ada di sini). Permission denied! Saklar run mati buat semua orang, jadi Linux nolak.',
 		'Obatnya <b>chmod</b> (change mode). <b>chmod u+x</b> artinya buat user, tambahin run. Satu saklar nyala, dan kali ini ./backup.sh jalan.',
 		'Admin biasanya nulis permission pakai tiga angka, satu per baris. Read nilainya 4, write 2, run 1, terus dijumlah. Jadi <b>chmod 755</b> ngasih owner semuanya (4+2+1), dan yang lain read plus run (4+1).',
-		'[ingat] rwx itu baca, tulis, jalan, nilainya 4, 2, 1. Jumlahin aja, <b>7 artinya boleh semuanya</b>, 5 baca plus jalan, 0 nggak boleh apa apa. Gampangnya, tujuh itu lengkap.',
+		'[ingat] Bayangin tiga koin, read 4, write 2, run 1. Kantong isi <b>7 berarti pegang semua koin</b>, 5 berarti read dan run, 0 berarti kantongnya kosong.',
 		'Ada file yang punya <b>root</b>, admin yang boleh ngapain aja. nimbus.conf nyimpen password, jadi baca aja ditolak. Taruh <b>sudo</b> di depan, dan kamu minjem kekuatan root buat satu perintah itu.',
 		'[ingat] <b>sudo</b> artinya "tolong, atas nama bos". Kuat banget, jadi pakai cuma kalau perintahnya memang butuh. Di server beneran, sudo nanya password dan nyatet tiap pemakaian di log.',
 		'Giliranmu. backup.sh itu punyamu sendiri, jadi kunci rapat. Ketik <b>chmod 700 backup.sh</b>. Tujuh buat kamu (semuanya), nol buat group, nol buat yang lain.'
@@ -42,13 +42,13 @@ export const id: PermissionsText = {
 		},
 		{
 			tag: 'Tabelnya',
-			title: 'Siapa kali apa',
+			title: 'Tiga orang, tiga aksi',
 			body: 'Tiga jenis orang (owner, group, others) kali tiga jenis aksi (read, write, run), jadinya sembilan saklar.'
 		},
 		{
 			tag: 'Ditolak',
 			title: 'Nggak ada saklar run, nggak jalan',
-			body: 'File punyamu sendiri pun nggak bisa jalan sebagai program sebelum <b>x</b> nya nyala. Linux ngecek dulu sebelum ngapa ngapain.'
+			body: 'File punyamu sendiri pun nggak bisa jalan sebagai program sebelum saklar <b>x</b> dinyalakan. Linux ngecek dulu sebelum ngapa ngapain.'
 		},
 		{
 			tag: 'chmod',
@@ -61,7 +61,7 @@ export const id: PermissionsText = {
 			body: 'Tiap baris jumlahin saklarnya, 4 buat read, 2 buat write, 1 buat run. 755 itu setelan paling umum buat script.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Tujuh itu lengkap',
 			body: '4 tambah 2 tambah 1 jadi 7. 6 itu baca dan tulis, 5 baca dan jalan, 4 cuma baca, 0 nggak boleh apa apa.'
 		},
@@ -71,7 +71,7 @@ export const id: PermissionsText = {
 			body: '<b>root</b> boleh ngapain aja. <b>sudo</b> di depan satu perintah bikin perintah itu aja jalan sebagai root.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Tolong, atas nama bos',
 			body: 'Pakai sudo cuma kalau perintahnya butuh. Ngebuka file buat semua orang nggak pernah jadi solusi yang lebih aman.'
 		},

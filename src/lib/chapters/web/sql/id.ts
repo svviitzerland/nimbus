@@ -47,7 +47,7 @@ export const id: SqlText = {
 			body: 'Sesudah disaring, baris yang tersisa dijejerkan. Di sini berdasarkan harga, dari yang termurah sampai termahal.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Apa, dari mana, yang mana',
 			body: 'SELECT itu apa, FROM itu dari mana, WHERE itu yang mana, dan ORDER BY itu urutannya gimana. Empat kata, dan hampir semua query bisa kamu baca.'
 		},

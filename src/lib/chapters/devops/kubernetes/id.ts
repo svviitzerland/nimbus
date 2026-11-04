@@ -10,7 +10,7 @@ export const id: KubernetesText = {
 		'Lihat. Satu pod crash, jadi yang jalan tinggal empat. Control plane langsung lihat ada yang kurang dan nyalain pod baru. Balik jadi lima, dan nggak ada yang perlu bangun.',
 		'Satu node utuh pun bisa mati. Kubernetes mindahin podnya ke node yang masih sehat, dan pas node itu nyala lagi, dia tinggal gabung lagi.',
 		'[ingat] Kubernetes itu bahasa Yunani buat juru mudi kapal, <b>kapten yang pegang kemudi</b>. Makanya logonya kemudi kapal. Kamu bilang lima container, kaptennya jaga tetap lima, mau ombaknya segede apa pun.',
-		'[fyi] Di jaringan, node artinya perangkat apa aja yang ada di jaringan. Di Kubernetes, node itu satu mesin yang ngejalanin pod kamu. Kata sama, dunia beda. Kubernetes lahir di Google, terinspirasi sistem internal mereka yang namanya Borg, dan dibagikan ke semua orang tahun 2014. Dia bahkan bisa nambah jumlahnya sendiri pas trafik naik, mirip [[auto scaling|traffic/auto-scaling]].',
+		'[fyi] Di jaringan, node artinya perangkat apa aja yang ada di jaringan. Di Kubernetes, node itu satu mesin yang ngejalanin pod kamu. Kata sama, dunia beda. Kubernetes lahir di Google, terinspirasi sistem internal mereka yang namanya Borg, dan dibagikan ke semua orang tahun 2014. Kubernetes bahkan bisa nambah jumlah pod sendiri pas trafik naik, mirip [[auto scaling|traffic/auto-scaling]].',
 		'Mau jadi badainya? Pencet pod mana aja buat ngejatuhin dia, terus lihat kaptennya ngegantiin. Atau nikmatin aja lautnya yang tenang.'
 	],
 	reactions: {
@@ -49,7 +49,7 @@ export const id: KubernetesText = {
 			body: 'Podnya dibikin ulang di node yang sehat. Jumlahnya nggak bakal salah lama lama.'
 		},
 		{
-			tag: 'Cara gampang',
+			tag: 'Biar nempel',
 			title: 'Sang kapten',
 			body: 'Kubernetes itu kapten kapal. Dia jaga jumlah container sesuai yang kamu minta.'
 		},

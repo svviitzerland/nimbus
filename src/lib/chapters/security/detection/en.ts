@@ -44,7 +44,7 @@ export const en: DetectionText = {
 			body: 'An alert nobody reads protects nobody. Good teams decide in advance <b>who</b> answers each alert.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Typo or attack',
 			body: 'One failure is a <b>typo</b>. Many from one address is an <b>attack</b>.'
 		},

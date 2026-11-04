@@ -9,7 +9,7 @@ export const id: TlsText = {
 		'Tiap koneksi TLS dibuka dengan <b>handshake</b> singkat, beberapa pesan cepat sebelum data sungguhan mengalir. Pertama, browsermu menyapa dan menyebut cara mengunci apa saja yang dia ngerti.',
 		'nimbus.com membalas dengan <b>sertifikat</b>, semacam KTP digital. Isinya "kunci publik ini milik nimbus.com", dan ditandatangani <b>Certificate Authority</b> (CA), perusahaan yang sudah dipercaya browsermu.',
 		'Browsermu memeriksa KTP itu dengan teliti. Namanya benar nimbus.com? Ditandatangani CA yang dipercaya? Sudah kedaluwarsa belum? Cuma kalau ketiganya lolos, handshake boleh lanjut.',
-		'Sekarang bagian cerdasnya. Dengan kunci publik dari KTP itu (gembok terbuka dari [[kunci asimetris|security/keys]]), kedua pihak sama sama mendapat <b>session key</b> baru yang persis sama. Penguping lihat pesannya lewat, tapi nggak bisa menebak kuncinya.',
+		'Sekarang bagian cerdasnya. Dengan bantuan kunci publik dari KTP itu (gembok terbuka dari [[kunci asimetris|security/keys]]), kedua pihak menyusun <b>session key</b> baru yang persis sama. Penguping lihat pesannya lewat, tapi nggak bisa menebak kuncinya.',
 		'Mulai sekarang, tiap byte diacak pakai satu session key bersama itu, jenis simetris yang cepat. Gemboknya menyala. Semua tadi cuma makan beberapa per seratus detik.',
 		'[ingat] <b>Kenalan pakai gembok, ngobrol pakai kunci bersama.</b> Sertifikat dan kunci publiknya buat berkenalan dengan aman, session key buat ngobrol cepat sesudahnya.',
 		'Sekarang kamu pakai WiFi kafe yang mencurigakan. Ada orang di tengah yang pura pura jadi nimbus.com dan menyodorkan KTP palsu yang dia tanda tangani sendiri. Lihat browsermu memeriksanya, lalu menghentikanmu dengan peringatan.',
@@ -61,8 +61,8 @@ export const id: TlsText = {
 			body: 'Semua setelah handshake diacak pakai session key, dua arah.'
 		},
 		{
-			tag: 'Cara ingat',
-			title: 'Gembok dulu, baru kunci',
+			tag: 'Biar nempel',
+			title: 'Gembok dulu, baru kunci bersama',
 			body: 'Asimetris buat <b>kenalan</b>, simetris buat <b>ngobrol</b>. Pelan tapi aman dulu, baru yang cepat.'
 		},
 		{

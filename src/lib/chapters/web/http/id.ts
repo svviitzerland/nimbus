@@ -54,7 +54,7 @@ export const id: HttpText = {
 			body: 'Tiga digit di atas tiap response. Digit pertamanya udah cerita semuanya.'
 		},
 		{
-			tag: 'Cara gampang',
+			tag: 'Biar nempel',
 			title: 'Baca digit pertama',
 			body: '<b>2</b> beres, <b>3</b> belok, <b>4</b> salahmu, <b>5</b> salah server.'
 		},

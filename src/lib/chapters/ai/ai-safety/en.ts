@@ -8,7 +8,7 @@ export const en: AiSafetyText = {
 		'Let us check the real help page. The first sentence matches. The second one does not, custom domains are for paid plans only, and that blog post never happened.',
 		'[ingat] Sounding sure is not the same as being right. When an answer matters, find where it came from and check the source yourself.',
 		'Now a sneakier problem. Someone asks the helper to summarise a customer review. The bot reads its own instructions and the review as one big pile of text.',
-		'Hidden in the review is a line of white text on a white page. People can not see it, but the bot reads every character, and it obeys. This is <b>prompt injection</b>, the same old trick as [[SQL injection|security/web-attacks]], data sneaking in and acting like a command.',
+		'Hidden in the review is a line of white text on a white page. People cannot see it, but the bot reads every character, and it obeys. This is <b>prompt injection</b>, the same old trick as [[SQL injection|security/web-attacks]], data sneaking in and acting like a command.',
 		'No single fix stops it, so real teams stack <b>layers</b>. The document is marked as something to read, never orders to follow. The bot gets as few powers as possible. And a checker looks at the reply before you ever see it.',
 		'[fyi] This is why many bots now fetch a real source first and answer from it ([[RAG|ai/rag]]), and why bots that can take actions on their own ([[AI agents|ai/agents]]) are kept on a short leash.',
 		'If you like, switch the defenses off and on, and watch the hidden order win or lose. Totally optional.'
@@ -34,14 +34,14 @@ export const en: AiSafetyText = {
 			body: 'The real help page backs the first sentence and contradicts the second. One check was enough to catch it.'
 		},
 		{
-			tag: 'Remember',
-			title: 'Sure is not right',
+			tag: 'Make it stick',
+			title: 'Sounding sure is not being right',
 			body: 'Use AI to get started, then check what matters against a real source, like the official page or a person who knows.'
 		},
 		{
 			tag: 'A document',
 			title: 'One big pile of text',
-			body: 'The bot reads its own rules and the file you hand it together, so it can not always tell which is which.'
+			body: 'The bot reads its own rules and the file you hand it together, so it cannot always tell which is which.'
 		},
 		{
 			tag: 'Prompt injection',

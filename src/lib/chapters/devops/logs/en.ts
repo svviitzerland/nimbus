@@ -7,7 +7,7 @@ export const en: LogsText = {
 		'With one server, reading the log is easy. But nimbus.com now runs on twenty servers behind a [[load balancer|traffic/load-balancer]], and any one of them could be the one that broke. Logging in to each one to read its diary takes forever.',
 		'So teams send every line to one place the moment it is written. That is <b>centralized logging</b>. Watch the lines from all twenty servers flow down into a single log, side by side, in time order.',
 		'There is a bonus. Servers in the cloud come and go all day. Here web-07 just got switched off, yet its lines are still safe in the central log, ready to read.',
-		'A buyer says checkout failed at about 14.01. Instead of twenty logins, the central log gets one search. Watch it type <b>error</b>, and all the noise falls away.',
+		'A buyer says checkout failed at about 14.01. Instead of twenty logins, the central log gets one search. Watch Nim type <b>error</b> into the search box, and all the noise falls away.',
 		'There it is. <b>web-14</b> gave up waiting for the payment service at 14.01, the exact minute the buyer complained. Found in seconds, not in an hour of logging in.',
 		'[ingat] <b>Many servers, one search box.</b> A log is a server diary, and centralized logging puts every diary on one shelf, so you only ever look in one place.',
 		'[fyi] Logs work hand in hand with [[monitoring|compute/monitoring]]. Metrics say something is wrong, logs say exactly what happened. Security teams search the very same logs to catch attackers, in a tool called a [[SIEM|security/detection]]. Real tools include Elasticsearch with Kibana and Grafana Loki.',
@@ -52,7 +52,7 @@ export const en: LogsText = {
 			body: '<b>web-14</b>, 14.01, a timeout waiting for payment. Server, time, and reason in one line.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'Many servers, one search box',
 			body: 'Logs are diaries. Put every diary on one shelf and you only look in one place.'
 		},

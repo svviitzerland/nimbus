@@ -58,7 +58,7 @@ export const id: HatColorsText = {
 			body: 'Di Indonesia <b>UU ITE</b> yang menariknya. Masuk tanpa persetujuan pemilik itu kejahatan, walau nggak ada yang diambil.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Izin mewarnai topi',
 			body: 'Ada izin pemilik, <b>putih</b>. Nggak ada izin, <b>hitam</b>. Niat baik tanpa izin, <b>abu abu</b>.'
 		},

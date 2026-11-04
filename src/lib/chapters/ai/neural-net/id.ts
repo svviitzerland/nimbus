@@ -45,7 +45,7 @@ export const id: NeuralNetText = {
 			body: 'Meteran di samping neuron adalah totalnya. Tiap petunjuk yang menyala menambah bobotnya. Lewat garis tanda, neuronnya menyala.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Kayak ketel air',
 			body: 'Panas terkumpul dari mana mana, dan baru bunyi kalau sudah cukup panas. Neuron menjumlahkan sinyal dan baru menyala setelah lewat tandanya.'
 		},

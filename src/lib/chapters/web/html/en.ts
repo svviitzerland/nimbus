@@ -56,7 +56,7 @@ export const en: HtmlText = {
 			body: 'A picture. <b>src</b> says which file, <b>alt</b> says what it shows. No closing tag needed.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'Skeleton, clothes, muscles',
 			body: '<b>HTML</b> the skeleton, <b>CSS</b> the clothes, <b>JavaScript</b> the muscles.'
 		},

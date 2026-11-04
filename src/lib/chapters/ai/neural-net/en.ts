@@ -45,7 +45,7 @@ export const en: NeuralNetText = {
 			body: 'The gauge beside the neuron is its total. Each clue that switches on adds its weight. Past the mark, the neuron lights up.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Like a kettle',
 			body: 'Heat adds up from every side, and only when it is hot enough does it whistle. A neuron adds up signals and only fires past its mark.'
 		},

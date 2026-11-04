@@ -3,8 +3,8 @@ import type { ServerlessText } from '../types';
 export const en: ServerlessText = {
 	title: 'Serverless',
 	intro: [
-		'Sometimes you only need a snippet of code that runs occasionally, sending OTP emails, resizing photos, receiving payment webhooks. On a normal server it stays on 24 hours with the meter always running, while the actual work is occasional.',
-		'The <b>serverless</b> architecture fixes that. Follow the flow. A request reaches the provider’s gate, the provider lights up a tiny sandbox in a blink, your function runs inside it, done, the box is shut down immediately. Quiet means truly zero.',
+		'Sometimes you only need a snippet of code that runs occasionally, sending OTP emails (one time codes), resizing photos, receiving payment notices (webhooks). On a normal server it stays on 24 hours with the meter always running, while the actual work is occasional.',
+		'The <b>serverless</b> architecture fixes that. Follow the flow. A request reaches the provider’s gate, the provider lights up a tiny sandbox in a blink, your function runs inside it, done, the box is shut down immediately. When it is quiet, the cost is truly zero.',
 		'That sandbox is not magic. AWS Lambda boots a micro VM called <b>Firecracker</b>, Google Cloud uses <b>gVisor</b>. Both start in a fraction of a second, which is why providers dare to start from zero.',
 		'The user’s phone is waiting beside that flow. Send a request and watch the function wake, work, then sleep again. This is only the surface, a later chapter dives much deeper into the serverless world.'
 	],
@@ -24,7 +24,13 @@ export const en: ServerlessText = {
 	resTag: 'OTP sent',
 	alwaysName: 'A normal server',
 	alwaysTag: 'charging 24 hours, working occasionally',
-	archSteps: ['A request arrives', 'Provider gate', 'Sandbox lights up', 'Your function runs', 'Shut down at once'],
+	archSteps: [
+		'A request arrives',
+		'Provider gate',
+		'Sandbox lights up',
+		'Your function runs',
+		'Shut down at once'
+	],
 	behindItems: ['Firecracker, AWS’s micro VM', 'gVisor, Google’s sandbox'],
 	noteIdle: 'The function sleeps, charging nothing at all',
 	noteRun: 'Awake in a blink, works, then bows out',

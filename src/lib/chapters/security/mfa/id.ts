@@ -51,7 +51,7 @@ export const id: MfaText = {
 			body: 'Password benar, kode nggak ada. Beberapa kali salah tebak, situsnya <b>memblokir</b> loginnya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Tahu plus pegang',
 			body: 'Sesuatu di <b>kepala</b> plus sesuatu di <b>tangan</b>. Maling jarang punya dua duanya.'
 		},

@@ -47,7 +47,7 @@ export const en: VisionText = {
 			body: 'The last layer asks which shapes appear together. These parts together usually mean <b>cat</b>, so that is the answer.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Edges, shapes, things',
 			body: 'Small to big. Every layer only combines what the layer before it found.'
 		},

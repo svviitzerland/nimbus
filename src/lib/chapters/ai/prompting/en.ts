@@ -19,7 +19,7 @@ export const en: PromptingText = {
 		off_context:
 			'Without the context, it stops talking to students and goes back to talking to everyone, which means nobody in particular.',
 		off_format:
-			'Without the format, look at it ramble, and the hashtags pile up again. When you do not say the shape, the AI guesses long.',
+			'Without the format, look at it ramble, and the hashtags pile up again. When you do not say the shape, the AI guesses, and it usually guesses long.',
 		off_example:
 			'Without the example, it is still correct, but it lost the nimbus voice. One example teaches style faster than any description.',
 		back: 'Back in, and the answer picks it up straight away.',
@@ -57,7 +57,7 @@ export const en: PromptingText = {
 			body: 'One sample of what you like teaches the tone better than a paragraph of description.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Brief a new intern',
 			body: 'Task, context, format, example. If a new intern would still need to ask you a question, add the missing piece.'
 		},

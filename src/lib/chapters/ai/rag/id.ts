@@ -51,7 +51,7 @@ export const id: RagText = {
 			body: 'Model menulis jawaban dari dokumen yang ada di depannya, lalu menunjukkan sumbernya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Ujian buka buku',
 			body: 'Tanpa RAG, AI ikut ujian tutup buku. Dengan RAG, dia boleh buka buku dulu.'
 		},

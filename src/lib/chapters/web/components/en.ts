@@ -13,7 +13,8 @@ export const en: ComponentsText = {
 		'Your turn, if you like. Take the button off the Card, or put it back, and watch all four cards follow.'
 	],
 	reactions: {
-		plain: 'Gone from the Card, gone from every card. You changed one recipe, not four pages.',
+		plain:
+			'Gone from the Card, gone from every card. You changed one cookie cutter, not four pages.',
 		upgrade:
 			'Back on the Card, back on all four. On a shop with a thousand products, that is one edit instead of a thousand.'
 	},
@@ -44,8 +45,8 @@ export const en: ComponentsText = {
 			body: 'Nim, the speech bubble, and the Next button are components, written once and reused in every lesson.'
 		},
 		{
-			title: 'Remember it',
-			tag: 'Remember it',
+			title: 'Cookie cutter and toppings',
+			tag: 'Make it stick',
 			body: 'Component is the <b>cookie cutter</b>, props are the <b>toppings</b>.'
 		}
 	],

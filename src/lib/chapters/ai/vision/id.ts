@@ -47,7 +47,7 @@ export const id: VisionText = {
 			body: 'Lapis terakhir bertanya bentuk apa yang muncul bersamaan. Bagian bagian ini biasanya berarti <b>kucing</b>, jadi itulah jawabannya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Garis, bentuk, benda',
 			body: 'Dari kecil ke besar. Tiap lapis cuma menggabungkan temuan lapis sebelumnya.'
 		},

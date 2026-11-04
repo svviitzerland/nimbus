@@ -43,7 +43,7 @@ export const en: MfaText = {
 		{
 			tag: 'Have',
 			title: 'Authenticator app',
-			body: 'A six digit code made on your phone. It changes every <b>30 seconds</b> and never travels by itself.'
+			body: 'A six digit code made on your phone. It changes every <b>30 seconds</b> and is never sent anywhere.'
 		},
 		{
 			tag: 'MFA on',
@@ -51,7 +51,7 @@ export const en: MfaText = {
 			body: 'Right password, no code. A few wrong guesses and the site <b>blocks</b> the login.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'Know plus have',
 			body: 'Something in your <b>head</b> plus something in your <b>hand</b>. A thief rarely has both.'
 		},

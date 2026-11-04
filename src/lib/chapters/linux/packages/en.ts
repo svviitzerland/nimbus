@@ -25,7 +25,7 @@ export const en: PackagesText = {
 		notInstalled:
 			'The server does not have that program yet, and it even tells you how to get it. Ask apt with sudo.',
 		needSudo:
-			'apt refused, are you root? Installing needs the admin. Put <b>sudo</b> in front, like <b>sudo apt install htop</b>.',
+			'apt refused and asked "are you root?" Installing needs the admin. Put <b>sudo</b> in front, like <b>sudo apt install htop</b>.',
 		noPackage:
 			'The shop has no box with that name. Check the spelling, the one you want is <b>htop</b>.',
 		missing: 'Nothing with that name here. Try <b>sudo apt install htop</b>.',
@@ -65,7 +65,7 @@ export const en: PackagesText = {
 			body: '<b>nginx -v</b> prints the version. If the command is missing, Ubuntu even suggests the install line for you.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Menu first, then order',
 			body: '<b>sudo apt update</b>, then <b>sudo apt install</b> and a name. <b>sudo apt remove</b> takes it away again.'
 		},

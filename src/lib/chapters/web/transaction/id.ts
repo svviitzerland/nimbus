@@ -24,7 +24,7 @@ export const id: TransactionText = {
 		{
 			tag: 'Mati listrik',
 			title: 'Nyangkut di tengah',
-			body: 'Penulisan pertama sudah tersimpan, yang kedua nggak pernah jalan. Uang di bank sekarang lebih sedikit dari sebelumnya.'
+			body: 'Penulisan pertama sudah tersimpan, yang kedua nggak pernah jalan. Kalau semua saldo dijumlah, hasilnya sekarang lebih sedikit dari sebelumnya.'
 		},
 		{
 			tag: 'Transaksi',
@@ -37,7 +37,7 @@ export const id: TransactionText = {
 			body: 'Karena belum COMMIT, sesudah mati listrik database membaca catatannya dan mengembalikan tiap nilai yang sempat berubah.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Semua atau nggak sama sekali',
 			body: 'Semua langkah terjadi, atau nggak ada satu pun. Nggak ada yang setengah setengah.'
 		},

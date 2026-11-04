@@ -43,7 +43,7 @@ export const id: DeploySiteText = {
 			body: 'Host menyajikan file barunya di <b>nimbus.com</b>. Tiap pengunjung dapat versi baru waktu mereka membukanya lagi.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Dorong, rakit, tayang',
 			body: 'Kamu push, host build, dunia melihatnya. Tiga langkah yang sama, setiap kali.'
 		},

@@ -16,7 +16,7 @@ export const id: BackendFrameworksText = {
 		byhand:
 			'Semua kerjaan balik ke kamu, dan jumlah barisnya melonjak. Bayangkan harus begini juga buat login, keranjang, pencarian, dan pembayaran.',
 		framework:
-			'Frameworknya balik, dan kebanyakan kode langsung lebur ke dalamnya. Yang tersisa cuma bagian yang khas tokomu.'
+			'Frameworknya balik, dan sebagian besar kode langsung diambil alih olehnya. Yang tersisa cuma bagian yang khas tokomu.'
 	},
 	steps: [
 		{
@@ -40,8 +40,8 @@ export const id: BackendFrameworksText = {
 			body: 'Laravel (PHP), Express (JavaScript), Django (Python), Spring (Java). Pilih yang cocok sama <b>bahasamu</b>.'
 		},
 		{
-			title: 'Cara ingat',
-			tag: 'Cara ingat',
+			title: 'Kerangka rumah',
+			tag: 'Biar nempel',
 			body: 'Framework itu <b>kerangka rumah</b>, kamu tinggal ngisi perabotnya.'
 		},
 		{

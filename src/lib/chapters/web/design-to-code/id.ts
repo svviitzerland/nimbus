@@ -9,7 +9,7 @@ export const id: DesignToCodeText = {
 		'Sekarang browser membaca CSS itu dan menggambar tombolnya. Lihat dia berubah baris demi baris, awalnya kotak abu abu polos, lalu warnanya, sudut bulatnya, ruang napasnya, terakhir ukuran hurufnya.',
 		'Taruh dua duanya berdampingan. Desain dan halaman aslinya sekarang kelihatan sama persis. Mengubah gambar jadi kode yang sama persis begini adalah kerjaan sehari hari seorang frontend developer.',
 		'[fyi] Tim biasanya kasih nama ke nilai yang sering dipakai, kayak biru brand atau jarak 24, lalu disimpan di satu daftar bersama yang namanya <b>design system</b>. Jadi desainer dan developer pakai kata yang sama, dan nggak ada yang melenceng.',
-		'[ingat] Jangan kira kira, baca angkanya. Warna, sudut, padding, ukuran huruf, empat angka jadi satu tombol.',
+		'[ingat] Kerja kayak penjahit, bukan pelukis. Penjahit nggak nebak ukuran, dia baca meterannya. Warna, sudut, padding, ukuran huruf, empat angka jadi satu tombol.',
 		'Kalau mau, giliran kamu. Hapus baris padding dan lihat seberapa cepat tombolnya jadi nggak mirip desain lagi.'
 	],
 	reactions: {
@@ -44,8 +44,8 @@ export const id: DesignToCodeText = {
 			body: 'Nama bersama untuk nilai bersama, kayak <b>biru brand</b>. Ubah sekali di daftarnya, desain dan kode ikut berubah.'
 		},
 		{
-			title: 'Cara ingat',
-			tag: 'Cara ingat',
+			title: 'Penjahit, bukan pelukis',
+			tag: 'Biar nempel',
 			body: 'Jangan kira kira, <b>baca angkanya</b>. Warna, sudut, padding, ukuran huruf.'
 		}
 	],

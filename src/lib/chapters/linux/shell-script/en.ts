@@ -60,7 +60,7 @@ export const en: ShellScriptText = {
 			body: '<b>./</b> means the file right here. Bash reads each line in order, and the highlight follows along.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Write, chmod, run',
 			body: 'Write the recipe once, give it its run switch once, then one short line does the whole job.'
 		},

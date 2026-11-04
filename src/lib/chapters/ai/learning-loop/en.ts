@@ -37,7 +37,7 @@ export const en: LearningLoopText = {
 			body: 'Each step turns the knob a little downhill, and the <b>how wrong</b> bar shrinks. Training is this loop, many thousands of times.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'Walking downhill in fog',
 			body: 'No map needed. Feel the slope with your feet, step the way it goes down, and repeat until the ground is flat.'
 		},

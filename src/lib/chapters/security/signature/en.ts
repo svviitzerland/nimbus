@@ -37,7 +37,7 @@ export const en: SignatureText = {
 			body: 'The <b>private key</b> stays with the developer and makes signatures. The <b>public key</b> is on every phone and checks them.'
 		},
 		{
-			tag: 'Remember it',
+			tag: 'Make it stick',
 			title: 'Only I write, everyone checks',
 			body: 'Making a signature needs the private key. Checking one needs only the public key, which anyone may have.'
 		},

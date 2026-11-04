@@ -49,7 +49,7 @@ export const id: AiCloudText = {
 			body: '<b>Model kecil</b> cukup pakai GPU yang lebih murah. Pertanyaan gampang ke dia, model besar cuma dapat yang sulit.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Nggak perlu profesor',
 			body: 'Jawab yang berulang dari cache, kirim yang gampang ke model kecil, dan simpan model besar untuk yang benar benar butuh.'
 		},
@@ -71,7 +71,7 @@ export const id: AiCloudText = {
 	billTitle: 'Tagihan bulanan',
 	budgetLabel: 'anggaran',
 	memo: 'nggak perlu profesor',
-	rule: 'Simpan yang sering, kecilkan yang bisa',
+	rule: 'Simpan jawaban yang sering ditanya, pakai model yang kecil',
 	offBtn: 'Matikan triknya',
 	onBtn: 'Nyalakan triknya lagi'
 };

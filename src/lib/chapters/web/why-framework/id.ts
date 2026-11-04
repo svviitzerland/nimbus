@@ -6,7 +6,7 @@ export const id: WhyFrameworkText = {
 		'nimbus.com awalnya kecil, cuma satu halaman depan yang ditulis manual pakai [[HTML|web/html]]. Lalu dia tumbuh. Ada halaman toko, halaman mug, keranjang, checkout, dan struk. Masing masing file sendiri, dan semuanya menampilkan harga mug.',
 		'Sekarang mug Nim lagi diskon, dari 12 turun jadi 9. Harus ada yang membuka tiap file, mencari harganya, lalu mengubahnya satu per satu. Enam halaman sih oke, enam ratus halaman ya tepar.',
 		'Dan manusia bisa capek. Lupa satu aja, keranjang bilang 12 sementara checkout bilang 9. Pembelinya bingung, dan kamu punya <b>bug</b>, kesalahan di dalam program.',
-		'<b>Framework</b> itu struktur siap pakai buat membangun aplikasi, biar kamu nggak mengulang ulang hal yang sama. Harganya tinggal di <b>satu tempat</b>, tiap halaman membacanya dari situ, dan kalau harganya berubah, semua halaman ikut berubah sendiri.',
+		'<b>Framework</b> itu struktur siap pakai buat membangun aplikasi, biar kamu nggak mengulang ulang hal yang sama. Harganya disimpan di <b>satu tempat</b>, tiap halaman membacanya dari situ, dan kalau harganya berubah, semua halaman ikut berubah sendiri.',
 		'Buat halaman di browser, nama nama besarnya <b>React</b> (dari Facebook), <b>Vue</b>, <b>Svelte</b>, dan <b>Angular</b> (dari Google). Semuanya jalan di atas [[JavaScript|web/js]] dan menyelesaikan masalah yang sama, cuma gayanya beda beda.',
 		'[fyi] Halaman yang lagi kamu buka ini dibangun pakai Svelte. Tiap pelajaran memakai ulang Nim yang sama, balon bicara yang sama, dan tombol yang sama, persis trik yang bakal kamu lihat di [[komponen|web/components]].',
 		'[ingat] Satu data, satu tempat. Kayak pengumuman di grup kelas, sekali kirim semua tahu, nggak perlu japri tiga puluh teman satu satu.',
@@ -31,7 +31,7 @@ export const id: WhyFrameworkText = {
 		},
 		{
 			title: 'Framework',
-			body: 'Datanya tinggal di <b>satu tempat</b>. Halaman nggak menyalin, tapi <b>membaca</b>, jadi perubahan sampai ke semuanya sekaligus.'
+			body: 'Datanya disimpan di <b>satu tempat</b>. Halaman nggak menyalin, tapi <b>membaca</b>, jadi perubahan sampai ke semuanya sekaligus.'
 		},
 		{
 			title: 'Nama nama besar',
@@ -43,8 +43,8 @@ export const id: WhyFrameworkText = {
 			body: 'Nimbus dibangun pakai <b>Svelte</b>. Nim dan balon bicaranya ditulis sekali lalu dipakai ulang di tiap pelajaran.'
 		},
 		{
-			title: 'Cara ingat',
-			tag: 'Cara ingat',
+			title: 'Satu data, satu tempat',
+			tag: 'Biar nempel',
 			body: '<b>Satu data, satu tempat.</b> Kayak pengumuman di grup kelas, sekali kirim semua tahu.'
 		}
 	],

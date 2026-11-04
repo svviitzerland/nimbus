@@ -29,7 +29,7 @@ export const en: BrowserText = {
 		{
 			tag: 'File 1',
 			title: 'index.html',
-			body: 'The page written as text with tags. It says <b>what</b> is on the page, not how it looks.'
+			body: 'The page, written as text with tags. This file says <b>what</b> is on the page, not how it looks.'
 		},
 		{
 			tag: 'The tree',
@@ -49,7 +49,7 @@ export const en: BrowserText = {
 		{
 			tag: 'File 3',
 			title: 'nim.png',
-			body: 'A picture is its own file with its own request. The text never waits for it.'
+			body: 'A picture is its own file with its own request. The text does not have to wait for it.'
 		},
 		{
 			tag: 'File 4',
@@ -57,7 +57,7 @@ export const en: BrowserText = {
 			body: 'JavaScript changes the tree while you watch, so the page reacts without loading again.'
 		},
 		{
-			tag: 'Rule of thumb',
+			tag: 'Make it stick',
 			title: 'Bones, clothes, moves',
 			body: '<b>HTML</b> is the bones, <b>CSS</b> the clothes, <b>JavaScript</b> the moves. They usually arrive in that order.'
 		},

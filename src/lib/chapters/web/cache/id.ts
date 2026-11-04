@@ -36,7 +36,7 @@ export const id: CacheText = {
 		{
 			tag: 'Redis',
 			title: 'Memori itu cepat',
-			body: 'Redis menyimpan semuanya di RAM, sekitar satu milidetik jauhnya. Database menyimpan datanya di disk, jauh lebih lambat dijangkau.'
+			body: 'Redis menyimpan semuanya di RAM, jadi jawabannya datang dalam sekitar satu milidetik. Database menyimpan datanya di disk, jauh lebih lambat dijangkau.'
 		},
 		{
 			tag: 'Miss',
@@ -49,7 +49,7 @@ export const id: CacheText = {
 			body: 'Key itu ada, jadi jawabannya langsung balik dari Redis. Database sama sekali nggak ditanya.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Sekali miss, berkali kali hit',
 			body: 'Kunjungan pertama bayar harga penuh. Kunjungan sesudahnya dapat jawaban hampir gratis.'
 		},

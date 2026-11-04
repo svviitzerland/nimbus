@@ -6,7 +6,7 @@ export const en: AiCloudText = {
 		'Say nimbus.com adds a little chatbot that helps customers. At first only a handful of people use it, and one server answers them all easily.',
 		'That server is a special one. Big models run on a <b>GPU</b> ([[GPUs for AI|ai/gpu]]), a chip that does thousands of small sums at the same time. GPU servers are pricey, and in the cloud you rent them <b>by the hour</b>, every hour, even at night.',
 		'Then a video about the chatbot goes viral. More people means more messages, and more messages need more GPU servers, the same way [[auto scaling|traffic/auto-scaling]] adds servers when traffic climbs.',
-		'Now look at the [[cloud bill|compute/cost]]. Eight GPU servers running all month, and the bill lands far past the budget. Nimbus can not keep paying that.',
+		'Now look at the [[cloud bill|compute/cost]]. Eight GPU servers running all month, and the bill lands far past the budget. Nimbus cannot keep paying that.',
 		'First trick, a <b>cache</b>. Loads of people ask the very same things, like where is my order or how do I reset my password. Those answers are saved once and handed out again, so the model does not have to think twice, and fewer GPUs are needed.',
 		'Second trick, a <b>smaller model</b>. It is much cheaper to run, though not as clever. So the small model takes the easy questions and only the hard ones go to the big model. Luckily, most questions are easy.',
 		'[ingat] You do not hire a professor to tell people your opening hours. Save the answers people ask again and again, and use the smallest model that still does the job well.',
@@ -49,7 +49,7 @@ export const en: AiCloudText = {
 			body: 'A <b>small model</b> needs a cheaper GPU. Easy questions go to it, and the big model only gets the hard ones.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'No professor for easy questions',
 			body: 'Answer repeats from the cache, send easy questions to the small model, and save the big one for what truly needs it.'
 		},
@@ -71,7 +71,7 @@ export const en: AiCloudText = {
 	billTitle: 'Monthly bill',
 	budgetLabel: 'budget',
 	memo: 'no professor needed',
-	rule: 'Cache what repeats, shrink what you can',
+	rule: 'Cache the common answers, use a smaller model',
 	offBtn: 'Switch the tricks off',
 	onBtn: 'Switch the tricks back on'
 };

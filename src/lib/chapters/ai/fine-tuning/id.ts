@@ -42,7 +42,7 @@ export const id: FineTuningText = {
 			body: 'Model dasar sama, kebiasaan baru. Dia menyebut menu kita dan menutup balasan seperti tim kita.'
 		},
 		{
-			tag: 'Cara ingat',
+			tag: 'Biar nempel',
 			title: 'Karyawan baru',
 			body: 'Sudah pintar, cuma belum terbiasa dengan cara <b>kamu</b>. Beberapa contoh bagus cukup buat mengajarkan gaya kantor.'
 		},

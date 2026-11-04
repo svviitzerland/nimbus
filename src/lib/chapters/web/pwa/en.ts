@@ -5,7 +5,7 @@ export const en: PwaText = {
 	intro: [
 		'Remember the trade off from [[native and cross platform|web/mobile-apps]]? A website reaches everyone with nothing to install, but it is not quite an app. Here is a plain nimbus.com on a phone, and every file comes fresh from the server.',
 		'Now watch the internet drop. A plain website lives on the server, so with no connection the browser has nothing at all to show.',
-		'A <b>PWA</b>, short for Progressive Web App, fixes both. It is still the same website, but it can sit on your home screen like an app, open full screen without the address bar, and keep working offline.',
+		'A <b>PWA</b>, short for Progressive Web App, fixes both problems. It is still the same website, but it can sit on your home screen like an app, open full screen without the address bar, and keep working offline.',
 		'The first ingredient is a tiny file called the <b>manifest</b>. It tells the phone the app name, the icon, and the colours. When a phone finds one, it offers to install the site.',
 		'The second is a <b>service worker</b>, a small script that stands between the page and the internet like a doorman. On your first visit it saves the important files into a <b>cache</b>, a storage box right on the phone.',
 		'Tap install, and nimbus.com gets its own icon next to your other apps. No app store, no waiting for approval.',
@@ -57,7 +57,7 @@ export const en: PwaText = {
 			body: 'The service worker catches the request and hands over the saved copies. The server is never asked.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'ID card and doorman',
 			body: 'Manifest means installable. Service worker means offline. A PWA needs both.'
 		},

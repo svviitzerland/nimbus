@@ -3,7 +3,7 @@ import type { GitHostsText } from '../../types';
 export const en: GitHostsText = {
 	title: 'Not only GitHub',
 	intro: [
-		'GitHub is the most famous, but it is not the only one. Git is the tool, and the place you keep it can vary. There is <b>GitLab</b>, <b>Bitbucket</b>, even <b>Gitea</b> that you install on your own server.',
+		'GitHub is the most famous, but it is not the only one. Git is the tool, and the place you keep your code online can vary. There is <b>GitLab</b>, <b>Bitbucket</b>, even <b>Gitea</b> that you install on your own server.',
 		'The key thing is they all speak the same Git. You can move the same repo from one to another without changing how you commit or push. Tap each service to see its own flavour.',
 		'Then one question, if any of them works, why do most people still pick GitHub? Open the answer.'
 	],
@@ -26,7 +26,7 @@ export const en: GitHostsText = {
 			name: 'GitHub',
 			tagline:
 				'The busiest place to keep code, home to countless open source projects and the largest community.',
-			traits: ['Largest community', 'Actions built in', 'Free for public']
+			traits: ['Largest community', 'Actions built in', 'Free for public repos']
 		},
 		{
 			id: 'gitlab',
@@ -52,7 +52,7 @@ export const en: GitHostsText = {
 	whyLabel: 'Why most people pick GitHub',
 	whyPoints: [
 		'<b>Network effect</b>. The most people and projects are here, so your friends and future teammates most likely are too.',
-		'<b>Open source</b>. Most of the world open projects live on GitHub, so learning and contributing is easiest here.',
+		'<b>Open source</b>. Most of the world’s open projects live on GitHub, so learning and contributing is easiest here.',
 		'<b>Portfolio</b>. A GitHub profile often doubles as your technical resume, and many companies look at it.',
 		'<b>Built in automation</b>. Actions runs your build and deploy with no extra tool.'
 	]

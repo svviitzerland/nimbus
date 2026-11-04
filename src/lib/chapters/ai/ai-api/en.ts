@@ -56,7 +56,7 @@ export const en: AiApiText = {
 			body: 'Tokens in plus tokens out, times a tiny price each. That is the whole bill for one question.'
 		},
 		{
-			tag: 'Remember',
+			tag: 'Make it stick',
 			title: 'A taxi meter',
 			body: 'More text in either direction means a longer ride. Short questions and short answers keep the fare low.'
 		},
