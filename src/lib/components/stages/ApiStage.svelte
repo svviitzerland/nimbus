@@ -164,9 +164,10 @@
 		color: #9aa3ae;
 	}
 
+	/* a phone about twice as tall as it is wide, like a real one */
 	.phone {
 		position: relative;
-		width: 136px;
+		width: 132px;
 		flex: none;
 		border-radius: 18px;
 		border: 1px solid #e2dccf;
@@ -189,7 +190,7 @@
 		position: relative;
 		margin-top: 6px;
 		display: flex;
-		min-height: 156px;
+		min-height: 230px;
 		flex-direction: column;
 		overflow: hidden;
 		border-radius: 12px;
@@ -448,7 +449,10 @@
 	}
 	@media (max-width: 420px) {
 		.phone {
-			width: 120px;
+			width: 116px;
+		}
+		.screen {
+			min-height: 200px;
 		}
 		.server {
 			width: 134px;

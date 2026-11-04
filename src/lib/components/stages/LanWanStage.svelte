@@ -308,11 +308,16 @@
 	.win {
 		fill: var(--color-brand-soft);
 	}
+	/* a halo in the page colour, so the long lines pass behind the names instead of through them */
 	.clbl {
 		fill: var(--color-muted);
 		font-size: 14px;
 		font-weight: 600;
 		text-anchor: middle;
+		paint-order: stroke;
+		stroke: var(--color-paper);
+		stroke-width: 5px;
+		stroke-linejoin: round;
 	}
 
 	/* the room */

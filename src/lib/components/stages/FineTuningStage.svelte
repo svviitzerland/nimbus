@@ -157,14 +157,18 @@
 				{/if}
 				{#each tx.examples as ex, k (k)}
 					{@const bad = k === tx.examples.length - 1}
+					{@const ls = wrap(ex.a, 34)}
 					{#if (bad && badInPile) || (!bad && k < goodCards)}
 						<g transform="translate(8 {24 + k * 40})">
 							<g class="card-in" class:still={clock.reduced}>
 								<rect width="144" height="36" rx="7" class="card" class:badcard={bad} />
 								<rect width="4" height="36" rx="2" class={bad ? 'edge-bad' : 'edge-good'} />
 								<text x="11" y="13" class="cq">{ex.q}</text>
-								{#each wrap(ex.a, 34).slice(0, 2) as l, j (j)}
-									<text x="11" y={23 + j * 9} class="ca">{l}</text>
+								<!-- two lines fit on a card, a longer reply ends in an ellipsis instead of being cut -->
+								{#each ls.slice(0, 2) as l, j (j)}
+									<text x="11" y={23 + j * 9} class="ca"
+										>{j === 1 && ls.length > 2 ? `${l}…` : l}</text
+									>
 								{/each}
 							</g>
 						</g>

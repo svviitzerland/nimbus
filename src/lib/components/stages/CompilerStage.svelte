@@ -290,14 +290,14 @@
 						<!-- the code sheet -->
 						<g>
 							<path
-								d="M14 24h128l18 18v160H14Z"
+								d="M14 24h138l18 18v160H14Z"
 								style="fill:var(--color-card);stroke:var(--color-line)"
 								stroke-width="2"
 							/>
-							<path d="M142 24v18h18" style="fill:none;stroke:var(--color-line)" stroke-width="2" />
+							<path d="M152 24v18h18" style="fill:none;stroke:var(--color-line)" stroke-width="2" />
 							<text x="26" y="46" class="lbl">{tx.codeLabel}</text>
 							{#each tx.code as line, i (i)}
-								<text x="26" y={78 + i * 26} class="mono">{line}</text>
+								<text x="26" y={78 + i * 26} class="mono sheet">{line}</text>
 							{/each}
 						</g>
 						<!-- the CPU chip -->
@@ -367,17 +367,17 @@
 						</g>
 						{#if !view.translate}
 							<line
-								x1="168"
+								x1="178"
 								y1="110"
 								x2="292"
 								y2="110"
 								style="stroke:var(--color-line)"
 								stroke-width="3"
 							/>
-							<g class="fly bounce"><text x="170" y="104" class="mono word">print</text></g>
+							<g class="fly bounce"><text x="180" y="104" class="mono word">print</text></g>
 						{:else}
 							<line
-								x1="168"
+								x1="176"
 								y1="110"
 								x2="200"
 								y2="110"
@@ -408,7 +408,7 @@
 								stroke-linecap="round"
 							/>
 							<text x="231" y="160" text-anchor="middle" class="lbl">{tx.translatorLabel}</text>
-							<g class="fly in"><text x="166" y="104" class="mono word">print</text></g>
+							<g class="fly in"><text x="170" y="104" class="mono word">print</text></g>
 							<g class="fly out"><text x="262" y="104" class="mono bitsTxt">0110</text></g>
 						{/if}
 					</svg>
@@ -485,6 +485,9 @@
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-size: 12px;
 		fill: var(--color-ink);
+	}
+	.mono.sheet {
+		font-size: 11px;
 	}
 	.faint {
 		fill: var(--color-faint);

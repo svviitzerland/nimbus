@@ -237,7 +237,6 @@
 					fill="none"
 					stroke="#3a9c64"
 					stroke-width="1.3"
-					stroke-dasharray="4 5"
 					stroke-linecap="round"
 					opacity="0.32"
 				/>{/if}
@@ -259,7 +258,7 @@
 					fill="none"
 					stroke={served?.kind === 'edge' ? '#3a9c64' : '#2e6fe0'}
 					stroke-width="2.5"
-					stroke-dasharray="7 6"
+					pathLength="1"
 					stroke-linecap="round"
 					class="arcflow"
 				/>
@@ -379,7 +378,7 @@
 					<span
 						class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold backdrop-blur transition-colors {sawOrigin
 							? 'border-transparent bg-grass-soft text-grass'
-							: 'border-line bg-card/85 text-faint'}"
+							: 'border-line bg-card text-faint'}"
 						>{#if sawOrigin}<svg
 								width="11"
 								height="11"
@@ -396,7 +395,7 @@
 					<span
 						class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold backdrop-blur transition-colors {sawEdge
 							? 'border-transparent bg-grass-soft text-grass'
-							: 'border-line bg-card/85 text-faint'}"
+							: 'border-line bg-card text-faint'}"
 						>{#if sawEdge}<svg
 								width="11"
 								height="11"
@@ -413,7 +412,7 @@
 				</div>
 				{#if !selected}
 					<span
-						class="rounded-full border border-line bg-card/85 px-2.5 py-0.5 text-[10px] font-medium text-muted backdrop-blur"
+						class="rounded-full border border-line bg-card px-2.5 py-0.5 text-[10px] font-medium text-muted backdrop-blur"
 						>{tx.compare.hint}</span
 					>
 				{/if}
@@ -472,7 +471,6 @@
 						fill="none"
 						stroke="#3a9c64"
 						stroke-width="1.3"
-						stroke-dasharray="4 5"
 						stroke-linecap="round"
 						opacity="0.32"
 					/>
@@ -487,7 +485,7 @@
 						fill="none"
 						stroke={served?.kind === 'edge' ? '#3a9c64' : '#2e6fe0'}
 						stroke-width="2.5"
-						stroke-dasharray="7 6"
+						pathLength="1"
 						stroke-linecap="round"
 						class="arcflow"
 					/>
@@ -697,10 +695,13 @@
 			opacity: 1;
 		}
 	}
+	/* the delivery draws itself from the sender to the visitor as one solid line */
 	.arcflow {
+		stroke-dasharray: 1;
+		stroke-dashoffset: 1;
 		animation:
 			arcin 0.45s ease both,
-			flowdash 0.8s linear infinite;
+			flowdash 0.8s ease forwards;
 	}
 	@keyframes arcin {
 		from {
@@ -712,7 +713,7 @@
 	}
 	@keyframes flowdash {
 		to {
-			stroke-dashoffset: -13;
+			stroke-dashoffset: 0;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {

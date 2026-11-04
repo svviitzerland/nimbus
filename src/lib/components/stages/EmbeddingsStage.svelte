@@ -26,24 +26,26 @@
 	const SCENE_OF_BEAT = [0, 1, 2, 3, 4, 5, 6, 7];
 
 	type Spot = { x: number; y: number; r: EmbedRegion };
+	// Spots are staggered so the word pills (which sit just above each dot) never cover each
+	// other or the neighbourhood signs, even with the longest Indonesian words.
 	const SPOT: Record<EmbedWord, Spot> = {
-		cat: { x: 72, y: 70, r: 'animals' },
-		kitten: { x: 96, y: 96, r: 'animals' },
-		dog: { x: 118, y: 58, r: 'animals' },
-		rabbit: { x: 52, y: 106, r: 'animals' },
-		puppy: { x: 136, y: 90, r: 'animals' },
-		king: { x: 252, y: 58, r: 'royals' },
-		prince: { x: 300, y: 84, r: 'royals' },
-		palace: { x: 242, y: 104, r: 'royals' },
-		queen: { x: 300, y: 42, r: 'royals' },
-		rice: { x: 64, y: 206, r: 'food' },
-		bread: { x: 112, y: 222, r: 'food' },
-		soup: { x: 50, y: 246, r: 'food' },
-		noodles: { x: 96, y: 262, r: 'food' },
-		server: { x: 252, y: 200, r: 'tech' },
-		cloud: { x: 302, y: 216, r: 'tech' },
-		website: { x: 252, y: 246, r: 'tech' },
-		nimbus: { x: 300, y: 262, r: 'tech' }
+		cat: { x: 62, y: 70, r: 'animals' },
+		kitten: { x: 72, y: 98, r: 'animals' },
+		dog: { x: 130, y: 70, r: 'animals' },
+		rabbit: { x: 52, y: 124, r: 'animals' },
+		puppy: { x: 132, y: 122, r: 'animals' },
+		king: { x: 236, y: 62, r: 'royals' },
+		prince: { x: 298, y: 92, r: 'royals' },
+		palace: { x: 232, y: 104, r: 'royals' },
+		queen: { x: 300, y: 62, r: 'royals' },
+		rice: { x: 56, y: 222, r: 'food' },
+		bread: { x: 116, y: 222, r: 'food' },
+		soup: { x: 52, y: 256, r: 'food' },
+		noodles: { x: 110, y: 262, r: 'food' },
+		server: { x: 244, y: 222, r: 'tech' },
+		cloud: { x: 306, y: 222, r: 'tech' },
+		website: { x: 244, y: 252, r: 'tech' },
+		nimbus: { x: 300, y: 280, r: 'tech' }
 	};
 	const BASE: EmbedWord[] = [
 		'cat',
@@ -62,10 +64,10 @@
 	];
 	const NEW: EmbedWord[] = ['puppy', 'queen', 'noodles', 'nimbus'];
 	const REGIONS: { id: EmbedRegion; x: number; y: number; rx: number; ry: number; c: string }[] = [
-		{ id: 'animals', x: 94, y: 80, rx: 76, ry: 50, c: 'grass' },
+		{ id: 'animals', x: 92, y: 88, rx: 78, ry: 50, c: 'grass' },
 		{ id: 'royals', x: 272, y: 72, rx: 66, ry: 50, c: 'amber' },
 		{ id: 'food', x: 82, y: 234, rx: 66, ry: 46, c: 'danger' },
-		{ id: 'tech', x: 276, y: 230, rx: 66, ry: 46, c: 'brand' }
+		{ id: 'tech', x: 276, y: 238, rx: 66, ry: 48, c: 'brand' }
 	];
 	// where the loose words float before they have numbers, a tidy jumble in the middle
 	const JUMBLE: Partial<Record<EmbedWord, [number, number]>> = {
@@ -83,7 +85,7 @@
 		cloud: [66, 140],
 		website: [222, 190]
 	};
-	const QUERY = { x: 84, y: 84 };
+	const QUERY = { x: 96, y: 110 };
 
 	let peek = $state<number | null>(null);
 	let dropped = $state(0);
@@ -255,7 +257,8 @@
 						<circle r="20" class="ring" />
 					{/if}
 					<circle r="6" class="pin-dot" />
-					<g transform="translate(0 -18)">
+					<!-- the query tag hangs under the pin, clear of the animal words above it -->
+					<g transform="translate(0 28)">
 						<rect
 							x={-labelW(tx.query) / 2}
 							y="-10"

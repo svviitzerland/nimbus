@@ -295,7 +295,7 @@
 	}
 	.piece {
 		border-radius: 8px;
-		border: 1.5px dashed #d8c9a8;
+		border: 1.5px solid #e6d9bb;
 		background: #fbf6ea;
 		color: #8a6a25;
 		font-size: 10px;
@@ -448,9 +448,7 @@
 		stroke: #bfdcf6;
 		stroke-width: 2;
 		stroke-linecap: round;
-		stroke-dasharray: 3 5;
 		vector-effect: non-scaling-stroke;
-		animation: flow 0.9s linear infinite;
 	}
 	.fl.k {
 		stroke: #c3d4f5;

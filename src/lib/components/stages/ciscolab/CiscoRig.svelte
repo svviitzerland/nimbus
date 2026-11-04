@@ -60,7 +60,8 @@
 
 	const xs = $derived(lapXs(laptops.length, !!spy));
 	const lanUp = $derived(ports['GigabitEthernet0/1']?.state === 'up');
-	const swL = $derived(Math.min(...xs, portC('GigabitEthernet0/1'), spy ? SPY_X : 999) - 24);
+	// a little extra room on the left so the SWITCH label sits clear of the first port light
+	const swL = $derived(Math.min(...xs, portC('GigabitEthernet0/1'), spy ? SPY_X : 999) - 46);
 	const swR = $derived(Math.max(...xs, portC('GigabitEthernet0/1'), spy ? SPY_X : 0) + 24);
 	const label = $derived(
 		`Cisco ${hostname}, ` + laptops.map((l) => `${l.name} ${l.ip ?? ''}`).join(', ')
@@ -199,10 +200,13 @@
 			>{shortName(p)}</text
 		>
 		{#if look.tag}
+			<!-- neighbouring ports are only 40 apart, so the first tag grows to the left of its port
+			     and the second to the right, and two addresses never sit on top of each other -->
 			{@const w = look.tag.length * 5.2 + 10}
+			{@const tx0 = i === 0 ? x + 26 - w : i === 1 ? x + 2 : x + 14 - w / 2}
 			<g class="ptag {look.tone ?? 'brand'}">
-				<rect x={x + 14 - w / 2} y={RY + 74} width={w} height="13" rx="6.5" />
-				<text x={x + 14} y={RY + 83.5} text-anchor="middle">{look.tag}</text>
+				<rect x={tx0} y={RY + 74} width={w} height="13" rx="6.5" />
+				<text x={tx0 + w / 2} y={RY + 83.5} text-anchor="middle">{look.tag}</text>
 			</g>
 		{/if}
 	{/each}

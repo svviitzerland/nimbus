@@ -107,7 +107,8 @@
 			<!-- the man in the middle detour -->
 			{#if i === 4}
 				<path d="M110 120 Q170 172 196 178" class="detour" />
-				<path d="M230 150 L230 86" class="detour" />
+				<!-- stops under the WiFi label instead of running through it -->
+				<path d="M230 150 L230 96" class="detour" />
 			{/if}
 
 			<!-- café WiFi box -->

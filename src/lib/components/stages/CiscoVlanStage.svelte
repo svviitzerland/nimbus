@@ -189,7 +189,7 @@
 			<text x="262" y="27" class="rbrand">cisco</text>
 			<text x="262" y="39" class="rname">nimbus</text>
 			{#if showHeard && routerHears() && heard.length}
-				<text x="300" y="60" class="heard" text-anchor="middle">{tx.heard}</text>
+				<text x="302" y="62" class="heard" text-anchor="end">{tx.heard}</text>
 			{/if}
 			{#if isTrunk(UP)}
 				<path d="M308 46V{PY}" class="cab staff" />
@@ -215,7 +215,8 @@
 			<!-- cables and devices -->
 			{#each devs as d (d.id)}
 				{@const cx = portCx(d.port)}
-				<path d="M{cx} {PY + 18}C{cx} 170 {d.x} 168 {d.x} 196" class="cab {tone(d.port)}" />
+				<!-- the cable leaves from the bottom edge of the switch, below the port names -->
+				<path d="M{cx} 150C{cx} 172 {d.x} 170 {d.x} 196" class="cab {tone(d.port)}" />
 				<g class="dev" class:heard={showHeard && heard.includes(d.id)} class:fresh={d.id === 'new'}>
 					{#if d.kind === 'lap'}
 						<rect x={d.x - 22} y="196" width="44" height="26" rx="3" class="lap" />

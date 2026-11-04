@@ -241,7 +241,8 @@
 			{#if s.addr}
 				<text x="0" y="28" class="addr">{s.addr}</text>
 			{:else if s.tag && !s.faded}
-				<text x="0" y="28" class="tag-t">{s.tag}</text>
+				<!-- at the door the label runs right, so it never falls off the left edge -->
+				<text x="-14" y="28" class="tag-t start">{s.tag}</text>
 			{/if}
 		</g>
 		{#if s.key && !play}
@@ -250,7 +251,8 @@
 			</g>
 		{/if}
 		{#if s.faded && s.tag}
-			<text x={DESK.x} y={DESK.y + 40} class="tag-t">{s.tag}</text>
+			<!-- left of the desk, clear of the desk box and the router's name -->
+			<text x={DESK.x - 8} y={DESK.y + 36} class="tag-t end">{s.tag}</text>
 		{/if}
 
 		<!-- the guests on the last beat -->
@@ -276,7 +278,7 @@
 						<text x="0" y="28" class="addr">192.168.1{KEYS[g.key]}</text>
 						<g transform="translate(22 -16)">{@render keyShape(KEYS[g.key], true)}</g>
 					{:else if g.key < 0}
-						<text x="0" y="28" class="tag-t">{tx.emptyLabel}</text>
+						<text x="-14" y="28" class="tag-t start">{tx.emptyLabel}</text>
 					{/if}
 				</g>
 			{/each}
@@ -285,12 +287,15 @@
 		{#if s.bubble && !play}
 			{@const d = tx.dora[s.bubble.k]}
 			{@const w = bubbleW(d.say) + 8}
-			{@const bx = Math.min(330 - w, Math.max(10, s.bubble.from.x - w / 2))}
+			<!-- the router's answers (Offer, Ack) sit left of the desk, so they never cover the key board -->
+			{@const fromDesk = s.bubble.k === 1 || s.bubble.k === 3}
+			{@const bx = fromDesk ? 204 - w : Math.min(330 - w, Math.max(10, s.bubble.from.x - w / 2))}
+			{@const by = fromDesk ? 122 : s.bubble.from.y - 66}
 			{#key i}
 				<g in:fade={{ duration: 250 }}>
-					<rect x={bx} y={s.bubble.from.y - 66} width={w} height="34" rx="10" class="bubble" />
-					<text x={bx + w / 2} y={s.bubble.from.y - 52} class="bubble-n">{d.name}</text>
-					<text x={bx + w / 2} y={s.bubble.from.y - 39} class="bubble-t">{d.say}</text>
+					<rect x={bx} y={by} width={w} height="34" rx="10" class="bubble" />
+					<text x={bx + w / 2} y={by + 14} class="bubble-n">{d.name}</text>
+					<text x={bx + w / 2} y={by + 27} class="bubble-t">{d.say}</text>
 				</g>
 			{/key}
 		{/if}
@@ -413,6 +418,12 @@
 		font-size: 9.5px;
 		font-weight: 700;
 		fill: var(--color-amber);
+	}
+	.tag-t.start {
+		text-anchor: start;
+	}
+	.tag-t.end {
+		text-anchor: end;
 	}
 	.mover {
 		transition:

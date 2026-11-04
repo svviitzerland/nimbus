@@ -261,6 +261,16 @@
 		['L', 'O'],
 		['O', 'R']
 	];
+	// Split a caption into two lines at the space nearest its middle, so a long one stays inside
+	// the picture at the right edge.
+	function twoLines(str: string): string[] {
+		if (str.length <= 18) return [str];
+		const mid = str.length / 2;
+		let best = -1;
+		for (let k = 0; k < str.length; k++)
+			if (str[k] === ' ' && (best < 0 || Math.abs(k - mid) < Math.abs(best - mid))) best = k;
+		return best < 0 ? [str] : [str.slice(0, best), str.slice(best + 1)];
+	}
 </script>
 
 {#snippet road()}
@@ -441,7 +451,11 @@
 							<Key x={300} y={124} size={1.7} tone="var(--color-grass)" />
 						</g>
 						<text x="78" y="186" class="caption">{tx.rule.anyone}</text>
-						<text x="296" y="186" class="caption">{tx.rule.only}</text>
+						<text x="296" y="186" class="caption">
+							{#each twoLines(tx.rule.only) as ln, k (k)}
+								<tspan x="296" dy={k ? 15 : 0}>{ln}</tspan>
+							{/each}
+						</text>
 					</svg>
 				{:else if sc === 'rsa'}
 					<svg viewBox="0 0 360 230" class="art" role="img" aria-label="61 × 53 = 3233">

@@ -379,8 +379,9 @@
 								href={n.url}
 								target="_blank"
 								rel="noopener noreferrer"
-								style="left:{NEWS_POS[i % NEWS_POS.length].l}%; top:{NEWS_POS[i % NEWS_POS.length]
-									.t}%; animation-delay:{i * 0.45 + 0.1}s"
+								style="--l:{NEWS_POS[i % NEWS_POS.length].l}%; --t:{NEWS_POS[i % NEWS_POS.length]
+									.t}%; --ml:{i === 8 ? 26.5 : i % 2 ? 51 : 2}%; --mt:{2 +
+									Math.floor(i / 2) * 19.5}%; animation-delay:{i * 0.45 + 0.1}s"
 							>
 								<p class="src">{n.src}</p>
 								<p class="head">{n.head}</p>
@@ -614,6 +615,8 @@
 	}
 	.newscard {
 		display: block;
+		left: var(--l);
+		top: var(--t);
 		width: 172px;
 		max-width: 40%;
 		padding: 8px 10px;
@@ -650,5 +653,18 @@
 		font-weight: 600;
 		line-height: 1.22;
 		color: #16212b;
+	}
+	/* on a phone the scattered headlines line up in two tidy columns so none of them overlap */
+	@media (max-width: 767px) {
+		.newscard {
+			left: var(--ml);
+			top: var(--mt);
+			width: 47%;
+			max-width: none;
+			padding: 6px 8px;
+		}
+		.head {
+			font-size: 10px;
+		}
 	}
 </style>

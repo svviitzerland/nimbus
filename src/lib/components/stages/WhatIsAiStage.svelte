@@ -25,12 +25,13 @@
 	const LABEL_Y: Record<AiRing, number> = { ai: 40, ml: 118, dl: 194, gen: 266 };
 	type Thing = { id: AiThingId; x: number; y: number; ring: AiRing | null; from: number };
 	const THINGS: Thing[] = [
-		{ id: 'calc', x: 38, y: 38, ring: null, from: 0 },
+		// the calculator sits far enough out that its label never touches the AI circle
+		{ id: 'calc', x: 30, y: 30, ring: null, from: 0 },
 		{ id: 'chess', x: 180, y: 64, ring: 'ai', from: 2 },
 		{ id: 'spam', x: 180, y: 144, ring: 'ml', from: 3 },
 		{ id: 'face', x: 180, y: 214, ring: 'dl', from: 5 },
-		{ id: 'chat', x: 158, y: 296, ring: 'gen', from: 6 },
-		{ id: 'image', x: 202, y: 296, ring: 'gen', from: 6 }
+		{ id: 'chat', x: 150, y: 296, ring: 'gen', from: 6 },
+		{ id: 'image', x: 206, y: 296, ring: 'gen', from: 6 }
 	];
 	// Which circle each beat puts in focus (null means none, 'all' means every circle).
 	const FOCUS: (AiRing | null | 'all')[] = [

@@ -200,7 +200,8 @@
 								height={AXIS - TOP}
 							/>
 							<text class="zlabel" x={L - 6} y={TOP + 10} text-anchor="start">{tx.home}</text>
-							{#if th < 88}
+							<!-- only while the label fits right of the line, so the line never crosses it -->
+							{#if lx + 10 + tx.flagged.length * 6 < R + 8}
 								<text class="zlabel flag" x={R + 8} y={TOP + 10} text-anchor="end"
 									>{tx.flagged}</text
 								>

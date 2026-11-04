@@ -240,7 +240,7 @@
 		position: relative;
 		width: 0;
 		height: 30px;
-		border-left: 2px dashed #d8d2c6;
+		border-left: 2px solid #e2ddd3;
 		transition: border-color 0.3s ease;
 	}
 	.link.flow {

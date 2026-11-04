@@ -274,7 +274,7 @@
 	/* phone, in the Foundation style */
 	/* about one wide to two tall, like a real phone */
 	.phone {
-		width: 132px;
+		width: 140px;
 		border-radius: 24px;
 		background: #fff;
 		border: 1px solid #e8e2d8;
@@ -282,7 +282,7 @@
 		box-shadow: 0 10px 26px rgba(22, 40, 60, 0.1);
 	}
 	.screen {
-		height: 236px;
+		height: 250px;
 		border-radius: 16px;
 		background: #f7f6f2;
 		overflow: hidden;
@@ -310,7 +310,7 @@
 	}
 	.url {
 		font-family: ui-monospace, monospace;
-		font-size: 9.5px;
+		font-size: 8.5px;
 		color: #5e6b76;
 		white-space: nowrap;
 		overflow: hidden;

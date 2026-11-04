@@ -379,11 +379,12 @@
 	}
 
 	/* the phone */
+	/* real phone proportions (about 1 wide to 2 tall), not a squat box */
 	.phone {
 		position: relative;
 		display: flex;
-		width: min(100%, 300px);
-		min-height: 400px;
+		width: min(100%, 260px);
+		min-height: 480px;
 		flex-direction: column;
 		border: 2px solid var(--color-line);
 		border-radius: 34px;
@@ -754,7 +755,8 @@
 			padding-bottom: 7rem;
 		}
 		.phone {
-			min-height: 360px;
+			width: min(100%, 236px);
+			min-height: 420px;
 		}
 		.keys i {
 			width: 18px;

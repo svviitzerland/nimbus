@@ -213,7 +213,8 @@
 						</g>
 					</g>
 				{/each}
-				<text x="240" y="62" class="cards-label">{tx.cardsLabel}</text>
+				<!-- inside the roof, where the copied cards fly to, clear of the roof line -->
+				<text x="232" y="94" class="cards-label">{tx.cardsLabel}</text>
 			{/if}
 
 			<!-- the fence and the back gate -->

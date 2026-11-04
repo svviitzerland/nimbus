@@ -262,13 +262,14 @@
 				</g>
 			{:else if certShown}
 				<g in:fade={{ duration: 200 }}>
-					<rect x="28" y="54" width="134" height="76" rx="6" class="card" class:bad={fake} />
-					<text x="38" y="70" class="c-head">{tx.certHeading}</text>
+					<rect x="22" y="54" width="146" height="76" rx="6" class="card" class:bad={fake} />
+					<text x="32" y="70" class="c-head">{tx.certHeading}</text>
+					<!-- the tick sits before each row, so a long row never runs into it -->
 					{#each tx.checks as c, k (k)}
 						{@const ok = !fake || FAKE_OK[k]}
-						<text x="38" y={88 + k * 15} class="c-row">{c}</text>
+						<text x="46" y={88 + k * 15} class="c-row">{c}</text>
 						{#if checks > k}
-							<text x="152" y={88 + k * 15} class="mark" class:bad={!ok} in:fade={{ duration: 150 }}
+							<text x="42" y={88 + k * 15} class="mark" class:bad={!ok} in:fade={{ duration: 150 }}
 								>{ok ? '✓' : '✗'}</text
 							>
 						{/if}
@@ -546,7 +547,7 @@
 		fill: var(--color-ink);
 	}
 	.c-row {
-		font-size: 9.5px;
+		font-size: 9px;
 		fill: var(--color-muted);
 	}
 	.mark {

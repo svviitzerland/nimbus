@@ -102,16 +102,7 @@
 		</svg>
 	{:else if i === 2}
 		<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-			<rect
-				x="4"
-				y="4"
-				width="16"
-				height="16"
-				rx="3"
-				stroke="currentColor"
-				stroke-width="1.9"
-				stroke-dasharray="3.5 3"
-			/>
+			<rect x="4" y="4" width="16" height="16" rx="3" stroke="currentColor" stroke-width="1.9" />
 			<circle cx="12" cy="12" r="2.2" fill="currentColor" />
 		</svg>
 	{:else if i === 3}
@@ -297,7 +288,7 @@
 		top: 22px;
 		left: 8%;
 		right: 8%;
-		border-top: 2px dashed #e3ded5;
+		border-top: 2px solid #e3ded5;
 	}
 	.fpkt {
 		position: absolute;

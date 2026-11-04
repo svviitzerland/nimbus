@@ -70,7 +70,7 @@
 		<span class="tpread" class:cap={buffering}>{tx.tpLabel} <b>{tp.toFixed(1)}</b> {tx.unit}</span>
 		<div class="track">
 			<div class="fill" class:cap={buffering} style="width:{fillPct}%"></div>
-			<div class="marker" style="left:{markerPct}%">
+			<div class="marker" class:edge={markerPct > 75} style="left:{markerPct}%">
 				<span class="mtag">{tx.bwLabel} {maxBw.toFixed(1)}</span>
 			</div>
 		</div>
@@ -154,7 +154,7 @@
 		border-radius: 14px;
 		border: 1px solid #ece6dc;
 		background: #fff;
-		padding: 12px 13px 16px;
+		padding: 12px 13px 28px;
 		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.06);
 	}
 	.tpread {
@@ -200,9 +200,10 @@
 		transition: left 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 		z-index: 2;
 	}
+	/* the bandwidth tag hangs under the bar, so it never runs into the throughput reading above */
 	.mtag {
 		position: absolute;
-		top: -19px;
+		top: calc(100% + 2px);
 		left: 50%;
 		transform: translateX(-50%);
 		white-space: nowrap;
@@ -212,6 +213,13 @@
 		font-size: 9px;
 		font-weight: 800;
 		padding: 2px 7px;
+	}
+
+	/* near the right end the tag grows leftward so it stays inside the card */
+	.marker.edge .mtag {
+		left: auto;
+		right: -2px;
+		transform: none;
 	}
 
 	.viewers {

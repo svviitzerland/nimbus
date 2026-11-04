@@ -168,7 +168,8 @@
 								<rect x={x + 96} y={BY + 44} width="16" height="10" rx="5" class:apart2={snapped} />
 							</g>
 							{#if snapped}
-								<text x={x + 100} y={BY + 108} class="tag bad" in:fade={{ duration: 200 }}
+								<!-- above the gap, so it never runs into the "redo" tags under the blocks -->
+								<text x={x + 100} y={BY - 8} class="tag bad" in:fade={{ duration: 200 }}
 									>{tx.brokenTag}</text
 								>
 							{/if}

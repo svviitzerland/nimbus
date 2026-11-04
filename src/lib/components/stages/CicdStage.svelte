@@ -330,7 +330,7 @@
 		align-items: center;
 		gap: 3px;
 		border-radius: 11px;
-		border: 1.5px dashed #d7dde6;
+		border: 1.5px solid #e3e7ee;
 		padding: 6px;
 	}
 	.group.ci {

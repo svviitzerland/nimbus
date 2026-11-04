@@ -304,8 +304,11 @@
 		text-align: right;
 		color: var(--color-faint);
 	}
+	/* long lines wrap under themselves instead of running off the card on a phone */
 	.src {
-		white-space: pre;
+		min-width: 0;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
 		color: var(--color-ink);
 	}
 	.shelf-row {

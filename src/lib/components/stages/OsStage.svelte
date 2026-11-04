@@ -453,25 +453,26 @@
 						<circle cx={cx + 10} cy={66.5 + k * 16} r="2" fill="var(--color-grass)" />
 					{/each}
 				{:else}
+					<!-- a phone about twice as tall as it is wide, like a real one -->
 					<rect
-						x={cx - 16}
-						y="56"
-						width="32"
-						height="56"
+						x={cx - 15}
+						y="53"
+						width="30"
+						height="61"
 						rx="7"
 						fill="var(--color-card)"
 						stroke="var(--color-line)"
 						stroke-width="2"
 					/>
 					<rect
-						x={cx - 12}
-						y="63"
-						width="24"
-						height="40"
+						x={cx - 11}
+						y="60"
+						width="22"
+						height="45"
 						rx="3"
 						fill={i === 3 ? 'var(--color-grass-soft)' : 'var(--color-paper)'}
 					/>
-					<rect x={cx - 5} y="106" width="10" height="2.5" rx="1.25" fill="var(--color-line)" />
+					<rect x={cx - 5} y="108" width="10" height="2.5" rx="1.25" fill="var(--color-line)" />
 				{/if}
 				<text x={cx} y="136" text-anchor="middle" class="t-name">{d.os}</text>
 				<text x={cx} y="152" text-anchor="middle" class="t-kind">{d.kind}</text>

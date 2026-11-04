@@ -447,11 +447,11 @@
 			opacity: 1;
 		}
 		70% {
-			transform: translate(87px, 126px);
+			transform: translate(87px, 118px);
 			opacity: 1;
 		}
 		100% {
-			transform: translate(87px, 126px);
+			transform: translate(87px, 118px);
 			opacity: 0;
 		}
 	}
@@ -496,7 +496,7 @@
 			transform: scale(1.8);
 		}
 		.shout {
-			transform: translate(87px, 126px);
+			transform: translate(87px, 118px);
 		}
 		.packet,
 		.road {

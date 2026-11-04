@@ -315,8 +315,8 @@
 			{/each}
 		{:else if i === 11}
 			<!-- a smartphone -->
-			<rect x="92" y="14" width="76" height="172" rx="16" class="bd" />
-			<rect x="99" y="30" width="62" height="140" rx="7" class="screen" />
+			<rect x="89" y="14" width="82" height="172" rx="16" class="bd" />
+			<rect x="96" y="30" width="68" height="140" rx="7" class="screen" />
 			<rect x="120" y="20" width="20" height="4" rx="2" class="li" />
 			{#each Array.from({ length: 12 }, (_, k) => k) as k (k)}
 				<rect
@@ -496,11 +496,16 @@
 			height: 190px;
 			gap: 8px;
 		}
+		/* two tilted photos plus the drawing must fit a 390px phone with room at the edge */
+		.photos {
+			gap: 6px;
+			padding-right: 4px;
+		}
 		.frame {
-			width: 74px;
+			width: 68px;
 		}
 		.photos.wide .frame {
-			width: 124px;
+			width: 118px;
 		}
 	}
 	.timeline {

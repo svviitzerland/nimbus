@@ -252,12 +252,15 @@
 		font-weight: 600;
 		color: var(--color-ink);
 	}
+	/* a small arrow head between stops (a plain bar read like a dash) */
 	.trail li:not(:first-child)::before {
 		content: '';
-		width: 16px;
-		height: 2px;
-		border-radius: 2px;
-		background: var(--color-brand);
+		width: 7px;
+		height: 7px;
+		margin: 0 4px 0 2px;
+		border-top: 2px solid var(--color-brand);
+		border-right: 2px solid var(--color-brand);
+		transform: rotate(45deg);
 	}
 
 	/* the log window */

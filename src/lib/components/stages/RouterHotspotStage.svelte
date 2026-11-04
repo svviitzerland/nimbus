@@ -246,9 +246,10 @@
 	.pbar svg.on {
 		stroke: var(--color-brand);
 	}
+	/* a 112px wide phone about twice as tall as it is wide, like a real one */
 	.screen {
 		display: flex;
-		min-height: 150px;
+		min-height: 186px;
 		flex-direction: column;
 		justify-content: center;
 		gap: 5px;

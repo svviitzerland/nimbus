@@ -385,7 +385,7 @@ const topicTracks: TrackDef[] = [
 		color: '#3a9c64',
 		title: { id: 'Jaringan', en: 'Network' },
 		tagline: {
-			id: 'Cara data berpindah dari HP-mu ke server di ujung dunia, sampai ngatur router sendiri.',
+			id: 'Cara data berpindah dari HP kamu ke server di ujung dunia, sampai ngatur router sendiri.',
 			en: 'How data travels from your phone to a server across the world, up to running your own router.'
 		},
 		modules: [

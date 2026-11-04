@@ -143,9 +143,15 @@
 		font-size: 11.5px;
 		line-height: 1.5;
 	}
+	/* long commands and messages wrap instead of running off the edge, tables keep columns */
 	.ln {
 		color: #d2e2ee;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+	}
+	.ln.tbl {
 		white-space: pre;
+		overflow-wrap: normal;
 	}
 	.ln.ok {
 		color: #6fd39a;

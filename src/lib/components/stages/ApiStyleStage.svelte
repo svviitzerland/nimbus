@@ -277,10 +277,10 @@
 		color: #5b6675;
 	}
 
-	/* phone */
+	/* phone, about twice as tall as it is wide like a real one */
 	.phone {
 		position: relative;
-		width: 124px;
+		width: 128px;
 		border-radius: 18px;
 		border: 1px solid #e2dccf;
 		background: #fff;
@@ -300,7 +300,7 @@
 	.screen {
 		margin-top: 6px;
 		display: flex;
-		min-height: 150px;
+		min-height: 220px;
 		flex-direction: column;
 		border-radius: 12px;
 		background: linear-gradient(#fbfcfe, #f3f6fb);
@@ -320,25 +320,26 @@
 	.row {
 		display: flex;
 		align-items: center;
-		gap: 6px;
+		gap: 5px;
 		border-radius: 8px;
 		border: 1px solid #e9eef6;
 		background: #fff;
-		padding: 6px 7px;
+		padding: 6px 6px;
 	}
 	.row.note {
 		border-color: #cdead9;
 		background: #f3fbf6;
 	}
 	.thumb {
-		height: 16px;
-		width: 16px;
+		height: 14px;
+		width: 14px;
 		flex: none;
 		border-radius: 5px;
 		background: linear-gradient(135deg, #dbe8fb, #c8dbf7);
 	}
+	/* on a pushed note the bell takes the thumbnail's place, so the price still fits the phone */
 	.row.note .thumb {
-		background: linear-gradient(135deg, #cdead9, #aee0c4);
+		display: none;
 	}
 	.bell {
 		font-size: 11px;
@@ -599,7 +600,21 @@
 	}
 	@media (max-width: 430px) {
 		.phone {
-			width: 108px;
+			width: 120px;
+		}
+		.screen {
+			min-height: 204px;
+		}
+		.row {
+			gap: 4px;
+			padding: 5px;
+		}
+		.thumb {
+			height: 12px;
+			width: 12px;
+		}
+		.price {
+			font-size: 10px;
 		}
 		.l1 {
 			font-size: 10.5px;

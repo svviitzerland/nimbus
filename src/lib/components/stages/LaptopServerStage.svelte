@@ -425,13 +425,13 @@
 		white-space: nowrap;
 	}
 	.shrink {
-		width: 96px;
-		height: 152px;
+		width: 90px;
+		height: 184px;
 		overflow: visible;
 	}
 	.shrink > :global(.phone) {
 		/* the wrapper is narrower than the phone on purpose, it reserves the scaled
-		   footprint, so the phone must keep its natural 158px width */
+		   footprint, so the phone must keep its natural 150px width */
 		max-width: none;
 		transform: scale(0.6);
 		transform-origin: top left;
@@ -603,8 +603,8 @@
 			width: 90px;
 		}
 		.shrink {
-			width: 112px;
-			height: 177px;
+			width: 105px;
+			height: 214px;
 		}
 		.shrink > :global(.phone) {
 			transform: scale(0.7);

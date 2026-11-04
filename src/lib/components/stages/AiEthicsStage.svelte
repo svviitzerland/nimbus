@@ -93,7 +93,8 @@
 	);
 	const FATES = [130, 180, 230];
 
-	const top = $derived(msg ? 84 - (msg.lines.length * 18) / 2 + 6 : 0);
+	// centred a little high on the board, so the verdict stamp in the lower right never covers a line
+	const top = $derived(msg ? 76 - (msg.lines.length * 18) / 2 + 6 : 0);
 	const STAMP_CLASS: Record<Verdict, string> = { send: 'go', clean: 'mid', keep: 'stop' };
 
 	function pick(id: AiEthicsMsgId) {

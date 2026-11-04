@@ -304,8 +304,8 @@
 					</g>
 					<text x="124" y="190" class="val small">{tx.passwordRow}</text>
 					<g class="never">
-						<rect x="234" y="178" width="64" height="18" rx="9" />
-						<text x="266" y="191">{tx.neverTag}</text>
+						<rect x="226" y="178" width="78" height="18" rx="9" />
+						<text x="265" y="191">{tx.neverTag}</text>
 					</g>
 					<text x="124" y="210" class="faint left tiny"
 						>{tx.scopes.name}, {tx.scopes.email.toLowerCase()}</text

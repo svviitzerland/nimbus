@@ -144,8 +144,8 @@
 				<!-- the home router's signpost, one arm, the default route -->
 				<g class="sign" class:focus={signR1Lit} transform="translate(34 210)">
 					<rect x="-2" y="0" width="4" height="62" rx="2" fill="var(--color-faint)" />
-					<path d="M0 26 H82 L92 36 L82 46 H0 Z" class="plank" class:hot={signR1Lit} />
-					<text x="42" y="40" text-anchor="middle" class="plank-t">{tx.signDefault}</text>
+					<path d="M0 30 H82 L92 40 L82 50 H0 Z" class="plank" class:hot={signR1Lit} />
+					<text x="42" y="44" text-anchor="middle" class="plank-t">{tx.signDefault}</text>
 				</g>
 
 				<!-- the provider router's signpost, two arms. The tilted arm points up toward the other
@@ -157,8 +157,8 @@
 							<path d="M0 2 H58 L67 11 L58 20 H0 Z" class="plank" />
 							<text x="30" y="15" text-anchor="middle" class="plank-t">{tx.signOther}</text>
 						</g>
-						<path d="M0 26 H74 L84 36 L74 46 H0 Z" class="plank" class:hot={signR2Lit} />
-						<text x="38" y="40" text-anchor="middle" class="plank-t">{tx.signNimbus}</text>
+						<path d="M0 30 H74 L84 40 L74 50 H0 Z" class="plank" class:hot={signR2Lit} />
+						<text x="38" y="44" text-anchor="middle" class="plank-t">{tx.signNimbus}</text>
 					</g>
 				</g>
 

@@ -94,9 +94,10 @@
 			<rect x="26" y="20" width="22" height="14" rx="2" class="lap" />
 		</g>
 		<text x="22" y="226" class="sm">{tx.snooperLabel}</text>
-		<g transform="translate(104 180)">
-			<rect width="140" height="26" rx="8" class="peek {snoop}" />
-			<text x="12" y="17" class="mono {snoop}">
+		<!-- wide enough for the whole sniffed line, still clear of the office wall at 252 -->
+		<g transform="translate(100 180)">
+			<rect width="148" height="26" rx="8" class="peek {snoop}" />
+			<text x="9" y="17" class="mono {snoop}">
 				{snoop === 'plain' ? tx.peekPlain : snoop === 'noise' ? 'x7#q!9@k%2zr' : tx.peekIdle}
 			</text>
 		</g>
@@ -170,7 +171,7 @@
 	}
 	.mono {
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
-		font-size: 10px;
+		font-size: 9px;
 		fill: var(--color-faint);
 	}
 	.mono.plain {

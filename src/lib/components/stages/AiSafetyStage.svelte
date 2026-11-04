@@ -278,7 +278,7 @@
 						{#if on}
 							<path d="M-4.5 0 L-1.2 3.4 L5 -3.6" class="shieldtick" />
 						{/if}
-						{#each wrap(tx.shields[k], 11) as l, j (j)}
+						{#each wrap(tx.shields[k], 7) as l, j (j)}
 							<text y={31 + j * 9.5} text-anchor="middle" class="shieldlabel">{l}</text>
 						{/each}
 					</g>

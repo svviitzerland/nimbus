@@ -388,9 +388,7 @@
 		stroke: #dcd6cb;
 		stroke-width: 2;
 		stroke-linecap: round;
-		stroke-dasharray: 3 5;
 		vector-effect: non-scaling-stroke;
-		animation: flow 0.9s linear infinite;
 	}
 	@keyframes flow {
 		to {

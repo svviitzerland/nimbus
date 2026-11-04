@@ -170,30 +170,33 @@
 				</div>
 			{/if}
 
-			<!-- the shelf of documents -->
-			<div class="shelf" class:locked>
-				<p class="label">{tx.shelfTitle}</p>
-				<div class="docs">
-					{#each SHELF as d, k (d)}
-						<div class="doc" class:lit={docLit(d)} class:dim={docDim(d)}>
-							<div class="paper">
-								<span class="title">{tx.docs[d].title}</span>
-								{#if peeked && d === WIN}
-									<span class="body" in:fade={{ duration: 300 }}>{fill(tx.docs[d].body)}</span>
-								{:else}
-									<i></i><i></i><i class="short"></i>
-								{/if}
+			<!-- the shelf of documents. Compact once the prompt box is up, and left out on the
+			     memory beat (the two books take its place), so the picture fits without scrolling -->
+			{#if scene !== 'remember'}
+				<div class="shelf" class:locked class:compact={showReads}>
+					<p class="label">{tx.shelfTitle}</p>
+					<div class="docs">
+						{#each SHELF as d, k (d)}
+							<div class="doc" class:lit={docLit(d)} class:dim={docDim(d)}>
+								<div class="paper">
+									<span class="title">{tx.docs[d].title}</span>
+									{#if peeked && d === WIN}
+										<span class="body" in:fade={{ duration: 300 }}>{fill(tx.docs[d].body)}</span>
+									{:else}
+										<i></i><i></i><i class="short"></i>
+									{/if}
+								</div>
+								<span class="match" class:show={!locked && k < scanned} class:win={d === WIN}>
+									{tx.match.replace('{n}', String(MATCH[d]))}
+								</span>
 							</div>
-							<span class="match" class:show={!locked && k < scanned} class:win={d === WIN}>
-								{tx.match.replace('{n}', String(MATCH[d]))}
-							</span>
-						</div>
-					{/each}
+						{/each}
+					</div>
+					{#if locked}
+						<p class="unseen">{tx.unseen}</p>
+					{/if}
 				</div>
-				{#if locked}
-					<p class="unseen">{tx.unseen}</p>
-				{/if}
-			</div>
+			{/if}
 		</div>
 
 		{#if scene === 'remember'}
@@ -244,13 +247,13 @@
 		max-width: 440px;
 		flex-direction: column;
 		align-items: center;
-		gap: 10px;
+		gap: 8px;
 	}
 	.pic {
 		display: flex;
 		width: 100%;
 		flex-direction: column;
-		gap: 10px;
+		gap: 8px;
 	}
 	.act {
 		border: 1.5px solid var(--color-brand);
@@ -435,10 +438,10 @@
 		border: 1.5px solid var(--color-brand);
 		border-radius: 14px;
 		background: var(--color-card);
-		padding: 10px 12px;
+		padding: 8px 12px;
 	}
 	.reads .q {
-		margin: 0 0 8px;
+		margin: 0 0 6px;
 		font-size: 12.5px;
 		color: var(--color-ink);
 	}
@@ -485,6 +488,13 @@
 		transition:
 			opacity 0.4s,
 			transform 0.4s;
+	}
+	.shelf.compact .paper {
+		flex: 1;
+		min-height: 0;
+	}
+	.shelf.compact .paper i {
+		display: none;
 	}
 	.doc.dim {
 		opacity: 0.4;

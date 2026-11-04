@@ -120,7 +120,8 @@
 					<rect x="326" y="272" width="88" height="20" rx="10" />
 					<text x="370" y="286">{tx.ips.routerIn}</text>
 				</g>
-				<text class="tag privtag" class:show={s === 4} x="287" y="263">{tx.roomTag}</text>
+				<!-- left of the router, so the letter that lands on the router never covers it -->
+				<text class="tag privtag" class:show={s === 4} x="206" y="290">{tx.roomTag}</text>
 
 				<!-- a letter flying in, looping while the beat is about addresses on packets -->
 				{#if s === 1 || s === 4}

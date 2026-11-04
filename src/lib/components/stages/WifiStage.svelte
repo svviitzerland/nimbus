@@ -101,7 +101,6 @@
 						}}
 					>
 						<rect class="floor" class:out={i === 4} x={rm.x} y={rm.y} width={rm.w} height={rm.h} />
-						<text class="rname" x={rm.x + 9} y={rm.y + 17}>{tx.rooms[i]}</text>
 					</g>
 				{/each}
 				<rect class="walls" x="24" y="24" width="300" height="196" rx="3" />
@@ -143,8 +142,13 @@
 					{/if}
 				</g>
 
+				<!-- room names drawn above the cable and the rings, with a halo so neither crosses them -->
+				{#each ROOMS as rm, i (i)}
+					<text class="rname" class:halo={i < 4} x={rm.x + 9} y={rm.y + 17}>{tx.rooms[i]}</text>
+				{/each}
+
 				<Thing kind="router" x={78} y={74} />
-				<text class="lbl" x="78" y="100">{tx.routerLabel}</text>
+				<text class="lbl halo" x="78" y="100">{tx.routerLabel}</text>
 
 				<!-- the neighbour, on the channel beat -->
 				<g class="fade" class:gone={s !== LANES}>
@@ -267,6 +271,13 @@
 		font-size: 11px;
 		font-weight: 600;
 		pointer-events: none;
+	}
+	.rname.halo,
+	.lbl.halo {
+		paint-order: stroke;
+		stroke: var(--color-card);
+		stroke-width: 4px;
+		stroke-linejoin: round;
 	}
 	.walls {
 		fill: none;

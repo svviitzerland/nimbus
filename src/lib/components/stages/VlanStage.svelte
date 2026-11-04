@@ -114,7 +114,8 @@
 				<!-- the router, only when traffic must cross between rooms -->
 				{#if shown === 6}
 					<g class="appear">
-						<line x1={ROUTER.x} y1={ROUTER.y + 10} x2={ROUTER.x} y2="94" class="cable" />
+						<!-- the uplink starts under the router's name, so the line never crosses the text -->
+						<line x1={ROUTER.x} y1={ROUTER.y + 36} x2={ROUTER.x} y2="94" class="cable" />
 						<NgRouter x={ROUTER.x} y={ROUTER.y} label={tx.routerLabel} lit={atRouter} />
 						{#if atRouter}
 							<g class="tag ok">

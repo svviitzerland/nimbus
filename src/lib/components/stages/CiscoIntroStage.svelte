@@ -176,11 +176,12 @@
 			background 0.3s ease,
 			transform 0.3s ease;
 	}
+	/* the full prompt always shows, it wraps instead of being cut off */
 	.rung code {
 		max-width: 100%;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+		overflow-wrap: anywhere;
+		text-align: center;
+		line-height: 1.25;
 		font-size: 10px;
 		font-weight: 700;
 		color: var(--color-muted);
@@ -204,6 +205,12 @@
 	}
 	.rung.pulse {
 		border-color: var(--color-grass);
+	}
+	/* on a phone the four prompts sit two by two, so each has room for its whole name */
+	@media (max-width: 560px) {
+		.ladder {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
 	}
 	.rigbox {
 		display: flex;

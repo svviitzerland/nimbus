@@ -173,7 +173,8 @@
 		<!-- the house -->
 		<path d="M8 66 L92 22 L176 66" class="roof" />
 		<rect x="8" y="64" width="168" height="240" rx="14" class="home" class:hot={i === 1} />
-		<text x="22" y="84" class="corner">{tx.homeLabel}</text>
+		<!-- the house name sits under the roof, clear of the first phone -->
+		<text x="92" y="58" class="corner mid">{tx.homeLabel}</text>
 		{#each PHONES as ph, k (ph.n)}
 			<g transform="translate({ph.at.x - 17} {ph.at.y - 14})">
 				<Device
@@ -193,15 +194,15 @@
 		{/each}
 		{#if i === 1}
 			<rect
-				x="88"
-				y="34"
+				x="104"
+				y="26"
 				width="62"
 				height="18"
 				rx="9"
 				class="chip-r"
 				in:fade={{ duration: 300 }}
 			/>
-			<text x="119" y="47" class="chip-t">{tx.privateLabel}</text>
+			<text x="135" y="39" class="chip-t">{tx.privateLabel}</text>
 		{/if}
 
 		<!-- the router in the doorway -->
@@ -212,9 +213,10 @@
 				tone={v.flash ? 'var(--color-amber)' : 'var(--color-grass)'}
 			/>
 		</g>
-		<text x={ROUTER.x} y={ROUTER.y + 30} class="name mid">{tx.routerLabel}</text>
-		<text x={ROUTER.x} y={ROUTER.y + 43} class="ip mid" class:pub={i === 0}>{PUBLIC}</text>
-		<text x={ROUTER.x} y={ROUTER.y + 55} class="corner mid">{tx.publicLabel}</text>
+		<!-- the router stands in the doorway, so its labels get a halo and the wall passes behind them -->
+		<text x={ROUTER.x} y={ROUTER.y + 30} class="name mid halo">{tx.routerLabel}</text>
+		<text x={ROUTER.x} y={ROUTER.y + 43} class="ip mid halo" class:pub={i === 0}>{PUBLIC}</text>
+		<text x={ROUTER.x} y={ROUTER.y + 55} class="corner mid halo">{tx.publicLabel}</text>
 		{#if i === 6}
 			<g in:fade={{ duration: 300 }}>
 				<rect x={ROUTER.x - 36} y={ROUTER.y - 48} width="72" height="18" rx="9" class="chip-g" />
@@ -360,6 +362,12 @@
 		font-size: 9.5px;
 		font-weight: 700;
 		fill: var(--color-faint);
+	}
+	.halo {
+		paint-order: stroke;
+		stroke: var(--color-card);
+		stroke-width: 4px;
+		stroke-linejoin: round;
 	}
 	.name {
 		font-size: 10.5px;

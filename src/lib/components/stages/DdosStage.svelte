@@ -127,8 +127,8 @@
 			<!-- real visitors, three phones -->
 			<text x="40" y="20" text-anchor="middle" class="lbl">{tx.visitorsLabel}</text>
 			{#each PHONES as y (y)}
-				<rect x="30" y={y - 14} width="20" height="30" rx="4" class="phone" />
-				<rect x="33" y={y - 10} width="14" height="20" rx="1.5" class="phoneScreen" />
+				<rect x="32" y={y - 16} width="16" height="33" rx="4" class="phone" />
+				<rect x="34.5" y={y - 12} width="11" height="25" rx="1.5" class="phoneScreen" />
 			{/each}
 
 			<!-- the attacker side -->
@@ -217,7 +217,7 @@
 			<text x="416" y="204" text-anchor="middle" class="lbl">{tx.serverLabel}</text>
 			<rect x={SERVER_X} y="212" width="64" height="6" rx="3" class="track" />
 			<rect x={SERVER_X} y="212" width={64 * cfg.load} height="6" rx="3" class="load {status}" />
-			<foreignObject x={SERVER_X - 20} y="222" width="104" height="34">
+			<foreignObject x={SERVER_X - 12} y="222" width="88" height="36">
 				<p class="served {status}">{tx.served.replace('{n}', String(cfg.served))}</p>
 			</foreignObject>
 		</svg>

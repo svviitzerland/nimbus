@@ -46,9 +46,11 @@
 		onstate?.(on ? 'tampered' : 'clean');
 	}
 
-	const DEV = 150;
+	// The file card is 108 wide. DEV keeps it (and its fingerprint box) clear of the developer
+	// label, PHONE leaves a small gap before the phone instead of touching it.
+	const DEV = 172;
 	const MID = 225;
-	const PHONE = 300;
+	const PHONE = 286;
 	const CENTER = 225;
 	const PEN_FILE = 266;
 
@@ -194,16 +196,17 @@
 
 {#snippet file(cx: number)}
 	<g class="mover" class:snap={snap || reduce} style="transform: translate({cx}px, 72px)">
-		<rect x="-48" y="-34" width="96" height="66" rx="6" class="doc" />
-		<text x="-40" y="-20" class="doc-name">{tx.fileName}</text>
-		<line x1="-48" y1="-14" x2="48" y2="-14" class="doc-line" />
-		<text x="-40" y="-2" class="doc-text">{tx.lines[0]}</text>
-		<text x="-40" y="10" class="doc-text" class:changed={line !== 'orig'}>{secondLine}</text>
-		<text x="-40" y="22" class="doc-text">{tx.lines[2]}</text>
+		<rect x="-54" y="-34" width="108" height="66" rx="6" class="doc" />
+		<text x="-46" y="-20" class="doc-name">{tx.fileName}</text>
+		<line x1="-54" y1="-14" x2="54" y2="-14" class="doc-line" />
+		<text x="-46" y="-2" class="doc-text">{tx.lines[0]}</text>
+		<text x="-46" y="10" class="doc-text" class:changed={line !== 'orig'}>{secondLine}</text>
+		<text x="-46" y="22" class="doc-text">{tx.lines[2]}</text>
 		{#if sealed}
 			<g in:fade={{ duration: 220 }}>
-				<circle cx="42" cy="28" r="11" class="seal" />
-				<path d="M37 28 L41 32 L48 24" class="seal-mark" />
+				<!-- on the card's corner, so it never covers the last line of text -->
+				<circle cx="52" cy="32" r="11" class="seal" />
+				<path d="M47 32 L51 36 L58 28" class="seal-mark" />
 			</g>
 		{/if}
 	</g>
@@ -238,16 +241,16 @@
 					<text x={PEN_FILE} y="126" class="lbl">{tx.digitalLabel}</text>
 				</g>
 			{:else}
-				<line x1="96" y1="72" x2="336" y2="72" class="road" />
+				<line x1="104" y1="72" x2="336" y2="72" class="road" />
 				<!-- developer at a laptop -->
 				<g>
-					<rect x="20" y="40" width="72" height="48" rx="5" class="shell" />
-					<rect x="25" y="45" width="62" height="38" rx="2" class="screen" />
-					<rect x="31" y="52" width="34" height="4" rx="2" class="bar" />
-					<rect x="31" y="61" width="46" height="3" rx="1.5" class="bar soft" />
-					<rect x="31" y="68" width="40" height="3" rx="1.5" class="bar soft" />
-					<path d="M12 90 H100 L95 96 H17 Z" class="base" />
-					<text x="56" y="114" class="lbl">{tx.devLabel}</text>
+					<rect x="28" y="40" width="72" height="48" rx="5" class="shell" />
+					<rect x="33" y="45" width="62" height="38" rx="2" class="screen" />
+					<rect x="39" y="52" width="34" height="4" rx="2" class="bar" />
+					<rect x="39" y="61" width="46" height="3" rx="1.5" class="bar soft" />
+					<rect x="39" y="68" width="40" height="3" rx="1.5" class="bar soft" />
+					<path d="M20 90 H108 L103 96 H25 Z" class="base" />
+					<text x="64" y="114" class="lbl">{tx.devLabel}</text>
 				</g>
 				<Phone
 					x={375}
@@ -277,9 +280,9 @@
 
 			{#if showKeys}
 				<g in:fade={{ duration: 220 }}>
-					<circle cx="56" cy="150" r="20" class="halo" class:on={devKeyLit} />
-					<Key x={56} y={150} size={1.3} tone="var(--color-grass)" />
-					<text x="56" y="186" class="lbl key">{tx.privateKey}</text>
+					<circle cx="64" cy="150" r="20" class="halo" class:on={devKeyLit} />
+					<Key x={64} y={150} size={1.3} tone="var(--color-grass)" />
+					<text x="64" y="186" class="lbl key">{tx.privateKey}</text>
 					{#if step !== 5}
 						<Key x={375} y={160} size={1.3} tone="var(--color-brand)" />
 						<text x="375" y="190" class="lbl brand">{tx.publicKey}</text>

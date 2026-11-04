@@ -84,7 +84,7 @@
 		const h = fs * 1.25 + py * 2;
 		return { x: cx - w / 2, y: cy - h / 2, w, h, r: has('radius') ? 12 : 0, fs, on: has('color') };
 	}
-	const designBtn = $derived(btn(132, 112, () => true));
+	const designBtn = $derived(btn(121, 112, () => true));
 	const pageBtn = $derived(
 		btn(298, 318, (p) => {
 			const i = PROPS.indexOf(p);
@@ -126,9 +126,9 @@
 				stroke-width="2"
 			/>
 			<text x="22" y="30" class="cap">{tx.designLabel}</text>
-			<rect x="16" y="40" width="238" height="136" rx="8" style="fill:var(--color-paper)" />
+			<rect x="16" y="40" width="210" height="136" rx="8" style="fill:var(--color-paper)" />
 			{#key step === 0}
-				<g class:grow={step === 0} style="transform-origin:132px 112px">
+				<g class:grow={step === 0} style="transform-origin:121px 112px">
 					{@render button(designBtn)}
 				</g>
 			{/key}
@@ -173,13 +173,14 @@
 			<!-- the inspect panel -->
 			{#if step >= 1}
 				<g in:fade={{ duration: 300 }}>
-					<rect x="262" y="40" width="122" height="136" rx="8" style="fill:var(--color-paper)" />
-					<text x="272" y="60" class="cap">{tx.specLabel}</text>
+					<!-- wide enough for a name and its token side by side -->
+					<rect x="232" y="40" width="152" height="136" rx="8" style="fill:var(--color-paper)" />
+					<text x="242" y="60" class="cap">{tx.specLabel}</text>
 					{#each PROPS as p, i (p)}
 						{@const y = 84 + i * 24}
 						{@const lit = hiInspect === i || (step === 2 && typed - 1 === i)}
-						<rect x="266" y={y - 14} width="114" height="20" rx="5" class="row" class:lit />
-						<text x="272" {y} class="pname">{tx.props[p]}</text>
+						<rect x="236" y={y - 14} width="144" height="20" rx="5" class="row" class:lit />
+						<text x="242" {y} class="pname">{tx.props[p]}</text>
 						{#if step === 5}
 							<text x="376" {y} text-anchor="end" class="token">{tx.tokens[p]}</text>
 						{:else}

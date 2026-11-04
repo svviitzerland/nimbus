@@ -241,10 +241,9 @@
 		font-size: 13px;
 		color: var(--color-ink);
 	}
+	/* the result wraps onto a second line instead of being cut off next to the badge */
 	.txt small {
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
+		line-height: 1.3;
 		font-size: 11px;
 		color: var(--color-muted);
 	}

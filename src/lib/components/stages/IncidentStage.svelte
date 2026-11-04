@@ -293,7 +293,8 @@
 			{/each}
 
 			{#if s.cut}
-				<circle cx={CX[T]} cy="54" r="40" class="shield" />
+				<!-- kept below the scene title so the ring never cuts through it -->
+				<circle cx={CX[T]} cy="58" r="36" class="shield" />
 			{/if}
 
 			{#each s.pulses as q, n (n)}
@@ -344,18 +345,18 @@
 					/>
 				{/if}
 
-				<rect x="290" y="196" width="96" height="66" rx="6" class="paper" class:on={s.notes > 0} />
+				<rect x="264" y="196" width="122" height="66" rx="6" class="paper" class:on={s.notes > 0} />
 				{#each tx.lessons as l, n (n)}
 					{#if n < s.notes}
 						<g class="note">
-							<path d="M298 {214 + n * 18}l3 3l6 -7" class="tick" />
-							<text x="311" y={218 + n * 18} class="noteT">{l}</text>
+							<path d="M272 {214 + n * 18}l3 3l6 -7" class="tick" />
+							<text x="285" y={218 + n * 18} class="noteT">{l}</text>
 						</g>
 					{:else}
-						<rect x="300" y={211 + n * 18} width="72" height="4" rx="2" class="bar" />
+						<rect x="276" y={211 + n * 18} width="98" height="4" rx="2" class="bar" />
 					{/if}
 				{/each}
-				<text x="338" y="276" text-anchor="middle" class="cap">{tx.notes}</text>
+				<text x="325" y="276" text-anchor="middle" class="cap">{tx.notes}</text>
 			{/if}
 		</svg>
 

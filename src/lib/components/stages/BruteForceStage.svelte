@@ -146,7 +146,8 @@
 				<text x="230" y="51" text-anchor="middle" class="guess" class:list={leaked}>{guess}</text>
 			{/if}
 			{#if leaked}
-				<text x="296" y="38" text-anchor="end" class="listTag">{tx.listLabel}</text>
+				<!-- under the screen, between the bolts, so it never sits on the guess -->
+				<text x="230" y="74" text-anchor="middle" class="listTag">{tx.listLabel}</text>
 			{/if}
 			<circle cx="168" cy="71" r="3" class="bolt" />
 			<circle cx="292" cy="71" r="3" class="bolt" />
@@ -315,7 +316,7 @@
 		fill: var(--color-amber);
 	}
 	.listTag {
-		font-size: 7px;
+		font-size: 8px;
 		font-weight: 800;
 		letter-spacing: 0.06em;
 		text-transform: uppercase;

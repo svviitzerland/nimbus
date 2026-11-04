@@ -380,7 +380,7 @@
 
 	.view {
 		position: relative;
-		height: 236px;
+		height: 264px;
 		overflow: hidden;
 	}
 	.blank {
@@ -394,7 +394,7 @@
 
 	/* ---- the DOM tree ---- */
 	.dom {
-		padding: 12px 18px;
+		padding: 10px 18px;
 	}
 	.cap {
 		font-size: 10.5px;
@@ -404,13 +404,14 @@
 		color: var(--color-faint);
 	}
 	.dom ul {
-		margin: 8px 0 0;
+		margin: 6px 0 0;
 		padding: 0;
 		list-style: none;
 	}
 	.dom li {
 		position: relative;
-		padding: 2px 0 2px calc(var(--d) * 22px);
+		padding: 1px 0 1px calc(var(--d) * 22px);
+		line-height: 1.45;
 		opacity: 0;
 		animation: grow 0.4s ease forwards;
 	}

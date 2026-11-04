@@ -448,6 +448,23 @@
 		font-size: 11px;
 		color: var(--color-faint);
 	}
+	/* the four IPv4 numbers stay on one line on a phone, their hints wrap under them instead */
+	@media (max-width: 480px) {
+		.chips:not(.six) {
+			flex-wrap: nowrap;
+			gap: 3px;
+		}
+		.chips:not(.six) .chip {
+			padding: 9px 9px;
+			font-size: 19px;
+		}
+		.chips:not(.six) .hint {
+			max-width: 58px;
+			font-size: 10px;
+			line-height: 1.25;
+			text-align: center;
+		}
+	}
 	.outside {
 		display: flex;
 		flex-wrap: wrap;

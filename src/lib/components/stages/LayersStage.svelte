@@ -131,17 +131,17 @@
 				<div class="cap-actor phone" class:lit={beat <= 6}>
 					<svg viewBox="0 0 24 24" aria-hidden="true">
 						<rect
-							x="6"
-							y="2"
-							width="12"
-							height="20"
+							x="6.6"
+							y="1.2"
+							width="10.8"
+							height="21.6"
 							rx="2.6"
 							fill="#fff"
 							stroke="#2b3640"
 							stroke-width="1.7"
 						/>
-						<rect x="8" y="5" width="8" height="11" rx="1" fill="#dbe8fb" />
-						<circle cx="12" cy="19" r="1.1" fill="#2b3640" />
+						<rect x="8.6" y="4.2" width="6.8" height="13.2" rx="1" fill="#dbe8fb" />
+						<circle cx="12" cy="20" r="1.1" fill="#2b3640" />
 					</svg>
 					<span class="rlab">{tx.senderLabel}</span>
 				</div>
@@ -638,8 +638,10 @@
 		color: #9aa3ae;
 		text-transform: uppercase;
 	}
+	/* four slots in a 2 by 2 grid, so they fit inside the 78px server card */
 	.tally {
-		display: flex;
+		display: grid;
+		grid-template-columns: repeat(2, 18px);
 		gap: 4px;
 	}
 	.slot {

@@ -226,7 +226,8 @@
 			<text x="70" y="8" class="axis-name" style="text-anchor:start">{tx.clsY}</text>
 			<text x="322" y="232" class="axis-name" style="text-anchor:end">{tx.clsX}</text>
 		{/if}
-		<text x={EX(1.2)} y={EY(0.4)} class="zone-name ham">{tx.ham}</text>
+		<!-- right of the low left mails, so no envelope sits on the name -->
+		<text x={EX(4.6)} y={EY(0.4)} class="zone-name ham">{tx.ham}</text>
 		<text x={EX(8.8)} y={EY(9.5)} class="zone-name spam" style="text-anchor:end">{tx.spam}</text>
 
 		{#each MAILS as m, k (k)}
@@ -238,9 +239,11 @@
 					<circle cx={EX(m[0])} cy={EY(m[1])} r="12" />
 				</g>
 				{@render mail(EX(m[0]), EY(m[1]), 'new')}
+				<!-- the first new email has neighbours on its right, so its tag goes underneath -->
 				<text
-					x={EX(m[0]) + 16}
-					y={EY(m[1]) + 4}
+					x={k === 0 ? EX(m[0]) + 6 : EX(m[0]) + 16}
+					y={k === 0 ? EY(m[1]) + 26 : EY(m[1]) + 4}
+					style={k === 0 ? 'text-anchor:middle' : undefined}
 					class="mail-tag {isSpam(m) ? 'spam' : 'ham'}"
 					in:fade={{ duration: reduced ? 0 : 300, delay: reduced || mini ? 0 : 700 }}
 					>{isSpam(m) ? tx.spam : tx.ham}</text

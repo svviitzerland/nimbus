@@ -191,16 +191,21 @@
 			</g>
 		{/each}
 
+		<!-- the laptop's question sits in the free corner right of it, in two lines (words, then the
+		     address), so it never lands on the printer and TV name tags above -->
 		{#if shouting}
+			{@const [ask, rest] = tx.shout.split('{ip}')}
 			<g in:fade={{ duration: 200 }}>
-				<rect x={YOU.x - 78} y={YOU.y - 62} width="156" height="22" rx="11" class="bubble" />
-				<text x={YOU.x} y={YOU.y - 47} class="bubble-t">{fill(tx.shout, askIp)}</text>
+				<rect x="222" y="186" width="108" height="36" rx="11" class="bubble" />
+				<text x="276" y="200" class="bubble-t">{ask.trim()}</text>
+				<text x="276" y="214" class="bubble-t">{askIp}{rest ?? ''}</text>
 			</g>
 		{/if}
 		{#if i === LAST && ghost === 'silent'}
+			{@const w = Math.max(108, tx.silence.length * 5.8 + 18)}
 			<g in:fade={{ duration: 200 }}>
-				<rect x={YOU.x - 70} y={YOU.y - 62} width="140" height="22" rx="11" class="bubble mute" />
-				<text x={YOU.x} y={YOU.y - 47} class="bubble-t">{tx.silence}</text>
+				<rect x={330 - w} y="193" width={w} height="22" rx="11" class="bubble mute" />
+				<text x={330 - w / 2} y="208" class="bubble-t">{tx.silence}</text>
 			</g>
 		{/if}
 		{#if i === 5}

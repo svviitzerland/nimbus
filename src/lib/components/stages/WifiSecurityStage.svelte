@@ -66,9 +66,10 @@
 
 		<!-- guest room -->
 		<g class="guest" class:show={step === 5}>
-			<rect x="28" y="88" width="72" height="54" rx="8" />
-			<text x="64" y="102" text-anchor="middle" class="sm g">{tx.guestLabel}</text>
-			<rect x="57" y="108" width="14" height="24" rx="3" class="dev" />
+			<!-- a low room with the phone beside its name, so the lock badge below never covers it -->
+			<rect x="26" y="84" width="80" height="38" rx="8" />
+			<text x="52" y="106" text-anchor="middle" class="sm g">{tx.guestLabel}</text>
+			<rect x="85" y="91" width="12" height="24" rx="3" class="dev" />
 		</g>
 
 		<!-- TV on the wall -->
@@ -120,11 +121,11 @@
 			<line x1="56" y1="22" x2="62" y2="8" class="ant" />
 		</g>
 		<text x="306" y="228" text-anchor="middle" class="sm">{tx.snooperLabel}</text>
-		<g transform="translate(226 80)">
-			<rect width="128" height="54" rx="10" class="screen {tone}" />
-			<path d="M60 54 l8 10 l8 -10" class="screen {tone}" />
-			<text x="12" y="22" class="mono {tone}">{lines[0]}</text>
-			<text x="12" y="40" class="mono sub">{lines[1]}</text>
+		<g transform="translate(212 80)">
+			<rect width="144" height="54" rx="10" class="screen {tone}" />
+			<path d="M78 54 l8 10 l8 -10" class="screen {tone}" />
+			<text x="10" y="22" class="mono {tone}">{lines[0]}</text>
+			<text x="10" y="40" class="mono sub">{lines[1]}</text>
 		</g>
 
 		<!-- the safer scale -->
@@ -137,7 +138,8 @@
 					</g>
 				{/each}
 				<path d="M0 -6 h170 l-5 -3 m5 3 l-5 3" class="arrow" />
-				<text x="170" y="-11" text-anchor="end" class="sm">{tx.saferLabel}</text>
+				<!-- after the arrow's tip, clear of the laptop's name inside the house -->
+				<text x="176" y="-3" class="sm">{tx.saferLabel}</text>
 			</g>
 		{/if}
 	</svg>

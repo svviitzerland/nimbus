@@ -320,7 +320,7 @@
 				<g class="nope">
 					<path d="M174 26 L194 46 M194 26 L174 46" />
 				</g>
-				<text x="184" y="68" class="cap center">{tx.noWayBack}</text>
+				<text x="184" y="86" class="cap center">{tx.noWayBack}</text>
 				<path d="M236 72 H300 L290 172 H246 Z" class="glass" />
 				<path d="M239 100 H297 L290 172 H246 Z" class="juice on" />
 				<line x1="282" y1="54" x2="270" y2="150" class="straw" />

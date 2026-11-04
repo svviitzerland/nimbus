@@ -198,12 +198,15 @@
 				<rect x="334" y="40" width="120" height="96" rx="8" class="shell" />
 				<rect x="340" y="46" width="108" height="84" rx="4" class="screen" />
 				<text x="346" y="60" class="small h2">{tx.comments.title}</text>
-				<rect x="346" y="66" width="96" height="16" rx="5" class="bubble" />
-				<text x="350" y="77" class="tiny">{tx.comments.seed}</text>
+				<!-- the first comment wraps onto two lines so it stays inside its bubble -->
+				<rect x="346" y="66" width="96" height="24" rx="5" class="bubble" />
+				<foreignObject x="349" y="68" width="90" height="21">
+					<p class="popT">{tx.comments.seed}</p>
+				</foreignObject>
 				{#if phase >= 2}
-					<rect x="344" y="86" width="100" height="16" rx="5" class="bubble" />
+					<rect x="344" y="94" width="100" height="16" rx="5" class="bubble" />
 					{#if scene.fixed}
-						<text x="347" y="96.5" class="tiny mono2">{scene.input}</text>
+						<text x="347" y="104.5" class="tiny mono2">{scene.input}</text>
 					{/if}
 				{/if}
 				{#if hacked}

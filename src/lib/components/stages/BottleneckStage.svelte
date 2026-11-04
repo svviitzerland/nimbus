@@ -82,6 +82,8 @@
 								<span class="phero"></span>
 								<span class="prow"><i></i><i></i></span>
 								<span class="prow"><i></i><i></i></span>
+								<span class="prow"><i></i><i></i></span>
+								<span class="prow"><i></i><i></i></span>
 							</div>
 						{/if}
 					</div>
@@ -257,10 +259,11 @@
 		justify-content: center;
 		gap: 13px;
 	}
+	/* about twice as tall as it is wide, like a real phone */
 	.phone {
 		position: relative;
-		width: 72px;
-		height: 92px;
+		width: 68px;
+		height: 136px;
 		border-radius: 13px;
 		background: #16212b;
 		padding: 6px 5px;
@@ -706,8 +709,8 @@
 			gap: 12px;
 		}
 		.phone {
-			width: 82px;
-			height: 104px;
+			width: 76px;
+			height: 152px;
 		}
 		.person {
 			width: 15px;

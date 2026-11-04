@@ -246,13 +246,14 @@
 						</g>
 						<text class="lbl" x="273" y="95">{tx.server}</text>
 						{#if trained}
-							<g class="arrive">{@render modelFile(208, 20)}</g>
-							<text class="lbl small" x="221" y="66">{tx.modelFile}</text>
-							<text class="lbl frozen" x="221" y="77">{tx.frozen}</text>
+							<!-- a little left of the rack, so the label keeps a gap from the server -->
+							<g class="arrive">{@render modelFile(201, 20)}</g>
+							<text class="lbl small" x="214" y="66">{tx.modelFile}</text>
+							<text class="lbl frozen" x="214" y="77">{tx.frozen}</text>
 						{/if}
 
 						<!-- the wire between them -->
-						<line class="wire" x1="62" y1="44" x2="204" y2="44" />
+						<line class="wire" x1="62" y1="44" x2="197" y2="44" />
 
 						{#if scene === 4 && !reduced}
 							{#each Array.from({ length: 8 }, (_, k) => k) as k (k)}
@@ -265,7 +266,7 @@
 								/>
 								<circle
 									class="stream back"
-									cx="204"
+									cx="197"
 									cy="49"
 									r="2.6"
 									style="animation-delay:{k * 0.11 + 0.05}s"

@@ -235,7 +235,7 @@
 			<rect x="44" y="232" width="8" height="12" rx="2" class="port" />
 			<rect x="44" y="252" width="8" height="8" rx="2" class="port" />
 			<rect x="308" y="236" width="8" height="12" rx="2" class="port" />
-			{@render label('board', 100, 290)}
+			{@render label('board', 80, 290)}
 		</g>
 		{#if focus === 'board' && !reduced}
 			{#each TRACES as d, k (d)}
@@ -295,6 +295,10 @@
 			{@render label('cpu', 188, 214)}
 		</g>
 
+		<!-- the display cable, from the board up through the hinge into the screen. Drawn before the
+		     GPU so the GPU's name tag sits on top of it instead of being crossed out by it. -->
+		<path d="M236 230 V208 H180 V184" class="cable" class:hot={focus === 'gpu'} />
+
 		<!-- GPU -->
 		<g
 			class="part"
@@ -319,8 +323,6 @@
 			<text x="236" y="248" dy="0.35em" text-anchor="middle" class="chiptext small">GPU</text>
 			{@render label('gpu', 236, 220)}
 		</g>
-		<!-- the display cable, from the board up through the hinge into the screen -->
-		<path d="M236 230 V208 H180 V184" class="cable" class:hot={focus === 'gpu'} />
 
 		<!-- RAM, two sticks lying flat like in a real laptop -->
 		<g
@@ -385,9 +387,9 @@
 			{/each}
 			<rect x="249" y="283" width="4" height="8" rx="1" class="pin" />
 			{#if off}
-				{@render label('storage', 140, 287, tx.kept, 'ok')}
+				{@render label('storage', 150, 287, tx.kept, 'ok')}
 			{:else}
-				{@render label('storage', 140, 287)}
+				{@render label('storage', 150, 287)}
 			{/if}
 		</g>
 

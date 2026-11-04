@@ -128,13 +128,13 @@
 		white-space: nowrap;
 	}
 	.shrink {
-		width: 98px;
-		height: 156px;
+		width: 90px;
+		height: 184px;
 		overflow: visible;
 	}
 	.shrink > :global(.phone) {
 		max-width: none;
-		transform: scale(0.62);
+		transform: scale(0.6);
 		transform-origin: top left;
 	}
 	.rail {
@@ -360,11 +360,11 @@
 			gap: 6px;
 		}
 		.shrink {
-			width: 123px;
-			height: 195px;
+			width: 108px;
+			height: 220px;
 		}
 		.shrink > :global(.phone) {
-			transform: scale(0.78);
+			transform: scale(0.72);
 		}
 		.book {
 			width: 180px;

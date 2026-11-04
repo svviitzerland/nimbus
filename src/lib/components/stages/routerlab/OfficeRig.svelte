@@ -56,7 +56,8 @@
 	const running = $derived(
 		new Set(['ether1', ...(anyPlugged ? ['ether2'] : []), ...(ap ? ['ether3'] : [])])
 	);
-	const swL = $derived(Math.min(...xs, portC('ether2')) - 22);
+	// extra room on the left so the SWITCH label sits clear of the first port light
+	const swL = $derived(Math.max(4, Math.min(...xs, portC('ether2')) - 44));
 	const swR = $derived(Math.max(...xs, portC('ether2')) + 22);
 	const label = $derived(
 		`MikroTik ${identity}, ` + laptops.map((l) => `${l.name} ${l.ip ?? ''}`).join(', ')
@@ -222,7 +223,13 @@
 		>
 	{/each}
 	{#if gateway}
-		<text x={portC('ether2') + 7} y={RY + 86} class="gw">{gateway}</text>
+		<!-- with the access point cable running down on the right, the address moves left of ether2 -->
+		<text
+			x={ap ? portC('ether2') - 7 : portC('ether2') + 7}
+			y={RY + 86}
+			text-anchor={ap ? 'end' : 'start'}
+			class="gw">{gateway}</text
+		>
 	{/if}
 
 	{#if mark}

@@ -361,7 +361,8 @@
 
 				{#if scene === 'remember'}
 					<!-- the sculptor's chisel tapping at the corner -->
-					<g transform="translate(300 70)">
+					<!-- tilted so the handle points out to the right, clear of the prompt bar above -->
+					<g transform="translate(298 72) rotate(70)">
 						<g class="chisel" class:tap={!clock.reduced}>
 							<rect x="-3" y="-40" width="7" height="26" rx="2.5" class="handle" />
 							<path d="M-2.5 -14 H3.5 V-4 L0.5 2 L-2.5 -4 Z" class="blade" />
