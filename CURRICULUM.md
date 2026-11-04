@@ -376,12 +376,20 @@ result) instead of a full language course.
 - [x] **Databases (SQL versus NoSQL)** (Chapter 3).
 - [x] **What is SQL**. SELECT, WHERE, and ORDER BY to ask a table questions. Stage: a nimbus
       products table, answer questions by building queries from blocks.
+- [x] **Kinds of SQL commands**. DDL builds the shape of a table (CREATE, ALTER, DROP), DML works
+      with its rows (INSERT, SELECT, UPDATE, DELETE), DCL decides who may do what (GRANT, REVOKE),
+      and TCL saves or cancels (COMMIT, ROLLBACK). Stage: one nimbus users table built, filled,
+      locked, and erased command by command.
 - [x] **Relations and JOIN**. Keys connect customers to orders to products, and a JOIN
       brings them back together. Stage: draw the links, then join them to see who bought what.
 - [x] **Database indexes**. An index is the index at the back of a book. Stage: search a
       million rows with and without an index and race the two.
 - [x] **Database transactions**. A payment either fully happens or not at all. Stage: move
       money between two accounts, crash halfway, and see the money vanish without a transaction.
+- [x] **OLTP and OLAP**. The app database handles many small quick writes, while the analytics
+      side reads huge amounts to answer big questions. Row versus column storage, the data
+      warehouse, and the nightly ETL copy. Stage: orders pour into the app database, a big question
+      slows checkout, then a warehouse takes over.
 - [x] **Caching and Redis**. Keep hot answers in fast memory. Stage: a slow product page, add a
       cache, and watch repeat visits get instant (ties back to Caching and CDN).
 

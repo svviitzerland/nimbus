@@ -18,9 +18,11 @@ import { auth } from './auth';
 import { backendFrameworks } from './backend-frameworks';
 import { jobs } from './jobs';
 import { sql } from './sql';
+import { sqlCommands } from './sql-commands';
 import { relations } from './relations';
 import { dbIndex } from './db-index';
 import { transaction } from './transaction';
+import { oltpOlap } from './oltp-olap';
 import { cache } from './cache';
 import { domainHosting } from './domain-hosting';
 import { deploySite } from './deploy-site';
@@ -55,9 +57,11 @@ export const webChapter: Chapter = {
 		backendFrameworks,
 		jobs,
 		sql,
+		sqlCommands,
 		relations,
 		dbIndex,
 		transaction,
+		oltpOlap,
 		cache,
 		domainHosting,
 		deploySite,
@@ -88,9 +92,11 @@ export const webChapter: Chapter = {
 				'<b>Framework backend</b>',
 				'<b>Queue dan background job</b>',
 				'<b>Apa itu SQL</b>',
+				'<b>Jenis perintah SQL</b>',
 				'<b>Relasi dan JOIN</b>',
 				'<b>Index database</b>',
 				'<b>Transaksi database</b>',
+				'<b>OLTP dan OLAP</b>',
 				'<b>Caching dan Redis</b>',
 				'<b>Domain dan hosting</b>',
 				'<b>Deploy situs</b>',
@@ -123,9 +129,11 @@ export const webChapter: Chapter = {
 				'<b>Backend frameworks</b>',
 				'<b>Queues and background jobs</b>',
 				'<b>What is SQL</b>',
+				'<b>Kinds of SQL commands</b>',
 				'<b>Relations and JOIN</b>',
 				'<b>Database indexes</b>',
 				'<b>Database transactions</b>',
+				'<b>OLTP and OLAP</b>',
 				'<b>Caching and Redis</b>',
 				'<b>Domains and hosting</b>',
 				'<b>Deploying a site</b>',

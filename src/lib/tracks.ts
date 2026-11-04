@@ -149,9 +149,11 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		keys: [
 			'resilience/database',
 			'web/sql',
+			'web/sql-commands',
 			'web/relations',
 			'web/db-index',
 			'web/transaction',
+			'web/oltp-olap',
 			'web/cache'
 		]
 	},

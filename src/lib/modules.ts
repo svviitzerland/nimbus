@@ -185,9 +185,11 @@ export const modules: Module[] = [
 	m('database', 'Database', 'Database', [
 		'resilience/database',
 		'web/sql',
+		'web/sql-commands',
 		'web/relations',
 		'web/db-index',
 		'web/transaction',
+		'web/oltp-olap',
 		'web/cache'
 	]),
 	m('go-live', 'Deploy', 'Deploy', [
