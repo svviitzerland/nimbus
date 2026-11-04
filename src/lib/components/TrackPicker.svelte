@@ -4,6 +4,7 @@
 	import { lang, t } from '$lib/i18n';
 	import { tracks, trackCounts, trackSequence, type Track, type TrackId } from '$lib/tracks';
 	import { progress } from '$lib/progress.svelte';
+	import { path } from '$lib/path.svelte';
 
 	let {
 		onpick,
@@ -27,7 +28,9 @@
 	const topics = $derived(tracks.slice(1));
 
 	function doneIn(track: Track): number {
-		return trackSequence(track).filter((r) => progress.isDone(r.chapterId, r.lessonId)).length;
+		return trackSequence(track, path.choices).filter((r) =>
+			progress.isDone(r.chapterId, r.lessonId)
+		).length;
 	}
 </script>
 
@@ -69,7 +72,7 @@
 {/snippet}
 
 {#snippet card(track: Track, big: boolean, i: number)}
-	{@const c = trackCounts(track)}
+	{@const c = trackCounts(track, path.choices)}
 	{@const done = doneIn(track)}
 	{@const isCurrent = current === track.id}
 	<button

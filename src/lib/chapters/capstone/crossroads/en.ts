@@ -9,7 +9,7 @@ export const en: CrossroadsText = {
 	],
 	reactions: {
 		network:
-			'The <b>Network</b> branch goes deeper into subnets, routing, VLANs, VPNs, and hands on practice on a <b>MikroTik</b> router. Great if you want to run an office or ISP network.',
+			'The <b>Network</b> branch goes deeper into subnets, routing, VLANs, VPNs, and hands on practice in the router lab, on <b>MikroTik</b> or <b>Cisco</b>. Great if you want to run an office or ISP network.',
 		web: 'The <b>Web</b> branch has you build a real site, from HTML, CSS, and JavaScript, on to frameworks, backends, databases, and finally putting it online.',
 		cloud:
 			'The <b>Cloud & DevOps</b> branch moves on to Linux, Kubernetes, infrastructure as code, and at the very end you pick a provider, <b>AWS</b>, <b>Google Cloud</b>, or <b>Azure</b>.',

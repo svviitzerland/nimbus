@@ -32,6 +32,7 @@
 		completed = false;
 		// coming back from a detour lands on the beat the learner left from
 		untrack(() => {
+			path.adoptVariant({ chapterId: data.chapterId, lessonId: data.lessonId });
 			const resume = path.takeResumeBeat();
 			if (resume !== null) beat = Math.min(resume, text.intro.length - 1);
 		});

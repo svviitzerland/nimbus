@@ -6,7 +6,7 @@
 	import { getChapter } from '$lib/chapters';
 	import { progress } from '$lib/progress.svelte';
 	import { path } from '$lib/path.svelte';
-	import { parseRef, trackSequence, type Track, type TrackItem } from '$lib/tracks';
+	import { optionFor, parseRef, trackSequence, type Track, type TrackItem } from '$lib/tracks';
 	import TrackPicker from './TrackPicker.svelte';
 	// NOTE: lesson locking is temporarily disabled (see the menu list below), so `globalIndexOf`
 	// and `progress.isUnlocked` are not imported for now.
@@ -21,7 +21,7 @@
 	const curChapter = $derived(page.params.chapter);
 	const curLesson = $derived(page.params.lesson);
 	const track = $derived(path.track);
-	const seq = $derived(trackSequence(track));
+	const seq = $derived(trackSequence(track, path.choices));
 	const doneN = $derived(seq.filter((r) => progress.isDone(r.chapterId, r.lessonId)).length);
 	const pct = $derived(seq.length ? Math.round((doneN / seq.length) * 100) : 0);
 
@@ -179,6 +179,12 @@
 							<span class="flex-1 font-display text-sm font-semibold text-ink"
 								>{g.title[$lang]}</span
 							>
+							{#if g.variant && optionFor(g.variant.choice, path.choices) !== g.variant.option}
+								<span
+									class="shrink-0 rounded-full bg-line px-1.5 py-px text-[9.5px] font-bold tracking-wide text-faint uppercase"
+									>{$t.otherOption}</span
+								>
+							{/if}
 							<span class="text-[11px] text-faint tabular-nums">{gDone}/{gReady}</span>
 						</div>
 						{#if g.basecamp && (gi === 0 || !track.groups[gi - 1].basecamp)}

@@ -9,7 +9,7 @@ export const id: CrossroadsText = {
 	],
 	reactions: {
 		network:
-			'Cabang <b>Jaringan</b> masuk lebih dalam ke subnet, routing, VLAN, VPN, sampai praktik langsung di router <b>MikroTik</b>. Cocok kalau kamu mau ngurus jaringan kantor atau ISP.',
+			'Cabang <b>Jaringan</b> masuk lebih dalam ke subnet, routing, VLAN, VPN, sampai praktik langsung di lab router, pilih <b>MikroTik</b> atau <b>Cisco</b>. Cocok kalau kamu mau ngurus jaringan kantor atau ISP.',
 		web: 'Cabang <b>Web</b> ngajak kamu bikin situs beneran, dari HTML, CSS, dan JavaScript, lanjut ke framework, backend, database, sampai situsmu online.',
 		cloud:
 			'Cabang <b>Cloud & DevOps</b> lanjut ke Linux, Kubernetes, infrastruktur sebagai kode, dan di ujungnya kamu pilih provider, <b>AWS</b>, <b>Google Cloud</b>, atau <b>Azure</b>.',
