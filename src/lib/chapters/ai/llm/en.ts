@@ -25,6 +25,7 @@ export const en: LlmText = {
 		'Now the guessing. After "Nim likes to eat", the model gives every possible next token a chance. "rice" gets 40 percent, "noodles" 24, and so on down to the odd ones.',
 		'It picks one, sticks it on the end, and guesses again with the longer sentence. Guess, pick, add, repeat. A long chatbot answer is just this loop running hundreds of times in a blink.',
 		'There is a knob called <b>temperature</b>. Turn it down and the top guess wins almost every time (safe, a bit boring). Turn it up and the bars even out, so surprising words sneak in (creative, sometimes nonsense).',
+		'One more limit. A model can only read so much text at once, its <b>context window</b>, a short term memory measured in tokens. When a chat gets too long, the oldest part falls out, so long chats seem to "forget". That is also why RAG exists, a trick you will meet soon.',
 		'[ingat] An LLM is your phone autocomplete with super powers. Your keyboard guesses one word and stops. An LLM keeps guessing until a whole answer is written.',
 		'[fyi] A real LLM is a giant [[neural network|ai/neural-net]] trained on a mountain of books and websites. That is also why it can sound sure while being wrong. It only knows what usually comes next, not what is true.',
 		'Want to watch it write something new? Roll another ending and see it guess its way to the full stop. Totally optional.'
@@ -64,6 +65,11 @@ export const en: LlmText = {
 			tag: 'Temperature',
 			title: 'Safe or wild',
 			body: 'Low temperature makes the top bar huge, so the answer is predictable. High temperature flattens the bars, so rare words get a real chance.'
+		},
+		{
+			tag: 'Context window',
+			title: 'Short term memory',
+			body: 'The frame holds only the newest tokens. Fresh messages push in at the bottom, and the oldest ones slide out the top and are gone.'
 		},
 		{
 			tag: 'Make it stick',
@@ -134,5 +140,17 @@ export const en: LlmText = {
 	cold: 'Safe',
 	hot: 'Wild',
 	rule: 'Autocomplete, with super powers',
+	contextChat: [
+		'Hi, my name is Rani.',
+		'Hi Rani, nice to meet you!',
+		'Plan me a trip to Bali.',
+		'Day one, the beach.',
+		'And day two?',
+		'A temple and rice fields.',
+		'What is my name again?',
+		'Hmm, I am not sure. Tell me?'
+	],
+	contextLabel: 'Context window',
+	contextOut: 'fell out, forgotten',
 	rollBtn: 'Roll another ending'
 };

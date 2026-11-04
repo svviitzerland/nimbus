@@ -94,6 +94,10 @@ export interface AZText extends LessonText {
 	regions: Record<string, string>;
 	strikeLabel: string;
 	news: { src: string; head: string; url: string }[];
+	/** The uptime card on the SLA beats, one row per number of nines. */
+	slaTitle: string;
+	sla: { pct: string; down: string }[];
+	slaRule: string; // the memory line under the card
 }
 
 export interface FailoverText extends LessonText {
@@ -234,12 +238,26 @@ export interface RemoteAccessText extends LessonText {
 	rdpHost: string;
 	connecting: string;
 	rdpHint: string;
+	/** The SSH key pair shown on the key beats, before you connect. */
+	keysTitle: string;
+	privateKey: string;
+	privateFile: string; // file name of the private key, on your laptop
+	privateNote: string;
+	publicKey: string;
+	publicFile: string; // file name of the public key, copied to the server
+	publicNote: string;
 }
 
 export interface CloudServicesText extends LessonText {
 	screenTitle: string; // shown on the screen, e.g. "Cloud services"
 	screenSub: string; // small subtitle under it
 	openBtn: string; // powers the screen on to reveal the catalog
+	/** The IaaS, PaaS, SaaS chart on the service model beats. */
+	layers: string[]; // bottom to top, machine, system, platform, app
+	youLabel: string; // legend, the part you look after
+	providerLabel: string; // legend, the part the provider looks after
+	pizza: string[]; // one line per column on the pizza beat
+	serverlessNote: string; // footnote under the chart
 }
 
 export interface PortText extends LessonText {

@@ -107,7 +107,7 @@ export const id: ThreatsText = {
 	cardsLabel: '40 juta kartu',
 	threatLabel: 'Apa yang bisa salah',
 	fixLabel: 'Tambalannya',
-	tapHint: 'Pencet satu bagian rumah'",
+	tapHint: 'Pencet satu bagian rumah',
 	vocab: {
 		vuln: 'vulnerability',
 		exploit: 'exploit',

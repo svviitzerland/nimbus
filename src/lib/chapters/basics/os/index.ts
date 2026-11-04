@@ -13,6 +13,7 @@ export const os: Lesson = {
 		'calm',
 		'excited',
 		'happy',
+		'idea',
 		'worried',
 		'calm',
 		'happy',

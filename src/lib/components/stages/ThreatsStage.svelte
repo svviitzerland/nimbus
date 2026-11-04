@@ -34,6 +34,7 @@
 		| 'model'
 		| 'questions'
 		| 'map'
+		| 'vocab'
 		| 'target1'
 		| 'target2'
 		| 'ingat'
@@ -44,6 +45,7 @@
 		'model',
 		'questions',
 		'map',
+		'vocab',
 		'target1',
 		'target2',
 		'ingat',
@@ -116,6 +118,24 @@
 				true
 			);
 		}
+		if (sc === 'vocab') {
+			// crack, then the burglar pries at it, then the patch, then the CVE number
+			if (still) {
+				ticks = 4;
+				who = 'pot';
+				return;
+			}
+			return runSeq(
+				[
+					[700, () => ((ticks = 0), (who = 'door'))],
+					[1500, () => (ticks = 1)],
+					[1700, () => ((ticks = 2), (who = 'window'))],
+					[1700, () => ((ticks = 3), (who = 'pot'))],
+					[3200, () => (ticks = 4)]
+				],
+				true
+			);
+		}
 		if (sc === 'target2') who = 'gate';
 	}
 
@@ -136,12 +156,17 @@
 		if (scene === 'burglar') return who === sp ? 'look' : 'none';
 		if (scene === 'model') return seen.includes(sp) ? 'look' : 'none';
 		if (scene === 'target1' || scene === 'target2') return sp === 'gate' ? 'weak' : 'none';
+		if (scene === 'vocab')
+			return sp !== 'window' || ticks < 1 ? 'none' : ticks >= 3 ? 'strong' : 'weak';
 		if (scene === 'ingat') return sp === 'door' ? 'strong' : sp === 'gate' ? 'weak' : 'look';
 		if (scene === 'try') return picked === sp ? 'pick' : 'look';
 		return 'none';
 	}
 	const figure = $derived(
-		scene === 'burglar' || scene === 'target1' || scene === 'target2'
+		scene === 'burglar' ||
+			scene === 'target1' ||
+			scene === 'target2' ||
+			(scene === 'vocab' && ticks >= 1)
 			? 'burglar'
 			: scene === 'model' || scene === 'questions'
 				? 'owner'
@@ -149,6 +174,7 @@
 	);
 	const standX = $derived(AT[who].stand);
 	const STRIDE = ['S', 'T', 'R', 'I', 'D', 'E'];
+	const VOCAB = ['vuln', 'exploit', 'patch', 'cve'] as const;
 </script>
 
 {#snippet spotRing(sp: ThreatSpot)}
@@ -164,6 +190,15 @@
 					<span class="news-tag">{tx.news.tag}</span>
 					<span class="news-head">{tx.news.head}</span>
 				</p>
+			{:else if sc === 'vocab'}
+				<div class="vocab">
+					<div class="words">
+						{#each VOCAB as w, k (w)}
+							<span class="word" class:on={ticks > k} class:fix={w === 'patch'}>{tx.vocab[w]}</span>
+						{/each}
+					</div>
+					<p class="cve" class:on={ticks >= 4}>{tx.cveExample}</p>
+				</div>
 			{:else if sc === 'try'}
 				{#if picked}
 					{#key picked}
@@ -191,6 +226,17 @@
 			<rect x="244" y="126" width="48" height="40" rx="3" class="win" />
 			<line x1="268" y1="126" x2="268" y2="166" class="frame" />
 			<line x1="244" y1="146" x2="292" y2="146" class="frame" />
+			{#if sc === 'vocab'}
+				{#if ticks >= 1}
+					<path d="M137 129 L146 136 L141 139 L152 145" class="crack" />
+				{/if}
+				{#if ticks >= 3}
+					<g class="patch" in:fade={{ duration: 300 }}>
+						<rect x="134" y="128" width="20" height="16" rx="2.5" />
+						<path d="M139 136 l3 3 l6 -6" />
+					</g>
+				{/if}
+			{/if}
 			<rect x="190" y="168" width="40" height="68" rx="3" class="door" />
 			<g class="padlock">
 				<path d="M204 194 v-5 a6 6 0 0 1 12 0 v5" />
@@ -301,6 +347,9 @@
 						<rect x="-8" y="-41" width="16" height="4.5" rx="2" class="mask" />
 					{/if}
 					<path d="M-10 0 V-18 a10 10 0 0 1 20 0 V0 Z" class="body" />
+					{#if scene === 'vocab' && ticks === 2}
+						<line x1="9" y1="-24" x2="-2" y2="-66" class="bar" />
+					{/if}
 					{#if figure === 'owner'}
 						<circle cx="16" cy="-24" r="6" class="glass" />
 						<line x1="11" y1="-19" x2="6" y2="-13" class="glass-h" />
@@ -602,6 +651,77 @@
 	.glass-h {
 		stroke: var(--color-ink);
 		stroke-width: 2.5;
+		stroke-linecap: round;
+	}
+	.vocab {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 5px;
+	}
+	.words {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 6px;
+	}
+	.word {
+		border: 1.5px solid var(--color-line);
+		border-radius: 999px;
+		background: var(--color-card);
+		padding: 3px 10px;
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--color-faint);
+		transition:
+			color 0.3s,
+			border-color 0.3s,
+			background 0.3s;
+	}
+	.word.on {
+		border-color: var(--color-danger);
+		background: var(--color-danger-soft);
+		color: var(--color-danger);
+	}
+	.word.fix.on {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+	}
+	.cve {
+		margin: 0;
+		font-family: ui-monospace, monospace;
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--color-ink);
+		opacity: 0;
+		transition: opacity 0.4s;
+	}
+	.cve.on {
+		opacity: 1;
+	}
+	.crack {
+		fill: none;
+		stroke: var(--color-danger);
+		stroke-width: 2.2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.patch rect {
+		fill: var(--color-grass-soft);
+		stroke: var(--color-grass);
+		stroke-width: 1.8;
+	}
+	.patch path {
+		fill: none;
+		stroke: var(--color-grass);
+		stroke-width: 2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.walker .bar {
+		stroke: var(--color-muted);
+		stroke-width: 3;
 		stroke-linecap: round;
 	}
 	.letter rect {

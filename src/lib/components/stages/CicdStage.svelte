@@ -32,7 +32,7 @@
 	let badTried = false;
 	let done = false;
 	let timers: ReturnType<typeof setTimeout>[] = [];
-	let consoleEl: HTMLDivElement | undefined;
+	let consoleEl = $state<HTMLDivElement | undefined>();
 
 	const at = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
 	const clearTimers = () => {
@@ -44,6 +44,9 @@
 	$effect(() => {
 		onshow?.(beat >= 1);
 	});
+	// the environments beat swaps the console for three places code passes through
+	const ENV_BEAT = 3;
+	const envView = $derived(beat === ENV_BEAT);
 	// keep the console scrolled to the newest line
 	$effect(() => {
 		void lines.length;
@@ -185,23 +188,35 @@
 		</div>
 	</div>
 
-	<!-- the pipeline's console -->
-	<div class="term">
-		<div class="tbar">
-			<span class="tdot"></span><span class="tdot"></span><span class="tdot"></span>
-			<span class="ttitle">pipeline</span>
+	{#if envView}
+		<div class="envs">
+			{#each tx.envs as e, i (e.name)}
+				{#if i > 0}<span class="arr" aria-hidden="true">›</span>{/if}
+				<div class="env e{i}" style="animation-delay:{i * 0.2}s">
+					<span class="ename">{e.name}</span>
+					<span class="esub">{e.sub}</span>
+				</div>
+			{/each}
 		</div>
-		<div class="console" bind:this={consoleEl}>
-			{#if lines.length === 0}
-				<div class="line dim">$ waiting for a change…</div>
-			{:else}
-				{#each lines as l, i (i)}
-					<div class="line {l.type}">{l.text}</div>
-				{/each}
-			{/if}
-			{#if running}<div class="line cmd cur">▋</div>{/if}
+	{:else}
+		<!-- the pipeline's console -->
+		<div class="term">
+			<div class="tbar">
+				<span class="tdot"></span><span class="tdot"></span><span class="tdot"></span>
+				<span class="ttitle">pipeline</span>
+			</div>
+			<div class="console" bind:this={consoleEl}>
+				{#if lines.length === 0}
+					<div class="line dim">$ waiting for a change…</div>
+				{:else}
+					{#each lines as l, i (i)}
+						<div class="line {l.type}">{l.text}</div>
+					{/each}
+				{/if}
+				{#if running}<div class="line cmd cur">▋</div>{/if}
+			</div>
 		</div>
-	</div>
+	{/if}
 
 	<div class="btns">
 		<button type="button" class="sbtn good" disabled={running} onclick={() => ship('good')}>
@@ -423,6 +438,53 @@
 		}
 	}
 
+	/* environments */
+	.envs {
+		display: flex;
+		width: 100%;
+		height: 162px;
+		align-items: center;
+		justify-content: center;
+		gap: 4px;
+	}
+	.env {
+		display: flex;
+		flex: 1;
+		max-width: 130px;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+		border-radius: 12px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 14px 6px;
+		animation: envrise 0.4s ease backwards;
+	}
+	.env.e1 {
+		border-color: var(--color-amber);
+	}
+	.env.e2 {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
+	}
+	.ename {
+		font-size: 12px;
+		font-weight: 800;
+		color: var(--color-ink);
+	}
+	.esub {
+		font-size: 10px;
+		font-weight: 600;
+		text-align: center;
+		color: var(--color-muted);
+	}
+	@keyframes envrise {
+		from {
+			opacity: 0;
+			transform: translateY(8px);
+		}
+	}
+
 	/* console */
 	.term {
 		width: 100%;
@@ -617,7 +679,8 @@
 		.sp {
 			animation-duration: 1.4s;
 		}
-		.cur {
+		.cur,
+		.env {
 			animation: none;
 		}
 	}

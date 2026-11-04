@@ -6,7 +6,18 @@ import { en } from './en';
 export const rag: Lesson = {
 	id: 'rag',
 	mood: 'thinking',
-	moods: ['calm', 'surprised', 'worried', 'idea', 'thinking', 'happy', 'idea', 'wink', 'excited'],
+	moods: [
+		'calm',
+		'surprised',
+		'worried',
+		'idea',
+		'thinking',
+		'thinking',
+		'happy',
+		'idea',
+		'wink',
+		'excited'
+	],
 	reactionMood: {
 		longer: 'excited',
 		shorter: 'happy'

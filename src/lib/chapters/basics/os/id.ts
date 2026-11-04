@@ -9,6 +9,7 @@ export const id: OsText = {
 		'Lihat waktu aplikasinya dibuka. Tiap aplikasi minta dulu ke OS jendela dan sedikit memori, baru setelah itu dia muncul di layar.',
 		'CPU cuma bisa mengerjakan sedikit hal sekaligus, padahal aplikasinya jauh lebih banyak, jadi OS menyuruh mereka gantian. Tiap aplikasi dapat jatah waktu sangat singkat, beberapa per seribu detik, lalu giliran berikutnya. Gantinya cepat banget sampai semuanya kelihatan jalan bareng.',
 		'OS juga memberi tiap aplikasi bagian RAM sendiri dan menjaganya tetap terpisah. Jadi game yang crash (tiba tiba rusak) nggak bikin chat kamu ikut berantakan. OS juga menyisihkan sedikit RAM untuk dirinya.',
+		'Ada satu kata yang bakal sering kamu dengar. Program yang sedang berjalan disebut <b>proses</b>. OS memberi tiap proses nomornya sendiri, namanya <b>PID</b> (process ID), dan jatah RAM sendiri, lalu memutuskan proses mana yang dapat giliran CPU berikutnya. Mengatur giliran itu namanya <b>scheduling</b> (penjadwalan).',
 		'[fyi] Buka satu aplikasi kebanyakan dan RAM jadi penuh. OS lalu menitipkan sisanya di storage (namanya <b>swap</b>). Storage jauh lebih lambat dari RAM, dan saat itulah laptop mulai lemot.',
 		'OS juga mengurus file kamu. Waktu aplikasi musik mau memutar lagu, dia minta ke OS, lalu OS mengambilnya dari storage. Folder itu cara OS menjaga file kamu tetap rapi.',
 		'Kamu pasti sudah kenal beberapa OS. <b>Windows</b> dan <b>macOS</b> menjalankan laptop, <b>Linux</b> menjalankan sebagian besar server di internet, dan <b>Android</b> serta <b>iOS</b> menjalankan HP (Android dibangun di atas Linux). Kamu bisa ngobrol dengan mereka lewat ikon atau perintah yang diketik, lihat [[CLI dan GUI|foundations/cli-gui]].',
@@ -42,6 +43,10 @@ export const id: OsText = {
 			body: 'Tiap aplikasi dapat <b>bagian sendiri</b> di RAM, terpisah dari yang lain. Total 8 GB itu dipakai bersama semua aplikasi.'
 		},
 		{
+			title: 'Proses',
+			body: 'Program yang sedang jalan disebut <b>proses</b>. Tiap proses punya <b>PID</b> dan RAM sendiri. Task Manager di Windows dan Activity Monitor di Mac menampilkan daftar persis seperti ini.'
+		},
+		{
 			title: 'Kalau RAM penuh',
 			body: 'Sisanya tumpah ke storage, namanya <b>swap</b>. Masih jalan, tapi lambat.'
 		},
@@ -70,6 +75,10 @@ export const id: OsText = {
 	diskLabel: 'Storage',
 	turn: 'giliran {app}',
 	ramUsed: '{n} dari 8 GB terpakai',
+	procTitle: 'Daftar proses',
+	procCols: { pid: 'PID', name: 'Program', ram: 'RAM', state: 'Status' },
+	running: 'jalan',
+	waiting: 'antre',
 	slowTag: 'lemot',
 	fileName: 'lagu.mp3',
 	osTrick: 'aplikasi pesan, OS melayani',

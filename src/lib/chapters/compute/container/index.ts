@@ -6,7 +6,7 @@ import { en } from './en';
 export const container: Lesson = {
 	id: 'container',
 	mood: 'thinking',
-	moods: ['worried', 'idea', 'calm', 'thinking', 'happy'],
+	moods: ['worried', 'idea', 'calm', 'thinking', 'idea', 'happy'],
 	reactionMood: { built: 'idea', ran: 'excited' },
 	stage: ContainerStage,
 	text: { id, en }

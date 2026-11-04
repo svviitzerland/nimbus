@@ -19,9 +19,17 @@
 	} = $props();
 	const tx = $derived(text as CloudServicesText);
 
-	// The "turn on" beat is second to last; the final beat is an FYI aside that keeps the
-	// catalog on screen. Show the monitor from the turn on beat, and lock Next until it is on.
-	const turnOn = $derived(Math.max(0, tx.intro.length - 2));
+	// Beat 3 turns the screen on (Next waits until it is on). Beats 4 and 5 swap the catalog for
+	// the IaaS, PaaS, SaaS chart (the second one with the pizza lines), and the last beat, an FYI
+	// aside, brings the catalog back.
+	const turnOn = 3;
+	const chart = $derived(beat === 4 || beat === 5);
+	// Who looks after each layer (bottom to top), per column. true means the provider.
+	const MODELS: { name: string; ex: string; mine: boolean[] }[] = [
+		{ name: 'IaaS', ex: 'EC2', mine: [false, true, true, true] },
+		{ name: 'PaaS', ex: 'App Service', mine: [false, false, false, true] },
+		{ name: 'SaaS', ex: 'Gmail', mine: [false, false, false, false] }
+	];
 
 	// Official provider service logos, bundled at build time.
 	const mods = import.meta.glob('../../assets/services/*.svg', {
@@ -106,6 +114,28 @@
 </script>
 
 <div class="wrap">
+	{#if chart}
+		<div class="models">
+			<div class="cols">
+				{#each MODELS as m, k (m.name)}
+					<div class="col">
+						<b class="mname">{m.name}</b>
+						<div class="stack">
+							{#each [3, 2, 1, 0] as l (l)}
+								<span class="layer" class:you={m.mine[l]}>{tx.layers[l]}</span>
+							{/each}
+						</div>
+						<small class="mex" class:pz={beat === 5}>{beat === 5 ? tx.pizza[k] : m.ex}</small>
+					</div>
+				{/each}
+			</div>
+			<div class="legend">
+				<span><i class="sw you"></i>{tx.youLabel}</span>
+				<span><i class="sw"></i>{tx.providerLabel}</span>
+			</div>
+			<p class="snote">{tx.serverlessNote}</p>
+		</div>
+	{:else}
 	<div class="monitor">
 		<div class="bezel" class:on>
 			<div class="screen">
@@ -164,6 +194,7 @@
 		<div class="neck"></div>
 		<div class="base"></div>
 	</div>
+	{/if}
 </div>
 
 <style>
@@ -174,6 +205,92 @@
 		justify-content: center;
 		width: 100%;
 		height: 100%;
+	}
+	.models {
+		display: flex;
+		width: min(94vw, 380px);
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+		border: 1px solid var(--color-line);
+		border-radius: 18px;
+		background: var(--color-card);
+		padding: 14px 12px;
+	}
+	.cols {
+		display: grid;
+		width: 100%;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 8px;
+	}
+	.col {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+	}
+	.mname {
+		font-size: 14px;
+		color: var(--color-ink);
+	}
+	.stack {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		gap: 3px;
+	}
+	.layer {
+		border-radius: 7px;
+		background: var(--color-brand-soft);
+		color: var(--color-brand);
+		padding: 5px 2px;
+		text-align: center;
+		font-size: 11px;
+		font-weight: 700;
+	}
+	.layer.you {
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
+	}
+	.mex {
+		font-size: 11px;
+		font-weight: 600;
+		color: var(--color-muted);
+		text-align: center;
+	}
+	.mex.pz {
+		color: var(--color-grass);
+	}
+	.legend {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 4px 14px;
+		font-size: 11px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.legend span {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+	}
+	.sw {
+		height: 10px;
+		width: 10px;
+		border-radius: 3px;
+		background: var(--color-brand-soft);
+		border: 1px solid var(--color-brand);
+	}
+	.sw.you {
+		background: var(--color-amber-soft);
+		border-color: var(--color-amber);
+	}
+	.snote {
+		margin: 0;
+		font-size: 11px;
+		color: var(--color-faint);
+		text-align: center;
 	}
 	.monitor {
 		display: flex;

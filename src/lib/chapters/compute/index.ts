@@ -6,7 +6,10 @@ import { monitoring } from './monitoring';
 import { cost } from './cost';
 import { versionControl } from './version-control';
 import { gitVsGithub } from './git-vs-github';
+import { gitBranch } from './git-branch';
+import { pullRequest } from './pull-request';
 import { gitHosts } from './git-hosts';
+import { testing } from './testing';
 import { cicd } from './cicd';
 
 export const compute: Chapter = {
@@ -21,7 +24,10 @@ export const compute: Chapter = {
 		cost,
 		versionControl,
 		gitVsGithub,
+		gitBranch,
+		pullRequest,
 		gitHosts,
+		testing,
 		cicd
 	],
 	summary: {
@@ -34,8 +40,10 @@ export const compute: Chapter = {
 				'<b>Serverless</b> menjalankan fungsimu saat dipanggil dan turun ke nol saat sepi, jadi kamu bayar per panggilan',
 				'Pantau lewat <b>metrik</b>, <b>dashboard</b>, dan <b>alarm</b>, supaya kamu tahu masalah sebelum pengunjung merasakannya',
 				'Cloud itu <b>bayar sesuai pakai</b>, jadi <b>right sizing</b> menghemat uang, sementara resource nganggur membuang uang',
+				'Sebuah <b>test</b> adalah kode kecil yang memeriksa kodemu, dan test yang merah menghentikan bug sebelum pengguna melihatnya',
 				'Sebuah pipeline <b>CI/CD</b> otomatis build, test, lalu deploy tiap perubahan, dan menghentikan yang rusak sebelum sampai ke pengguna',
-				'<b>Git</b> menyimpan tiap versi kodemu jadi snapshot (commit), dan itu beda dari <b>GitHub</b> yang cuma satu tempat online buat menyimpan dan membagikannya, sama seperti <b>GitLab</b> atau <b>Bitbucket</b>'
+				'<b>Git</b> menyimpan tiap versi kodemu jadi snapshot (commit), dan itu beda dari <b>GitHub</b> yang cuma satu tempat online buat menyimpan dan membagikannya, sama seperti <b>GitLab</b> atau <b>Bitbucket</b>',
+				'Sebuah <b>branch</b> jadi tempat aman buat mencoba, <b>merge</b> menyatukannya kembali, dan <b>pull request</b> mengajak teman mereview sebelum masuk ke main'
 			],
 			nextNote:
 				'Berikutnya, kita kumpulkan semuanya, lalu kamu pilih <b>cabang</b> yang mau kamu dalami.',
@@ -50,8 +58,10 @@ export const compute: Chapter = {
 				'<b>Serverless</b> runs your function on demand and scales to zero when idle, so you pay per call',
 				'Watch through <b>metrics</b>, <b>dashboards</b>, and <b>alarms</b>, so you know about trouble before visitors feel it',
 				'The cloud is <b>pay as you go</b>, so <b>right sizing</b> saves money while idle resources waste it',
+				'A <b>test</b> is small code that checks your code, and a red test stops a bug before users see it',
 				'A <b>CI/CD</b> pipeline automatically builds, tests, then deploys every change, and stops a broken one before it reaches users',
-				'<b>Git</b> saves every version of your code as a snapshot (a commit), and that is different from <b>GitHub</b>, just one online place to store and share it, like <b>GitLab</b> or <b>Bitbucket</b>'
+				'<b>Git</b> saves every version of your code as a snapshot (a commit), and that is different from <b>GitHub</b>, just one online place to store and share it, like <b>GitLab</b> or <b>Bitbucket</b>',
+				'A <b>branch</b> is a safe place to try things, a <b>merge</b> brings it back, and a <b>pull request</b> asks teammates to review before it joins main'
 			],
 			nextNote:
 				'Next up, we bring it all together, then you pick the <b>branch</b> you want to go deeper in.',

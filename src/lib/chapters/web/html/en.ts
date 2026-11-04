@@ -9,7 +9,9 @@ export const en: HtmlText = {
 		'A tag opens and then closes, like a pair of brackets. <b>&lt;h1&gt;</b> opens the heading and <b>&lt;/h1&gt;</b> closes it (spot the slash). Whatever sits between the two becomes the heading.',
 		'Next line, <b>&lt;p&gt;</b>, short for paragraph. It tells the browser this is a normal block of text, so it gets its own line with a little space around it.',
 		'Then <b>&lt;button&gt;</b>. One tag and the browser draws a real button. Pressing it does nothing yet, because HTML only builds the shape.',
-		'Last, a picture with <b>&lt;img&gt;</b>. It points at the picture file with <b>src</b> and describes it with <b>alt</b>, for anyone who cannot see it. It holds no text inside, so it never needs a closing tag.',
+		'Then a picture with <b>&lt;img&gt;</b>. It points at the picture file with <b>src</b> and describes it with <b>alt</b>, for anyone who cannot see it. It holds no text inside, so it never needs a closing tag.',
+		'Now the tag that makes the web a web, <b>&lt;a&gt;</b>, a link. Its <b>href</b> holds the address it leads to, here <b>/about</b>. Tap it and the browser asks the server for that page. Billions of pages hold hands like this.',
+		'Last, a <b>&lt;form&gt;</b>, a box for things you type. Inside sits an <b>&lt;input&gt;</b>, a field for your email, and a button. Press it and the browser packs up what you typed and sends it to the server as a <b>POST</b>, here to <b>/join</b>.',
 		'[ingat] <b>HTML is the skeleton, CSS is the clothes, JavaScript is the muscles.</b> The skeleton only says what each part is. Dressing it up is the job of [[CSS|web/css]], making it move is the job of [[JavaScript|web/js]].',
 		'The editor is yours now, if you like. Change one line, maybe the heading words, and watch the page follow along. Or leave it as it is, it is already a real web page.'
 	],
@@ -56,6 +58,16 @@ export const en: HtmlText = {
 			body: 'A picture. <b>src</b> says which file, <b>alt</b> says what it shows. No closing tag needed.'
 		},
 		{
+			tag: 'Tag 5',
+			title: '&lt;a href&gt;',
+			body: 'A link. <b>href</b> says where it leads. Pages linked to pages, all over the world, are why it is called a <b>web</b>.'
+		},
+		{
+			tag: 'Tag 6',
+			title: '&lt;form&gt;',
+			body: '<b>&lt;input&gt;</b> is a field to type in. The button inside the form sends what you typed to the server as a <b>POST</b> request.'
+		},
+		{
 			tag: 'Make it stick',
 			title: 'Skeleton, clothes, muscles',
 			body: '<b>HTML</b> the skeleton, <b>CSS</b> the clothes, <b>JavaScript</b> the muscles.'
@@ -72,8 +84,12 @@ export const en: HtmlText = {
 		heading: 'Welcome to Nimbus',
 		paragraph: 'Your first website in the cloud.',
 		button: 'Start now',
-		alt: 'Nim the cloud'
+		alt: 'Nim the cloud',
+		link: 'About us',
+		email: 'your email',
+		join: 'Join'
 	},
+	serverLabel: 'nimbus.com server',
 	editHint: 'You can edit this',
 	unclosedHint: '{open} is still open, close it with {close}',
 	reset: 'Start over'

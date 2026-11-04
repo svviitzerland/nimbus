@@ -6,7 +6,7 @@ import { en } from './en';
 export const availabilityZone: Lesson = {
 	id: 'availability-zone',
 	mood: 'thinking',
-	moods: ['surprised', 'worried', 'thinking', 'worried', 'idea', 'happy'],
+	moods: ['surprised', 'worried', 'thinking', 'worried', 'thinking', 'wink', 'idea', 'happy'],
 	reactionMood: {
 		virginia: 'happy',
 		'virginia-name': 'wink',

@@ -6,7 +6,7 @@ import { en } from './en';
 export const gitVsGithub: Lesson = {
 	id: 'git-vs-github',
 	mood: 'thinking',
-	moods: ['thinking', 'worried', 'happy'],
+	moods: ['thinking', 'worried', 'surprised', 'happy'],
 	reactionMood: { committed: 'calm', pushed: 'excited', cloned: 'happy' },
 	stage: GitRemoteStage,
 	text: { id, en }

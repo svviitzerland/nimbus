@@ -6,7 +6,7 @@ import { en } from './en';
 export const remoteAccess: Lesson = {
 	id: 'remote-access',
 	mood: 'calm',
-	moods: ['thinking', 'calm', 'thinking', 'happy'],
+	moods: ['thinking', 'calm', 'thinking', 'idea', 'wink', 'happy'],
 	reactionMood: { ssh: 'idea', rdp: 'happy', both: 'excited' },
 	stage: RemoteAccessStage,
 	text: { id, en }

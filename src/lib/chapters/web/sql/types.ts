@@ -1,8 +1,8 @@
 import type { LessonText } from '../../types';
 
 export type SqlColumn = 'name' | 'price' | 'stock';
-/** The four questions the guided visual asks, in order. */
-export type SqlQuestionId = 'all' | 'pick' | 'out' | 'cheap';
+/** The questions the guided visual asks, in order (the last one, group, runs on the orders table). */
+export type SqlQuestionId = 'all' | 'pick' | 'out' | 'cheap' | 'group';
 
 export interface SqlProduct {
 	name: string;
@@ -18,7 +18,7 @@ export interface SqlPanel {
 }
 
 export interface SqlText extends LessonText {
-	/** One panel per scene of the guided visual (seven scenes). */
+	/** One panel per scene of the guided visual (eight scenes). */
 	panels: SqlPanel[];
 	/** Table name as it appears in the query (a SQL identifier, no spaces). */
 	tableName: string;
@@ -28,6 +28,12 @@ export interface SqlText extends LessonText {
 	products: SqlProduct[];
 	/** Each question in plain words, shown above the query that answers it. */
 	questions: Record<SqlQuestionId, string>;
+	/** The aggregation scene, a second small table of orders (SQL identifiers, no spaces). */
+	ordersTable: string;
+	orderColumns: { city: string; total: string };
+	orders: { city: string; total: number }[];
+	/** Caption over the grouped answer. */
+	resultLabel: string;
 	questionLabel: string;
 	fileName: string;
 	/** Template with {n}, shown once the database has answered. */

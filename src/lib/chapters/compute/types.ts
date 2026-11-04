@@ -1,4 +1,4 @@
-import type { LessonText } from '../types';
+import type { LessonText, VersionControlText, GitRemoteText } from '../types';
 
 export interface ContainerText extends LessonText {
 	buildLabel: string;
@@ -20,6 +20,12 @@ export interface ContainerText extends LessonText {
 	noteIdle: string;
 	noteBuilt: string;
 	noteRan: string;
+	/** The registry beat, images pushed up once and pulled by every server. */
+	registryName: string;
+	registrySub: string;
+	pushTag: string;
+	pullTag: string;
+	serverLabel: string; // template with {n}
 }
 
 export interface MicroservicesText extends LessonText {
@@ -51,6 +57,8 @@ export interface CicdText extends LessonText {
 	goodNote: string; // outcome caption after a good ship
 	badNote: string; // outcome caption after a blocked ship
 	tryBothHint: string; // shown until both have been tried
+	/** The environments beat, three places code passes through. */
+	envs: { name: string; sub: string }[];
 }
 
 export interface ServerlessText extends LessonText {
@@ -104,4 +112,23 @@ export interface CostText extends LessonText {
 	noteOff: string;
 	noteResize: string;
 	noteDone: string;
+}
+
+/** What is Git, plus the beat that names the everyday commands and the staging area. */
+export interface VcCommandsText extends VersionControlText {
+	folderLabel: string; // your project folder, where you edit
+	stagingLabel: string; // the staging area
+	onlineLabel: string; // an online place, like GitHub
+	changedTag: string; // marks the edited file
+	/** One short plain word per command, shown beside it. */
+	cmdHints: { status: string; add: string; commit: string; push: string; pull: string };
+}
+
+/** Git is not GitHub, plus the beat about .gitignore and never committing secrets. */
+export interface GitSecretsText extends GitRemoteText {
+	folderLabel: string; // heading over the project files on the laptop
+	secretNote: string; // what is inside .env
+	ignoredTag: string; // chip on the file that stays home
+	publicTag: string; // "public, forever"
+	botLabel: string; // the bots that scan for leaked keys
 }

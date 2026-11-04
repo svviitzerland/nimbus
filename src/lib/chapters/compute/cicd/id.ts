@@ -6,6 +6,7 @@ export const id: CicdText = {
 		'Aplikasimu sudah jalan dan dipantau. Tapi tiap ada perubahan baru dari laptopmu, gimana caranya sampai ke situs yang dipakai orang (namanya <b>live</b> atau production) tanpa merusak apa apa? Cara manual itu serem. Kamu masuk ke server, salin file, restart, lalu berdoa. Satu typo jam dua pagi, situsnya mati.',
 		'Cara yang kalem itu pakai <b>pipeline</b>. Kamu tinggal push perubahanmu. Langkah yang sama jalan otomatis tiap kali. Build, test, lalu deploy.',
 		'Pipeline ini punya dua bagian. <b>CI</b> (continuous integration) membangun perubahanmu jadi aplikasi lalu mengetesnya. Itu bagian build dan test. <b>CD</b> (continuous delivery) mengirim yang lolos ke production. Itu bagian deploy. Jadi CI memastikan perubahanmu tidak rusak, CD yang menaruhnya ke live.',
+		'Satu lagi, kodemu biasanya lewat tiga tempat. <b>Development</b> itu laptopmu, tempat bebas coba coba. <b>Staging</b> itu salinan latihan yang mirip aslinya, buat gladi resik. <b>Production</b> itu yang dipakai orang beneran, jadi cuma yang lolos latihan yang boleh naik ke sana.',
 		'Kalau testnya gagal, pipeline langsung berhenti di situ. Perubahan rusak nggak akan pernah sampai ke pengguna. Coba kirim perubahan yang baik, lalu yang rusak. Lihat lognya di konsol bawah.'
 	],
 	reactions: {
@@ -26,5 +27,10 @@ export const id: CicdText = {
 	cdSub: 'deploy yang lolos',
 	goodNote: 'Terkirim. Lolos semua test dan naik ke live sendiri.',
 	badNote: 'Ditahan. Test menangkap yang rusak, jadi production tetap aman.',
-	tryBothHint: 'Kirim yang baik dan yang rusak'
+	tryBothHint: 'Kirim yang baik dan yang rusak',
+	envs: [
+		{ name: 'Development', sub: 'laptopmu' },
+		{ name: 'Staging', sub: 'gladi resik' },
+		{ name: 'Production', sub: 'pengguna beneran' }
+	]
 };

@@ -13,22 +13,43 @@
 	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as RagText);
 
-	type Scene = 'ask' | 'memory' | 'check' | 'search' | 'paste' | 'answer' | 'remember' | 'try';
+	type Scene =
+		| 'ask'
+		| 'memory'
+		| 'check'
+		| 'search'
+		| 'chunks'
+		| 'paste'
+		| 'answer'
+		| 'remember'
+		| 'try';
 	const SCENES: Scene[] = [
 		'ask',
 		'memory',
 		'check',
 		'search',
+		'chunks',
 		'paste',
 		'answer',
 		'remember',
 		'try'
 	];
-	// nine beats, eight scenes (the fyi beat keeps the remember picture)
-	const SCENE_OF_BEAT = [0, 1, 2, 3, 4, 5, 6, 6, 7];
+	// ten beats, nine scenes (the fyi beat keeps the remember picture)
+	const SCENE_OF_BEAT = [0, 1, 2, 3, 4, 5, 6, 7, 7, 8];
 	const SHELF: RagDocId[] = ['pricing', 'contact', 'refund', 'about'];
 	const MATCH: Record<RagDocId, number> = { pricing: 27, contact: 38, refund: 91, about: 12 };
 	const WIN: RagDocId = 'refund';
+	// the chunking scene, every page cut into chunks, each with its numbers (its embedding) and a
+	// spot on the map of meanings inside the vector database
+	const CHUNKS: { doc: RagDocId; n: number; vec: string; x: number; y: number }[] = [
+		{ doc: 'pricing', n: 1, vec: '0.20, 0.91', x: 52, y: 34 },
+		{ doc: 'pricing', n: 2, vec: '0.25, 0.84', x: 84, y: 56 },
+		{ doc: 'contact', n: 1, vec: '0.11, 0.33', x: 134, y: 92 },
+		{ doc: 'refund', n: 1, vec: '0.81, 0.12', x: 206, y: 38 },
+		{ doc: 'refund', n: 2, vec: '0.77, 0.18', x: 228, y: 74 },
+		{ doc: 'about', n: 1, vec: '0.05, 0.48', x: 40, y: 94 }
+	];
+	const Q = { x: 262, y: 52 };
 
 	let peek = $state<number | null>(null);
 	let days = $state(14);
@@ -61,6 +82,7 @@
 			case 'check':
 				return 'wrong';
 			case 'search':
+			case 'chunks':
 				return 'searching';
 			case 'paste':
 				return 'typing';
@@ -96,6 +118,12 @@
 			scene === 'remember' ||
 			(scene === 'try' && (!retrying || t > 1700))
 	);
+	const cut = (k: number) => scene === 'chunks' && t > 300 + k * 220;
+	const vecOn = (k: number) => scene === 'chunks' && t > 1900 + k * 160;
+	const mapOn = $derived(scene === 'chunks' && t > 3200);
+	const dotOn = (k: number) => scene === 'chunks' && t > 3400 + k * 140;
+	const qOn = $derived(scene === 'chunks' && t > 4600);
+	const nearOn = $derived(scene === 'chunks' && t > 5400);
 	const answer = $derived(fill(days > 20 ? tx.answerYes : tx.answerNo));
 
 	function edit() {
@@ -172,7 +200,50 @@
 
 			<!-- the shelf of documents. Compact once the prompt box is up, and left out on the
 			     memory beat (the two books take its place), so the picture fits without scrolling -->
-			{#if scene !== 'remember'}
+			{#if scene === 'chunks'}
+				<div class="vdb">
+					<p class="label">{tx.chunkTitle}</p>
+					<div class="chunks">
+						{#each CHUNKS as c, k (k)}
+							<div
+								class="chunk tint-{c.doc}"
+								class:on={cut(k)}
+								class:near={nearOn && c.doc === WIN}
+							>
+								<b>{tx.docs[c.doc].title} {c.n}</b>
+								<code class:on={vecOn(k)}>[{c.vec}, …]</code>
+							</div>
+						{/each}
+					</div>
+					<div class="map" class:on={mapOn}>
+						<p class="label">{tx.dbTitle}</p>
+						<svg viewBox="0 0 300 120" aria-hidden="true">
+							<rect x="1" y="1" width="298" height="118" rx="12" class="map-bg" />
+							{#if nearOn}
+								{#each CHUNKS.filter((c) => c.doc === WIN) as c (c.n)}
+									<line x1={Q.x} y1={Q.y} x2={c.x} y2={c.y} class="link" />
+								{/each}
+							{/if}
+							{#each CHUNKS as c, k (k)}
+								<g
+									class="dot tint-{c.doc}"
+									class:on={dotOn(k)}
+									class:near={nearOn && c.doc === WIN}
+								>
+									<circle cx={c.x} cy={c.y} r="7" />
+									<text x={c.x} y={c.y + 19}>{tx.docs[c.doc].title} {c.n}</text>
+								</g>
+							{/each}
+							{#if qOn}
+								<g class="q-dot" in:scale={{ duration: clock.reduced ? 0 : 300, start: 0.4 }}>
+									<circle cx={Q.x} cy={Q.y} r="8" />
+									<text x={Q.x} y={Q.y - 14}>{tx.questionDot}</text>
+								</g>
+							{/if}
+						</svg>
+					</div>
+				</div>
+			{:else if scene !== 'remember'}
 				<div class="shelf" class:locked class:compact={showReads}>
 					<p class="label">{tx.shelfTitle}</p>
 					<div class="docs">
@@ -561,6 +632,135 @@
 		color: var(--color-amber);
 	}
 
+	/* the chunking scene */
+	.vdb {
+		border: 1px solid var(--color-line);
+		border-radius: 16px;
+		background: var(--color-paper);
+		padding: 10px 12px;
+	}
+	.chunks {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 6px;
+	}
+	.chunk {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		border: 1.5px solid var(--color-line);
+		border-radius: 8px;
+		background: var(--color-card);
+		padding: 5px 7px;
+		opacity: 0;
+		transform: translateY(6px);
+		transition:
+			opacity 0.35s,
+			transform 0.35s,
+			border-color 0.3s;
+	}
+	.chunk.on {
+		opacity: 1;
+		transform: none;
+	}
+	.chunk.near {
+		border-color: var(--color-grass);
+		box-shadow: 0 4px 12px rgba(58, 156, 100, 0.18);
+	}
+	.chunk b {
+		font-size: 10.5px;
+		line-height: 1.25;
+		color: var(--color-ink);
+	}
+	.chunk code {
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 9.5px;
+		color: var(--color-brand);
+		opacity: 0;
+		transition: opacity 0.3s;
+	}
+	.chunk code.on {
+		opacity: 1;
+	}
+	.chunk.tint-refund {
+		border-left: 4px solid var(--color-grass);
+	}
+	.chunk.tint-pricing {
+		border-left: 4px solid var(--color-amber);
+	}
+	.chunk.tint-contact,
+	.chunk.tint-about {
+		border-left: 4px solid var(--color-faint);
+	}
+	.map {
+		margin-top: 10px;
+		opacity: 0;
+		transition: opacity 0.4s;
+	}
+	.map.on {
+		opacity: 1;
+	}
+	.map svg {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	.map-bg {
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1.5;
+	}
+	.dot {
+		opacity: 0;
+		transition: opacity 0.3s;
+	}
+	.dot.on {
+		opacity: 1;
+	}
+	.dot circle {
+		stroke: var(--color-card);
+		stroke-width: 2;
+	}
+	.dot.tint-refund circle {
+		fill: var(--color-grass);
+	}
+	.dot.tint-pricing circle {
+		fill: var(--color-amber);
+	}
+	.dot.tint-contact circle,
+	.dot.tint-about circle {
+		fill: var(--color-faint);
+	}
+	.dot.near circle {
+		stroke: var(--color-grass);
+		stroke-width: 3;
+		r: 9;
+	}
+	.dot text,
+	.q-dot text {
+		font-size: 9px;
+		font-weight: 700;
+		text-anchor: middle;
+		fill: var(--color-muted);
+	}
+	.dot.near text {
+		fill: var(--color-grass);
+	}
+	.q-dot circle {
+		fill: var(--color-brand);
+		stroke: var(--color-card);
+		stroke-width: 2;
+	}
+	.q-dot text {
+		fill: var(--color-brand);
+		font-weight: 800;
+	}
+	.link {
+		stroke: var(--color-grass);
+		stroke-width: 2;
+		stroke-linecap: round;
+	}
+
 	/* the two books */
 	.books {
 		display: flex;
@@ -635,7 +835,11 @@
 		.doc,
 		.paper,
 		.match,
-		.act {
+		.act,
+		.chunk,
+		.chunk code,
+		.map,
+		.dot {
 			transition: none;
 		}
 	}

@@ -11,7 +11,7 @@ export interface RagPanel {
 }
 
 export interface RagText extends LessonText {
-	/** One panel per scene of the guided visual (eight scenes). */
+	/** One panel per scene of the guided visual (nine scenes). */
 	panels: RagPanel[];
 	/** Alt text for the whole picture. */
 	picture: string;
@@ -39,6 +39,12 @@ export interface RagText extends LessonText {
 	match: string;
 	/** Heading of the card that shows what the model reads. */
 	readsTitle: string;
+	/** Heading over the chunks on the chunking scene. */
+	chunkTitle: string;
+	/** Label on the map of meanings where the chunks are stored. */
+	dbTitle: string;
+	/** Label next to the question dot on that map. */
+	questionDot: string;
 	docs: Record<RagDocId, { title: string; body: string }>;
 	/** Labels under the two books on the remember scene. */
 	closedBook: string;

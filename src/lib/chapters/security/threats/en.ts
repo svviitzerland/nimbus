@@ -107,7 +107,7 @@ export const en: ThreatsText = {
 	cardsLabel: '40 million cards',
 	threatLabel: 'What could go wrong',
 	fixLabel: 'The fix',
-	tapHint: 'Tap a spot on the house'",
+	tapHint: 'Tap a spot on the house',
 	vocab: {
 		vuln: 'vulnerability',
 		exploit: 'exploit',

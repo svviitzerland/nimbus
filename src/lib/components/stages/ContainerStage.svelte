@@ -23,7 +23,9 @@
 	// the architecture narrates along with Nim, one view per beat
 	const lastBeat = $derived(beat >= tx.intro.length - 1);
 	const view = $derived(
-		lastBeat ? 'demo' : (['problem', 'stack', 'swarm', 'k8s'][Math.min(beat, 3)] as string)
+		lastBeat
+			? 'demo'
+			: (['problem', 'stack', 'swarm', 'k8s', 'registry'][Math.min(beat, 4)] as string)
 	);
 	$effect(() => {
 		void beat;
@@ -220,6 +222,32 @@
 						{/each}
 					</div>
 					<span class="kbadge">{tx.k8sBadge}</span>
+				</div>
+			{:else if view === 'registry'}
+				<!-- the registry, pushed up once from the laptop, pulled down by every server -->
+				<div class="reg">
+					<div class="hub">
+						{@render whale(16)}<b>{tx.registryName}</b><span>{tx.registrySub}</span>
+					</div>
+					<svg class="fan" viewBox="0 0 100 24" preserveAspectRatio="none" aria-hidden="true">
+						{#each [12.5, 37.5, 62.5, 87.5] as x, i (x)}
+							<line class="fl" class:up={i === 0} x1="50" y1="0" x2={x} y2="24" />
+						{/each}
+					</svg>
+					<div class="regrow">
+						<div class="rcol" style="animation-delay:0.2s">
+							<span class="dir push">↑ {tx.pushTag}</span>
+							{@render cbox('', true)}
+							<span class="rname">{tx.yourLaptop}</span>
+						</div>
+						{#each [1, 2, 3] as n (n)}
+							<div class="rcol" style="animation-delay:{0.5 + n * 0.18}s">
+								<span class="dir pull">↓ {tx.pullTag}</span>
+								{@render cbox('', true)}
+								<span class="rname">{tx.serverLabel.replace('{n}', String(n))}</span>
+							</div>
+						{/each}
+					</div>
 				</div>
 			{:else}
 				<!-- your turn: pack it, then run it in three places -->
@@ -418,6 +446,62 @@
 			transform: translateY(0);
 			opacity: 1;
 		}
+	}
+
+	/* the registry beat */
+	.reg {
+		display: flex;
+		width: 92%;
+		flex-direction: column;
+		align-items: center;
+	}
+	.hub {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		border-radius: 12px;
+		border: 1.5px solid #bfdcf6;
+		background: #e7f2fc;
+		padding: 6px 12px;
+		font-size: 12px;
+		color: #1d7ac2;
+		animation: rise 0.4s ease backwards;
+	}
+	.hub span {
+		font-size: 9.5px;
+		font-weight: 700;
+		color: #5b8db5;
+	}
+	.fl.up {
+		stroke: #2e6fe0;
+	}
+	.regrow {
+		display: grid;
+		width: 100%;
+		grid-template-columns: repeat(4, 1fr);
+	}
+	.rcol {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+		animation: rise 0.4s ease backwards;
+	}
+	.dir {
+		font-size: 9.5px;
+		font-weight: 800;
+	}
+	.dir.push {
+		color: #2e6fe0;
+	}
+	.dir.pull {
+		color: #2f8a57;
+	}
+	.rname {
+		font-size: 9.5px;
+		font-weight: 700;
+		color: #6b7682;
+		white-space: nowrap;
 	}
 
 	/* beat 2, swarm */
@@ -657,6 +741,14 @@
 		background: color-mix(in srgb, #2496ed 12%, transparent);
 		color: #66b8f7;
 	}
+	:global(.dark) .hub {
+		border-color: color-mix(in srgb, #2496ed 30%, transparent);
+		background: color-mix(in srgb, #2496ed 12%, transparent);
+		color: #66b8f7;
+	}
+	:global(.dark) .rname {
+		color: var(--color-muted);
+	}
 	:global(.dark) .fl {
 		stroke: color-mix(in srgb, #2496ed 30%, transparent);
 	}
@@ -712,6 +804,8 @@
 		.kbadge,
 		.place,
 		.builtwrap,
+		.hub,
+		.rcol,
 		.fl {
 			animation-duration: 0.01s;
 		}

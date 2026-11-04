@@ -6,6 +6,7 @@ export const en: HttpText = {
 		'Every time you open <b>nimbus.com</b>, two computers have a tiny chat. On one side is your <b>browser</b>, the app you use to visit websites. On the other side is the [[server|foundations/server]], the computer that keeps the site.',
 		'They always talk with the same manners, called <b>HTTP</b> (short for HyperText Transfer Protocol). A <b>protocol</b> is just an agreed way of talking, like how every phone call starts with hello, so both sides always understand each other.',
 		'The browser speaks first. Its message is a <b>request</b>, and it says which page it wants, like <b>/about</b>. That part is called the <b>path</b>. Watch the little envelope fly over to the server.',
+		'The whole address you type has a name too, a <b>URL</b>. Read it in parts. <b>https://</b> names the manners (HTTP, locked), <b>nimbus.com</b> says which server, <b>/about</b> is the path, and <b>?lang=en</b> is the <b>query</b>, a small extra wish for the page.',
 		'Every request opens with a verb called the <b>method</b>. <b>GET</b> means please give me this, used for reading a page. <b>POST</b> means please take this, used for sending something, like a comment or a login.',
 		'The server reads the request, finds the page, and sends a <b>response</b> back. The browser opens it and shows you the page. That whole round trip usually takes less than a blink.',
 		'Right at the top of every response sits a <b>status code</b>, a three digit number saying how it went. 200 means all good, 301 means the page moved, 404 means it does not exist, and 500 means the server tripped over something.',
@@ -37,6 +38,11 @@ export const en: HttpText = {
 			tag: 'Asking',
 			title: 'Request',
 			body: 'A small message from the browser. It names the page it wants, like <b>/about</b>.'
+		},
+		{
+			tag: 'The address',
+			title: 'URL',
+			body: 'Four parts, left to right. The <b>scheme</b> says how to talk, the <b>domain</b> says who to ask, the <b>path</b> says which page, the <b>query</b> adds extra wishes.'
 		},
 		{
 			tag: 'The verb',
@@ -81,5 +87,7 @@ export const en: HttpText = {
 		}
 	},
 	legend: ['2 fine', '3 go elsewhere', '4 your mistake', "5 server's mistake"],
-	pagesLabel: 'Ask for a page'
+	pagesLabel: 'Ask for a page',
+	urlQuery: '?lang=en',
+	urlParts: { scheme: 'scheme', domain: 'domain', path: 'path', query: 'query' }
 };

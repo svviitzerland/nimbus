@@ -4,6 +4,7 @@ import { hardware } from './hardware';
 import { binary } from './binary';
 import { os } from './os';
 import { program } from './program';
+import { codeBasics } from './code-basics';
 import { languages } from './languages';
 import { compiler } from './compiler';
 import { runtime } from './runtime';
@@ -16,7 +17,7 @@ export const basicsChapter: Chapter = {
 	number: 9,
 	unnumbered: true,
 	title: { id: 'Dasar Komputer', en: 'Computer Basics' },
-	lessons: [history, hardware, binary, os, program, languages, compiler, runtime],
+	lessons: [history, hardware, binary, os, program, codeBasics, languages, compiler, runtime],
 	summary: {
 		id: {
 			title: 'Dasar Komputer selesai',
@@ -27,6 +28,7 @@ export const basicsChapter: Chapter = {
 				'<b>Bit dan byte</b>',
 				'<b>Sistem operasi</b>',
 				'<b>Program dan algoritma</b>',
+				'<b>Variabel, fungsi, dan list</b>',
 				'<b>Bahasa pemrograman</b>',
 				'<b>Compiler dan interpreter</b>',
 				'<b>Runtime dan library</b>'
@@ -43,6 +45,7 @@ export const basicsChapter: Chapter = {
 				'<b>Bits and bytes</b>',
 				'<b>Operating systems</b>',
 				'<b>Programs and algorithms</b>',
+				'<b>Variables, functions, and lists</b>',
 				'<b>Programming languages</b>',
 				'<b>Compilers and interpreters</b>',
 				'<b>Runtimes and libraries</b>'

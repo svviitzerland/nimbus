@@ -7,7 +7,7 @@ export type OsAppId = 'browser' | 'music' | 'chat' | 'game';
 export type OsStep = { title: string; body: string };
 
 export interface OsText extends LessonText {
-	/** Panel text, one per scene (laptop, manager, opening, CPU, RAM, swap, files, names, play). */
+	/** Panel text, one per scene (laptop, manager, opening, CPU, RAM, processes, swap, files, names, play). */
 	steps: OsStep[];
 	apps: { id: OsAppId; name: string }[];
 	osLabel: string; // the manager band between apps and hardware
@@ -16,6 +16,10 @@ export interface OsText extends LessonText {
 	diskLabel: string; // storage
 	turn: string; // template with {app}, whose turn it is on the CPU
 	ramUsed: string; // template with {n}, gigabytes in use out of 8
+	procTitle: string; // heading of the little process list
+	procCols: { pid: string; name: string; ram: string; state: string }; // its column headings
+	running: string; // the process on the CPU right now
+	waiting: string; // the processes waiting for their turn
 	slowTag: string; // badge on the laptop once RAM spills onto storage
 	fileName: string; // the song the music app asks for
 	osTrick: string; // the short memory line shown with the manager

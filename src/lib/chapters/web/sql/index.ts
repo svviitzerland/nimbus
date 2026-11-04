@@ -6,7 +6,18 @@ import { en } from './en';
 export const sql: Lesson = {
 	id: 'sql',
 	mood: 'calm',
-	moods: ['calm', 'thinking', 'idea', 'happy', 'thinking', 'wink', 'idea', 'wink', 'excited'],
+	moods: [
+		'calm',
+		'thinking',
+		'idea',
+		'happy',
+		'thinking',
+		'wink',
+		'surprised',
+		'idea',
+		'wink',
+		'excited'
+	],
 	reactionMood: {
 		all: 'happy',
 		pick: 'wink',

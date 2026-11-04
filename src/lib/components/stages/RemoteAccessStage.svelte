@@ -7,9 +7,25 @@
 	let {
 		text,
 		oncomplete,
-		onstate
-	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
+		onstate,
+		onshow,
+		beat = 0
+	}: {
+		text: LessonText;
+		oncomplete?: () => void;
+		onstate?: (s: string) => void;
+		onshow?: (v: boolean) => void;
+		beat?: number;
+	} = $props();
 	const tx = $derived(text as RemoteAccessText);
+
+	// The two beats before the last one are about SSH keys. The key pair shows on the screen
+	// (until you connect), and the stage is shown un-dimmed so the picture can be read.
+	const keyBeat = $derived(beat >= tx.intro.length - 3 && beat <= tx.intro.length - 2);
+	const keyed = $derived(beat >= tx.intro.length - 3);
+	$effect(() => {
+		onshow?.(keyBeat);
+	});
 
 	let view = $state<'' | 'ssh' | 'rdp'>('');
 	let connecting = $state(false);
@@ -93,11 +109,42 @@
 	onDestroy(() => timers.forEach(clearTimeout));
 </script>
 
+{#snippet padlock(size: number)}
+	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		<rect
+			x="5"
+			y="10.5"
+			width="14"
+			height="9.5"
+			rx="2.4"
+			fill="#e7f3ec"
+			stroke="#3a9c64"
+			stroke-width="2"
+		/>
+		<path
+			d="M8.2 10.5V7.6a3.8 3.8 0 0 1 7.6 0v2.9"
+			stroke="#3a9c64"
+			stroke-width="2"
+			stroke-linecap="round"
+		/>
+	</svg>
+{/snippet}
+
+{#snippet keyIcon()}
+	<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		<circle cx="8" cy="12" r="4" stroke="#dd9e36" stroke-width="2" fill="#fbf1de" />
+		<path d="M12 12h9M18 12v3M21 12v2" stroke="#dd9e36" stroke-width="2" stroke-linecap="round" />
+	</svg>
+{/snippet}
+
 <div class="wrap">
 	<!-- the faraway server, in a data center -->
 	<div class="dc" class:live={connected}>
 		<span class="rack"><i></i><i></i><i></i></span>
 		<span class="dctext">{tx.serverLabel}<span class="dcsub">{tx.dcLabel}</span></span>
+		{#if keyed}
+			<span class="dclock" title={tx.publicKey}>{@render padlock(15)}</span>
+		{/if}
 	</div>
 
 	<!-- the remote connection coming down to your screen -->
@@ -107,7 +154,26 @@
 	<div class="computer">
 		<div class="monitor">
 			<div class="screen" class:lit={connected}>
-				{#if view === ''}
+				{#if view === '' && keyBeat}
+					<div class="keys">
+						<span class="ktitle">{tx.keysTitle}</span>
+						<div class="kpair">
+							<div class="kcard priv">
+								{@render keyIcon()}
+								<b>{tx.privateKey}</b>
+								<code>{tx.privateFile}</code>
+								<small>{tx.privateNote}</small>
+							</div>
+							<span class="kmatch" aria-hidden="true"></span>
+							<div class="kcard pub">
+								{@render padlock(22)}
+								<b>{tx.publicKey}</b>
+								<code>{tx.publicFile}</code>
+								<small>{tx.publicNote}</small>
+							</div>
+						</div>
+					</div>
+				{:else if view === ''}
 					<div class="locked">
 						<svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
 							<rect
@@ -235,6 +301,66 @@
 		font-size: 9.5px;
 		font-weight: 600;
 		color: var(--color-faint);
+	}
+	.dclock {
+		display: inline-flex;
+		margin-left: 2px;
+	}
+	.keys {
+		margin: auto;
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		align-items: center;
+		gap: 9px;
+	}
+	.ktitle {
+		font-size: 11.5px;
+		font-weight: 700;
+		color: #d2e2ee;
+	}
+	.kpair {
+		display: flex;
+		width: 100%;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+	}
+	.kcard {
+		display: flex;
+		width: 122px;
+		flex-direction: column;
+		align-items: center;
+		gap: 3px;
+		border-radius: 10px;
+		background: #2a3644;
+		padding: 9px 6px;
+		text-align: center;
+		line-height: 1.25;
+	}
+	.kcard b {
+		font-size: 11.5px;
+		color: #fff;
+	}
+	.kcard code {
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 10px;
+		color: #9fb1c0;
+	}
+	.kcard small {
+		font-size: 10px;
+		font-weight: 600;
+	}
+	.kcard.priv small {
+		color: #e9b866;
+	}
+	.kcard.pub small {
+		color: #6fd39a;
+	}
+	.kmatch {
+		width: 18px;
+		height: 0;
+		border-top: 2px solid #6b8496;
 	}
 	.link {
 		position: relative;

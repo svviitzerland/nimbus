@@ -273,7 +273,9 @@
 					{#each [0, 1] as half (half)}
 						<div class="nib">
 							<div class="row">
-								{#each hexBits.slice(half * 4, half * 4 + 4) as b, i (i)}{@render sw(b === 1)}{/each}
+								{#each hexBits.slice(half * 4, half * 4 + 4) as b, i (i)}{@render sw(
+										b === 1
+									)}{/each}
 							</div>
 							<div class="bracket nibble"></div>
 							<span class="small">{tx.nibble}</span>

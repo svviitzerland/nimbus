@@ -6,7 +6,7 @@ import { en } from './en';
 export const cicd: Lesson = {
 	id: 'cicd',
 	mood: 'thinking',
-	moods: ['worried', 'calm', 'idea', 'happy'],
+	moods: ['worried', 'calm', 'idea', 'thinking', 'happy'],
 	reactionMood: { pass: 'happy', caught: 'idea', both: 'excited' },
 	stage: CicdStage,
 	text: { id, en }

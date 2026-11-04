@@ -6,7 +6,19 @@ import { en } from './en';
 export const html: Lesson = {
 	id: 'html',
 	mood: 'calm',
-	moods: ['calm', 'thinking', 'idea', 'calm', 'happy', 'happy', 'happy', 'wink', 'excited'],
+	moods: [
+		'calm',
+		'thinking',
+		'idea',
+		'calm',
+		'happy',
+		'happy',
+		'happy',
+		'idea',
+		'excited',
+		'wink',
+		'excited'
+	],
 	reactionMood: {
 		edited: 'excited',
 		unclosed: 'thinking'

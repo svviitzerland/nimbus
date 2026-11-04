@@ -16,6 +16,7 @@ import { buildTools } from './build-tools';
 import { backendWhat } from './backend-what';
 import { auth } from './auth';
 import { backendFrameworks } from './backend-frameworks';
+import { configSecrets } from './config-secrets';
 import { jobs } from './jobs';
 import { sql } from './sql';
 import { sqlCommands } from './sql-commands';
@@ -23,6 +24,7 @@ import { relations } from './relations';
 import { dbIndex } from './db-index';
 import { transaction } from './transaction';
 import { oltpOlap } from './oltp-olap';
+import { replication } from './replication';
 import { cache } from './cache';
 import { domainHosting } from './domain-hosting';
 import { deploySite } from './deploy-site';
@@ -55,6 +57,7 @@ export const webChapter: Chapter = {
 		backendWhat,
 		auth,
 		backendFrameworks,
+		configSecrets,
 		jobs,
 		sql,
 		sqlCommands,
@@ -62,6 +65,7 @@ export const webChapter: Chapter = {
 		dbIndex,
 		transaction,
 		oltpOlap,
+		replication,
 		cache,
 		domainHosting,
 		deploySite,
@@ -90,6 +94,7 @@ export const webChapter: Chapter = {
 				'<b>Apa itu backend</b>',
 				'<b>Session, cookie, dan token</b>',
 				'<b>Framework backend</b>',
+				'<b>Config dan rahasia</b>',
 				'<b>Queue dan background job</b>',
 				'<b>Apa itu SQL</b>',
 				'<b>Jenis perintah SQL</b>',
@@ -97,6 +102,7 @@ export const webChapter: Chapter = {
 				'<b>Index database</b>',
 				'<b>Transaksi database</b>',
 				'<b>OLTP dan OLAP</b>',
+				'<b>Replikasi dan sharding</b>',
 				'<b>Caching dan Redis</b>',
 				'<b>Domain dan hosting</b>',
 				'<b>Deploy situs</b>',
@@ -127,6 +133,7 @@ export const webChapter: Chapter = {
 				'<b>What is a backend</b>',
 				'<b>Sessions, cookies, and tokens</b>',
 				'<b>Backend frameworks</b>',
+				'<b>Config and secrets</b>',
 				'<b>Queues and background jobs</b>',
 				'<b>What is SQL</b>',
 				'<b>Kinds of SQL commands</b>',
@@ -134,6 +141,7 @@ export const webChapter: Chapter = {
 				'<b>Database indexes</b>',
 				'<b>Database transactions</b>',
 				'<b>OLTP and OLAP</b>',
+				'<b>Replication and sharding</b>',
 				'<b>Caching and Redis</b>',
 				'<b>Domains and hosting</b>',
 				'<b>Deploying a site</b>',

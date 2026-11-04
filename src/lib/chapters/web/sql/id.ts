@@ -9,6 +9,7 @@ export const id: SqlText = {
 		'Biasanya kamu nggak butuh semua kolom. Kata sesudah <b>SELECT</b> bilang kolom mana yang mau diambil, dan <b>FROM</b> bilang tabel mana yang dicari. Nama sama harga aja, yang lain nggak usah.',
 		'Sekarang pertanyaan beneran. Produk mana yang stoknya habis? <b>WHERE</b> menambahkan syarat, dan database ngecek syarat itu di tiap baris, satu per satu. Cuma baris yang lolos yang dikembalikan.',
 		'Terakhir, <b>ORDER BY</b> mengurutkan sisanya. Produk di bawah 50000, dari yang termurah. Database selalu menyaring dulu baru mengurutkan, jadi dia nggak buang waktu ngurutin baris yang toh bakal dibuang.',
+		'Kadang kamu butuh ringkasan, bukan baris satu satu. Ini tabel <b>orders</b>, jadi berapa pesanan yang datang dari tiap kota? <b>GROUP BY</b> mengumpulkan baris berkota sama jadi satu tumpukan, <b>COUNT</b> menghitung isi tiap tumpukan, dan <b>SUM</b> menjumlahkan totalnya. Namanya <b>agregasi</b>.',
 		'[ingat] Baca query dari atas ke bawah kayak lagi belanja. SELECT itu mau ambil <b>apa</b>, FROM itu dari rak <b>mana</b>, WHERE itu <b>yang kayak gimana</b>. Ambil apa, dari mana, yang mana.',
 		'[fyi] SQL lahir di IBM tahun 1970an dan sampai sekarang masih ada di mana mana. MySQL, PostgreSQL, dan SQLite (yang diam diam tinggal di dalam HP kamu) semuanya ngomong SQL, masing masing dengan logat kecilnya sendiri. Keluarga database yang satunya lagi bisa kamu temui di [[SQL atau NoSQL|resilience/database]].',
 		'Kalau penasaran, coba tanya tabelnya pertanyaan lain dan lihat query itu menulis dirinya sendiri lagi. Ini opsional kok, tokonya tetap senang.'
@@ -47,6 +48,11 @@ export const id: SqlText = {
 			body: 'Sesudah disaring, baris yang tersisa dijejerkan. Di sini berdasarkan harga, dari yang termurah sampai termahal.'
 		},
 		{
+			tag: 'GROUP BY',
+			title: 'Tumpukan dan ringkasan',
+			body: 'Baris dengan kota yang sama masuk satu tumpukan. <b>COUNT(*)</b> bilang ada berapa baris di tiap tumpukan, <b>SUM(total)</b> menjumlahkan uangnya. Satu baris jawaban per kota.'
+		},
+		{
 			tag: 'Biar nempel',
 			title: 'Apa, dari mana, yang mana',
 			body: 'SELECT itu apa, FROM itu dari mana, WHERE itu yang mana, dan ORDER BY itu urutannya gimana. Empat kata, dan hampir semua query bisa kamu baca.'
@@ -71,8 +77,20 @@ export const id: SqlText = {
 		all: 'Tunjukkan seluruh tabelnya',
 		pick: 'Cuma nama dan harga tiap produk',
 		out: 'Produk mana yang stoknya habis?',
-		cheap: 'Produk di bawah 50000, dari yang termurah'
+		cheap: 'Produk di bawah 50000, dari yang termurah',
+		group: 'Berapa pesanan per kota, dan berapa totalnya?'
 	},
+	ordersTable: 'orders',
+	orderColumns: { city: 'city', total: 'total' },
+	orders: [
+		{ city: 'Jakarta', total: 120000 },
+		{ city: 'Bandung', total: 89000 },
+		{ city: 'Jakarta', total: 45000 },
+		{ city: 'Surabaya', total: 65000 },
+		{ city: 'Bandung', total: 39000 },
+		{ city: 'Jakarta', total: 15000 }
+	],
+	resultLabel: 'Jawabannya, satu baris per kota',
 	questionLabel: 'Pertanyaannya',
 	fileName: 'query.sql',
 	rowsBack: '{n} baris dikembalikan',

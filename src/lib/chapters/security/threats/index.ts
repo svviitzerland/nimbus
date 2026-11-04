@@ -6,7 +6,18 @@ import { en } from './en';
 export const threats: Lesson = {
 	id: 'threats',
 	mood: 'thinking',
-	moods: ['wink', 'idea', 'thinking', 'calm', 'thinking', 'surprised', 'worried', 'wink', 'idea', 'excited'],
+	moods: [
+		'wink',
+		'idea',
+		'thinking',
+		'calm',
+		'thinking',
+		'surprised',
+		'worried',
+		'wink',
+		'idea',
+		'excited'
+	],
 	reactionMood: {
 		door: 'thinking',
 		window: 'idea',

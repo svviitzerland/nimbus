@@ -30,7 +30,21 @@
 
 	const PLAY = $derived(tx.intro.length - 1);
 	const isPlay = $derived(beat >= PLAY);
-	const focusCol = $derived(beat === 0 ? 'front' : beat === 1 ? 'back' : beat === 2 ? 'api' : '');
+	const JSON_BEAT = 3;
+	const focusCol = $derived(
+		beat === 0 ? 'front' : beat === 1 ? 'back' : beat === 2 || beat === JSON_BEAT ? 'api' : ''
+	);
+	// The JSON beat shows one product the way the API really sends it, keys and values in braces.
+	const sample = $derived(tx.products[1] ?? tx.products[0]);
+	const jsonRows = $derived(
+		sample
+			? [
+					{ key: 'id', value: String(sample.id), str: false },
+					{ key: 'name', value: sample.name, str: true },
+					{ key: 'price', value: String(sample.price), str: false }
+				]
+			: []
+	);
 	const rupiah = (n: number) => 'Rp' + n.toLocaleString('id-ID');
 
 	const at = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
@@ -119,6 +133,23 @@
 			</div>
 		</div>
 	</div>
+
+	{#if beat === JSON_BEAT && sample}
+		<div class="json" transition:fade={{ duration: 220 }}>
+			<span class="jtag">JSON</span>
+			<div class="code">
+				<div class="jp">{'{'}</div>
+				{#each jsonRows as r, k (r.key)}
+					<div class="jl">
+						<span class="jk">"{r.key}"</span><span class="jp">:</span>
+						<span class={r.str ? 'js' : 'jn'}>{r.str ? `"${r.value}"` : r.value}</span
+						>{#if k < jsonRows.length - 1}<span class="jp">,</span>{/if}
+					</div>
+				{/each}
+				<div class="jp">{'}'}</div>
+			</div>
+		</div>
+	{/if}
 
 	{#if isPlay}
 		<CallToActionButton disabled={phase !== 'idle'} onclick={fetchData}
@@ -422,6 +453,49 @@
 		color: #c08327;
 	}
 
+	.json {
+		position: relative;
+		border-radius: 14px;
+		border: 1px solid #e2dccf;
+		background: #fff;
+		padding: 14px 18px 12px;
+		box-shadow: 0 10px 24px rgba(22, 40, 60, 0.07);
+	}
+	.jtag {
+		position: absolute;
+		top: -9px;
+		left: 14px;
+		border-radius: 999px;
+		background: #2b3640;
+		padding: 1px 9px;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		color: #fff;
+	}
+	.jl {
+		padding-left: 1.4em;
+	}
+	.json .code {
+		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+		font-size: 12.5px;
+		line-height: 1.6;
+		color: #2a3340;
+	}
+	.jp {
+		color: #9aa3ae;
+	}
+	.jk {
+		font-weight: 700;
+		color: #2e6fe0;
+	}
+	.js {
+		color: #2f8a57;
+	}
+	.jn {
+		color: #c08327;
+		font-weight: 700;
+	}
 	.hl.phone,
 	.hl.server {
 		border-color: #cadcf7;
@@ -532,6 +606,23 @@
 	}
 	:global(.dark) .dn {
 		color: #e0dcd4;
+	}
+	:global(.dark) .json {
+		border-color: #2c3746;
+		background: #1b2533;
+	}
+	:global(.dark) .json .code {
+		color: #e0dcd4;
+	}
+	:global(.dark) .jtag {
+		background: #e0dcd4;
+		color: #1b2533;
+	}
+	:global(.dark) .jk {
+		color: #7daae0;
+	}
+	:global(.dark) .js {
+		color: #5bb87e;
 	}
 	:global(.dark) .hl.phone,
 	:global(.dark) .hl.server {

@@ -13,10 +13,29 @@
 	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
 	const tx = $derived(text as LlmText);
 
-	type Scene = 'chat' | 'next' | 'tokens' | 'guess' | 'loop' | 'temp' | 'remember' | 'try';
-	const SCENES: Scene[] = ['chat', 'next', 'tokens', 'guess', 'loop', 'temp', 'remember', 'try'];
-	// nine beats, eight scenes (the fyi beat keeps the remember picture)
-	const SCENE_OF_BEAT = [0, 1, 2, 3, 4, 5, 6, 6, 7];
+	type Scene =
+		| 'chat'
+		| 'next'
+		| 'tokens'
+		| 'guess'
+		| 'loop'
+		| 'temp'
+		| 'context'
+		| 'remember'
+		| 'try';
+	const SCENES: Scene[] = [
+		'chat',
+		'next',
+		'tokens',
+		'guess',
+		'loop',
+		'temp',
+		'context',
+		'remember',
+		'try'
+	];
+	// ten beats, nine scenes (the fyi beat keeps the remember picture)
+	const SCENE_OF_BEAT = [0, 1, 2, 3, 4, 5, 6, 7, 7, 8];
 
 	type Step = { opts: Guess[]; pick: number };
 
@@ -181,6 +200,19 @@
 	};
 	const TINTS = ['brand', 'amber', 'grass'];
 
+	// the context window scene, messages arrive one by one, the frame keeps only the newest few,
+	// and the oldest slide out the top (your name goes first, so the AI forgets it)
+	const WINDOW = 4;
+	const ctx = $derived.by(() => {
+		const n = tx.contextChat.length;
+		const step = 1150;
+		const cycle = 400 + n * step + 3600;
+		const x = t < 1e8 ? t % cycle : 1e9;
+		const shown = Math.min(n, Math.max(0, Math.floor((x - 400) / step) + 1));
+		const from = Math.max(0, shown - WINDOW);
+		return { shown, from, gone: Math.max(0, from - 2) };
+	});
+
 	const showBars = $derived(
 		scene === 'guess' || scene === 'loop' || scene === 'temp' || scene === 'try'
 	);
@@ -225,6 +257,27 @@
 								</p>
 							</div>
 						{/if}
+					</div>
+				{:else if scene === 'context'}
+					<div class="ctx">
+						{#if ctx.from > 0}
+							<p class="ctx-out-label" in:fade={{ duration: 250 }}>{tx.contextOut}</p>
+							{#each tx.contextChat.slice(ctx.gone, ctx.from) as m, k (ctx.gone + k)}
+								<div class="cmsg out" class:you={(ctx.gone + k) % 2 === 0}>{m}</div>
+							{/each}
+						{/if}
+						<div class="frame">
+							<span class="frame-label">{tx.contextLabel}</span>
+							{#each tx.contextChat.slice(ctx.from, ctx.shown) as m, k (ctx.from + k)}
+								<div
+									class="cmsg"
+									class:you={(ctx.from + k) % 2 === 0}
+									in:fade={{ duration: clock.reduced ? 0 : 260 }}
+								>
+									{m}
+								</div>
+							{/each}
+						</div>
 					</div>
 				{:else if scene === 'tokens'}
 					<div class="tokens">
@@ -485,6 +538,68 @@
 			transform: translateY(-3px);
 			opacity: 0.5;
 		}
+	}
+
+	/* context window scene */
+	.ctx {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+	.ctx-out-label {
+		margin: 0;
+		text-align: center;
+		font-size: 10.5px;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--color-danger);
+	}
+	.frame {
+		position: relative;
+		display: flex;
+		min-height: 230px;
+		flex-direction: column;
+		gap: 6px;
+		border: 2px solid var(--color-brand);
+		border-radius: 14px;
+		padding: 18px 8px 8px;
+	}
+	.frame-label {
+		position: absolute;
+		top: -9px;
+		left: 12px;
+		background: var(--color-card);
+		padding: 0 6px;
+		font-size: 10.5px;
+		font-weight: 800;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--color-brand);
+	}
+	.cmsg {
+		max-width: 86%;
+		align-self: flex-start;
+		border: 1px solid var(--color-line);
+		border-radius: 12px;
+		border-bottom-left-radius: 4px;
+		background: var(--color-paper);
+		padding: 5px 10px;
+		font-size: 12.5px;
+		line-height: 1.4;
+		color: var(--color-ink);
+	}
+	.cmsg.you {
+		align-self: flex-end;
+		border-color: transparent;
+		border-radius: 12px;
+		border-bottom-right-radius: 4px;
+		background: var(--color-brand-soft);
+	}
+	.cmsg.out {
+		opacity: 0.4;
+		text-decoration: line-through;
+		text-decoration-color: var(--color-danger);
 	}
 
 	/* tokens scene */

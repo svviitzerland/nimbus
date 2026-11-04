@@ -6,7 +6,7 @@ import { en } from './en';
 export const api: Lesson = {
 	id: 'api',
 	mood: 'calm',
-	moods: ['calm', 'calm', 'idea', 'happy'],
+	moods: ['calm', 'calm', 'idea', 'thinking', 'happy'],
 	reactionMood: { fetch: 'happy' },
 	stage: ApiStage,
 	text: { id, en }

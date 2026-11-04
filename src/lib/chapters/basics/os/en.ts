@@ -9,6 +9,7 @@ export const en: OsText = {
 		'Watch the apps open. Each one first asks the OS for a window and some memory, and only then does it show up on the screen.',
 		'The CPU can only work on a few things at once, and there are far more apps, so the OS lets them take turns. Each app gets a tiny slice of time, a few thousandths of a second, then the next one goes. It switches so fast that everything looks like it runs at once.',
 		'The OS also hands each app its own piece of RAM and keeps those pieces apart. That way a game that crashes (suddenly breaks) cannot mess up your chat. The OS keeps a little RAM for itself, too.',
+		'Here is a word you will hear a lot. A program that is running is called a <b>process</b>. The OS gives every process its own number, the <b>PID</b> (process ID), and its own share of RAM, then decides which process gets the CPU next. That deciding is called <b>scheduling</b>.',
 		'[fyi] Open one app too many and RAM fills up. The OS then parks the extra on storage (this is called <b>swap</b>). Storage is much slower than RAM, and that is the moment a laptop starts to crawl.',
 		'The OS looks after your files as well. When the music app wants a song, it asks the OS, and the OS fetches it from storage. Folders are simply the OS keeping your files tidy.',
 		'You already know a few OSes. <b>Windows</b> and <b>macOS</b> run laptops, <b>Linux</b> runs most of the servers on the internet, and <b>Android</b> and <b>iOS</b> run phones (Android is built on Linux). You can talk to any of them with icons or typed commands, see [[CLI and GUI|foundations/cli-gui]].',
@@ -42,6 +43,10 @@ export const en: OsText = {
 			body: 'Each app gets its <b>own piece</b> of RAM, kept apart from the others. All the apps share the same 8 GB.'
 		},
 		{
+			title: 'Processes',
+			body: 'A running program is a <b>process</b>. Each one has a <b>PID</b> and its own RAM. Task Manager on Windows and Activity Monitor on a Mac show this very list.'
+		},
+		{
 			title: 'When RAM is full',
 			body: 'The extra spills onto storage, called <b>swap</b>. It still works, just slowly.'
 		},
@@ -70,6 +75,10 @@ export const en: OsText = {
 	diskLabel: 'Storage',
 	turn: '{app} has its turn',
 	ramUsed: '{n} of 8 GB used',
+	procTitle: 'Processes',
+	procCols: { pid: 'PID', name: 'Program', ram: 'RAM', state: 'State' },
+	running: 'running',
+	waiting: 'waiting',
 	slowTag: 'slow',
 	fileName: 'song.mp3',
 	osTrick: 'apps order, the OS serves',

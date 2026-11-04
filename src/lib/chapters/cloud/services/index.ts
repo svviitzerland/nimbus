@@ -6,7 +6,7 @@ import { en } from './en';
 export const services: Lesson = {
 	id: 'services',
 	mood: 'thinking',
-	moods: ['thinking', 'thinking', 'calm', 'happy', 'idea'],
+	moods: ['thinking', 'thinking', 'calm', 'happy', 'idea', 'wink', 'idea'],
 	reactionMood: { open: 'excited' },
 	stage: CloudServicesStage,
 	text: { id, en }

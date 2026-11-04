@@ -7,6 +7,7 @@ export const id: RagText = {
 		'Dia langsung jawab, yakin banget. Bisa, 30 hari, aman! Padahal bot ini belum pernah lihat kebijakan refund nimbus.com. Dia belajar dari internet publik, jadi dia cuma bilang apa yang biasanya dibilang kebanyakan situs.',
 		'Kebijakan aslinya bilang 14 hari, jadi jawabannya salah. Kalau [[LLM|ai/llm]] nggak tahu sesuatu, dia tetap menebak kata kata yang paling mungkin dan mengarang jawaban yang kedengarannya benar. Ini namanya <b>halusinasi</b>.',
 		'Solusinya namanya <b>RAG</b>, singkatan dari retrieval augmented generation. Namanya keren, idenya sederhana. Sebelum menjawab, bot <b>mencari</b> dulu di dokumen milikmu, potongan mana yang paling cocok dengan pertanyaannya. Pencariannya pakai [[embedding|ai/embeddings]], jadi yang dicocokkan maknanya, bukan kata yang persis sama.',
+		'Gimana pencariannya bekerja? Pertama, tiap dokumen dipotong jadi bagian kecil bernama <b>chunk</b>, beberapa kalimat saja. Tiap chunk diubah jadi [[embedding|ai/embeddings]], deretan angka untuk maknanya, lalu disimpan di <b>vector database</b>. Pertanyaannya juga jadi angka, dan database itu mengembalikan chunk yang paling dekat.',
 		'Yang paling cocok, kebijakan refund, ditempelkan ke prompt tepat di sebelah pertanyaannya. Sekarang model nggak menjawab dari ingatan lagi. Dia membaca halaman yang ada di depannya.',
 		'Dan sekarang jawabannya benar. Maaf, refund cuma berlaku dalam 14 hari. Dia bahkan menunjukkan asal jawabannya, jadi siapa pun bisa mengecek.',
 		'[ingat] RAG mengubah ujian tutup buku jadi ujian buka buku. Tanpa RAG, AI menjawab dari ingatan dan kadang ngarang. Dengan RAG, AI buka bukunya dulu, baru menjawab.',
@@ -39,6 +40,11 @@ export const id: RagText = {
 			tag: 'Retrieve',
 			title: 'Cari dulu',
 			body: 'Pertanyaannya dibandingkan dengan tiap dokumen. Masing masing dapat skor kecocokan, dan yang maknanya paling dekat menang.'
+		},
+		{
+			tag: 'Chunk',
+			title: 'Potong, jadikan angka, simpan',
+			body: 'Tiap halaman dipotong jadi chunk kecil, dan tiap chunk dapat embedding sendiri. Vector database menaruh makna yang mirip saling berdekatan, jadi chunk yang paling dekat dengan pertanyaan menang.'
 		},
 		{
 			tag: 'Augment',
@@ -80,6 +86,9 @@ export const id: RagText = {
 	searching: 'Mencari di dokumen',
 	match: '{n}% cocok',
 	readsTitle: 'Yang dibaca model',
+	chunkTitle: 'Dokumen dipotong jadi chunk',
+	dbTitle: 'Vector database',
+	questionDot: 'pertanyaan',
 	docs: {
 		refund: {
 			title: 'Kebijakan refund',

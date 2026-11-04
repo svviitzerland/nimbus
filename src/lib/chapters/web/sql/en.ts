@@ -9,6 +9,7 @@ export const en: SqlText = {
 		'Usually you do not need every column. The word after <b>SELECT</b> says which columns you want back, and <b>FROM</b> says which table to look in. Name and price, please, nothing else.',
 		'Now a real question. Which products are sold out? <b>WHERE</b> adds a test, and the database checks it on every single row, one by one. Only the rows that pass come back.',
 		'Last, <b>ORDER BY</b> sorts whatever is left. Products under 50000, cheapest first. The database always filters first and sorts after, so it never wastes time sorting rows it will throw away.',
+		'Sometimes you want a summary, not rows. Here is the <b>orders</b> table, so how many orders came from each city? <b>GROUP BY</b> puts rows with the same city in one pile, <b>COUNT</b> counts each pile, and <b>SUM</b> adds up its totals. This is called <b>aggregation</b>.',
 		'[ingat] Read a query top to bottom like a little shopping trip. SELECT says <b>what</b> you want, FROM says <b>where</b> it is, WHERE says <b>which ones</b>. What, where, which.',
 		'[fyi] SQL was born at IBM in the 1970s and it is still everywhere. MySQL, PostgreSQL, and SQLite (the one quietly living inside your phone) all speak it, each with a small accent of its own. You will meet the other family of databases in [[SQL or NoSQL|resilience/database]].',
 		'If you are curious, ask the table another question and watch the query write itself again. Totally optional, the shop is happy either way.'
@@ -47,6 +48,11 @@ export const en: SqlText = {
 			body: 'After the filter, the leftover rows are lined up. Here by price, from cheapest to priciest.'
 		},
 		{
+			tag: 'GROUP BY',
+			title: 'Piles and summaries',
+			body: 'Rows with the same city land in one pile. <b>COUNT(*)</b> says how many rows each pile has, <b>SUM(total)</b> adds up the money. One answer row per city.'
+		},
+		{
 			tag: 'Make it stick',
 			title: 'What, where, which',
 			body: 'SELECT is what, FROM is where, WHERE is which ones, and ORDER BY is in what order. Four words, almost every query you will ever read.'
@@ -71,8 +77,20 @@ export const en: SqlText = {
 		all: 'Show me the whole table',
 		pick: 'Just the name and price of every product',
 		out: 'Which products are sold out?',
-		cheap: 'Products under 50000, cheapest first'
+		cheap: 'Products under 50000, cheapest first',
+		group: 'How many orders per city, and how much in total?'
 	},
+	ordersTable: 'orders',
+	orderColumns: { city: 'city', total: 'total' },
+	orders: [
+		{ city: 'Jakarta', total: 120000 },
+		{ city: 'Bandung', total: 89000 },
+		{ city: 'Jakarta', total: 45000 },
+		{ city: 'Surabaya', total: 65000 },
+		{ city: 'Bandung', total: 39000 },
+		{ city: 'Jakarta', total: 15000 }
+	],
+	resultLabel: 'The answer, one row per city',
 	questionLabel: 'The question',
 	fileName: 'query.sql',
 	rowsBack: '{n} rows came back',

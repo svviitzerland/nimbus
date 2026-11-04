@@ -26,6 +26,11 @@
 	});
 	const last = $derived(tx.steps.length - 1);
 	const step = $derived(Math.max(0, Math.min(peek ?? beat, last)));
+	// The URL beat sits between the path and the method. The animation below was written for the
+	// beats without it, so `os` is the step on that older numbering (and -1 on the URL beat itself).
+	const URL_STEP = 3;
+	const os = $derived(step === URL_STEP ? -1 : step > URL_STEP ? step - 1 : step);
+	const oldLast = $derived(last - 1);
 
 	const KINDS: HttpKind[] = ['ok', 'moved', 'notfound', 'broken'];
 	const REQ: Record<HttpKind, { path: string; code: string }> = {
@@ -93,14 +98,14 @@
 	}
 
 	function play(s: number, p: HttpKind | null, still: boolean): (() => void) | undefined {
-		if (s <= 1 || (s === last && !p)) {
+		if (s <= 1 || (s === oldLast && !p)) {
 			phase = 'rest';
 			screen = null;
 			return;
 		}
 		if (still) {
 			// A calm still frame, the envelope parked mid way and the answer already on screen.
-			const k = s === last && p ? p : 'ok';
+			const k = s === oldLast && p ? p : 'ok';
 			phase = 'mid';
 			if (s <= 3) {
 				label = s === 3 ? 'POST /messages' : 'GET /about';
@@ -109,7 +114,7 @@
 				label = REQ[k].code;
 				screen = k;
 			}
-			if (s === last && p) onstate?.(p);
+			if (s === oldLast && p) onstate?.(p);
 			return;
 		}
 		if (s === 2) return runSeq(ask('GET', '/about'), true);
@@ -119,12 +124,12 @@
 				KINDS.flatMap((k) => trip(k)),
 				true
 			);
-		if (s === last && p) return runSeq(trip(p, () => onstate?.(p)));
+		if (s === oldLast && p) return runSeq(trip(p, () => onstate?.(p)));
 		return runSeq(trip('ok'), true);
 	}
 
 	$effect(() => {
-		const s = step;
+		const s = os;
 		const p = pick;
 		const still = reduce;
 		void runId;
@@ -142,9 +147,15 @@
 	const envX = $derived(phase === 'go' || phase === 'think' ? RIGHT : phase === 'mid' ? MID : LEFT);
 	const envOn = $derived(phase === 'go' || phase === 'back' || phase === 'mid');
 	const isResponse = $derived(/^\d/.test(label));
-	const secure = $derived(step === 7);
+	const secure = $derived(os === 7);
 	const shownKind = $derived(screen && screen !== 'loading' ? screen : null);
-	const legendOn = $derived(step >= 5 && step !== 7);
+	const legendOn = $derived(os >= 5 && os !== 7);
+	const urlParts = $derived([
+		{ k: 'scheme', v: 'https://', label: tx.urlParts.scheme },
+		{ k: 'domain', v: 'nimbus.com', label: tx.urlParts.domain },
+		{ k: 'path', v: '/about', label: tx.urlParts.path },
+		{ k: 'query', v: tx.urlQuery, label: tx.urlParts.query }
+	]);
 	const legendHit = $derived(shownKind ? KINDS.indexOf(shownKind) : -1);
 </script>
 
@@ -160,6 +171,17 @@
 						>
 					{/each}
 				</div>
+			</div>
+		{/if}
+
+		{#if i === URL_STEP}
+			<div class="url-strip" role="img" aria-label={urlParts.map((u) => u.v).join('')}>
+				{#each urlParts as u, n (u.k)}
+					<span class="part {u.k}" class:still={reduce} style="animation-delay:{0.2 + n * 0.55}s">
+						<span class="pv">{u.v}</span>
+						<span class="pl">{u.label}</span>
+					</span>
+				{/each}
 			</div>
 		{/if}
 
@@ -185,7 +207,9 @@
 					<path d="M1.5 3V2a2 2 0 0 1 4 0v1" />
 				</g>
 			{/if}
-			<text x={secure ? 45 : 36} y="48" class="url">nimbus.com</text>
+			<text x={secure ? 45 : 36} y="48" class="url" class:long={i === URL_STEP}
+				>{i === URL_STEP ? `https://nimbus.com/about${tx.urlQuery}` : 'nimbus.com'}</text
+			>
 
 			{#if shownKind}
 				<g class="page {shownKind}">
@@ -333,6 +357,60 @@
 		background: var(--color-brand-soft);
 	}
 
+	/* ---- the URL beat, the address split into labelled parts ---- */
+	.url-strip {
+		display: flex;
+		max-width: 100%;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 4px;
+	}
+	.part {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 3px;
+		animation: partIn 0.45s ease-out both;
+	}
+	.part.still {
+		animation: none;
+	}
+	@keyframes partIn {
+		from {
+			opacity: 0;
+			transform: translateY(6px);
+		}
+	}
+	.pv {
+		border: 1.5px solid var(--pc);
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--pc) 12%, var(--color-card));
+		padding: 4px 8px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 14px;
+		font-weight: 700;
+		color: var(--color-ink);
+	}
+	.pl {
+		font-size: 10.5px;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--pc);
+	}
+	.part.scheme {
+		--pc: var(--color-grass);
+	}
+	.part.domain {
+		--pc: var(--color-brand);
+	}
+	.part.path {
+		--pc: var(--color-amber);
+	}
+	.part.query {
+		--pc: var(--color-danger);
+	}
+
 	/* ---- svg parts ---- */
 	.shell {
 		fill: var(--color-card);
@@ -350,6 +428,9 @@
 		font-size: 8.5px;
 		font-weight: 600;
 		fill: var(--color-muted);
+	}
+	.url.long {
+		font-size: 6.8px;
 	}
 	.base {
 		fill: var(--color-line);

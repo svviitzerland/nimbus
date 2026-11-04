@@ -32,13 +32,23 @@
 	});
 
 	// ---- The four lines, and the beat on which each one gets its tag ----
-	type Line = { open: string; inner: string; close: string; at: number };
+	// A fresh line was never part of the plain text file, it only appears once its beat comes.
+	type Line = { open: string; inner: string; close: string; at: number; fresh?: boolean };
+	const LINK_BEAT = 7;
+	const FORM_BEAT = 8;
 	const lines = $derived<Line[]>([
 		{ open: '<h1>', inner: tx.lines.heading, close: '</h1>', at: 2 },
 		{ open: '<p>', inner: tx.lines.paragraph, close: '</p>', at: 4 },
 		{ open: '<button>', inner: tx.lines.button, close: '</button>', at: 5 },
-		// The picture has no plain text form, it only appears once its beat comes.
-		{ open: `<img src="nim.png" alt="${tx.lines.alt}">`, inner: '', close: '', at: 6 }
+		{ open: `<img src="nim.png" alt="${tx.lines.alt}">`, inner: '', close: '', at: 6, fresh: true },
+		{ open: '<a href="/about">', inner: tx.lines.link, close: '</a>', at: LINK_BEAT, fresh: true },
+		{
+			open: '<form method="post" action="/join">',
+			inner: `<input name="email" placeholder="${tx.lines.email}"><button>${tx.lines.join}</button>`,
+			close: '</form>',
+			at: FORM_BEAT,
+			fresh: true
+		}
 	]);
 	const fullCode = $derived(lines.map((l) => l.open + l.inner + l.close).join('\n'));
 
@@ -68,9 +78,9 @@
 	/** What each line looks like right now (null when it is not on the page yet). */
 	const view = $derived<(View | null)[]>(
 		lines.map((l, k) => {
-			const isImg = !l.inner;
+			const fresh = !!l.fresh;
 			if (step < l.at)
-				return isImg ? null : { open: '', inner: l.inner, close: '', plain: true, typing: false };
+				return fresh ? null : { open: '', inner: l.inner, close: '', plain: true, typing: false };
 			if (step > l.at || typed >= tagLen(l))
 				return { open: l.open, inner: l.inner, close: l.close, plain: false, typing: false };
 			// Typing now, the opening tag first, then the closing tag.
@@ -78,7 +88,7 @@
 			const c = Math.max(0, typed - l.open.length);
 			return {
 				open: l.open.slice(0, o),
-				inner: isImg && o < l.open.length ? '' : l.inner,
+				inner: fresh && o < l.open.length ? '' : l.inner,
 				close: l.close.slice(0, c),
 				plain: false,
 				typing: k === typingLine
@@ -91,7 +101,7 @@
 			.map((l, k) => {
 				const v = view[k];
 				if (!v) return null;
-				if (v.typing) return l.inner || null;
+				if (v.typing) return l.fresh ? null : l.inner;
 				return v.open + v.inner + v.close;
 			})
 			.filter((s): s is string => s !== null)
@@ -122,7 +132,7 @@
 		code = fullCode;
 	}
 
-	const PAIRED = ['h1', 'h2', 'h3', 'p', 'button', 'a'];
+	const PAIRED = ['h1', 'h2', 'h3', 'p', 'button', 'a', 'form'];
 	function findUnclosed(src: string): string | null {
 		for (const t of PAIRED) {
 			const opens = (src.match(new RegExp(`<${t}(\\s[^>]*)?>`, 'gi')) ?? []).length;
@@ -209,7 +219,9 @@
 		'body{margin:12px;font:14px/1.45 system-ui,sans-serif;overflow-wrap:anywhere}',
 		'h1{font-size:1.6em;margin:.2em 0 .4em}',
 		'p{margin:.4em 0 .8em}',
-		'img{max-width:100%;height:auto;max-height:80px;display:block;margin:.5em 0}',
+		'img{max-width:100%;height:auto;max-height:56px;display:block;margin:.4em 0}',
+		'form{display:flex;flex-wrap:wrap;gap:6px;margin:.5em 0}',
+		'input{font:inherit;padding:3px 8px;border:1px solid #c9cfd8;border-radius:6px;width:10em}',
 		'a{color:#2e6fe0;pointer-events:none}',
 		'button{font:inherit;padding:4px 12px;margin:.2em 0}'
 	].join('');
@@ -265,7 +277,7 @@
 								class="ln"
 								class:cur={v.typing}
 								class:plain={v.plain}
-								>{@render seg(v.open, '')}<span class="txt">{v.inner}</span>{@render seg(
+								>{@render seg(v.open, '')}{@render seg(v.inner, '')}{@render seg(
 									v.close,
 									i === 3 && k === 0 ? 'pulse' : ''
 								)}{#if v.typing}<span class="caret"></span>{/if}</span
@@ -279,6 +291,17 @@
 				<span class="url">{tx.previewLabel}</span>
 			</div>
 			<iframe title={tx.previewLabel} sandbox="" {srcdoc}></iframe>
+			{#if i === LINK_BEAT || i === FORM_BEAT}
+				{#key i}
+					<div class="trip" class:still={reduce}>
+						<span class="road"></span>
+						<span class="env" class:post={i === FORM_BEAT}
+							>{i === FORM_BEAT ? 'POST /join' : 'GET /about'}</span
+						>
+						<span class="srv">{tx.serverLabel}</span>
+					</div>
+				{/key}
+			{/if}
 		</div>
 	</div>
 {/snippet}
@@ -507,6 +530,72 @@
 		background: #fff;
 	}
 
+	/* the little trip a link or a form starts, a request on its way to the server */
+	.trip {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		height: 34px;
+		border-top: 1px solid var(--color-line);
+		padding: 0 10px;
+	}
+	.road {
+		position: absolute;
+		left: 12px;
+		right: 120px;
+		top: 50%;
+		height: 2px;
+		border-radius: 2px;
+		background: var(--color-line);
+	}
+	.env {
+		position: absolute;
+		top: 50%;
+		left: 10px;
+		transform: translateY(-50%);
+		border: 1.5px solid var(--color-brand);
+		border-radius: 6px;
+		background: var(--color-card);
+		padding: 1px 7px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 11px;
+		font-weight: 700;
+		color: var(--color-brand);
+		animation: ride 2.6s cubic-bezier(0.45, 0, 0.3, 1) infinite;
+	}
+	.env.post {
+		border-color: var(--color-grass);
+		color: var(--color-grass);
+	}
+	@keyframes ride {
+		0%,
+		12% {
+			left: 10px;
+			opacity: 0;
+		}
+		22% {
+			opacity: 1;
+		}
+		70% {
+			opacity: 1;
+		}
+		82%,
+		100% {
+			left: calc(100% - 210px);
+			opacity: 0;
+		}
+	}
+	.trip.still .env {
+		animation: none;
+		left: calc(50% - 90px);
+	}
+	.srv {
+		position: relative;
+		font-size: 11px;
+		font-weight: 700;
+		color: var(--color-muted);
+	}
 	@media (prefers-reduced-motion: reduce) {
 		.pane,
 		.ln,

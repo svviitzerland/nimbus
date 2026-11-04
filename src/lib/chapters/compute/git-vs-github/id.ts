@@ -1,10 +1,11 @@
-import type { GitRemoteText } from '../../types';
+import type { GitSecretsText } from '../types';
 
-export const id: GitRemoteText = {
+export const id: GitSecretsText = {
 	title: 'Git bukan GitHub',
 	intro: [
 		'Banyak yang ngira Git dan GitHub itu sama. Padahal beda. <b>Git</b> itu alat yang jalan di laptopmu, dialah yang tadi bikin snapshot. <b>GitHub</b> itu tempat online buat menaruh dan membagikan hasilnya.',
 		'Selama commit cuma ada di laptopmu, dia aman tapi sendirian. Kalau laptopmu hilang, ikut hilang juga. Makanya kamu <b>push</b>, mengirim commit tadi ke GitHub, biar ada salinannya online dan orang lain bisa ikut lihat.',
+		'Satu aturan penting sebelum push. Jangan pernah commit rahasia seperti password atau <b>API key</b> (kunci yang membuka layanan berbayar atas namamu). Tulis nama file rahasianya di <b>.gitignore</b>, daftar file yang tidak pernah ikut disimpan Git. Repo publik itu publik selamanya, dan ada bot yang menyisir GitHub mencari kunci bocor dalam hitungan menit.',
 		'Coba alurnya. Commit dulu di laptop, lalu push ke GitHub, terakhir biarkan temanmu <b>clone</b> salinannya. Rasakan mana yang lokal dan mana yang sudah online.'
 	],
 	reactions: {
@@ -25,5 +26,10 @@ export const id: GitRemoteText = {
 	cloneBtn: 'Teman clone',
 	again: 'Ulangi',
 	localChip: 'cuma di laptopmu',
-	onlineChip: 'online, bisa dibagi'
+	onlineChip: 'online, bisa dibagi',
+	folderLabel: 'Folder proyek',
+	secretNote: 'password, API key',
+	ignoredTag: 'tetap di laptop',
+	publicTag: 'publik, selamanya',
+	botLabel: 'bot pencari kunci bocor'
 };

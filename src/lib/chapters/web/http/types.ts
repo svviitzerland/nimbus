@@ -17,4 +17,7 @@ export interface HttpText extends LessonText {
 	legend: [string, string, string, string];
 	/** Caption over the optional page buttons on the last beat. */
 	pagesLabel: string;
+	/** The URL beat, the query part of the sample address and the label under each part. */
+	urlQuery: string;
+	urlParts: { scheme: string; domain: string; path: string; query: string };
 }

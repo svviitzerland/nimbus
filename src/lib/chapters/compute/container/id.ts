@@ -7,6 +7,7 @@ export const id: ContainerText = {
 		'Makanya semua kebutuhannya dibungkus jadi satu paket bernama <b>container</b>. Lihat susunannya. Paling bawah mesinnya, di atasnya <b>Docker</b> sebagai alas yang menjalankan container, dan di atasnya container container berdiri rapi, masing masing membawa kebutuhannya sendiri.',
 		'<b>Docker</b> itu alat container paling umum, hampir semua orang mulai dari sini. Kalau mesinnya lebih dari satu, ada <b>Docker Swarm</b> yang membuat beberapa mesin menjalankan container bersama sama.',
 		'Lalu ada <b>Kubernetes</b>, dan ini dunia yang berbeda. Ada otak bernama <b>control plane</b> yang mengatur banyak mesin berisi ratusan container, lengkap dengan auto scaling dan failover otomatisnya sendiri. Perusahaan sebesar Spotify atau Gojek menjalankan layanannya pakai Kubernetes. Dan catat, Docker tidak wajib digandeng Kubernetes. Banyak yang mengira mereka harus sepaket, padahal Docker bisa berdiri sendiri, dan proyek kecilmu cukup dengan Docker saja.',
+		'Paket container itu disimpan sebagai <b>image</b>, cetakan beku yang siap dijalankan. Image ditaruh di <b>registry</b>, gudang online khusus image, dan yang paling terkenal <b>Docker Hub</b>. Kamu <b>push</b> (kirim) image dari laptop ke sana, lalu tiap server tinggal <b>pull</b> (ambil) image yang sama dari situ.',
 		'Sekarang giliran aplikasimu yang dibungkus. Jadikan dia sebuah <b>image</b> (cetakan beku yang bisa dijalankan jadi container di mana saja), lalu jalankan salinan yang sama persis di tiga tempat berbeda.'
 	],
 	reactions: {
@@ -30,6 +31,11 @@ export const id: ContainerText = {
 	k8sPlane: 'Control plane, otak Kubernetes',
 	nodeLabel: 'Node {n}',
 	k8sBadge: 'scaling & failover otomatis',
+	registryName: 'Docker Hub',
+	registrySub: 'registry, gudang image',
+	pushTag: 'push',
+	pullTag: 'pull',
+	serverLabel: 'Server {n}',
 	noteIdle: 'Bungkus dulu aplikasimu',
 	noteBuilt: 'Terbungkus rapi, siap dibawa ke mana saja',
 	noteRan: 'Satu image, tiga tempat, hasil yang sama persis'

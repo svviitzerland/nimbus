@@ -11,7 +11,7 @@ export interface LlmPanel {
 }
 
 export interface LlmText extends LessonText {
-	/** One panel per scene of the guided visual (eight scenes). */
+	/** One panel per scene of the guided visual (nine scenes). */
 	panels: LlmPanel[];
 	/** Alt text for the whole picture. */
 	picture: string;
@@ -41,6 +41,13 @@ export interface LlmText extends LessonText {
 	hot: string;
 	/** The rule of thumb shown on the remember scene. */
 	rule: string;
+	/** A short chat on the context window scene, you and the AI taking turns, starting with you.
+	 * The first message (your name) falls out of the window before you ask about it. */
+	contextChat: string[];
+	/** The label on the frame around the messages the model can still read. */
+	contextLabel: string;
+	/** The note on messages that slid out of the window. */
+	contextOut: string;
 	/** The optional button on the last scene. */
 	rollBtn: string;
 }

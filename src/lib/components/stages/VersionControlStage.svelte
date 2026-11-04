@@ -1,22 +1,50 @@
 <!--
 	Version control, from zero. One centred document you snapshot with Commit.
 	Every commit drops a numbered node on a small timeline. Tap a node to look
-	back at that version, so the learner feels Git keeps them all.
+	back at that version, so the learner feels Git keeps them all. One beat
+	(CMD_BEAT) swaps the document for the everyday commands, a file walking from
+	your folder through the staging area into the history and up to an online place.
 -->
 <script lang="ts">
-	import type { LessonText, VersionControlText } from '$lib/chapters/types';
+	import type { LessonText } from '$lib/chapters/types';
+	import type { VcCommandsText } from '$lib/chapters/compute/types';
 	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
 
 	let {
 		text,
 		oncomplete,
-		onstate
+		onstate,
+		onshow,
+		beat = 0
 	}: {
 		text: LessonText;
 		oncomplete?: () => void;
 		onstate?: (s: string) => void;
+		onshow?: (v: boolean) => void;
+		beat?: number;
 	} = $props();
-	const tx = $derived(text as VersionControlText);
+	const tx = $derived(text as VcCommandsText);
+
+	// the beat that names the everyday commands, shown with its own picture
+	const CMD_BEAT = 2;
+	const cmdView = $derived(beat === CMD_BEAT);
+	$effect(() => {
+		onshow?.(cmdView);
+	});
+	// the commands light up one after another, on a loop
+	type Cmd = 'status' | 'add' | 'commit' | 'push' | 'pull';
+	const CMDS: Cmd[] = ['status', 'add', 'commit', 'push', 'pull'];
+	let k = $state(0);
+	$effect(() => {
+		if (!cmdView) return;
+		k = 0;
+		if (typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches)
+			return;
+		const id = setInterval(() => (k = (k + 1) % CMDS.length), 1300);
+		return () => clearInterval(id);
+	});
+	// where the edited file sits for each lit command
+	const fileAt = $derived(k === 0 ? 0 : k === 1 ? 1 : 2);
 
 	type Commit = { n: number; msg: string };
 	let commits = $state<Commit[]>([]);
@@ -53,60 +81,216 @@
 	}
 </script>
 
-<div class="scene">
-	<!-- the document, one centred card that grows a line per commit -->
-	<div class="doc" class:past={!atLatest}>
-		<div class="head">
-			<span class="dot"></span>
-			<span class="tab"></span>
-			<span class="chip" class:live={atLatest}>
-				{atLatest ? tx.latestChip : tx.viewingChip.replace('{n}', String(viewing))}
+{#snippet cmdRow(c: Cmd, dir: 'down' | 'both')}
+	<div class="crow" class:lit={CMDS[k] === c || (dir === 'both' && CMDS[k] === 'pull')}>
+		<svg width="12" height="20" viewBox="0 0 12 20" aria-hidden="true" class="carr">
+			{#if dir === 'both'}
+				<path d="M6 2v16M2 6l4-4 4 4M2 14l4 4 4-4" />
+			{:else}
+				<path d="M6 2v16M2 14l4 4 4-4" />
+			{/if}
+		</svg>
+		<code>git {c}</code><span class="hint">{tx.cmdHints[c]}</span>
+		{#if dir === 'both'}<code>git pull</code><span class="hint">{tx.cmdHints.pull}</span>{/if}
+	</div>
+{/snippet}
+
+{#snippet fileChip(here: boolean)}
+	{#if here}<span class="fchip">index.html</span>{/if}
+{/snippet}
+
+{#if cmdView}
+	<div class="cmds">
+		<div class="zone" class:lit={CMDS[k] === 'status'}>
+			<span class="zl">{tx.folderLabel}</span>
+			<span class="zr">
+				{@render fileChip(fileAt === 0)}
+				{#if fileAt === 0}<span class="ch">{tx.changedTag}</span>{/if}
+				{#if CMDS[k] === 'status'}<code class="stat">git status</code>{/if}
 			</span>
 		</div>
-		<div class="body">
-			{#if shown === 0}
-				<span class="empty">{tx.docLabel}</span>
+		{@render cmdRow('add', 'down')}
+		<div class="zone" class:lit={CMDS[k] === 'add'}>
+			<span class="zl">{tx.stagingLabel}</span>
+			<span class="zr">{@render fileChip(fileAt === 1)}</span>
+		</div>
+		{@render cmdRow('commit', 'down')}
+		<div class="zone" class:lit={CMDS[k] === 'commit'}>
+			<span class="zl">{tx.historyLabel}</span>
+			<span class="zr nodes">
+				<span class="nd"></span><span class="nd"></span>
+				{#if fileAt === 2}<span class="nd new"></span>{/if}
+			</span>
+		</div>
+		{@render cmdRow('push', 'both')}
+		<div class="zone" class:lit={CMDS[k] === 'push' || CMDS[k] === 'pull'}>
+			<span class="zl">{tx.onlineLabel}</span>
+			<span class="zr nodes">
+				<span class="nd"></span><span class="nd"></span>
+				{#if k >= 3}<span class="nd new"></span>{/if}
+			</span>
+		</div>
+	</div>
+{:else}
+	<div class="scene">
+		<!-- the document, one centred card that grows a line per commit -->
+		<div class="doc" class:past={!atLatest}>
+			<div class="head">
+				<span class="dot"></span>
+				<span class="tab"></span>
+				<span class="chip" class:live={atLatest}>
+					{atLatest ? tx.latestChip : tx.viewingChip.replace('{n}', String(viewing))}
+				</span>
+			</div>
+			<div class="body">
+				{#if shown === 0}
+					<span class="empty">{tx.docLabel}</span>
+				{:else}
+					{#each Array(shown) as _, i (i)}
+						<span class="ln" class:fresh={i === shown - 1} style="width: {66 - i * 8}%"></span>
+					{/each}
+				{/if}
+			</div>
+		</div>
+
+		<!-- the timeline, every commit kept as a numbered node -->
+		{#if commits.length > 0}
+			<div class="line">
+				<div class="track">
+					{#each commits as c (c.n)}
+						<button
+							type="button"
+							class="node"
+							class:on={shown === c.n}
+							class:latest={c.n === commits.length}
+							onclick={() => view(c.n)}
+							aria-label={tx.snapshotLabel.replace('{n}', String(c.n))}
+						>
+							{c.n}
+						</button>
+					{/each}
+				</div>
+				<span class="cap">{caption}</span>
+			</div>
+		{/if}
+
+		<div class="acts">
+			{#if !atLatest}
+				<button type="button" class="ghost" onclick={backLatest}>{tx.backLatest}</button>
 			{:else}
-				{#each Array(shown) as _, i (i)}
-					<span class="ln" class:fresh={i === shown - 1} style="width: {66 - i * 8}%"></span>
-				{/each}
+				<CallToActionButton onclick={commit} disabled={commits.length >= max}>
+					{tx.commitBtn}
+				</CallToActionButton>
 			{/if}
 		</div>
 	</div>
-
-	<!-- the timeline, every commit kept as a numbered node -->
-	{#if commits.length > 0}
-		<div class="line">
-			<div class="track">
-				{#each commits as c (c.n)}
-					<button
-						type="button"
-						class="node"
-						class:on={shown === c.n}
-						class:latest={c.n === commits.length}
-						onclick={() => view(c.n)}
-						aria-label={tx.snapshotLabel.replace('{n}', String(c.n))}
-					>
-						{c.n}
-					</button>
-				{/each}
-			</div>
-			<span class="cap">{caption}</span>
-		</div>
-	{/if}
-
-	<div class="acts">
-		{#if !atLatest}
-			<button type="button" class="ghost" onclick={backLatest}>{tx.backLatest}</button>
-		{:else}
-			<CallToActionButton onclick={commit} disabled={commits.length >= max}>
-				{tx.commitBtn}
-			</CallToActionButton>
-		{/if}
-	</div>
-</div>
+{/if}
 
 <style>
+	.cmds {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		width: min(92vw, 320px);
+	}
+	.zone {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		min-height: 46px;
+		border-radius: 13px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 8px 12px;
+		transition: border-color 0.25s ease;
+	}
+	.zone.lit {
+		border-color: var(--color-brand);
+	}
+	.zl {
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--color-ink);
+		white-space: nowrap;
+	}
+	.zr {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+	}
+	.fchip {
+		border-radius: 6px;
+		background: var(--color-paper);
+		border: 1px solid var(--color-line);
+		padding: 2px 7px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 10px;
+		font-weight: 700;
+		color: var(--color-ink);
+		animation: pop 0.35s ease;
+	}
+	.ch {
+		font-size: 9.5px;
+		font-weight: 700;
+		color: var(--color-amber);
+	}
+	.stat {
+		border-radius: 6px;
+		background: var(--color-brand-soft);
+		padding: 2px 6px;
+		font-size: 10px;
+		font-weight: 700;
+		color: var(--color-brand);
+	}
+	.nodes {
+		gap: 5px;
+	}
+	.nd {
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		background: var(--color-line);
+	}
+	.nd.new {
+		background: var(--color-grass);
+		animation: pop 0.35s ease;
+	}
+	.crow {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		padding: 5px 0 5px 18px;
+		opacity: 0.55;
+		transition: opacity 0.25s ease;
+	}
+	.crow.lit {
+		opacity: 1;
+	}
+	.carr path {
+		fill: none;
+		stroke: var(--color-faint);
+		stroke-width: 1.6;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.crow.lit .carr path {
+		stroke: var(--color-brand);
+	}
+	.crow code {
+		font-size: 11.5px;
+		font-weight: 700;
+		color: var(--color-ink);
+	}
+	.crow.lit code {
+		color: var(--color-brand);
+	}
+	.hint {
+		margin-right: 6px;
+		font-size: 10.5px;
+		color: var(--color-faint);
+	}
+
 	.scene {
 		display: flex;
 		flex-direction: column;

@@ -7,6 +7,7 @@ export const en: RagText = {
 		'It answers instantly, sounding totally sure. Yes, 30 days, no problem! But this bot has never seen the nimbus.com refund policy. It learned from the public internet, so it simply said what most websites say.',
 		'The real policy says 14 days, so the answer is wrong. When an [[LLM|ai/llm]] does not know something, it still guesses the most likely words and makes up an answer that sounds right. That is called a <b>hallucination</b>.',
 		'The fix is called <b>RAG</b>, short for retrieval augmented generation. Fancy name, simple idea. Before answering, the bot first <b>searches</b> your own documents for the piece that best matches the question. The search uses [[embeddings|ai/embeddings]], so it matches by meaning, not by exact words.',
+		'How does that search work? First every document is cut into small <b>chunks</b>, a few sentences each. Each chunk becomes an [[embedding|ai/embeddings]], a list of numbers for its meaning, kept in a <b>vector database</b>. The question becomes numbers too, and the database hands back the chunks closest to it.',
 		'The best match, the refund policy, gets pasted into the prompt right next to the question. Now the model is not answering from memory anymore. It is reading the page in front of it.',
 		'And now the answer is right. Sorry, refunds are only within 14 days. It even shows where the answer came from, so anyone can check.',
 		'[ingat] RAG turns a closed book exam into an open book exam. Without it, the AI answers from memory and sometimes makes things up. With it, the AI looks it up first, then answers.',
@@ -39,6 +40,11 @@ export const en: RagText = {
 			tag: 'Retrieve',
 			title: 'Look it up first',
 			body: 'The question is compared with every document. Each one gets a match score, and the closest in meaning wins.'
+		},
+		{
+			tag: 'Chunks',
+			title: 'Cut, turn into numbers, store',
+			body: 'Each page is cut into small chunks, and each chunk gets its own embedding. The vector database keeps similar meanings close together, so the chunks nearest the question win.'
 		},
 		{
 			tag: 'Augment',
@@ -81,6 +87,9 @@ export const en: RagText = {
 	searching: 'Searching the documents',
 	match: '{n}% match',
 	readsTitle: 'What the model reads',
+	chunkTitle: 'Documents cut into chunks',
+	dbTitle: 'Vector database',
+	questionDot: 'question',
 	docs: {
 		refund: {
 			title: 'Refund policy',

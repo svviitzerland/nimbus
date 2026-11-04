@@ -3,9 +3,11 @@ import type { RemoteAccessText } from '../../types';
 export const en: RemoteAccessText = {
 	title: 'Getting into your cloud server',
 	intro: [
-		'Your server now lives in a data center, far away, maybe a different city or country. Very different from an <b>on premise</b> server in your own office, which you can walk up to, plug a screen and keyboard into, or reach over the local network.',
+		'Your virtual server is up and running, but it lives in a data center far away, maybe in another city or country. Very different from an <b>on premise</b> server in your own office, which you can walk up to, plug a screen and keyboard into, or reach over the local network.',
 		'Since you cannot touch the machine, you get in from afar, called <b>remote access</b>. From your computer at home you connect over the internet using the server address, either an <b>IP</b> or a <b>hostname</b> (its name) like nimbus.com.',
 		'There are two common doors. <b>SSH</b> for a Linux server, a terminal where you type commands. <b>RDP</b> for a Windows server, a desktop screen you can click around.',
+		'Typing a password every time works, but a password can be guessed or stolen. The safer way is an <b>SSH key</b>, a matching pair of two files made on your laptop. The <b>public key</b> goes on the server, and the <b>private key</b> never leaves your laptop. When you connect, the server checks that your laptop holds the partner key, so no password ever travels over the internet.',
+		'[ingat] Think of a padlock and its only key. The public key is the padlock, you can fix a copy on every server you own and anyone may look at it. The private key is the one key that opens them all, so it stays in your pocket and you never lend it out.',
 		'Your server is ready in the data center. Get in through SSH, then through RDP, and see the difference.'
 	],
 	reactions: {
@@ -24,7 +26,7 @@ export const en: RemoteAccessText = {
 	sshPrompt: 'nim@nimbus:~$',
 	sshCmd: 'ssh nim@nimbus.com',
 	sshConnecting: 'connecting securely...',
-	sshOk: 'connected and encrypted',
+	sshOk: 'logged in with your SSH key, encrypted',
 	sshSession: [
 		{ cmd: 'whoami', out: ['nim'] },
 		{
@@ -36,5 +38,12 @@ export const en: RemoteAccessText = {
 	rdpTitle: 'Server files',
 	rdpHost: 'nimbus.com',
 	connecting: 'Connecting...',
-	rdpHint: 'The server Windows desktop is on your screen'
+	rdpHint: 'The server Windows desktop is on your screen',
+	keysTitle: 'An SSH key pair',
+	privateKey: 'Private key',
+	privateFile: 'id_ed25519',
+	privateNote: 'stays on your laptop',
+	publicKey: 'Public key',
+	publicFile: 'id_ed25519.pub',
+	publicNote: 'goes on the server'
 };

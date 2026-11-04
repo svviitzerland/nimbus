@@ -6,7 +6,18 @@ import { en } from './en';
 export const deploySite: Lesson = {
 	id: 'deploy-site',
 	mood: 'calm',
-	moods: ['worried', 'idea', 'happy', 'thinking', 'excited', 'wink', 'calm', 'happy', 'idea', 'happy'],
+	moods: [
+		'worried',
+		'idea',
+		'happy',
+		'thinking',
+		'excited',
+		'wink',
+		'calm',
+		'happy',
+		'idea',
+		'happy'
+	],
 	reactionMood: { push: 'excited' },
 	stage: DeploySiteStage,
 	text: { id, en }

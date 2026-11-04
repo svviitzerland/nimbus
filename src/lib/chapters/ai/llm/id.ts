@@ -25,6 +25,7 @@ export const id: LlmText = {
 		'Sekarang bagian menebak. Sesudah "Nim suka makan", model memberi peluang ke tiap token yang mungkin muncul. "nasi" dapat 40 persen, "mie" 24, terus turun sampai yang aneh aneh.',
 		'Dia memilih satu, menempelkannya di ujung, lalu menebak lagi dari kalimat yang lebih panjang. Tebak, pilih, tempel, ulangi. Jawaban chatbot yang panjang itu cuma putaran ini, diulang ratusan kali dalam sekejap.',
 		'Ada satu kenop namanya <b>temperature</b> (suhu). Kalau diturunkan, tebakan teratas hampir selalu menang (aman, agak membosankan). Kalau dinaikkan, batangnya jadi lebih rata, jadi kata kata yang nggak terduga bisa nyelip (kreatif, kadang ngawur).',
+		'Satu batas lagi. Model cuma bisa membaca sejumlah teks sekaligus, namanya <b>context window</b>, ingatan jangka pendek yang diukur dalam token. Kalau chat kepanjangan, bagian paling lama jatuh keluar, makanya chat panjang kayak "lupa". Itu juga alasan RAG ada, trik yang sebentar lagi kamu kenal.',
 		'[ingat] LLM itu fitur tebak kata di keyboard HP kamu, tapi versi super. Keyboard menebak satu kata lalu berhenti. LLM terus menebak sampai satu jawaban utuh selesai ditulis.',
 		'[fyi] LLM asli adalah [[neural network|ai/neural-net]] raksasa yang dilatih pakai segunung buku dan situs web. Makanya dia bisa terdengar yakin padahal salah. Dia cuma tahu apa yang biasanya muncul berikutnya, bukan apa yang benar.',
 		'Mau lihat dia menulis sesuatu yang baru? Kocok akhiran lain dan lihat dia menebak sampai ketemu titik. Ini opsional kok.'
@@ -64,6 +65,11 @@ export const id: LlmText = {
 			tag: 'Suhu',
 			title: 'Aman atau liar',
 			body: 'Suhu rendah bikin batang teratas jadi besar banget, jadi jawabannya gampang ditebak. Suhu tinggi meratakan batangnya, jadi kata yang jarang juga dapat kesempatan.'
+		},
+		{
+			tag: 'Context window',
+			title: 'Ingatan jangka pendek',
+			body: 'Bingkainya cuma muat token yang paling baru. Pesan baru masuk dari bawah, dan yang paling lama terdorong keluar dari atas lalu hilang.'
 		},
 		{
 			tag: 'Biar nempel',
@@ -134,5 +140,17 @@ export const id: LlmText = {
 	cold: 'Aman',
 	hot: 'Liar',
 	rule: 'Tebak kata, tapi versi super',
+	contextChat: [
+		'Halo, namaku Rani.',
+		'Halo Rani, salam kenal!',
+		'Rencanain liburan ke Bali dong.',
+		'Hari pertama, ke pantai.',
+		'Hari kedua?',
+		'Ke pura dan sawah.',
+		'Namaku siapa tadi?',
+		'Hmm, aku nggak yakin. Siapa ya?'
+	],
+	contextLabel: 'Context window',
+	contextOut: 'jatuh keluar, terlupa',
 	rollBtn: 'Kocok akhiran lain'
 };

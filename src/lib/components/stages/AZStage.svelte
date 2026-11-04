@@ -107,6 +107,8 @@
 	let it3: ReturnType<typeof setTimeout> | undefined;
 	let it4: ReturnType<typeof setTimeout> | undefined;
 
+	// The two beats before the AZ answer are about SLA and uptime nines, shown as a card over the map.
+	const slaBeat = $derived(beat === 4 || beat === 5);
 	const introMode = $derived(beat <= 1 && region === null);
 	const inRegion = $derived(region !== null);
 	const cfg = $derived(region ? REGIONS[region] : null);
@@ -179,7 +181,7 @@
 				onlock?.(false);
 			}
 		} else {
-			onshow?.(false);
+			onshow?.(slaBeat);
 			onlock?.(false);
 		}
 	});
@@ -397,6 +399,20 @@
 				</p>
 			{/if}
 		</div>
+
+		{#if slaBeat && !inRegion}
+			<div class="sla">
+				<p class="sla-t">{tx.slaTitle}</p>
+				{#each tx.sla as r, k (r.pct)}
+					<div class="sla-row" class:on={beat === 4 ? k === 1 || k === 2 : true}>
+						<b>{r.pct}</b>
+						<span class="sla-bar"><i style="width:{[100, 40, 14, 5][k]}%"></i></span>
+						<span class="sla-d">{r.down}</span>
+					</div>
+				{/each}
+				{#if beat === 5}<p class="sla-rule">{tx.slaRule}</p>{/if}
+			</div>
+		{/if}
 
 		<!-- region close-up -->
 		<div
@@ -666,5 +682,65 @@
 		.head {
 			font-size: 10px;
 		}
+	}
+	.sla {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		z-index: 5;
+		width: min(92%, 360px);
+		transform: translate(-50%, -50%);
+		border: 1px solid var(--color-line);
+		border-radius: 16px;
+		background: var(--color-card);
+		padding: 14px 16px;
+		box-shadow: 0 12px 30px rgba(22, 40, 60, 0.12);
+	}
+	.sla-t {
+		margin: 0 0 8px;
+		font-size: 13px;
+		font-weight: 700;
+		color: var(--color-ink);
+	}
+	.sla-row {
+		display: grid;
+		grid-template-columns: 64px 1fr 112px;
+		align-items: center;
+		gap: 8px;
+		padding: 4px 0;
+		font-size: 12px;
+		opacity: 0.45;
+		transition: opacity 0.3s;
+	}
+	.sla-row.on {
+		opacity: 1;
+	}
+	.sla-row b {
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		color: var(--color-ink);
+	}
+	.sla-bar {
+		height: 8px;
+		border-radius: 4px;
+		background: var(--color-line);
+		overflow: hidden;
+	}
+	.sla-bar i {
+		display: block;
+		height: 100%;
+		border-radius: 4px;
+		background: var(--color-danger);
+	}
+	.sla-d {
+		color: var(--color-muted);
+		font-weight: 600;
+		text-align: right;
+	}
+	.sla-rule {
+		margin: 8px 0 0;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--color-grass);
 	}
 </style>

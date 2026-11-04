@@ -6,7 +6,18 @@ import { en } from './en';
 export const llm: Lesson = {
 	id: 'llm',
 	mood: 'thinking',
-	moods: ['calm', 'surprised', 'thinking', 'idea', 'excited', 'wink', 'idea', 'thinking', 'happy'],
+	moods: [
+		'calm',
+		'surprised',
+		'thinking',
+		'idea',
+		'excited',
+		'wink',
+		'worried',
+		'idea',
+		'thinking',
+		'happy'
+	],
 	reactionMood: {
 		roll: 'happy',
 		surprise: 'wink'

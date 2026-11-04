@@ -6,6 +6,7 @@ export const id: HttpText = {
 		'Tiap kali kamu buka <b>nimbus.com</b>, ada dua komputer yang ngobrol sebentar. Di satu sisi ada <b>browser</b> kamu, aplikasi yang kamu pakai buat buka website. Di sisi lain ada [[server|foundations/server]], komputer yang nyimpen situsnya.',
 		'Mereka selalu ngobrol pakai tata krama yang sama, namanya <b>HTTP</b> (singkatan dari HyperText Transfer Protocol). <b>Protokol</b> itu cuma cara ngobrol yang udah disepakati, kayak telepon yang selalu dibuka pakai halo, jadi dua duanya selalu nyambung.',
 		'Browser ngomong duluan. Pesannya namanya <b>request</b>, isinya halaman mana yang dia mau, misalnya <b>/about</b>. Bagian itu namanya <b>path</b>. Lihat amplop kecilnya terbang ke server.',
+		'Alamat lengkap yang kamu ketik juga punya nama, <b>URL</b>. Baca per bagian. <b>https://</b> menyebut tata kramanya (HTTP yang digembok), <b>nimbus.com</b> bilang server yang mana, <b>/about</b> itu path, dan <b>?lang=id</b> itu <b>query</b>, permintaan tambahan kecil buat halamannya.',
 		'Tiap request dibuka pakai kata kerja yang namanya <b>method</b>. <b>GET</b> artinya tolong kasih ini, buat membaca halaman. <b>POST</b> artinya tolong terima ini, buat ngirim sesuatu, kayak komentar atau login.',
 		'Server baca requestnya, nyari halamannya, terus ngirim <b>response</b> balik. Browser membukanya dan nunjukin halamannya ke kamu. Perjalanan bolak balik ini biasanya lebih cepat dari kedipan mata.',
 		'Di paling atas tiap response ada <b>status code</b>, angka tiga digit yang bilang hasilnya gimana. 200 artinya aman, 301 artinya halamannya pindah, 404 artinya nggak ada, dan 500 artinya servernya lagi kesandung.',
@@ -37,6 +38,11 @@ export const id: HttpText = {
 			tag: 'Bertanya',
 			title: 'Request',
 			body: 'Pesan kecil dari browser. Isinya nama halaman yang dia mau, misalnya <b>/about</b>.'
+		},
+		{
+			tag: 'Alamatnya',
+			title: 'URL',
+			body: 'Empat bagian, dari kiri ke kanan. <b>Scheme</b> bilang cara ngobrolnya, <b>domain</b> bilang tanya ke siapa, <b>path</b> bilang halaman yang mana, <b>query</b> menambah permintaan kecil.'
 		},
 		{
 			tag: 'Kata kerjanya',
@@ -81,5 +87,7 @@ export const id: HttpText = {
 		}
 	},
 	legend: ['2 beres', '3 belok', '4 salahmu', '5 salah server'],
-	pagesLabel: 'Minta satu halaman'
+	pagesLabel: 'Minta satu halaman',
+	urlQuery: '?lang=id',
+	urlParts: { scheme: 'scheme', domain: 'domain', path: 'path', query: 'query' }
 };

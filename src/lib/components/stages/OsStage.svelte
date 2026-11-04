@@ -1,7 +1,8 @@
 <script lang="ts">
 	// The operating system as a guided story. One laptop with its hardware underneath, and the
 	// OS appearing in between as the manager. The picture follows Nim's beats by itself (apps
-	// open, the CPU passes from app to app, RAM fills up, a song comes up from storage). The
+	// open, the CPU passes from app to app, RAM fills up, a little process list with PID numbers,
+	// a song comes up from storage). The
 	// last scene lets the learner open and close apps, which is optional.
 	import Guide from '$lib/components/Guide.svelte';
 	import type { StageProps } from '$lib/chapters/types';
@@ -11,9 +12,14 @@
 	const tx = $derived(text as OsText);
 
 	/** Beat index to scene index (the [ingat] beat keeps the manager scene). */
-	const STEP_OF_BEAT = [0, 1, 1, 2, 3, 4, 5, 6, 7, 8];
-	const NAMES = 7;
-	const PLAY = 8;
+	const STEP_OF_BEAT = [0, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+	const PROC = 5;
+	const SWAP = 6;
+	const FILES = 7;
+	const NAMES = 8;
+	const PLAY = 9;
+	/** The process number (PID) the OS gave each app when it started. */
+	const PID: Record<OsAppId, number> = { browser: 412, music: 538, chat: 761, game: 903 };
 	const TOTAL = 8;
 	const OS_GB = 2;
 
@@ -37,6 +43,7 @@
 		['screen', 'os'],
 		['screen', 'cpu'],
 		['screen', 'ram'],
+		['screen', 'cpu', 'ram'],
 		['screen', 'ram', 'disk'],
 		['screen', 'os', 'disk'],
 		[],
@@ -69,7 +76,7 @@
 	let wasSlow = false;
 
 	const open = $derived<OsAppId[]>(
-		step === PLAY ? mine : step === 5 ? ['browser', 'music', 'chat', 'game'] : THREE
+		step === PLAY ? mine : step === SWAP ? ['browser', 'music', 'chat', 'game'] : THREE
 	);
 	const used = $derived(OS_GB + open.reduce((s, a) => s + APP[a].gb, 0));
 	const slow = $derived(used > TOTAL);
@@ -87,7 +94,7 @@
 
 	// the CPU passes from app to app while its scene (or the play scene) is showing
 	let turn = $state(0);
-	const cycling = $derived(step === 3 || step === PLAY);
+	const cycling = $derived(step === 3 || step === PROC || step === PLAY);
 	$effect(() => {
 		if (!cycling || reduced) {
 			turn = 0;
@@ -120,7 +127,7 @@
 		}
 	}
 
-	const popOf = (id: OsAppId) => step === 2 || step === PLAY || (step === 5 && id === 'game');
+	const popOf = (id: OsAppId) => step === 2 || step === PLAY || (step === SWAP && id === 'game');
 	const DEVICE_X = [40, 110, 180, 250, 320];
 </script>
 
@@ -185,6 +192,11 @@
 							fill="color-mix(in srgb, {a.color} 22%, var(--color-card))"
 						/>
 						<text x={a.x + 8} y={a.y + 6} dy="0.35em" class="t-win">{nameOf(id)}</text>
+						{#if step === PROC}
+							<text x={a.x + a.w - 7} y={a.y + 6} dy="0.35em" text-anchor="end" class="t-pid"
+								>{PID[id]}</text
+							>
+						{/if}
 						{@render windowBody(id, a.x, a.y, a.w, a.h, a.color)}
 					</g>
 				{/each}
@@ -348,7 +360,7 @@
 				</circle>
 			{/each}
 		{/if}
-		{#if step === 6}
+		{#if step === FILES}
 			<g>
 				{#if reduced}
 					<g transform="translate(260 218)">{@render file()}</g>
@@ -487,6 +499,25 @@
 			{@render names()}
 		{:else}
 			{@render laptop()}
+			{#if s === PROC}
+				<div class="procs">
+					<p class="proc-title">{tx.procTitle}</p>
+					<div class="prow head">
+						<span>{tx.procCols.pid}</span><span>{tx.procCols.name}</span><span
+							>{tx.procCols.ram}</span
+						><span>{tx.procCols.state}</span>
+					</div>
+					{#each open as id (id)}
+						{@const run = turnApp === id}
+						<div class="prow" class:run style="--c:{APP[id].color}">
+							<span class="pid">{PID[id]}</span>
+							<span class="pname"><i></i>{nameOf(id)}</span>
+							<span>{APP[id].gb} GB</span>
+							<span class="state">{run ? tx.running : tx.waiting}</span>
+						</div>
+					{/each}
+				</div>
+			{/if}
 			{#if s === PLAY}
 				<div class="dock">
 					<span class="hint">{tx.dockHint}</span>
@@ -580,6 +611,12 @@
 		font-weight: 700;
 		fill: var(--color-ink);
 	}
+	.t-pid {
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-size: 7.5px;
+		font-weight: 700;
+		fill: var(--color-muted);
+	}
 	.t-os {
 		font-size: 12px;
 		font-weight: 800;
@@ -625,6 +662,66 @@
 	.t-kind {
 		font-size: 10px;
 		fill: var(--color-muted);
+	}
+
+	/* the little process list under the laptop */
+	.procs {
+		width: 100%;
+		max-width: 360px;
+		border: 1px solid var(--color-line);
+		border-radius: 14px;
+		background: var(--color-card);
+		padding: 8px 10px;
+	}
+	.proc-title {
+		margin: 0 0 4px;
+		font-size: 11px;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+	}
+	.prow {
+		display: grid;
+		grid-template-columns: 44px 1fr 48px 64px;
+		align-items: center;
+		gap: 6px;
+		border-radius: 8px;
+		padding: 3px 6px;
+		font-size: 12.5px;
+		color: var(--color-muted);
+		transition: background 0.3s;
+	}
+	.prow.head {
+		font-size: 10.5px;
+		font-weight: 800;
+		color: var(--color-faint);
+	}
+	.prow.run {
+		background: color-mix(in srgb, var(--c) 14%, var(--color-card));
+		color: var(--color-ink);
+	}
+	.pid {
+		font-family: var(--font-mono, ui-monospace, monospace);
+		font-weight: 700;
+	}
+	.pname {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		font-weight: 700;
+	}
+	.pname i {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--c);
+	}
+	.state {
+		font-weight: 700;
+	}
+	.prow.run .state {
+		color: var(--c);
 	}
 
 	/* the optional dock under the laptop */
@@ -697,6 +794,7 @@
 		.win,
 		.chip,
 		.slot,
+		.prow,
 		.app,
 		.app .dot {
 			transition: none;

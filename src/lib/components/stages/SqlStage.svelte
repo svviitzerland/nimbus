@@ -12,8 +12,11 @@
 	let { text, oncomplete, onstate, onshow, beat = 0 }: StageProps = $props();
 	const tx = $derived(text as SqlText);
 
-	// Which scene each beat shows (nine beats, seven scenes).
-	const SCENE_OF_BEAT = [0, 0, 1, 2, 3, 4, 5, 5, 6];
+	// Which scene each beat shows (ten beats, eight scenes).
+	const SCENE_OF_BEAT = [0, 0, 1, 2, 3, 4, 5, 6, 6, 7];
+	const GROUP_SCENE = 5;
+	const REMEMBER = 6;
+	const TRY = 7;
 	const COLS: SqlColumn[] = ['name', 'price', 'stock'];
 	type Question = {
 		id: SqlQuestionId;
@@ -27,15 +30,19 @@
 		{ id: 'out', cols: ['name', 'price'], test: (p) => p.stock === 0, sort: false },
 		{ id: 'cheap', cols: ['name', 'price'], test: (p) => p.price < 50000, sort: true }
 	];
-	const Q_OF_SCENE = [-1, 0, 1, 2, 3, 3];
+	// The aggregation question runs on the orders table and is not part of the try it cycle.
+	const GROUP_Q: Question = { id: 'group', cols: null, test: null, sort: true };
+	const ALL_Q = [...QUESTIONS, GROUP_Q];
+	const Q_OF_SCENE = [-1, 0, 1, 2, 3, 4, 3];
 
 	let peek = $state<number | null>(null);
 	let reduced = $state(false);
 	let played = $state(0); // the question picked on the try it scene
 
 	const scene = $derived(peek ?? SCENE_OF_BEAT[Math.min(beat, SCENE_OF_BEAT.length - 1)]);
-	const qi = $derived(scene === 6 ? played : Q_OF_SCENE[scene]);
-	const q = $derived(qi >= 0 ? QUESTIONS[qi] : null);
+	const qi = $derived(scene === TRY ? played : Q_OF_SCENE[scene]);
+	const q = $derived(qi >= 0 ? ALL_Q[qi] : null);
+	const grouping = $derived(q?.id === 'group');
 
 	$effect(() => {
 		onshow?.(true);
@@ -55,6 +62,14 @@
 	const lines = $derived.by<Line[]>(() => {
 		if (!q) return [];
 		const c = tx.columns;
+		if (q.id === 'group') {
+			const oc = tx.orderColumns;
+			return [
+				{ text: `${oc.city}, COUNT(*), SUM(${oc.total})`, kw: 'SELECT', tag: 'select' },
+				{ text: tx.ordersTable, kw: 'FROM', tag: 'from' },
+				{ text: `${oc.city};`, kw: 'GROUP BY', tag: 'where' }
+			];
+		}
 		const out: Line[] = [
 			{
 				text: q.cols ? q.cols.map((k) => c[k]).join(', ') : '*',
@@ -84,7 +99,7 @@
 		const sc = scene;
 		const question = q;
 		const total = fullLength;
-		const n = tx.products.length;
+		const n = question?.id === 'group' ? tx.orders.length : tx.products.length;
 		if (reduced) {
 			rowsShown = n;
 			typed = total;
@@ -110,7 +125,7 @@
 		checked = 0;
 		sorted = false;
 		// The remember scene keeps the finished query on screen instead of typing it again.
-		if (sc === 5) {
+		if (sc === REMEMBER) {
 			typed = total;
 			checked = n;
 			sorted = true;
@@ -118,7 +133,7 @@
 		}
 		const scan = () => {
 			checked += 1;
-			if (checked < n) t = setTimeout(scan, question.test ? 420 : 110);
+			if (checked < n) t = setTimeout(scan, question.test || question.id === 'group' ? 360 : 110);
 			else if (question.sort) t = setTimeout(() => (sorted = true), 700);
 		};
 		const type = () => {
@@ -143,7 +158,8 @@
 		});
 	});
 	const typing = $derived(q !== null && typed < fullLength);
-	const scanning = $derived(q !== null && !typing && checked < tx.products.length);
+	const rowCount = $derived(grouping ? tx.orders.length : tx.products.length);
+	const scanning = $derived(q !== null && !typing && checked < rowCount);
 
 	const passes = (p: SqlProduct) => !q || !q.test || q.test(p);
 	const rows = $derived.by(() => {
@@ -153,8 +169,25 @@
 		return [...keep, ...all.filter((r) => !passes(r))];
 	});
 	const colOn = (c: SqlColumn) => !q || !q.cols || checked === 0 || q.cols.includes(c);
-	const answered = $derived(q !== null && checked >= tx.products.length);
-	const backCount = $derived(tx.products.filter((p) => passes(p)).length);
+	const answered = $derived(q !== null && checked >= rowCount);
+
+	// The orders table, its cities in order of first appearance, and the grouped answer.
+	const cities = $derived([...new Set(tx.orders.map((o) => o.city))]);
+	const groupOf = (city: string) => cities.indexOf(city);
+	const orderRows = $derived.by(() => {
+		const all = tx.orders.map((o, i) => ({ ...o, i }));
+		if (!sorted) return all;
+		return [...all].sort((a, b) => groupOf(a.city) - groupOf(b.city) || a.i - b.i);
+	});
+	const summary = $derived(
+		cities.map((city) => {
+			const rows = tx.orders.filter((o) => o.city === city);
+			return { city, count: rows.length, sum: rows.reduce((t, o) => t + o.total, 0) };
+		})
+	);
+	const backCount = $derived(
+		grouping ? cities.length : tx.products.filter((p) => passes(p)).length
+	);
 
 	function another() {
 		played = (played + 1) % QUESTIONS.length;
@@ -166,7 +199,7 @@
 	<Guide steps={tx.panels} active={scene} onselect={(i) => (peek = i)}>
 		{#snippet visual(s: number)}
 			<div class="visual">
-				{#if s === 6}
+				{#if s === TRY}
 					<button type="button" class="try" onclick={another}>{tx.another}</button>
 				{/if}
 
@@ -191,7 +224,7 @@
 											: ''}{l.rest}{#if typing && l.started && !l.done}<span class="caret"
 											></span>{/if}</span
 									>
-									{#if s === 5}
+									{#if s === REMEMBER}
 										<span class="clause" in:fade={{ duration: 300, delay: k * 250 }}
 											>{tx.clauseTags[lines[k].tag]}</span
 										>
@@ -202,40 +235,88 @@
 					</div>
 				{/if}
 
-				<div class="table-card">
-					<p class="table-name">{tx.tableName}</p>
-					<table>
-						<thead>
-							<tr>
-								{#each COLS as c (c)}
-									<th class:dim={!colOn(c)} class:num={c !== 'name'}>{tx.columns[c]}</th>
-								{/each}
-							</tr>
-						</thead>
-						<tbody>
-							{#each rows as r (r.name)}
-								<tr
-									animate:flip={{ duration: reduced ? 0 : 500 }}
-									class:hidden={r.i >= rowsShown}
-									class:looking={scanning && r.i === checked}
-									class:lit={q !== null && r.i < checked && passes(r)}
-									class:out={q !== null && r.i < checked && !passes(r)}
-								>
-									<td class:dim={!colOn('name')}>{r.name}</td>
-									<td class="num" class:dim={!colOn('price')}>{r.price}</td>
-									<td class="num" class:dim={!colOn('stock')} class:zero={r.stock === 0}
-										>{r.stock}</td
-									>
+				{#if grouping}
+					<div class="table-card">
+						<p class="table-name">{tx.ordersTable}</p>
+						<table>
+							<thead>
+								<tr>
+									<th>{tx.orderColumns.city}</th>
+									<th class="num">{tx.orderColumns.total}</th>
 								</tr>
-							{/each}
-						</tbody>
-					</table>
-					<p class="back" class:show={answered}>
-						{tx.rowsBack.replace('{n}', String(backCount))}
-					</p>
-				</div>
+							</thead>
+							<tbody>
+								{#each orderRows as r (r.i)}
+									<tr
+										animate:flip={{ duration: reduced ? 0 : 500 }}
+										class="g{groupOf(r.city)}"
+										class:looking={scanning && r.i === checked}
+										class:piled={r.i < checked}
+									>
+										<td><span class="pile"></span>{r.city}</td>
+										<td class="num">{r.total}</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+					<div class="table-card result" class:show={answered && sorted}>
+						<p class="table-name">{tx.resultLabel}</p>
+						<table>
+							<thead>
+								<tr>
+									<th>{tx.orderColumns.city}</th>
+									<th class="num">COUNT(*)</th>
+									<th class="num">SUM({tx.orderColumns.total})</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each summary as g, k (g.city)}
+									<tr class="g{k} piled">
+										<td><span class="pile"></span>{g.city}</td>
+										<td class="num">{g.count}</td>
+										<td class="num">{g.sum}</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				{:else}
+					<div class="table-card">
+						<p class="table-name">{tx.tableName}</p>
+						<table>
+							<thead>
+								<tr>
+									{#each COLS as c (c)}
+										<th class:dim={!colOn(c)} class:num={c !== 'name'}>{tx.columns[c]}</th>
+									{/each}
+								</tr>
+							</thead>
+							<tbody>
+								{#each rows as r (r.name)}
+									<tr
+										animate:flip={{ duration: reduced ? 0 : 500 }}
+										class:hidden={r.i >= rowsShown}
+										class:looking={scanning && r.i === checked}
+										class:lit={q !== null && r.i < checked && passes(r)}
+										class:out={q !== null && r.i < checked && !passes(r)}
+									>
+										<td class:dim={!colOn('name')}>{r.name}</td>
+										<td class="num" class:dim={!colOn('price')}>{r.price}</td>
+										<td class="num" class:dim={!colOn('stock')} class:zero={r.stock === 0}
+											>{r.stock}</td
+										>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+						<p class="back" class:show={answered}>
+							{tx.rowsBack.replace('{n}', String(backCount))}
+						</p>
+					</div>
+				{/if}
 
-				{#if s === 5}
+				{#if s === REMEMBER}
 					<p class="rule" in:fade={{ duration: 300 }}>{tx.rule}</p>
 				{/if}
 			</div>
@@ -441,6 +522,48 @@
 	}
 	tbody tr.out {
 		opacity: 0.32;
+	}
+	/* the aggregation scene, each city gets its own pile colour */
+	tbody tr.piled.g0 {
+		background: var(--color-brand-soft);
+	}
+	tbody tr.piled.g1 {
+		background: var(--color-grass-soft);
+	}
+	tbody tr.piled.g2 {
+		background: var(--color-amber-soft);
+	}
+	.pile {
+		display: inline-block;
+		width: 8px;
+		height: 8px;
+		margin-right: 7px;
+		border-radius: 50%;
+		background: var(--color-line);
+		transition: background 0.3s;
+	}
+	tr.piled.g0 .pile {
+		background: var(--color-brand);
+	}
+	tr.piled.g1 .pile {
+		background: var(--color-grass);
+	}
+	tr.piled.g2 .pile {
+		background: var(--color-amber);
+	}
+	.result {
+		opacity: 0;
+		transform: translateY(6px);
+		transition:
+			opacity 0.4s,
+			transform 0.4s;
+	}
+	.result.show {
+		opacity: 1;
+		transform: none;
+	}
+	.result td {
+		font-weight: 700;
 	}
 	.back {
 		margin: 6px 0 0;
