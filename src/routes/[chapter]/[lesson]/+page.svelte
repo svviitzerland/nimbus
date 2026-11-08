@@ -3,7 +3,6 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { lang, t } from '$lib/i18n';
-	import { lessonUi } from '$lib/lesson-ui';
 	import { getChapter } from '$lib/chapters';
 	import { progress } from '$lib/progress.svelte';
 	import { path } from '$lib/path.svelte';
@@ -17,7 +16,6 @@
 	const lesson = $derived(chapter.lessons[data.index]);
 	const Stage = $derived(lesson.stage);
 	const lessonKey = $derived(`${data.chapterId}/${data.lessonId}`);
-	let attempt = $state(0);
 	const text = $derived(lesson.text[$lang]);
 	// "Next" both paginates the narrative beats and, on the last beat, advances the lesson.
 	let beat = $state(0);
@@ -226,29 +224,10 @@
 		<h1 class="mt-1 font-display text-2xl font-medium text-ink md:text-[1.9rem]">{text.title}</h1>
 	</div>
 
-	{#if lesson.playable}
-		<div class="activity-bar">
-			<span class:done={completed}
-				>{completed ? lessonUi[$lang].complete : lessonUi[$lang].experiment}</span
-			>
-			<button
-				type="button"
-				onclick={() => {
-					attempt += 1;
-					completedFor = null;
-					reaction = null;
-					reactionToken = null;
-				}}
-			>
-				{lessonUi[$lang].restart}
-			</button>
-		</div>
-	{/if}
-
 	<!-- Stage. Sits between the title and Nim's dock and gets all the room left. Stages centre
 	     themselves in it (so every picture sits at the same height) and scroll if taller. -->
 	<section class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-2 md:px-8 md:py-3">
-		{#key `${lessonKey}/${attempt}`}
+		{#key lessonKey}
 			<div class="stage-in h-full w-full">
 				<div
 					class="stage-slot flex h-full w-full items-center-safe justify-center transition-opacity duration-300 {stageActive
@@ -293,24 +272,6 @@
 </main>
 
 <style>
-	.activity-bar {
-		width: min(calc(100% - 32px), 880px);
-		margin: 0 auto;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 12px;
-		font-size: 12px;
-		color: var(--color-muted);
-	}
-	.activity-bar button {
-		min-height: 44px;
-		color: var(--color-brand);
-		text-align: right;
-	}
-	.activity-bar .done {
-		color: var(--color-grass);
-	}
 	@media (prefers-reduced-motion: reduce) {
 		:global(.stage-in) {
 			animation: none !important;
