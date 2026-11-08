@@ -5,9 +5,15 @@ import { en } from './en';
 
 export const deploySite: Lesson = {
 	id: 'deploy-site',
-	mood: 'calm',
-	moods: ['worried', 'idea', 'happy', 'thinking', 'excited', 'wink', 'calm', 'idea', 'happy'],
-	reactionMood: { push: 'excited' },
+	mood: 'happy',
+	moods: ['thinking', 'idea', 'calm', 'thinking', 'idea', 'wink', 'excited'],
+	reactionMood: {
+		platform: 'excited',
+		vpsWait: 'thinking',
+		vps: 'happy',
+		both: 'wink'
+	},
+	playable: true,
 	stage: DeploySiteStage,
 	text: { id, en }
 };

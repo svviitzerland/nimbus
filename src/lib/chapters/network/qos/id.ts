@@ -3,63 +3,43 @@ import type { QosText } from './types';
 export const id: QosText = {
 	title: 'Apa itu QoS',
 	intro: [
-		'Senin pagi di kantor nimbus.com. Ada yang lagi video call sama klien, ada yang nyolong main game sebentar, dan ada yang mulai download 40 GB. Semuanya desak desakan lewat satu jalur internet.',
-		'Tiap jalur punya batas atas (ingat [[bandwidth|trafficflow/bandwidth-throughput]]). Kalau yang datang lebih banyak dari yang bisa dibawa, router ngantriin paketnya di <b>queue</b>, alias antrean, kayak mobil di gerbang tol.',
-		'Bawaannya, antreannya siapa cepat dia dapat. Paket call yang hijau dan mungil kejebak di belakang tumpukan potongan download yang oranye. Suara yang telat itu nggak ada gunanya, jadi call nya putus putus.',
-		'<b>QoS</b> (Quality of Service) bikin router bisa ngurutin antrean itu berdasarkan <b>prioritas</b>. Lihat paket call dan game nyelip ke depan.',
-		'Call nya mulus lagi. Download nya hampir nggak kerasa, cuma selesai beberapa detik lebih lama. Yang benci nunggu jalan duluan, yang santai ambil sisanya.',
-		'[ingat] QoS itu kayak ambulans di jalan macet. Semua minggir buat dia, truk truk tetap sampai rumah, cuma agak telat dikit.',
-		'[fyi] Di router MikroTik ini diatur pakai queue, yang nanti kamu temui di [[manajemen bandwidth|netlab/router-queue]]. Jaringan besar bahkan nempelin nomor prioritas di dalam tiap paket (namanya DSCP), jadi tiap router di sepanjang jalan tahu siapa yang duluan.',
-		'Itulah QoS, antrean yang lebih pintar. Kalau mau lihat bedanya, matiin terus nyalain lagi.'
+		'Senin pagi di kantor nimbus.com. Ada yang lagi video call sama klien, ada yang curi curi main game sebentar, dan ada yang mulai download update 40 GB. Semuanya desak desakan lewat satu jalur internet.',
+		'Ingat [[bandwidth|trafficflow/bandwidth-throughput]], tiap jalur punya batas atas. Kalau data yang datang lebih banyak dari yang bisa dibawa jalur, router nyuruh paket nunggu di <b>antrean</b>. Kalau antreannya penuh, paket baru langsung dibuang.',
+		'Bawaannya, antrean itu siapa cepat dia dapat. Paket video call yang mungil kejebak di belakang puluhan potongan download, jadi nyampenya telat atau malah nggak nyampe. Suara yang telat itu nggak ada gunanya, makanya call jadi patah patah dan macet.',
+		'<b>QoS</b> (Quality of Service) bikin router bisa ngurutin antrean itu berdasarkan <b>prioritas</b>. Trafik yang benci nunggu (call, game) jalan duluan, trafik yang santai (download gede) ambil sisanya. Download hampir nggak kerasa bedanya, cuma kelarnya sedikit lebih lama.',
+		'[fyi] Di router MikroTik, ini diatur pakai queue, yang bakal kamu temui di [[manajemen bandwidth|netlab/router-queue]]. Jaringan besar bahkan nempelin nomor prioritas di dalam header tiap paket (namanya DSCP), jadi tiap router di sepanjang jalan tahu siapa yang duluan.',
+		'[ingat] QoS mengatur prioritas dan pembagian kapasitas trafik. Ia tidak menambah kapasitas fisik sambungan.',
+		'Di sini jalur kantornya lagi macet. Lihat callnya kesusahan, terus nyalain QoS dan kasih prioritas ke tiap jenis trafik.'
 	],
 	reactions: {
-		qosOff:
-			'Siapa cepat dia dapat lagi. Paket call nunggu di belakang potongan download, dan suaranya mulai putus putus.',
-		qosOn: 'Prioritas nyala lagi. Paket call nyelip ke depan antrean, suaranya mulus lagi.'
+		stutter:
+			'Kedengeran? Callnya terus macet. Paketnya nunggu di belakang potongan download, dan sebagian dibuang waktu antreannya meluap. Jalurnya nggak rusak, cuma penuh.',
+		qosOn:
+			'QoS udah nyala, tapi semua trafik masih punya prioritas yang sama, jadi antreannya kerja persis kayak tadi. Kasih tahu router siapa yang paling penting.',
+		allSame: 'Semua kelas memiliki prioritas sama, sehingga belum ada trafik yang didahulukan.',
+		dlFirst:
+			'Aduh, sekarang download nyerobot di depan semuanya, dan callnya makin parah. Download nggak keberatan nunggu, kasih dia posisi paling bawah.',
+		callFixed:
+			'Callnya lancar lagi, paketnya sekarang boleh nyelak antrean. Tapi gamenya masih kejebak di belakang download, naikin juga dong.',
+		fixed:
+			'Call lancar, game responsif, dan download tetap jalan, cuma sedikit lebih pelan. Nggak ada yang dapat bandwidth tambahan, router cuma milih urutan yang lebih pintar. Itulah QoS.',
+		qosOff: 'QoS mati, balik lagi ke siapa cepat dia dapat, dan callnya mulai patah patah lagi.'
 	},
-	steps: [
-		{
-			title: 'Satu jalur, tiga kerjaan',
-			body: 'Video call, game, dan download gede semuanya pakai jalur internet yang sama.'
-		},
-		{
-			title: 'Antrean',
-			body: 'Kalau paket datang lebih cepat dari yang bisa dikirim jalurnya, mereka nunggu di <b>queue</b> di dalam router.'
-		},
-		{
-			title: 'Siapa cepat dia dapat',
-			body: 'Tanpa aturan, paket call nunggu di belakang tiap potongan download di depannya. Suara yang telat kedengaran rusak.'
-		},
-		{
-			title: 'Prioritas',
-			body: 'Dengan <b>QoS</b> router ngirim paket yang mendesak duluan. Call dan game itu mendesak, download nggak.'
-		},
-		{
-			title: 'Semua tetap nyampe',
-			body: 'Call langsung dapat paket yang dia butuhin. Download tinggal pakai sisanya.'
-		},
-		{
-			tag: 'Pegangan',
-			title: 'Jalur ambulans',
-			body: 'Yang mendesak jalan duluan. Yang gede tetap nyampe, cuma agak telat.'
-		},
-		{
-			title: 'Paket bertanda',
-			body: 'Nomor prioritas namanya <b>DSCP</b> bisa ikut di dalam tiap paket, jadi semua router di jalan ngurutinnya dengan cara yang sama.'
-		},
-		{
-			title: 'Coba deh',
-			body: 'Matiin dan nyalain QoS, terus perhatiin paket call yang hijau.'
-		}
-	],
+	qosLabel: 'QoS',
+	on: 'nyala',
+	off: 'mati',
 	flows: ['Video call', 'Game', 'Download'],
-	routerLabel: 'Antrean router',
-	lineLabel: 'Jalur kantor',
-	qosOn: 'QoS nyala',
-	qosOff: 'QoS mati',
-	callStatus: 'Video call',
-	smooth: 'mulus',
-	stutter: 'putus putus',
-	offBtn: 'Matiin QoS',
-	onBtn: 'Nyalain QoS'
+	priorityBtn: 'Prioritas {p}',
+	priorities: ['rendah', 'biasa', 'tinggi'],
+	smooth: 'lancar',
+	stutter: 'patah patah',
+	lag: 'lag',
+	delay: 'delay {n} ms',
+	speed: '{n} Mbps',
+	dropped: '{n} hilang',
+	routerLabel: 'Router kantor',
+	queueLabel: 'Antrean, nunggu giliran keluar',
+	lineLabel: 'Jalur internet, 30 Mbps',
+	noteOff: 'Siapa cepat dia dapat',
+	noteOn: 'Prioritas lebih tinggi keluar duluan'
 };

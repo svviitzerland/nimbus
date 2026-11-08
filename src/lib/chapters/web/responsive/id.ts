@@ -3,73 +3,57 @@ import type { ResponsiveText } from './types';
 export const id: ResponsiveText = {
 	title: 'Desain responsif',
 	intro: [
-		'Orang membuka nimbus.com dari macam macam layar, HP di satu tangan, tablet di sofa, laptop lebar di kantor. Ini dia di laptop, tampilannya oke.',
-		'Tapi halaman ini dibangun cara lama, dikunci selebar 960 piksel. Lihat layarnya mengecil jadi HP. Halamannya nggak mau muat, jadi kamu harus geser ke samping terus cuma buat baca satu kalimat.',
-		'Solusinya <b>desain responsif</b>, satu halaman yang menyusun ulang dirinya supaya pas di layar apa pun. Nim menulis ulang [[CSS|web/css]] nya, mulai dari HP. Kartunya satu kolom, nggak ada yang lebih lebar dari layar.',
-		'Sekarang layarnya membesar jadi tablet. Nim menambah <b>media query</b>, sebuah blok CSS yang cuma berlaku kalau layarnya minimal 600 piksel. Dua kartu per baris, dan halamannya menyusun ulang sendiri.',
-		'Satu lagi buat laptop, mulai 900 piksel. Tiga kartu sebaris dan link menunya keluar. Lebar tempat tata letaknya berubah, di sini 600 dan 900, namanya <b>breakpoint</b>.',
-		'Lihat layarnya membesar dan mengecil sendiri. Tiap kali lewat breakpoint, kartunya loncat ke susunan baru. HTML nya sama terus, cuma CSS nya yang memilih beda.',
+		'Orang membuka nimbus.com dari macam macam layar. HP di satu tangan, tablet di sofa, laptop lebar di kantor. Satu layar bisa empat kali lebih lebar dari layar lain, tapi halamannya tetap sama.',
+		'Dulu, situs dibikin buat satu ukuran layar komputer meja. Buka di HP, semuanya menciut sekecil semut, atau kamu harus geser ke samping terus cuma buat menyelesaikan satu kalimat.',
+		'Solusinya <b>desain responsif</b>, satu halaman yang menyusun ulang dirinya biar pas di layar mana pun. Tiga kartu berjejer di laptop berubah jadi satu kolom rapi di HP.',
+		'Triknya pakai aturan [[CSS|web/css]] yang namanya <b>media query</b>. Isinya kira kira "pakai baris baris ini cuma kalau layarnya minimal 600 piksel". Lebar tempat tata letaknya berubah disebut <b>breakpoint</b>.',
+		'Kebanyakan tim mendesain buat HP dulu, baru menambah media query seiring layarnya membesar. Namanya <b>mobile first</b>, soalnya sekarang kebanyakan orang buka website dari HP.',
 		'[fyi] Kata yang sama, dunia yang beda. Programmer juga bilang breakpoint waktu mereka menghentikan program yang lagi jalan buat mengintip isinya. Hal yang beda total, cuma kebetulan namanya sama.',
 		'[ingat] Pegangannya gampang, <b>HP dulu, baru melebar</b>. Tulis tata letak HP, lalu tambah satu media query buat tiap layar yang lebih besar. Baca <b>min-width 600px</b> sebagai "mulai 600 piksel ke atas".',
-		'Itulah desain responsif, CSS yang mengecek lebar layar sebelum memilih tata letak. Geser slidernya kalau mau menangkap loncatannya sendiri. Berikutnya, halaman buat semua orang, [[aksesibilitas|web/a11y]].'
+		'Giliran kamu! Geser layarnya dari lebar HP sampai lebar laptop dan lihat nimbus.com menyusun ulang dirinya. Lalu matikan CSS responsifnya dan rasakan penderitaan sebuah HP.'
 	],
 	reactions: {
-		drag: 'Sekarang kamu yang jadi layarnya. Perhatikan momen kamu lewat 600 atau 900, itu media query lagi nyala atau mati.'
+		phone:
+			'Ukuran HP. Semuanya bertumpuk jadi satu kolom dan menunya dilipat jadi satu tombol. Nggak ada yang perlu digeser ke samping, jempolmu cukup gulir ke bawah.',
+		tablet:
+			'Lewat 600 piksel, media query pertama mulai bekerja. Sekarang ada tempat buat dua kartu berdampingan, dan gambarnya naik ke sebelah judul.',
+		laptop:
+			'Lewat 900 piksel, media query kedua bangun. Link menunya keluar lagi dan tiga kartu duduk dalam satu baris. HTML yang dipakai sama terus dari tadi, cuma CSS yang memilih beda.',
+		fixed:
+			'Aduh. Tanpa aturan responsif, halamannya ngotot selebar 960 piksel, jadi di HP kamu harus geser ke samping buat baca apa pun. Banyak situs rasanya begini sebelum zaman smartphone.',
+		done: 'Satu halaman yang pas di semua layar. Desain responsif itu cuma CSS yang ngecek lebar layar dulu sebelum memilih tata letak. Berikutnya, bikin halamannya bisa dipakai semua orang, namanya [[aksesibilitas|web/a11y]].'
 	},
-	steps: [
-		{
-			tag: 'Laptop',
-			title: 'Satu halaman, banyak layar',
-			body: 'Lebar HP sekitar 360 piksel, laptop 1000 lebih. Halaman yang sama harus tampil pas di semuanya.'
-		},
-		{
-			title: 'Lebar yang dikunci',
-			body: '<b>width 960px</b> memaksa halamannya tetap selebar laptop. Di HP dia tumpah keluar dari tepi layar.'
-		},
-		{
-			title: 'HP dulu',
-			body: 'Mulai dari layar paling kecil. Satu kolom, jadi nggak ada yang lebih lebar dari HP nya.'
-		},
-		{
-			title: 'Media query',
-			body: 'Blok yang dimulai <b>@media</b> cuma berlaku kalau layarnya minimal 600 piksel. Di HP blok itu dilewati.'
-		},
-		{
-			title: 'Breakpoint',
-			body: 'Penggaris menandai 600 dan 900, breakpoint halaman ini. Lewat 900, media query kedua ikut bangun.'
-		},
-		{
-			title: 'Menyusun ulang',
-			body: 'Browser terus mengecek lebarnya. Lewat breakpoint, dia langsung menyusun ulang halamannya.'
-		},
-		{
-			title: 'Dua arti',
-			body: 'Di dunia debugging, breakpoint itu titik berhenti program. Kata yang sama, alat yang beda total.'
-		},
-		{
-			tag: 'Cara ingat',
-			title: 'HP dulu, baru melebar',
-			body: '<b>min-width</b> artinya "mulai lebar ini ke atas". Tata letak HP duluan, satu media query per layar yang lebih besar.'
-		},
-		{
-			title: 'Giliran kamu, kalau mau',
-			body: 'Geser slidernya buat mengubah lebar layar sendiri dan tangkap momen tata letaknya loncat.'
-		}
-	],
-	cssLabel: 'style.css',
+	missionsLabel: 'Coba nimbus.com di semua layar',
+	missions: {
+		phone: 'Kecilkan sampai seukuran HP',
+		tablet: 'Berhenti di ukuran tablet',
+		laptop: 'Lebarkan sampai seukuran laptop',
+		fixed: 'Matikan responsif di ukuran HP'
+	},
+	widthLabel: 'Lebar layar',
+	presets: { phone: 'HP', tablet: 'Tablet', laptop: 'Laptop' },
+	toggleLabel: 'CSS responsif',
+	on: 'nyala',
+	off: 'mati',
+	rulesLabel: 'Media query di style.css',
 	previewLabel: 'nimbus.com',
-	widthLabel: 'lebar {n} piksel',
-	sizes: { phone: 'HP', tablet: 'tablet', laptop: 'laptop' },
-	sliderLabel: 'Lebar layar',
+	layouts: {
+		phone: 'Satu kolom',
+		tablet: 'Dua kolom',
+		laptop: 'Tiga kolom',
+		fixed: 'Terkunci di 960 piksel'
+	},
 	page: {
 		menu: 'Menu',
 		links: ['Beranda', 'Belajar', 'Blog'],
 		heroTitle: 'Belajar teknologi dari nol',
 		heroText: 'Pelajaran singkat bareng Nim, langsung di browsermu.',
+		cta: 'Mulai sekarang',
 		cards: [
 			{ title: 'Jaringan', text: 'Cara perangkat ngobrol.' },
 			{ title: 'Web', text: 'Cara halaman dibangun.' },
 			{ title: 'Cloud', text: 'Server yang kamu sewa.' }
 		]
-	}
+	},
+	allDone: 'Empat misi beres, nimbus.com pas di semua layar'
 };

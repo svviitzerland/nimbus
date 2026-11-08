@@ -1,3 +1,4 @@
+import { SvelteSet } from 'svelte/reactivity';
 // Learner progress, persisted to localStorage. Lessons must be finished in order:
 // a lesson is only reachable once every earlier lesson in the curriculum is done.
 import { chapters } from './chapters';
@@ -43,8 +44,8 @@ function load(): string[] {
 	}
 }
 
-// Reassigned (never mutated in place) so reads stay reactive across components.
-let done = $state(new Set<string>(load()));
+// SvelteSet tracks membership and size across components.
+const done = new SvelteSet<string>(load());
 
 function persist() {
 	if (typeof localStorage === 'undefined') return;
@@ -62,7 +63,6 @@ export const progress = {
 	markDone(chapterId: string, lessonId: string) {
 		const k = lessonKey(chapterId, lessonId);
 		if (done.has(k)) return;
-		done = new Set(done);
 		done.add(k);
 		persist();
 	},
@@ -81,7 +81,7 @@ export const progress = {
 		return flatLessons().length;
 	},
 	reset() {
-		done = new Set();
+		done.clear();
 		persist();
 	}
 };

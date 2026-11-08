@@ -6,22 +6,15 @@ import { en } from './en';
 export const backup: Lesson = {
 	id: 'backup',
 	mood: 'thinking',
-	moods: [
-		'calm',
-		'worried',
-		'idea',
-		'happy',
-		'thinking',
-		'wink',
-		'idea',
-		'excited',
-		'surprised',
-		'happy'
-	],
+	moods: ['worried', 'idea', 'thinking', 'wink', 'idea', 'excited'],
 	reactionMood: {
 		daily: 'sad',
-		hourly: 'happy'
+		hourly: 'happy',
+		rule: 'idea',
+		fireLost: 'worried',
+		fireSafe: 'excited'
 	},
+	playable: true,
 	stage: BackupStage,
 	text: { id, en }
 };

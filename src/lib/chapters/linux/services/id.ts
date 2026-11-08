@@ -3,11 +3,11 @@ import type { ServicesText } from './types';
 export const id: ServicesText = {
 	title: 'Service dan systemd',
 	intro: [
-		'Semalam kamu nyalain app nimbus.com pakai tangan, terus nutup laptop. Begitu kamu logout, appnya ikut berhenti, dan situsnya gelap. Program yang dinyalain manual cuma hidup selama kamu masih di situ.',
-		'Website harus jalan siang malam tanpa ada yang nungguin. Program yang jalan diam diam di belakang layar kayak gitu namanya <b>service</b>. Di Ubuntu ada penjaga namanya <b>systemd</b> yang nyalain service, ngawasin, dan bangunin lagi kalau dia jatuh.',
+		'Aplikasi yang dijalankan dari terminal bisa berhenti ketika sesi ditutup, bergantung cara menjalankannya. Untuk nimbus.com, kita ingin proses dikelola terpisah dari sesi terminal.',
+		'<b>Service</b> dapat berjalan tanpa sesi terminal pengguna. Pada Ubuntu ini, <b>systemd</b> mengelola kapan service dimulai, dihentikan, atau dijalankan ulang sesuai konfigurasi.',
 		'Kamu ngobrol sama systemd pakai <b>systemctl</b>. Pertama Nim nanya kabar appnya, <b>systemctl status nimbus</b>. Jawabannya inactive (dead). Sama sekali nggak jalan.',
 		'Jadi Nim nyalain, <b>sudo systemctl start nimbus</b> (ngatur service itu kerjaan admin, makanya pakai sudo). Lampunya hijau dan situsnya balik.',
-		'Sekarang bagian kerennya. Nim sengaja bikin appnya mati pakai <b>pkill</b>. Lampunya merah, dan sebentar kemudian systemd sadar lalu nyalain lagi sendiri. Nggak ada yang perlu bangun jam 3 pagi.',
+		'Nim menghentikan proses memakai <b>pkill</b>. Dalam contoh ini, konfigurasi systemd mengaktifkan restart otomatis sehingga proses dijalankan lagi. Restart membantu pemulihan, tetapi penyebab kegagalan tetap perlu diperiksa.',
 		'Tinggal satu masalah. Kalau seluruh server restart (update, listrik mati), appnya balik nggak? Cuma kalau kamu minta. <b>sudo systemctl enable nimbus</b> nyuruh systemd nyalain dia tiap kali server boot. Lihat saklarnya.',
 		'[ingat] <b>start</b> itu buat sekarang, <b>enable</b> itu buat tiap kali nyala. Biasanya kamu mau dua duanya. stop dan disable itu kebalikannya.',
 		'[fyi] Kata yang sama, dunia yang beda. Provider cloud jualan "managed services", dan Windows punya jendela Services sendiri. Tempatnya beda, idenya sama, program yang dijagain biar terus jalan di belakang layar.',
@@ -15,7 +15,7 @@ export const id: ServicesText = {
 	],
 	reactions: {
 		restarted:
-			'Mati dan nyala lagi sekejap. Appnya reload, situsnya hampir nggak kerasa. Begitulah admin ngeluarin versi baru.',
+			'Service dihentikan lalu dijalankan kembali. Restart dapat menimbulkan jeda layanan, jadi periksa status dan log setelahnya.',
 		started: 'Jalan. Lampunya hijau dan pengunjung bisa buka nimbus.com lagi.',
 		stopped:
 			'Berhenti, situsnya gelap. systemd nggak bakal nyalain yang sengaja kamu matiin. Nyalain lagi pakai <b>sudo systemctl start nimbus</b>.',
@@ -31,52 +31,52 @@ export const id: ServicesText = {
 			'systemd nggak kenal service dengan nama itu di sini. Punya kita namanya <b>nimbus</b>.',
 		missing: 'Nggak ada yang namanya itu di sini. Coba <b>sudo systemctl restart nimbus</b>.',
 		denied: 'Dikunci, itu butuh admin. Taruh <b>sudo</b> di depan.',
-		error: 'Servernya nggak ngerti. Coba <b>sudo systemctl restart nimbus</b>, persis kayak gitu.'
+		error: 'Perintah belum sesuai latihan. Coba <b>sudo systemctl restart nimbus</b>.'
 	},
 	panels: [
 		{
 			tag: 'Masalahnya',
-			title: 'Hilang waktu kamu pergi',
+			title: 'Sesi terminal ditutup',
 			body: 'Program yang kamu nyalain manual itu milik sesimu. Logout, dan dia ikut berhenti.'
 		},
 		{
 			tag: 'Service',
-			title: 'Jalan di belakang layar',
+			title: 'Program yang dikelola sebagai service',
 			body: '<b>Service</b> tetap jalan walau nggak ada yang login. <b>systemd</b> itu penjaga yang nyalain, ngawasin, dan restart dia.'
 		},
 		{
 			tag: 'status',
-			title: 'Gimana kabarnya',
+			title: 'Status service',
 			body: '<b>systemctl status</b> nunjukin service nya jalan atau nggak, dan diset nyala waktu boot atau nggak.'
 		},
 		{
 			tag: 'start',
-			title: 'Jalanin sekarang',
+			title: 'Menjalankan service',
 			body: '<b>sudo systemctl start nimbus</b> nyalain app di belakang layar. Lampu di rak nunjukin dia hidup.'
 		},
 		{
 			tag: 'Restart=always',
-			title: 'Bangkit lagi',
+			title: 'Restart otomatis',
 			body: 'Satu baris di file service minta systemd nyalain app lagi tiap kali dia mati. Tiap restart juga dihitung.'
 		},
 		{
 			tag: 'enable',
-			title: 'Nyala tiap boot',
+			title: 'Aktif saat boot',
 			body: '<b>enable</b> nggak nyalain apa pun sekarang. Dia cuma nyalain saklar biar app ikut nyala tiap server boot.'
 		},
 		{
 			tag: 'Cara ingat',
-			title: 'Sekarang lawan selamanya',
+			title: 'Start dan enable',
 			body: 'start, sekarang. enable, tiap nyala. stop dan disable ngebatalin, dan restart itu stop plus start yang cepat.'
 		},
 		{
 			tag: 'Info',
-			title: 'Service di mana mana',
+			title: 'Contoh service lainnya',
 			body: 'Web server, database, bahkan pintu SSH tempat kamu masuk tadi, semuanya service yang dijagain systemd.'
 		},
 		{
 			tag: 'Giliranmu',
-			title: 'Restart appnya',
+			title: 'Memulai ulang aplikasi',
 			body: 'Ketik <b>sudo systemctl restart nimbus</b> lalu tekan Enter. Lampunya kedip, situsnya tetap nyala.'
 		}
 	],

@@ -1,26 +1,32 @@
 import type { LessonText } from '../../types';
 
-/** One part of the picture, explained in the side panel. */
-export type GuideStep = { title: string; body: string; tag?: string };
-
 export interface WifiSecurityText extends LessonText {
-	/** Side panel, one entry per part of the story (seven). */
-	steps: GuideStep[];
-	homeLabel: string; // over the house
-	routerLabel: string; // under the router
-	laptopLabel: string;
-	tvLabel: string;
-	guestLabel: string; // the guest network room
-	snooperLabel: string; // the stranger outside
+	routerTitle: string; // heading of the router settings card
+	securityLabel: string; // label over the Open, WPA2, WPA3 picker
 	modes: { open: string; wpa2: string; wpa3: string };
-	saferLabel: string; // arrow over the Open, WPA2, WPA3 scale
-	pickLabel: string; // aria label of the optional picker
-	/** Two short lines on the stranger's screen for each situation. */
+	modeHints: { open: string; wpa2: string; wpa3: string }; // one line under the picker
+	passwordLabel: string;
+	weakTag: string; // shown next to an easy to guess password
+	strongTag: string; // shown next to a long one
+	guestLabel: string; // the guest network switch
+	applyBtn: string; // saves the settings and lets the snooper try
+	snooperLabel: string; // heading of the snooper's screen
+	snooperIdle: string; // before the first try
+	/** What the snooper's screen prints. {pw} is replaced with the password. */
 	snoop: {
-		idle: string[];
-		listen: string[];
-		open: string[];
-		wpa2: string[];
-		wpa3: string[];
+		joinOpen: string;
+		readPlain: string;
+		captured: string;
+		guessing: string;
+		cracked: string;
+		noLuck: string;
+		noise: string;
+		wpa3Live: string;
+		wpa3Slow: string;
 	};
+	homeNet: string; // label over the home network group
+	guestNet: string; // label over the guest network group
+	devices: { laptop: string; tv: string; friend: string };
+	noteGuestOff: string;
+	noteGuestOn: string;
 }

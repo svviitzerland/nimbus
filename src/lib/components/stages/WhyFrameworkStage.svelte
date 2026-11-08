@@ -1,336 +1,379 @@
 <script lang="ts">
-	// Guided "watch" stage. Six little nimbus.com pages sit around the scene. First they appear one
-	// by one, then a pencil walks from page to page changing the mug price by hand, then one missed
-	// page shows the bug. With a framework the price moves into one box in the middle, and a change
-	// travels down the wires to every page at once. The only optional play is changing that price.
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { WhyFrameworkText } from '$lib/chapters/web/why-framework/types';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: {
+		text: LessonText;
+		oncomplete?: () => void;
+		onstate?: (s: string) => void;
+	} = $props();
 	const tx = $derived(text as WhyFrameworkText);
 
-	$effect(() => {
-		onshow?.(true);
-		oncomplete?.();
-	});
-
-	const lastBeat = $derived(tx.intro.length - 1);
-	const isPlay = $derived(beat >= lastBeat);
-
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const step = $derived(peek ?? Math.min(beat, tx.steps.length - 1));
-	const live = $derived(isPlay && peek === null);
-
-	const W = 96;
-	const H = 92;
-	const POS = [
-		[24, 10],
-		[152, 10],
-		[280, 10],
-		[24, 278],
-		[152, 278],
-		[280, 278]
-	];
-	const CX = 200;
-	const CY = 190;
-	const MISSED = 3;
+	const OLD = 12;
+	const NEW = 9;
 	const money = (n: number) => tx.money.replace('{n}', String(n));
 
-	// One clock, restarted on every step.
-	let t = $state(0);
-	let reduced = $state(false);
-	$effect(() => {
-		void step;
-		reduced =
-			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-		t = 0;
-		if (reduced) return;
-		const start = Date.now();
-		const id = setInterval(() => (t = Date.now() - start), 80);
-		return () => clearInterval(id);
-	});
+	let mode = $state<'hand' | 'framework'>('hand');
 
-	// The optional play, the price in the one box, with pages following a moment later.
-	let userPrice = $state(9);
-	let userPagePrice = $state(9);
-	let userPulse = $state(0);
-	let timer: ReturnType<typeof setTimeout> | undefined;
-	function change() {
-		userPrice = userPrice === 9 ? 12 : 9;
-		userPulse += 1;
-		clearTimeout(timer);
-		const p = userPrice;
-		timer = setTimeout(() => (userPagePrice = p), reduced ? 0 : 480);
-		onstate?.('price');
+	// By hand, every file holds its own copy of the price.
+	let prices = $state<number[]>(Array(10).fill(OLD));
+	let edits = $state(0);
+	let published = $state<null | number>(null); // how many were missed on the last publish
+
+	function edit(i: number) {
+		if (prices[i] === NEW) return;
+		prices[i] = NEW;
+		edits += 1;
+		published = null;
 	}
-	$effect(() => () => clearTimeout(timer));
+	let handPublished = false;
+	function publish() {
+		const missed = prices.filter((p) => p !== NEW).length;
+		published = missed;
+		if (missed > 0) onstate?.('missed');
+		else {
+			handPublished = true;
+			onstate?.('handDone');
+			maybeFinish();
+		}
+	}
+	function resetHand() {
+		prices = Array(10).fill(OLD);
+		edits = 0;
+		published = null;
+	}
 
-	// By hand, the pencil visits a page every 900 ms, then the loop rests.
-	const HAND = 900;
-	const handT = $derived(step === 1 && !reduced ? t % (6 * HAND + 1800) : 1e9);
-	const pencilAt = $derived(Math.min(5, Math.floor(handT / HAND)));
+	// With a framework, there is one price and every page reads it.
+	let price = $state(OLD);
+	let fwUsed = false;
+	function setPrice(n: number) {
+		price = Math.max(1, Math.min(30, n));
+		if (!fwUsed) {
+			fwUsed = true;
+			onstate?.('framework');
+		}
+		maybeFinish();
+	}
 
-	// The framework loop, the price flips every 2.8 s and pages follow after 0.5 s.
-	const LOOP = 2800;
-	const phase = $derived(step === 3 && !reduced ? Math.floor(t / LOOP) : 0);
-	const storePrice = $derived(live ? userPrice : phase % 2 === 0 ? 9 : 12);
-	const loopPagePrice = $derived(
-		step === 3 && !reduced && t % LOOP < 500 ? (storePrice === 9 ? 12 : 9) : storePrice
-	);
-	const pulseKey = $derived(live ? userPulse : phase);
-	const showStore = $derived(step >= 3);
-	const showPulse = $derived((step === 3 && !reduced) || (live && userPulse > 0));
-
-	function priceOf(i: number): number {
-		if (step === 0) return 12;
-		if (step === 1) return handT >= i * HAND + 600 ? 9 : 12;
-		if (step === 2) return i === MISSED ? 12 : 9;
-		if (live) return userPagePrice;
-		return loopPagePrice;
+	let finished = false;
+	function maybeFinish() {
+		if (finished || !handPublished || !fwUsed) return;
+		finished = true;
+		oncomplete?.();
 	}
 </script>
 
-{#snippet visual()}
-	<div class="w-full">
-		<svg
-			viewBox="0 0 400 380"
-			class="mx-auto block w-full max-w-[420px]"
-			role="img"
-			aria-label={tx.steps[step].title}
+<div class="flex h-full w-full flex-col items-center justify-center gap-3">
+	<div class="tabs" role="tablist">
+		<button
+			type="button"
+			role="tab"
+			aria-selected={mode === 'hand'}
+			class:on={mode === 'hand'}
+			onclick={() => (mode = 'hand')}>{tx.modes.hand}</button
 		>
-			<!-- wires from the one place to every page -->
-			{#if showStore}
-				{#each POS as [x, y], i (i)}
-					<line x1={CX} y1={CY} x2={x + W / 2} y2={y + H / 2} class="wire" />
-				{/each}
-				{#if showPulse}
-					{#key pulseKey}
-						{#each POS as [x, y], i (i)}
-							<circle
-								cx={CX}
-								cy={CY}
-								r="5"
-								class="pulse"
-								style="--dx:{x + W / 2 - CX}px;--dy:{y + H / 2 - CY}px"
-							/>
-						{/each}
-					{/key}
-				{/if}
-			{/if}
-
-			<!-- the six pages -->
-			{#each POS as [x, y], i (i)}
-				{@const price = priceOf(i)}
-				{@const bad = step === 2 && i === MISSED}
-				<g class="page" class:appear={step === 0} style="animation-delay:{i * 0.35}s">
-					<rect {x} {y} width={W} height={H} rx="10" class="sheet" class:bad />
-					<line x1={x} y1={y + 26} x2={x + W} y2={y + 26} class="bar" />
-					<text x={x + 10} y={y + 18} class="pname">{tx.pages[i]}</text>
-					<g transform="translate({x + 38} {y + 34}) scale(0.38)">
-						<path
-							d="M44 12c6 0 10 4 10 11s-4 11 -10 11"
-							style="fill:none;stroke:var(--color-brand)"
-							stroke-width="6"
-						/>
-						<rect
-							width="46"
-							height="56"
-							rx="8"
-							style="fill:var(--color-brand-soft);stroke:var(--color-brand)"
-							stroke-width="4"
-						/>
-					</g>
-					<text
-						x={x + W / 2}
-						y={y + 80}
-						text-anchor="middle"
-						class="price"
-						class:bad
-						class:sale={price === 9}
-					>
-						{money(price)}
-					</text>
-				</g>
-			{/each}
-
-			<!-- the pencil, by hand -->
-			{#if step === 1}
-				{@const [px, py] = POS[pencilAt]}
-				<g class="pencil" style="transform:translate({px + 84}px, {py + 62}px)">
-					<g transform="rotate(35)">
-						<rect x="-4" y="-30" width="8" height="24" rx="1.5" style="fill:var(--color-amber)" />
-						<rect x="-4" y="-34" width="8" height="5" rx="1.5" style="fill:var(--color-danger)" />
-						<path d="M-4 -6L4 -6L0 3Z" style="fill:var(--color-ink)" />
-					</g>
-				</g>
-			{/if}
-
-			<!-- the bug note -->
-			{#if step === 2}
-				<g>
-					<circle cx="118" cy="190" r="13" style="fill:var(--color-danger)" class="huh" />
-					<text x="118" y="196" text-anchor="middle" class="q">!</text>
-					<text x="140" y="195" class="bug">{tx.bugNote}</text>
-				</g>
-			{/if}
-
-			<!-- the one place the price lives -->
-			{#if showStore}
-				<g>
-					<rect x={CX - 56} y={CY - 32} width="112" height="64" rx="14" class="store" />
-					<text x={CX} y={CY - 10} text-anchor="middle" class="slabel">{tx.storeLabel}</text>
-					<text x={CX} y={CY + 18} text-anchor="middle" class="sprice">{money(storePrice)}</text>
-				</g>
-			{/if}
-		</svg>
-		{#if live}
-			<div class="mt-3 flex justify-center">
-				<button type="button" class="play" onclick={change}>
-					{userPrice === 9 ? tx.raise : tx.lower}
-				</button>
-			</div>
-		{/if}
+		<button
+			type="button"
+			role="tab"
+			aria-selected={mode === 'framework'}
+			class:on={mode === 'framework'}
+			onclick={() => (mode = 'framework')}>{tx.modes.framework}</button
+		>
 	</div>
-{/snippet}
 
-<div class="flex w-full justify-center px-1 pb-28 md:pb-6">
-	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
+	<p class="hint">{mode === 'hand' ? tx.handHint : tx.frameworkHint}</p>
+
+	{#if mode === 'hand'}
+		<div class="bar">
+			<span class="count">{tx.edits.replace('{n}', String(edits))}</span>
+			<button type="button" class="ghost" onclick={resetHand}>{tx.reset}</button>
+			<button type="button" class="pub" onclick={publish}>{tx.publish}</button>
+		</div>
+		{#if published !== null}
+			<p class="result" class:bad={published > 0}>
+				{published > 0 ? tx.publishedMissed.replace('{n}', String(published)) : tx.publishedOk}
+			</p>
+		{/if}
+		<div class="files">
+			{#each tx.places as name, i (name)}
+				<button
+					type="button"
+					class="file"
+					class:done={prices[i] === NEW}
+					class:stale={published !== null && published > 0 && prices[i] !== NEW}
+					onclick={() => edit(i)}
+				>
+					<span class="fn">{name}</span>
+					<span class="sk"><i></i><i></i></span>
+					<span class="pr">{money(prices[i])}</span>
+				</button>
+			{/each}
+		</div>
+	{:else}
+		<div class="store">
+			<span class="code"
+				><span class="kw">let</span> <span class="var">{tx.priceLabel}</span>
+				<span class="pun">=</span></span
+			>
+			<button type="button" class="st" aria-label={tx.cheaper} onclick={() => setPrice(price - 1)}>
+				<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"
+					><path
+						d="M2.5 6h7"
+						stroke="currentColor"
+						stroke-width="1.8"
+						stroke-linecap="round"
+					/></svg
+				>
+			</button>
+			<span class="big">{price}</span>
+			<button type="button" class="st" aria-label={tx.pricier} onclick={() => setPrice(price + 1)}>
+				<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"
+					><path
+						d="M2.5 6h7M6 2.5v7"
+						stroke="currentColor"
+						stroke-width="1.8"
+						stroke-linecap="round"
+					/></svg
+				>
+			</button>
+		</div>
+		<div class="files">
+			{#each tx.places as name (name)}
+				<div class="file linked">
+					<span class="fn">{name}</span>
+					<span class="sk"><i></i><i></i></span>
+					{#key price}
+						<span class="pr flash">{money(price)}</span>
+					{/key}
+				</div>
+			{/each}
+		</div>
+	{/if}
 </div>
 
 <style>
-	.sheet {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 2;
-		transition: stroke 0.3s;
-	}
-	.sheet.bad {
-		stroke: var(--color-danger);
-		fill: var(--color-danger-soft);
-	}
-	.bar {
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-	}
-	.pname {
-		font-size: 10.5px;
-		font-weight: 700;
-		fill: var(--color-muted);
-	}
-	.price {
-		font-size: 16px;
-		font-weight: 800;
-		fill: var(--color-ink);
-		transition: fill 0.3s;
-	}
-	.price.sale {
-		fill: var(--color-grass);
-	}
-	.price.bad {
-		fill: var(--color-danger);
-	}
-	.appear {
-		animation: appear 0.6s ease-out both;
-	}
-	.wire {
-		stroke: var(--color-brand);
-		stroke-width: 2;
-		opacity: 0.35;
-	}
-	.pulse {
-		fill: var(--color-brand);
-		animation: travel 0.5s ease-in forwards;
-	}
-	.store {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-brand);
-		stroke-width: 2.5;
-	}
-	.slabel {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 11px;
-		font-weight: 700;
-		fill: var(--color-brand);
-	}
-	.sprice {
-		font-family: var(--font-display);
-		font-size: 24px;
-		font-weight: 700;
-		fill: var(--color-ink);
-	}
-	.pencil {
-		transition: transform 0.45s ease-in-out;
-	}
-	.bug {
-		font-size: 13px;
-		font-weight: 700;
-		fill: var(--color-danger);
-	}
-	.q {
-		font-size: 16px;
-		font-weight: 800;
-		fill: var(--color-card);
-	}
-	.huh {
-		animation: pulse 2.4s ease-in-out infinite;
-		transform-origin: 118px 190px;
-	}
-	.play {
+	.tabs {
+		display: inline-flex;
+		padding: 3px;
 		border-radius: 999px;
 		border: 1px solid var(--color-line);
 		background: var(--color-card);
-		padding: 9px 18px;
-		font-size: 14px;
+	}
+	.tabs button {
+		padding: 6px 14px;
+		border-radius: 999px;
+		font-size: 12.5px;
 		font-weight: 600;
+		color: var(--color-muted);
+		transition:
+			background 0.2s ease,
+			color 0.2s ease;
+	}
+	.tabs button.on {
+		background: var(--color-ink);
+		color: var(--color-paper);
+	}
+	.hint {
+		margin: 0;
+		max-width: min(94vw, 400px);
+		text-align: center;
+		font-size: 12px;
+		color: var(--color-muted);
+	}
+	.bar {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		width: min(94vw, 400px);
+	}
+	.count {
+		flex: 1;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-faint);
+		font-variant-numeric: tabular-nums;
+	}
+	.ghost {
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-muted);
+		padding: 7px 11px;
+		font-size: 12px;
+		font-weight: 600;
+	}
+	.pub {
+		border-radius: 10px;
+		background: var(--color-ink);
+		color: var(--color-paper);
+		padding: 8px 16px;
+		font-size: 12.5px;
+		font-weight: 700;
+	}
+	.result {
+		margin: 0;
+		padding: 5px 12px;
+		border-radius: 999px;
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+		font-size: 12px;
+		font-weight: 700;
+	}
+	.result.bad {
+		background: var(--color-danger-soft);
+		color: var(--color-danger);
+	}
+	.files {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 6px;
+		width: min(94vw, 400px);
+	}
+	@media (min-width: 640px) {
+		.files {
+			grid-template-columns: repeat(5, 1fr);
+			width: min(94vw, 600px);
+		}
+	}
+	.file {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+		min-width: 0;
+		padding: 7px 8px;
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		text-align: left;
+		transition:
+			border-color 0.2s ease,
+			background 0.2s ease;
+	}
+	button.file:hover {
+		border-color: var(--color-brand);
+	}
+	.file.done {
+		border-color: var(--color-grass);
+	}
+	.file.stale {
+		border-color: var(--color-danger);
+		background: var(--color-danger-soft);
+	}
+	.file.linked {
+		border-color: var(--color-brand);
+	}
+	.fn {
+		max-width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 10.5px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.sk {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		width: 100%;
+	}
+	.sk i {
+		height: 5px;
+		border-radius: 3px;
+		background: var(--color-line);
+	}
+	.sk i:nth-child(2) {
+		width: 60%;
+	}
+	.pr {
+		padding: 1px 7px;
+		border-radius: 999px;
+		background: var(--color-paper);
 		color: var(--color-ink);
-		box-shadow: 0 4px 14px rgba(22, 40, 60, 0.07);
+		font-size: 12px;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
 	}
-	@keyframes appear {
-		from {
-			opacity: 0;
-			transform: translateY(8px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
+	.done .pr {
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
 	}
-	@keyframes travel {
-		from {
-			transform: translate(0, 0);
-			opacity: 1;
-		}
-		to {
-			transform: translate(var(--dx), var(--dy));
-			opacity: 0;
-		}
+	.stale .pr {
+		background: var(--color-card);
+		color: var(--color-danger);
 	}
-	@keyframes pulse {
-		0%,
+	.linked .pr {
+		background: var(--color-brand-soft);
+		color: var(--color-brand);
+	}
+	.flash {
+		animation: pop 0.45s ease;
+	}
+	@keyframes pop {
+		0% {
+			transform: scale(1.25);
+		}
 		100% {
 			transform: scale(1);
 		}
-		60% {
-			transform: scale(1.12);
-		}
+	}
+	.store {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 8px 14px;
+		border-radius: 14px;
+		border: 1px solid var(--color-brand);
+		background: var(--color-card);
+		box-shadow: 0 8px 22px rgba(22, 40, 60, 0.07);
+	}
+	.code {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 13px;
+	}
+	.kw {
+		color: var(--color-amber);
+		font-weight: 600;
+	}
+	.var {
+		color: var(--color-brand);
+		font-weight: 600;
+	}
+	.pun {
+		color: var(--color-faint);
+	}
+	.st {
+		display: grid;
+		place-items: center;
+		width: 28px;
+		height: 28px;
+		border-radius: 8px;
+		border: 1px solid var(--color-line);
+		background: var(--color-paper);
+		color: var(--color-ink);
+	}
+	.big {
+		min-width: 30px;
+		text-align: center;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 20px;
+		font-weight: 700;
+		color: var(--color-grass);
+		font-variant-numeric: tabular-nums;
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.appear,
-		.pulse,
-		.huh {
+		.flash {
 			animation: none;
 		}
-		.pulse {
-			opacity: 0;
-		}
-		.pencil,
-		.sheet,
-		.price {
+		.file,
+		.tabs button {
 			transition: none;
 		}
 	}

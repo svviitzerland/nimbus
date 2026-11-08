@@ -1,31 +1,47 @@
 import type { LessonText } from '../../types';
 
-/** How often the optional replay backs up. */
-export type BackupPlan = 'daily' | 'hourly';
+export type BackupPlace = 'original' | 'disk2' | 'nas' | 'cloud';
 
 export interface BackupText extends LessonText {
-	/** The side panel, one entry per beat (tag, title, a short plain explanation). */
-	steps: { tag: string; title: string; body: string }[];
-	siteLabel: string; // the Jakarta data center
+	/** Short names for the two acts, shown as tabs at the top. */
+	acts: string[];
+	nextAct: string;
+	// Act 1, a busy day then a dead disk
 	dbLabel: string; // the database server
 	ordersLabel: string; // caption under the order counter
-	boxLabel: string; // the backup box in the same building
-	offLabel: string; // the far away region
-	offSub: string;
-	deadTag: string; // on the broken disk
-	newTag: string; // on the replacement disk
+	backupLabel: string; // the backup drive
+	lastCopy: string; // template with {t}, when the newest copy was made
+	noCopy: string; // before the day starts
+	scheduleLabel: string;
+	daily: string; // back up once a day, at midnight
+	hourly: string; // back up every hour
+	runBtn: string;
+	crashBtn: string;
+	restoreBtn: string;
+	againBtn: string;
 	lostTag: string; // template with {n}, orders lost
 	backTag: string; // template with {n}, orders brought back
-	fireTag: string;
-	/** The 3 2 1 rule, three short parts shown under the picture. */
-	rule: [string, string, string];
-	// the timeline of one busy day
-	dailyLabel: string; // a backup once a day
-	hourlyLabel: string; // a backup every hour
-	startTime: string; // the left end of the day
-	crashTime: string; // when the disk dies
-	gapLabel: string; // the stretch with no copy
-	/** Optional replay on the last beat. */
-	pickLabel: string;
-	plans: Record<BackupPlan, string>;
+	noteIdle: string;
+	noteRunning: string;
+	noteLive: string;
+	noteDead: string;
+	noteDaily: string;
+	noteHourly: string;
+	// Act 2, the 3 2 1 rule
+	siteLabel: string; // the main data center
+	siteSub: string;
+	offLabel: string; // the far away region
+	offSub: string;
+	places: Record<BackupPlace, string>;
+	kinds: Record<BackupPlace, string>; // the kind of storage, shown small
+	originalTag: string;
+	pickHint: string; // pick two more copies
+	checkCopies: string; // template with {n}
+	checkKinds: string; // template with {n}
+	checkOff: string;
+	fireBtn: string;
+	resetBtn: string;
+	fireTag: string; // shown over the burning building
+	noteLost: string;
+	noteSafe: string;
 }

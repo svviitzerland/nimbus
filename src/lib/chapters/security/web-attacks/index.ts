@@ -6,21 +6,20 @@ import { en } from './en';
 export const webAttacks: Lesson = {
 	id: 'web-attacks',
 	mood: 'thinking',
-	moods: [
-		'calm',
-		'thinking',
-		'surprised',
-		'excited',
-		'worried',
-		'happy',
-		'idea',
-		'wink',
-		'excited'
-	],
+	moods: ['calm', 'worried', 'thinking', 'idea', 'wink', 'excited'],
 	reactionMood: {
-		fixOff: 'worried',
-		fixOn: 'excited'
+		normal: 'happy',
+		wrong: 'calm',
+		broken: 'surprised',
+		sqlIn: 'worried',
+		drop: 'sad',
+		sqlBlocked: 'excited',
+		plain: 'happy',
+		htmlTag: 'thinking',
+		xssRan: 'worried',
+		xssBlocked: 'excited'
 	},
+	playable: true,
 	stage: WebAttacksStage,
 	text: { id, en }
 };

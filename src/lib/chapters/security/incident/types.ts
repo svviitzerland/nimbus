@@ -1,30 +1,24 @@
 import type { LessonText } from '../../types';
 
-/** One part of the side panel (title, one or two short sentences, an optional tag). */
-export type GuideStep = { title: string; body: string; tag?: string };
-
-/** The five incident response steps, in the right order. */
-export type IncidentPhase = 'check' | 'contain' | 'clean' | 'recover' | 'learn';
+/** The five real steps, in the right order, plus two tempting traps. */
+export type IncidentStep = 'check' | 'contain' | 'clean' | 'recover' | 'learn';
+export type IncidentTrap = 'pay' | 'hide';
 
 export interface IncidentText extends LessonText {
-	/** Side panel parts, one per beat. */
-	steps: GuideStep[];
-	/** Caption over the scene for the Maersk part and for the nimbus.com part. */
-	maersk: string;
-	nimbus: string;
-	/** The lone server that survived, and its tag. */
-	ghana: string;
-	offline: string;
-	/** Captions for the backup drive and the notebook. */
-	backup: string;
-	notes: string;
-	/** Three short lines written in the notebook on the learn beat. */
-	lessons: string[];
-	/** The tag the magnifier shows on the check beat. */
-	checkTag: string;
-	/** The five steps, short (shown as a row under the scene). */
-	phases: Record<IncidentPhase, string>;
-	/** The optional replay on the last beat, the wrong order and the right one. */
-	skip: string;
-	right: string;
+	alarmTitle: string; // the alarm banner headline
+	alarmSub: string; // what is happening, in one line
+	answerBtn: string; // starts the clock
+	serversLabel: string; // caption over the row of servers
+	damageLabel: string; // caption over the damage meter
+	planLabel: string; // heading over the steps picked so far
+	pickHint: string; // nudges the learner to pick the next step
+	/** Every card, its short name and what it means in one line. */
+	steps: Record<IncidentStep | IncidentTrap, { name: string; sub: string }>;
+	stateHit: string; // a server the malware reached
+	stateCut: string; // cut off from the network, contained
+	stateClean: string; // the malware is gone, still offline
+	stateBack: string; // restored and serving again
+	restartBtn: string; // plays the drill again
+	resultGood: string; // template with {n}, finished with few servers hit
+	resultSlow: string; // template with {n}, finished but late
 }

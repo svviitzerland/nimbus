@@ -6,21 +6,15 @@ import { en } from './en';
 export const sso: Lesson = {
 	id: 'sso',
 	mood: 'thinking',
-	moods: [
-		'worried',
-		'idea',
-		'surprised',
-		'calm',
-		'happy',
-		'thinking',
-		'excited',
-		'wink',
-		'idea',
-		'excited'
-	],
+	moods: ['worried', 'idea', 'surprised', 'calm', 'idea', 'wink', 'excited'],
 	reactionMood: {
+		redirect: 'idea',
+		google: 'happy',
+		consent: 'excited',
+		greedy: 'worried',
 		revoke: 'wink'
 	},
+	playable: true,
 	stage: SsoStage,
 	text: { id, en }
 };

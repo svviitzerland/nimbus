@@ -3,102 +3,78 @@ import type { KeysText } from './types';
 export const id: KeysText = {
 	title: 'Kunci simetris dan asimetris',
 	intro: [
-		'Dari dulu orang pengin kirim surat yang cuma bisa dibaca si penerima. Sekitar 2000 tahun lalu, Julius Caesar menulis surat ke jenderalnya dengan menggeser tiap huruf tiga langkah, jadi A berubah jadi D, B jadi E.',
-		'Yang tahu rahasia "geser tiga" bisa membaliknya dan membaca suratnya. Satu rahasia yang dipakai buat mengunci sekaligus membuka namanya <b>kunci simetris</b>. Sampai sekarang ini masih jadi mesin [[enkripsi|networking/encryption]] cepat yang kamu pakai tiap hari.',
-		'Di Perang Dunia II, Jerman memakai mesin bernama <b>Enigma</b>. Rotornya yang berputar mengacak tiap huruf, dan setelannya diganti tiap hari. Alan Turing dan timnya di Bletchley Park membuat mesin yang berhasil membongkarnya, dan itu ikut mempercepat akhir perang.',
-		'Tapi satu kunci bersama punya titik lemah. Sebelum temanmu bisa membuka suratmu, kuncinya harus dikirim dulu ke dia. Lihat jalannya. Ada orang di tengah yang diam diam menyalin kunci itu, lalu nanti membuka suratmu pakai salinannya.',
-		'Tahun 1976, Whitfield Diffie dan Martin Hellman menerbitkan ide yang waktu itu terdengar mustahil. Kuncinya dibelah dua. Ada <b>kunci publik</b> yang boleh dibagi ke siapa saja, dan <b>kunci privat</b> yang nggak pernah keluar dari pemiliknya. Kuncinya beda dua, makanya disebut <b>kunci asimetris</b>.',
-		'Lihat jalan yang sama sekali lagi. Kali ini temanmu mengirim gembok yang terbuka. Penyadap boleh saja menyalinnya, toh gembok cuma bisa mengunci. Kamu kunci suratmu pakai gembok itu, dan cuma kunci privat temanmu yang bisa membukanya.',
-		'[ingat] Kunci publik itu <b>gembok terbuka</b>, siapa pun bisa menguncinya. Kunci privat itu <b>satu satunya anak kunci</b> yang bisa membukanya. Gampangnya, gembok boleh dibagi, anak kunci jangan pernah pergi.',
-		'Tahun 1977, tiga peneliti di MIT (Ron Rivest, Adi Shamir, dan Leonard Adleman) membuat cara nyatanya, namanya <b>RSA</b> dari huruf depan nama mereka. Rahasianya ada di bilangan prima. Mengalikan dua bilangan prima itu sekejap, tapi mencari keduanya lagi dari hasilnya susahnya minta ampun.',
-		'[fyi] Ada kejutan. Clifford Cocks, matematikawan di GCHQ (badan intelijen Inggris), ternyata sudah menemukan ide yang sama tahun 1973. Karena rahasia negara, dunia baru tahu ceritanya tahun 1997.',
-		'Sekarang kedua jenis kunci ini kerja bareng tiap kamu buka [[HTTPS|security/tls]], dan kunci privat juga jadi dasar [[tanda tangan digital|security/signature]]. Kalau mau, coba ganti jalannya antara satu kunci bersama dan gembok, lalu lihat bedanya.'
+		'Dari dulu orang pengin kirim pesan yang cuma bisa dibaca si penerima. Sekitar 2000 tahun lalu, Julius Caesar menulis surat ke jenderalnya dengan menggeser tiap huruf tiga langkah, A jadi D, B jadi E, dan seterusnya.',
+		'Yang tahu rahasia "geser tiga" bisa membaliknya dan membaca suratnya. Satu rahasia yang sama dipakai buat mengunci dan membuka, itu namanya <b>kunci simetris</b>. Ini dasar dari [[Enkripsi|networking/encryption]] yang sudah kamu kenal.',
+		'Di Perang Dunia II, Jerman memakai mesin <b>Enigma</b> yang jauh lebih rumit, setelannya diganti tiap hari. Alan Turing dan timnya di Bletchley Park akhirnya berhasil membongkarnya, dan itu ikut mempercepat akhir perang.',
+		'Tapi ada sakit kepala yang lebih besar. Gimana caranya memberi kunci yang sama ke semua orang dengan aman? Buku kode Enigma harus dibawa kurir dan kapal, dan beberapa kali buku itu direbut musuh. Sekali kuncinya bocor, semua pesan ikut terbaca.',
+		'Tahun 1976, Whitfield Diffie dan Martin Hellman menerbitkan ide yang waktu itu terdengar mustahil. Kuncinya dibelah dua. Ada <b>kunci publik</b> yang boleh disebar ke siapa saja, dan <b>kunci privat</b> yang nggak pernah keluar dari pemiliknya.',
+		'Pada enkripsi <b>asimetris</b>, ada pasangan kunci publik dan privat. Kunci publik boleh dibagikan untuk mengenkripsi pesan. Kunci privat pasangannya digunakan untuk mendekripsi.',
+		'Setahun kemudian, 1977, tiga peneliti di MIT (Ron Rivest, Adi Shamir, dan Leonard Adleman) membuat cara nyatanya, namanya <b>RSA</b> dari huruf depan nama mereka. Rahasianya ada di bilangan prima, angka yang cuma bisa dibagi 1 dan dirinya sendiri. Mengalikan dua prima besar itu gampang, tapi memecah hasilnya balik jadi dua prima itu susahnya minta ampun.',
+		'[fyi] Ternyata Clifford Cocks, matematikawan di GCHQ (badan intelijen Inggris), sudah menemukan ide yang sama di tahun 1973. Karena rahasia negara, temuannya baru boleh diceritakan ke publik tahun 1997.',
+		'[ingat] Untuk enkripsi asimetris pada contoh ini, kunci publik mengenkripsi dan kunci privat mendekripsi. Kunci privat harus tetap dirahasiakan.',
+		'Sekarang kedua cara ini kerja bareng tiap kamu buka [[HTTPS|security/tls]], dan kunci asimetris juga jadi dasar [[tanda tangan digital|security/signature]]. Yuk coba sendiri dalam tiga babak. Kirim surat rahasia ke temanmu di nimbus.com, tapi hati hati, ada penyadap di tengah jalan.'
 	],
 	reactions: {
-		shared:
-			'Satu kunci bersama lagi. Kuncinya harus jalan duluan, penyadap menyalinnya di tengah, dan suratmu nggak rahasia lagi.',
+		symKey:
+			'Kuncinya sampai di temanmu, tapi lihat penyadapnya. Dia diam diam memotret kunci itu waktu lewat. Sekarang ada tiga orang yang pegang kunci yang sama.',
+		symRead:
+			'Kena. Suratnya memang terkunci, tapi penyadap punya salinan kuncinya, jadi dia buka dan baca semuanya. Inilah masalah besar kunci simetris, kuncinya harus ikut jalan.',
 		padlock:
-			'Pakai gembok lagi. Penyadap cuma dapat salinan gembok terbuka, dan itu nggak bisa dipakai membuka apa pun. Cuma kunci privat temanmu yang bisa mengeluarkan suratnya.'
+			'Kunci publik dapat disalin dan dibagikan. Salinan itu tidak memberikan kunci privat yang diperlukan untuk mendekripsi pesan pada contoh ini.',
+		sealed:
+			'Aman. Penyadap pegang kotak dan gemboknya, tapi nggak bisa membuka apa pun. Cuma kunci privat temanmu yang cocok. Nggak ada kunci rahasia yang pernah lewat jalan.',
+		multiply:
+			'Langsung jadi, kan? Mengalikan dua bilangan prima itu pekerjaan sepele, bahkan buat kalkulator HP paling murah.',
+		factor1:
+			'Gampang, ya. Angka kecil bisa dipecah dalam sekali dua kali coba. Sekarang angkanya dibuat lebih besar.',
+		factor2:
+			'Mulai terasa, kan? Kamu harus coba lebih banyak prima dulu sampai ketemu yang pas. Coba yang terakhir, ini angka yang tadi kita kalikan.',
+		factor3:
+			'61 dikali 53 menghasilkan 3233. Contoh kecil ini menunjukkan perkalian lebih mudah daripada mencari faktor dengan percobaan. RSA menggunakan bilangan jauh lebih besar dan memerlukan ukuran kunci serta implementasi yang tepat.'
 	},
-	steps: [
-		{
-			tag: 'Sekitar 50 SM',
-			title: 'Surat rahasia',
-			body: 'Caesar menggeser tiap huruf tiga langkah. <b>HELLO</b> jadi <b>KHOOR</b>, dan cuma yang tahu geserannya yang bisa membaca.'
-		},
-		{
-			tag: 'Satu kunci',
-			title: 'Kunci simetris',
-			body: 'Rahasia yang <b>sama</b> dipakai buat mengunci dan membuka. Pengirim dan penerima sama sama butuh salinannya.'
-		},
-		{
-			tag: '1939 sampai 1945',
-			title: 'Enigma dan Bletchley Park',
-			body: 'Enigma tetap satu kunci bersama, cuma sangat rumit. Turing membuktikan mesin secanggih apa pun tetap bisa dibongkar.'
-		},
-		{
-			tag: 'Titik lemah',
-			title: 'Kuncinya harus jalan',
-			body: 'Siapa pun yang menyalin kunci di jalan bisa membuka <b>semua</b> surat yang dikunci dengannya. Membagi kunci dengan aman itulah sakit kepala sebenarnya.'
-		},
-		{
-			tag: '1976',
-			title: 'Kuncinya dibelah dua',
-			body: 'Ada <b>kunci publik</b> yang boleh dipegang siapa saja, dan <b>kunci privat</b> yang tetap di rumah. Keduanya satu pasangan.'
-		},
-		{
-			tag: 'Dua kunci',
-			title: 'Kunci asimetris',
-			body: 'Yang jalan cuma gembok terbuka. Menyalinnya nggak ada gunanya, karena gembok cuma bisa mengunci.'
-		},
-		{
-			tag: 'Cara ingat',
-			title: 'Gembok dan anak kunci',
-			body: 'Kunci publik, gembok terbuka yang <b>bisa dikunci siapa saja</b>. Kunci privat, <b>satu satunya</b> anak kunci yang bisa membukanya.'
-		},
-		{
-			tag: '1977',
-			title: 'RSA dan bilangan prima',
-			body: 'Bilangan <b>prima</b> cuma bisa dibagi 1 dan dirinya sendiri. Mengalikan dua prima itu cepat, mundur lagi harus coba angka satu per satu. Kunci asli memakai prima ratusan digit.'
-		},
-		{
-			tag: 'Cerita sampingan',
-			title: 'Ketemu duluan, disimpan rapat',
-			body: 'Clifford Cocks sudah punya idenya tahun 1973, tapi intelijen menyimpan rahasianya. Diffie, Hellman, dan RSA tetap dikenang karena membaginya ke dunia.'
-		},
-		{
-			tag: 'Opsional',
-			title: 'Coba dua jalan',
-			body: 'Ganti antara satu kunci bersama dan gembok. HTTPS sungguhan memakai gembok buat mengirim kunci bersama dengan aman, lalu kunci bersama yang cepat buat sisanya.'
-		}
-	],
+	acts: ['Satu kunci', 'Kunci asimetris', 'Bilangan prima'],
+	actLabel: 'Babak {n}',
+	nextAct: 'Lanjut ke babak berikutnya',
 	youLabel: 'Kamu',
 	friendLabel: 'Temanmu',
+	friendSub: 'nimbus.com',
 	snooperLabel: 'Penyadap',
 	message: 'Ketemu jam 7',
-	tags: {
-		copiedKey: 'kunci disalin',
-		copiedLock: 'gembok disalin',
-		read: 'surat terbaca',
-		stuck: 'nggak bisa dibuka'
-	},
-	sharedKey: 'satu kunci bersama',
-	publicKey: 'kunci publik',
+	cipher: 'Nhwhpx mdp 7',
+	keyChip: 'kunci',
+	padlockChip: 'kunci publik',
+	boxChip: 'kotak terkunci',
 	privateKey: 'kunci privat',
-	rule: { anyone: 'siapa pun bisa mengunci', only: 'cuma kunci ini yang membuka' },
+	sym: {
+		sendKey: 'Kirim kuncinya dulu',
+		sendBox: 'Kirim surat terkunci',
+		copiedTag: 'kunci disalin',
+		readTag: 'kebaca',
+		noteIdle: 'Biar temanmu bisa membuka surat, dia butuh kunci yang sama',
+		noteKey: 'Kunci yang sama sekarang ada di temanmu, dan juga di penyadap',
+		noteRead: 'Penyadap membuka suratmu dengan kunci curiannya'
+	},
+	asym: {
+		askLock: 'Minta kunci publik',
+		sendBox: 'Kunci kotaknya lalu kirim',
+		copiedTag: 'kunci publik disalin',
+		stuckTag: 'nggak bisa dibuka',
+		noteIdle: 'Penerima membagikan kunci publiknya',
+		noteLock: 'Gunakan kunci publik untuk mengenkripsi pesan',
+		noteSafe: 'Cuma kunci privat temanmu yang bisa membuka kotak ini'
+	},
 	rsa: {
-		easy: 'sekejap',
-		hard: 'mundurnya lama sekali',
-		tries: '{n} kali coba'
-	},
-	secret: 'RAHASIA',
-	enigma: {
-		alt: 'Foto mesin Enigma asli dengan rotor, lampu huruf, dan papan tombol',
-		caption: 'Mesin Enigma asli'
-	},
-	turing: {
-		alt: 'Foto hitam putih Alan Turing muda memakai jas',
-		caption: 'Alan Turing, sekitar 1928'
-	},
-	modes: { label: 'Kirim suratnya pakai', shared: 'Satu kunci bersama', padlock: 'Gembok' }
+		multiplyBtn: 'Kalikan 61 × 53',
+		instant: 'sekejap',
+		prompt: 'Prima berapa dikali prima berapa yang hasilnya {n}?',
+		pickHint: 'Ketuk sebuah prima untuk mencoba membagi',
+		tries: '{n} kali coba',
+		triesOne: '1 kali coba',
+		autoBtn: 'Biar Nim coba satu satu',
+		nextBtn: 'Angka berikutnya',
+		effortLabel: 'Seberapa capek membaliknya',
+		realLabel: 'Ukuran angka di kunci RSA sungguhan',
+		realDigits: 'dan masih ratusan digit lagi (sekitar 617 digit)',
+		forever: 'lebih lama dari umur alam semesta'
+	}
 };

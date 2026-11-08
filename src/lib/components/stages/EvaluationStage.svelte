@@ -1,34 +1,28 @@
 <script lang="ts">
-	// A guided "watch" stage. Nim narrates and the clinic follows the beats by itself. Twenty
-	// patients line up by their risk score, a threshold line appears, the truth is revealed, and
-	// then the line slides left and right on its own so caught people, false alarms and missed
-	// cases change in front of you. The only optional play is dragging the line on the last beat.
-	import { untrack } from 'svelte';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
-	import type { EvaluationText } from '$lib/chapters/ai/evaluation/types';
-	import { runSeq, prefersReducedMotion } from './webguide/seq';
-	import { tween } from './aiguide/tween';
+	import { SvelteSet } from 'svelte/reactivity';
 
-	let { text, oncomplete, onstate, onshow, beat = 0 }: StageProps = $props();
+	import type { LessonText } from '$lib/chapters/types';
+	import type { EvaluationText } from '$lib/chapters/ai/evaluation/types';
+
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as EvaluationText);
 
-	// Nine beats, eight scenes (the memory beat and the side fact share one).
-	const SCENE_OF_BEAT = [0, 1, 2, 3, 4, 5, 6, 6, 7];
-
-	// Twenty patients, the score the model gave each one, and the truth. Only three are really
-	// sick, and one healthy person scores high (real tests are never perfect).
+	// Twenty patients, the risk score the model gave each one, and the truth.
+	// Only three are really sick, and one healthy person scores high (real tests are never perfect).
 	const SICK = [52, 74, 91];
 	const HEALTHY = [4, 9, 13, 17, 21, 26, 30, 33, 38, 42, 45, 48, 57, 61, 66, 69, 80];
+	type Patient = { score: number; sick: boolean; row: number };
 
-	// ---- number line (SVG viewBox from y 44, 320 x 110) ----
-	const L = 20;
-	const R = 300;
-	const AXIS = 132;
-	const TOP = 60;
+	// ---- number line (SVG viewBox 220 x 92, from y 22) ----
+	const L = 14;
+	const R = 206;
+	const AXIS = 86;
 	const sx = (v: number) => L + (v / 100) * (R - L);
 
-	type Patient = { score: number; sick: boolean; row: number };
 	// stack people that would overlap into rows above the line
 	const PATIENTS: Patient[] = (() => {
 		const all = [
@@ -38,413 +32,372 @@
 		const lastX: number[] = [];
 		return all.map((p) => {
 			const x = sx(p.score);
-			let row = lastX.findIndex((lx) => x - lx >= 14);
+			let row = lastX.findIndex((lx) => x - lx >= 10);
 			if (row === -1) row = lastX.length;
 			lastX[row] = x;
 			return { ...p, row };
 		});
 	})();
-	const rowY = (row: number) => AXIS - 8 - row * 26;
+	const rowY = (row: number) => AXIS - 14 - row * 22;
 
-	let peek = $state<number | null>(null);
-	let reduced = $state(false);
-	let target = $state(50); // where the story (or the learner) wants the line
-	let th = $state(50); // where the line is drawn right now, glides toward the target
-	let userTh = $state(50);
-
-	const sceneFromBeat = $derived(SCENE_OF_BEAT[Math.min(beat, SCENE_OF_BEAT.length - 1)]);
-	const scene = $derived(peek ?? sceneFromBeat);
-	const showLine = $derived(scene >= 1);
-	const showTruth = $derived(scene >= 2);
-	const showRings = $derived(scene >= 3);
-	const showTally = $derived(scene >= 3);
-	const showAccuracy = $derived(scene === 5 || scene === 7);
-
-	$effect(() => {
-		onshow?.(true);
-		oncomplete?.();
-		reduced = prefersReducedMotion();
-	});
-
-	// A new beat always brings the picture back to the story.
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-
-	// Each scene places the line, some of them in a slow back and forth.
-	$effect(() => {
-		const sc = scene;
-		if (sc <= 2) {
-			target = 50;
-			return;
-		}
-		if (sc === 4) {
-			target = 48;
-			return;
-		}
-		if (sc === 5) {
-			target = 100;
-			return;
-		}
-		if (sc === 7) {
-			target = untrack(() => userTh);
-			return;
-		}
-		if (reduced) {
-			target = 50;
-			return;
-		}
-		return runSeq(
-			[
-				[3200, () => (target = 22)],
-				[3200, () => (target = 80)],
-				[2600, () => (target = 50)]
-			],
-			true
-		);
-	});
-
-	// The line glides to its new spot.
-	$effect(() => {
-		const to = target;
-		const from = untrack(() => th);
-		if (reduced) {
-			th = to;
-			return;
-		}
-		return tween(from, to, 1100, (v) => (th = v));
-	});
+	let lazy = $state(false);
+	let th = $state(50);
 
 	type Outcome = 'caught' | 'missed' | 'fa' | 'cleared';
-	const outcome = (p: Patient, line: number): Outcome => {
-		const flagged = p.score >= line;
+	const outcome = (p: Patient): Outcome => {
+		const flagged = !lazy && p.score >= th;
 		if (p.sick) return flagged ? 'caught' : 'missed';
 		return flagged ? 'fa' : 'cleared';
 	};
 	const counts = $derived.by(() => {
 		const c: Record<Outcome, number> = { caught: 0, missed: 0, fa: 0, cleared: 0 };
-		for (const p of PATIENTS) c[outcome(p, th)]++;
+		for (const p of PATIENTS) c[outcome(p)]++;
 		return c;
 	});
 	const accuracy = $derived(Math.round(((counts.caught + counts.cleared) / PATIENTS.length) * 100));
-	const net = $derived(th <= 35 ? 'wide' : th >= 70 && th < 100 ? 'tight' : '');
 
-	let lastZone = '';
-	function drag(v: number) {
-		userTh = v;
-		target = v;
-		let missed = 0;
-		let fa = 0;
-		for (const p of PATIENTS) {
-			const o = outcome(p, v);
-			if (o === 'missed') missed++;
-			if (o === 'fa') fa++;
+	const said = new SvelteSet<string>();
+	let completed = false;
+	function say(token: string) {
+		if (said.has(token)) return;
+		said.add(token);
+		const caughtAll = said.has('catch_all') || said.has('low');
+		const missedOne = said.has('miss') || said.has('best_acc');
+		if (!completed && said.has('lazy') && caughtAll && missedOne) {
+			completed = true;
+			onstate?.('done');
+			oncomplete?.();
+			return;
 		}
-		const zone = missed > 0 ? 'miss' : fa >= 8 ? 'noisy' : 'catch';
-		if (zone !== lastZone) onstate?.(zone);
-		lastZone = zone;
+		onstate?.(token);
 	}
 
-	const fill = (p: Patient) => (!showTruth ? 'none' : p.sick ? 'sick' : 'well');
+	function setMode(isLazy: boolean) {
+		if (lazy === isLazy) return;
+		lazy = isLazy;
+		if (isLazy) say('lazy');
+	}
+
+	function slide(v: number) {
+		th = v;
+		if (lazy) return;
+		if (counts.caught === SICK.length) say(v < 30 ? 'low' : 'catch_all');
+		else if (accuracy >= 90) say('best_acc');
+		else say('miss');
+	}
+
 	const ticks = [0, 25, 50, 75, 100];
+	const cards: { key: Outcome; label: () => string }[] = [
+		{ key: 'caught', label: () => tx.caught },
+		{ key: 'missed', label: () => tx.missed },
+		{ key: 'fa', label: () => tx.falseAlarm },
+		{ key: 'cleared', label: () => tx.cleared }
+	];
 </script>
 
-{#snippet person(p: Patient, k: number)}
-	{@const o = outcome(p, th)}
-	<g
-		transform="translate({sx(p.score)} {rowY(p.row)})"
-		role="img"
-		aria-label={tx.patient
-			.replace('{score}', String(p.score))
-			.replace('{truth}', showTruth ? (p.sick ? tx.sick : tx.healthy) : '')}
-	>
-		<g class="drop" style="animation-delay:{scene === 0 && !reduced ? k * 90 : 0}ms">
-			{#if showRings && o !== 'cleared'}
-				<circle class="ring {o}" cx="0" cy="-7" r="10" />
-			{/if}
-			<circle class="body {fill(p)}" cx="0" cy="-12" r="3.6" />
-			<path class="body {fill(p)}" d="M-5.5 0 Q-5.5 -7 0 -7 Q5.5 -7 5.5 0 Z" />
-		</g>
-	</g>
-{/snippet}
-
 <div class="stage">
-	<Guide steps={tx.panels} active={scene} onselect={(i) => (peek = i)}>
-		{#snippet visual(i: number)}
-			<div class="visual">
-				{#if i === 7}
-					<div class="control">
-						<input
-							type="range"
-							min="0"
-							max="100"
-							step="1"
-							value={userTh}
-							aria-label={tx.thresholdAria}
-							aria-valuetext={tx.thresholdValue.replace('{n}', String(userTh))}
-							oninput={(e) => drag(Number((e.currentTarget as HTMLInputElement).value))}
-						/>
-					</div>
-				{/if}
+	<div class="seg" role="radiogroup">
+		<button
+			type="button"
+			role="radio"
+			aria-checked={!lazy}
+			class:on={!lazy}
+			onclick={() => setMode(false)}>{tx.modeReal}</button
+		>
+		<button
+			type="button"
+			role="radio"
+			aria-checked={lazy}
+			class:on={lazy}
+			onclick={() => setMode(true)}>{tx.modeLazy}</button
+		>
+	</div>
 
-				<div class="card">
-					<svg class="line" viewBox="0 44 320 110" role="group" aria-label={tx.chartLabel}>
-						{#if showLine}
-							{@const lx = sx(Math.min(100, th))}
-							<rect
-								class="zone"
-								x={lx}
-								y={TOP}
-								width={Math.max(0, R + 10 - lx)}
-								height={AXIS - TOP}
-							/>
-							<text class="zlabel" x={L - 6} y={TOP + 10} text-anchor="start">{tx.home}</text>
-							{#if th < 88}
-								<text class="zlabel flag" x={R + 8} y={TOP + 10} text-anchor="end"
-									>{tx.flagged}</text
-								>
-							{/if}
-						{/if}
+	<div class="control">
+		{#if lazy}
+			<p class="note">{tx.lazyNote}</p>
+		{:else}
+			<label for="eval-th">{tx.threshold.replace('{n}', String(th))}</label>
+			<input
+				id="eval-th"
+				type="range"
+				min="0"
+				max="100"
+				step="1"
+				value={th}
+				aria-label={tx.thresholdAria}
+				oninput={(e) => slide(Number((e.currentTarget as HTMLInputElement).value))}
+			/>
+		{/if}
+	</div>
 
-						<line class="axisline" x1={L - 6} y1={AXIS} x2={R + 6} y2={AXIS} />
-						{#each ticks as t (t)}
-							<line class="tickmark" x1={sx(t)} y1={AXIS} x2={sx(t)} y2={AXIS + 4} />
-							<text class="tick" x={sx(t)} y={AXIS + 15}>{t}</text>
-						{/each}
+	<svg class="chart" viewBox="0 22 220 92" role="img" aria-label={tx.chartLabel}>
+		{#if !lazy}
+			<rect x={sx(th)} y="24" width={Math.max(0, R - sx(th))} height={AXIS - 24} class="zone" />
+			<text class="zonelabel" x={R - 2} y="32">{tx.flagged}</text>
+			<line class="thline" x1={sx(th)} y1="24" x2={sx(th)} y2={AXIS + 4} />
+		{/if}
+		<line class="axisline" x1={L} y1={AXIS} x2={R} y2={AXIS} />
+		{#each ticks as t (t)}
+			<line class="axisline" x1={sx(t)} y1={AXIS} x2={sx(t)} y2={AXIS + 3} />
+			<text class="tick" x={sx(t)} y={AXIS + 12}>{t}</text>
+		{/each}
+		<text class="axis" x={(L + R) / 2} y="110">{tx.axis}</text>
 
-						{#each PATIENTS as p, k (p.score)}
-							{@render person(p, k)}
-						{/each}
+		{#each PATIENTS as p (p.score)}
+			{@const o = outcome(p)}
+			<g
+				class="person {o}"
+				class:sick={p.sick}
+				transform="translate({sx(p.score)} {rowY(p.row)})"
+				role="img"
+				aria-label={tx.patient
+					.replace('{score}', String(p.score))
+					.replace('{truth}', p.sick ? tx.sick : tx.healthy)}
+			>
+				<circle class="ring" r="9" cy="1" />
+				<circle class="head" cy="-3.2" r="2.6" />
+				<path class="body" d="M-4.2 6.5 Q-4.2 0.6 0 0.6 Q4.2 0.6 4.2 6.5 Z" />
+			</g>
+		{/each}
+	</svg>
 
-						{#if showLine}
-							{@const lx = sx(Math.min(100, th))}
-							<line class="thline" x1={lx} y1={TOP - 4} x2={lx} y2={AXIS} />
-							<circle class="knob" cx={lx} cy={TOP - 4} r="4" />
-						{/if}
-					</svg>
-					<p class="axis">{tx.axis}</p>
+	<div class="legend">
+		<span><i class="sw sick"></i>{tx.sick}</span>
+		<span><i class="sw healthy"></i>{tx.healthy}</span>
+	</div>
 
-					{#if showTally}
-						<div class="tally">
-							<span class="t caught">
-								<i></i>{tx.caught}
-								<b
-									>{tx.ofSick
-										.replace('{n}', String(counts.caught))
-										.replace('{total}', String(SICK.length))}</b
-								>
-							</span>
-							<span class="t missed"><i></i>{tx.missed} <b>{counts.missed}</b></span>
-							<span class="t fa"><i></i>{tx.falseAlarm} <b>{counts.fa}</b></span>
-						</div>
-					{/if}
-					{#if showAccuracy}
-						<p class="acc">{tx.accuracy.replace('{n}', String(accuracy))}</p>
-					{/if}
+	<div class="result">
+		<div class="acc">
+			<b>{accuracy}%</b>
+			<span>{tx.accuracy}</span>
+		</div>
+		<div class="cards">
+			{#each cards as c (c.key)}
+				<div class="card {c.key}">
+					<b>{counts[c.key]}</b>
+					<span>{c.label()}</span>
 				</div>
-
-				{#if i === 6}
-					<p class="net">{net === 'wide' ? tx.wide : net === 'tight' ? tx.tight : ' '}</p>
-					<p class="rule">{tx.rule}</p>
-				{/if}
-			</div>
-		{/snippet}
-	</Guide>
+			{/each}
+		</div>
+	</div>
 </div>
 
 <style>
 	.stage {
 		display: flex;
-		height: 100%;
 		width: 100%;
-		justify-content: center;
-		align-items: safe center;
-		overflow-y: auto;
-		overflow-x: hidden;
-		padding-bottom: 16px;
-	}
-	.visual {
-		display: flex;
-		width: 100%;
-		max-width: 440px;
+		max-width: 360px;
+		margin: 0 auto;
 		flex-direction: column;
 		align-items: center;
 		gap: 10px;
+		padding-bottom: 8px;
+	}
+	.seg {
+		display: flex;
+		gap: 4px;
+		border-radius: 12px;
+		background: var(--color-paper);
+		border: 1.5px solid var(--color-line);
+		padding: 3px;
+	}
+	.seg button {
+		border-radius: 9px;
+		padding: 6px 12px;
+		font-size: 12.5px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.seg button.on {
+		background: var(--color-card);
+		color: var(--color-ink);
+		box-shadow: 0 1px 4px rgba(22, 40, 60, 0.1);
 	}
 	.control {
+		display: flex;
 		width: 100%;
-		max-width: 360px;
+		min-height: 44px;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 4px;
+	}
+	.control label {
+		font-size: 12.5px;
+		font-weight: 600;
+		color: var(--color-ink);
 	}
 	.control input {
 		width: 100%;
 		accent-color: var(--color-amber);
 	}
-	.card {
-		display: flex;
-		width: 100%;
-		flex-direction: column;
-		gap: 8px;
-		border: 1px solid var(--color-line);
-		border-radius: 18px;
-		background: var(--color-card);
-		padding: 12px 12px 14px;
+	.note {
+		font-size: 12px;
+		color: var(--color-faint);
+		text-align: center;
 	}
-	.line {
-		display: block;
+
+	.chart {
 		width: 100%;
 		height: auto;
 		overflow: visible;
+		user-select: none;
 	}
 	.zone {
 		fill: var(--color-amber-soft);
 	}
-	.zlabel {
-		fill: var(--color-faint);
-		font-size: 10px;
-		font-weight: 700;
-		letter-spacing: 0.03em;
-	}
-	.zlabel.flag {
+	.zonelabel {
+		font-size: 8px;
+		font-weight: 600;
 		fill: var(--color-amber);
-	}
-	.axisline {
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-	}
-	.tickmark {
-		stroke: var(--color-line);
-	}
-	.tick {
-		fill: var(--color-faint);
-		font-size: 10px;
-		text-anchor: middle;
+		text-anchor: end;
 	}
 	.thline {
 		stroke: var(--color-amber);
-		stroke-width: 2.4;
-		stroke-linecap: round;
+		stroke-width: 1.6;
 	}
-	.knob {
-		fill: var(--color-amber);
+	.axisline {
+		stroke: var(--color-line);
+		stroke-width: 1.2;
 	}
-	.body {
-		transition: fill 0.5s;
-	}
-	.body.none {
+	.tick {
+		font-size: 8px;
 		fill: var(--color-faint);
+		text-anchor: middle;
 	}
-	.body.well {
+	.axis {
+		font-size: 9px;
+		font-weight: 600;
 		fill: var(--color-muted);
-		opacity: 0.7;
+		text-anchor: middle;
 	}
-	.body.sick {
+	.person .head,
+	.person .body {
+		fill: var(--color-muted);
+		transition: fill 0.2s ease;
+	}
+	.person.sick .head,
+	.person.sick .body {
 		fill: var(--color-danger);
 	}
 	.ring {
 		fill: none;
-		stroke-width: 2;
+		stroke: transparent;
+		stroke-width: 1.6;
+		transition: stroke 0.2s ease;
 	}
-	.ring.caught {
+	.person.caught .ring {
 		stroke: var(--color-grass);
+		fill: var(--color-grass-soft);
 	}
-	.ring.fa {
-		stroke: var(--color-amber);
-	}
-	.ring.missed {
+	.person.missed .ring {
 		stroke: var(--color-danger);
-		animation: beat 1.4s ease-in-out infinite;
-		transform-origin: 0 -7px;
+		fill: var(--color-danger-soft);
 	}
-	@keyframes beat {
-		50% {
-			opacity: 0.35;
-		}
+	.person.fa .ring {
+		stroke: var(--color-amber);
+		fill: var(--color-card);
 	}
-	.drop {
-		animation: drop 0.45s ease both;
-	}
-	@keyframes drop {
-		from {
-			opacity: 0;
-			transform: translateY(-14px);
-		}
-		to {
-			opacity: 1;
-			transform: none;
-		}
-	}
-	.axis {
-		margin: 0;
-		text-align: center;
-		font-size: 11.5px;
-		font-weight: 600;
-		color: var(--color-muted);
-	}
-	.tally {
+
+	.legend {
 		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 6px 14px;
-		font-size: 12.5px;
-		color: var(--color-muted);
+		gap: 14px;
+		font-size: 10.5px;
+		color: var(--color-faint);
 	}
-	.t {
-		display: inline-flex;
+	.legend span {
+		display: flex;
 		align-items: center;
 		gap: 5px;
 	}
-	.t i {
-		height: 10px;
-		width: 10px;
-		border-radius: 999px;
-		border: 2px solid var(--c);
+	.sw {
+		width: 9px;
+		height: 9px;
+		border-radius: 50%;
 	}
-	.t b {
-		font-variant-numeric: tabular-nums;
-		color: var(--color-ink);
+	.sw.sick {
+		background: var(--color-danger);
 	}
-	.t.caught {
-		--c: var(--color-grass);
-	}
-	.t.missed {
-		--c: var(--color-danger);
-	}
-	.t.fa {
-		--c: var(--color-amber);
-	}
-	.acc {
-		margin: 0;
-		text-align: center;
-		font-size: 13px;
-		font-weight: 700;
-		color: var(--color-ink);
-	}
-	.net {
-		margin: 0;
-		font-size: 13px;
-		font-weight: 700;
-		color: var(--color-amber);
-	}
-	.rule {
-		margin: 0;
-		text-align: center;
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--color-grass);
+	.sw.healthy {
+		background: var(--color-muted);
 	}
 
-	@media (max-width: 767px) {
-		.stage {
-			padding-bottom: 7rem;
-		}
+	.result {
+		display: flex;
+		width: 100%;
+		align-items: stretch;
+		gap: 8px;
 	}
+	.acc {
+		display: flex;
+		min-width: 84px;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		border-radius: 14px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 8px;
+	}
+	.acc b {
+		font-family: var(--font-display, inherit);
+		font-size: 24px;
+		color: var(--color-ink);
+		font-variant-numeric: tabular-nums;
+	}
+	.acc span {
+		font-size: 11px;
+		color: var(--color-faint);
+	}
+	.cards {
+		display: grid;
+		flex: 1;
+		grid-template-columns: 1fr 1fr;
+		gap: 6px;
+	}
+	.card {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		border-radius: 10px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 5px 8px;
+		font-size: 11px;
+		line-height: 1.2;
+		color: var(--color-muted);
+	}
+	.card b {
+		font-size: 15px;
+		font-variant-numeric: tabular-nums;
+	}
+	.card.caught {
+		border-color: var(--color-grass);
+	}
+	.card.caught b {
+		color: var(--color-grass);
+	}
+	.card.missed {
+		border-color: var(--color-danger);
+	}
+	.card.missed b {
+		color: var(--color-danger);
+	}
+	.card.fa {
+		border-color: var(--color-amber);
+	}
+	.card.fa b {
+		color: var(--color-amber);
+	}
+	.card.cleared b {
+		color: var(--color-ink);
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.drop,
-		.ring.missed {
-			animation: none;
-		}
-		.body {
+		.person .head,
+		.person .body,
+		.ring {
 			transition: none;
 		}
 	}

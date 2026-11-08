@@ -1,83 +1,85 @@
 import type { HardeningText } from './types';
 
 export const id: HardeningText = {
-	title: 'Server Hardening',
+	title: 'Server hardening',
 	intro: [
-		'Kamu baru saja menyewa server baru untuk nimbus.com. Begitu keluar dari kotaknya, dia kayak rumah baru yang semua pintunya dibiarkan terbuka sama tukangnya, plus kunci cadangan di bawah keset.',
-		'Dan kamu nggak bakal sendirian lama. Beberapa menit setelah online, <b>bot</b> mulai mengetuk. Bot itu program kecil yang keliling seluruh internet, mencoba semua pintu yang dia temukan, siang dan malam.',
-		'Pintu pintu itu namanya <b>port</b>. Port adalah pintu bernomor tempat sebuah program menunggu tamu, misalnya 443 untuk website atau 22 untuk login dari jauh. <b>Scanner</b> berjalan melewati tiap pintu dan melaporkan mana yang menjawab. Sekarang skornya jelek.',
-		'Langkah pertama, update. Tahun 2017 biro kredit Equifax kebobolan data pribadi sekitar 147 juta orang lewat celah di Apache Struts, software yang jalan di web servernya. Perbaikannya sudah keluar dua bulan sebelumnya. Nggak ada yang memasangnya.',
-		'Langkah kedua, tutup semua pintu yang nggak kamu perlukan. Berbagi file model lama, Telnet, database, halaman tes yang terlupa. Lihat mereka tertutup satu per satu, dan lihat skor scanner naik.',
-		'Langkah ketiga, kunci pintu yang tetap dipakai. Pintu admin (SSH) sekarang cuma bisa dibuka pakai <b>file kunci</b> yang tersimpan di laptopmu, bukan password yang bisa ditebak bot. Dan nggak ada yang login sebagai root, user yang boleh melakukan apa saja.',
-		'Satu pintu sengaja tetap terbuka, pintu website yang dipakai pengunjung. Hardening bukan mengunci semuanya, tapi memastikan satu satunya jalan masuk adalah jalan yang kamu awasi.',
-		'[fyi] Hardening bukan cuma untuk server. HP kamu yang terus minta update juga bentuk hardening. Di cloud, provider mengamankan gedung dan mesinnya, tapi server yang kamu sewa tetap urusanmu, itulah [[shared responsibility|networking/shared-responsibility]].',
-		'[ingat] Rumus keluar rumah. Pintu yang nggak dipakai, tutup. Pintu yang dipakai, gembok. Dan gemboknya jangan yang sudah karatan, alias selalu update.',
-		'Mau lihat kenapa ini penting? Buka lagi pintu Telnet, lalu lihat apa yang dilakukan bot dan scanner.'
+		'Sebelum server nimbus.com menerima pengunjung, periksa software, akun, dan layanan yang aktif. Konfigurasi awal belum tentu cocok dengan kebutuhan aplikasi.',
+		'Layanan yang terbuka ke internet dapat menerima percobaan login dan pemindaian otomatis. Setiap layanan tambahan perlu diperbarui dan diawasi.',
+		'<b>Server hardening</b> adalah mengurangi peluang sistem disalahgunakan. Caranya termasuk memperbarui software, menonaktifkan layanan yang tidak diperlukan, membatasi akses jaringan, dan memberi akun izin secukupnya.',
+		'Software lama belum tentu rentan hanya karena usianya. Cocokkan versi yang terpasang dengan [[advisori keamanan|security/cve-cwe]], lalu pasang perbaikan yang sesuai dan uji aplikasinya.',
+		'[fyi] Saat menyewa VM di cloud, penyedia mengelola perangkat fisik, sedangkan kamu biasanya mengelola sistem operasi dan aplikasi di VM. Pembagian ini berubah menurut jenis layanan, sesuai [[shared responsibility|networking/shared-responsibility]].',
+		'[ingat] <b>Perbarui, batasi, periksa.</b> Perbarui software, batasi layanan dan izin, lalu periksa hasil konfigurasi secara berkala.',
+		'Jalankan scanner simulasi untuk melihat enam konfigurasi yang perlu diperbaiki. Pertahankan port HTTPS agar pengunjung tetap bisa membuka nimbus.com.'
 	],
 	reactions: {
-		reopen:
-			'Beberapa detik kemudian bot sudah langsung menyerbu, dan skornya turun. Satu pintu yang terlupa bisa merusak banyak kerja bagus.',
-		reclose: 'Tertutup lagi. Bot cuma mental lalu pergi mencari server lain yang lebih gampang.'
+		scan: 'Ada enam konfigurasi yang perlu diperbaiki. Pilih temuan untuk melihat perubahan yang diterapkan. Angka di layar menunjukkan progres latihan.',
+		update:
+			'Pembaruan keamanan dipasang dan pembaruan otomatis diaktifkan. Perbaikan ini mengatasi celah yang tercakup dalam paket tersebut. Aplikasi tetap perlu diuji setelah pembaruan.',
+		telnet:
+			'Layanan Telnet dinonaktifkan. Telnet mengirim login sebagai teks biasa. Gunakan SSH untuk administrasi jarak jauh melalui koneksi terenkripsi.',
+		db: 'Akses database dibatasi ke server web. Permintaan langsung dari internet ditolak oleh aturan jaringan. Akun dan izin database tetap perlu diatur.',
+		sshkey:
+			'Login SSH sekarang memerlukan kunci. Ini mengurangi percobaan menebak password. Lindungi kunci privat dengan passphrase dan cabut aksesnya jika kunci bocor.',
+		root: 'Aplikasi berjalan dengan akun khusus yang izinnya terbatas. Ini <b>least privilege</b>, memberi izin sesuai tugas untuk membatasi dampak jika aplikasi disusupi.',
+		default:
+			'Password bawaan diganti dengan password panjang dan unik. Kredensial bawaan mudah diketahui dari dokumentasi atau daftar konfigurasi umum.',
+		web: 'nimbus.com tidak dapat dibuka karena port HTTPS ditutup. Buka kembali port 443 agar pengunjung bisa mengakses layanan yang memang dibutuhkan.',
+		done: 'Enam perbaikan latihan selesai dan HTTPS tetap aktif. Konfigurasi ini mengurangi beberapa risiko, tetapi pemeriksaan, pembaruan, dan pemantauan tetap diperlukan.'
 	},
-	steps: [
-		{
-			title: 'Server baru',
-			body: 'Dari pabriknya, banyak program sudah nyala dan mendengarkan, masing masing di balik <b>pintu terbuka</b> sendiri.'
-		},
-		{
-			title: 'Bot mengetuk',
-			body: 'Program otomatis menyisir seluruh internet tanpa henti. Server baru biasanya ketemu dalam hitungan <b>menit</b>.'
-		},
-		{
-			title: 'Port dan scanner',
-			body: '<b>Port</b> itu pintu bernomor tempat program mendengarkan. <b>Scanner</b> mendata pintu mana yang menjawab, alat yang sama persis dengan yang dipakai penyerang.'
-		},
-		{
-			title: 'Update dulu',
-			body: '<b>Update</b> (disebut juga patch) menambal celah yang sudah diketahui pembuatnya. Software lama adalah pintu paling gampang.'
-		},
-		{
-			title: 'Tutup yang nggak perlu',
-			body: 'Matikan program yang nggak dipakai siapa pun. Port yang tertutup bikin bot <b>nggak punya lawan bicara</b>.'
-		},
-		{
-			title: 'Kunci yang dipakai',
-			body: 'Login pakai <b>kunci</b>, bukan password, dan kasih tiap program kuasa secukupnya saja.'
-		},
-		{
-			title: 'Satu pintu diawasi',
-			body: 'Pintu website sengaja tetap terbuka. Makin sedikit pintu, makin sedikit tempat yang perlu dijaga.'
-		},
-		{
-			tag: 'Info',
-			title: 'Hardening di mana mana',
-			body: 'Update HP dan kunci layar juga hardening. Di cloud, server yang kamu sewa tetap <b>tanggung jawabmu</b>.'
-		},
-		{
-			tag: 'Cara ingat',
-			title: 'Tutup, gembok, update',
-			body: 'Nggak dipakai, <b>tutup</b>. Dipakai, <b>gembok</b>. Selalu <b>update</b>.'
-		},
-		{
-			tag: 'Giliranmu',
-			title: 'Buka lagi satu pintu',
-			body: 'Kalau mau, buka lagi Telnet dan lihat bot menyerbu sementara skornya turun.'
-		}
-	],
-	serverLabel: 'server nimbus.com',
-	botsLabel: 'Bot',
-	scoreLabel: 'Skor scanner',
-	software: 'Apache Struts',
-	outdated: 'lama',
-	patched: 'terbaru',
+	serverLabel: 'Server nimbus.com',
+	scanBtn: 'Jalankan scanner',
+	scoreLabel: 'Progres hardening',
 	doors: {
-		ftp: 'Berkas',
-		ssh: 'Admin',
-		telnet: 'Telnet',
-		web: 'Website',
-		db: 'Database',
-		test: 'Halaman tes'
+		update: {
+			name: 'Paket belum diperbarui',
+			risk: 'Versi rentan masih terpasang',
+			fix: 'Update',
+			done: 'Terbaru, update otomatis nyala'
+		},
+		telnet: {
+			name: 'Port 23, Telnet',
+			risk: 'Login lama yang mengirim password apa adanya',
+			fix: 'Tutup',
+			done: 'Layanan Telnet dinonaktifkan'
+		},
+		db: {
+			name: 'Port 3306, database',
+			risk: 'Bisa dijangkau dari seluruh internet',
+			fix: 'Tutup',
+			done: 'Cuma server web yang bisa menjangkau'
+		},
+		sshkey: {
+			name: 'Login SSH pakai password',
+			risk: 'Login terbuka untuk tebakan password',
+			fix: 'Pakai kunci',
+			done: 'Cuma bisa login pakai kunci'
+		},
+		root: {
+			name: 'Aplikasi jalan sebagai root',
+			risk: 'Aplikasi memiliki hak administrator',
+			fix: 'Batasi izin',
+			done: 'Akun aplikasi dengan izin terbatas'
+		},
+		default: {
+			name: 'Panel admin, admin dan admin',
+			risk: 'Password bawaan pabrik, yang pertama dicoba bot',
+			fix: 'Ganti',
+			done: 'Password panjang dan unik'
+		}
 	},
-	reopen: 'Buka lagi Telnet',
-	reclose: 'Tutup Telnet'
+	web: {
+		name: 'Port 443, HTTPS',
+		note: 'Pintu masuk pengunjungmu',
+		close: 'Tutup',
+		reopen: 'Buka lagi',
+		closedNote: 'Tertutup, nggak ada yang bisa membuka nimbus.com'
+	},
+	openTag: 'terbuka',
+	closedTag: 'tertutup',
+	neededTag: 'dibutuhkan',
+	siteUp: 'online',
+	siteDown: 'offline',
+	hintIdle: 'Periksa konfigurasi server',
+	hintScan: 'Pilih temuan untuk memperbaiki konfigurasi',
+	hintDone: 'Enam perbaikan latihan selesai'
 };

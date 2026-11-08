@@ -6,19 +6,18 @@ import { en } from './en';
 export const auth: Lesson = {
 	id: 'auth',
 	mood: 'calm',
-	moods: [
-		'wink',
-		'thinking',
-		'idea',
-		'calm',
-		'happy',
-		'idea',
-		'wink',
-		'thinking',
-		'surprised',
-		'excited'
-	],
-	reactionMood: { deleted: 'surprised', login: 'happy' },
+	moods: ['wink', 'idea', 'thinking', 'calm', 'calm', 'wink', 'excited'],
+	reactionMood: {
+		login: 'happy',
+		browse: 'happy',
+		deleted: 'thinking',
+		kicked: 'surprised',
+		stranger: 'thinking',
+		token: 'idea',
+		tokenBrowse: 'happy',
+		tokenKicked: 'surprised'
+	},
+	playable: true,
 	stage: AuthStage,
 	text: { id, en }
 };

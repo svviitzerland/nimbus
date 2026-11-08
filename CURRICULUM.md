@@ -776,11 +776,11 @@ The ways to run code, and running it well without overpaying.
       snapshots. Git commits a full version of your file with a note, and keeps every one. Stage:
       write, press Commit to snapshot, build up a history, then open an old snapshot and see nothing
       is ever lost.
-- [x] **Git is not GitHub**. Git is the tool on your laptop that makes commits (local); GitHub is
+- [x] **Git and GitHub**. Git is the tool on your laptop that makes commits (local); GitHub is
       an online place to keep and share them. Stage: commit on your laptop, push to GitHub so there
       is an online copy, then let a teammate clone it down, feeling which part is local and which is
       online.
-- [x] **Not only GitHub**. GitHub is one host among many; GitLab, Bitbucket, and self hosted Gitea
+- [x] **Git hosting services**. GitHub is one host among many; GitLab, Bitbucket, and self hosted Gitea
       all speak the same Git. Stage: tap each host to compare their flavour, then reveal why most
       people still land on GitHub (network effect, open source, portfolio, built in Actions).
 
@@ -829,3 +829,64 @@ wearing different names, plus what is unique to each.
 - An end to end capstone build (assemble a full architecture, then pass a traffic spike, a zone
   outage, and a far away user).
 - A sandbox mode to freely build an architecture without a lesson.
+
+## Learning audit and new experiments, November 2026
+
+Nimbus now contains 195 lessons in 47 modules and six track choices. The picker separates a
+complete From Zero path from five subject paths. Shared progress still follows the lesson, not
+its track. Security now includes code, Linux, HTTP, forms, authentication, and SQL foundations
+before its application security experiments. Network and Web include IP and DNS foundations.
+
+The comparison with commit `8702f83` identified 106 simulations whose controls had been replaced
+by guided slides or a single final action. Those simulations now use their original interactive
+mechanics again, including request composition, code editing, query execution, network changes,
+security investigations, training controls, deployment, and recovery. Their bilingual memory cues
+are retained. The newer laptop teardown, router labs, and guided terminal demonstrations remain.
+
+Playable lessons expose the experiment from the first beat. Learners can read Nim, try the
+experiment, inspect feedback, return to the current story beat, and restart without losing their
+place in the narrative. Reading onward is allowed. Experiment completion describes the activity;
+lesson progress is saved when the learner finishes the narrative. Nim's bubble sizes to its current
+message. It no longer reserves the height of the longest possible reaction.
+
+| New lesson                          | What the learner does                                                                                               | What the result teaches                                                                           |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `cloud/data-center`                 | Interrupt mains power, consume the UPS reserve, start a generator, interrupt cooling or networking, recover service | A server depends on physical infrastructure; a region, zone, and data center are different things |
+| `network/arp`                       | Send to a neighbor, send outside the subnet, reuse a cached mapping                                                 | The local frame targets a neighbor or gateway MAC while the packet retains its destination IP     |
+| `web/forms`                         | Submit invalid email, bypass the browser form, enable server validation                                             | Client checks help people; server checks enforce acceptance                                       |
+| `web/devtools`                      | Reproduce a missing product, inspect a 404, fix the path, reload                                                    | Diagnose from requests and responses instead of guessing                                          |
+| `web/testing`                       | Run discount tests below, at, and above a boundary, change the comparison, rerun                                    | Tests compare actual behavior to a requirement and catch regressions                              |
+| `security/burp-suite`               | Capture, forward, copy to Repeater, edit a path, compare responses                                                  | Proxy observes traffic; Repeater makes a controlled experiment repeatable                         |
+| `security/access-control`           | Read two accounts' invoices, enforce server ownership checks, retry                                                 | Authentication does not imply authorization for every object                                      |
+| `devops/secrets`                    | Inspect an exposed fake key, move it to the server, rotate, test old and new paths                                  | Moving a secret does not invalidate a leaked copy                                                 |
+| `ai/data-leakage`                   | Evaluate overlapping examples, remove training IDs, reevaluate                                                      | A score can reward memorization rather than performance on unseen data                            |
+| `security/risk`                     | Change exposure, data sensitivity, and permission checks                                                            | An asset, threat, weakness, and risk describe different things                                    |
+| `security/mitm`                     | Compare HTTP, rejected TLS interception, and explicit lab CA trust                                                  | Encryption and certificate trust work together                                                    |
+| `security/owasp`                    | Compare vulnerable and protected behavior across all ten 2025 categories                                            | OWASP Top 10 groups risks; ASVS and WSTG have different purposes                                  |
+| `security/nist`                     | Assign an owner, inventory assets, prepare backups, detect, contain, restore                                        | CSF 2.0 has six continuous, related functions                                                     |
+| `security/cve-cwe`                  | Match a fictional advisory against installed version and enabled feature                                            | CVE identifies an issue; CWE describes a weakness; applicability needs evidence                   |
+| `security/cvss`                     | Investigate three cases, observe CIA impacts and access requirements, compare CVSS 2.0, 3.0, 3.1, and 4.0           | Severity differs from probability and remediation priority                                        |
+| `security/vulnerability-management` | Prioritize three findings using severity, exposure, EPSS, and exploitation evidence, then contain, patch, retest    | A high score alone does not determine the work queue                                              |
+| `security/csrf`                     | Submit a cross site request, inspect cookies, add token validation, compare a legitimate form                       | A browser sending a cookie does not prove user intent                                             |
+| `security/ssrf`                     | Compare public, internal, and redirected destinations with checks on each hop                                       | A server fetching user supplied URLs needs destination controls                                   |
+
+All eighteen additions are local simulations and have Indonesian and English copy. The interfaces
+teach the actual workflow while making simplified assumptions visible. In particular, the data
+center temperature and battery values are teaching values, the Burp bench makes no network
+requests, and the leakage lesson uses an explicitly weak memorizer rather than a trained model.
+
+The reference roadmaps informed the missing foundations and practical exercises, not a promise
+that Nimbus replaces every professional topic on roadmap.sh. Deeper provider operations,
+production troubleshooting, and extended projects remain further study. The beginner route must
+remain coherent before adding more tool names.
+
+Run `bun run check:curriculum` to verify registered paths, bilingual reaction keys, memory cues,
+cross links, General coverage, and explicit prerequisite ordering. Run `bun run test:lessons` for
+HTTP scope, access control, data center recovery, boundary tests, data leakage, TLS trust, CSRF, SSRF, advisory applicability, risk, and published CVSS 2.0, 3.x, and 4.0 score fixtures.
+
+The editorial review uses direct concept titles and concrete action feedback in both languages.
+It removes empty slogans, dramatic labels, and irrelevant anecdotes. Memory cues summarize the
+mechanism. Example outcomes explicitly identify simplified assumptions instead of promising
+complete security, free serverless execution, or factual AI output. The review also corrects
+backup 3 2 1, signature verification, NAT versus firewall rules, package and service behavior,
+RAG limitations, and temperature versus factual accuracy.

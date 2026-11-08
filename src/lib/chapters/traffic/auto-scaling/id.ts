@@ -6,7 +6,8 @@ export const id: AutoScalingText = {
 		'Di pelajaran tadi kamu sendiri yang menekan Tambah pas server kewalahan. Masalahnya, trafik bisa melonjak jam 2 pagi pas kamu tidur. Masa harus begadang buat jagain server.',
 		'<b>Auto scaling</b> itu robot yang begadang untukmu. Dia mantau satu angka, biasanya <b>CPU</b>, seberapa keras mesinmu lagi mikir. Bisa juga RAM atau jumlah request.',
 		'Kamu tinggal kasih dia aturan. Misal kalau CPU lewat 70 persen, tambah satu mesin. Kalau turun di bawah 30 persen, kurangi satu. Mesin baru otomatis kebagian beban dari load balancer yang kemarin.',
-		'Robotnya sudah mulai jaga. Trafiknya hidup, naik turun sendiri persis pengunjung asli, dan kamu boleh ikut campur pakai plus dan minus. Tinggal perhatikan siapa yang kerja.'
+		'Robotnya sudah mulai jaga. Trafiknya hidup, naik turun sendiri persis pengunjung asli, dan kamu boleh ikut campur pakai plus dan minus. Tinggal perhatikan siapa yang kerja.',
+		'[ingat] Autoscaling mengikuti sinyal beban. Menambah kapasitas butuh waktu, jadi ukur dan atur batasnya.'
 	],
 	reactions: {
 		'scaled-up':
@@ -18,7 +19,7 @@ export const id: AutoScalingText = {
 	plusLabel: 'Tambah pengunjung',
 	minusLabel: 'Kurangi pengunjung',
 	balancerLabel: 'Load balancer',
-	ruleTitle: 'Aturan si robot',
+	ruleTitle: 'Aturan autoscaling',
 	cpuLabel: 'CPU',
 	condUp: 'Di atas 70%',
 	actUp: 'Tambah mesin',
@@ -27,8 +28,9 @@ export const id: AutoScalingText = {
 	addEvent: '+1 mesin',
 	removeEvent: '-1 mesin',
 	costLabel: 'Biaya ${n} per jam',
-	promptRaise: 'Trafiknya hidup, naik turun sendiri. Tungguin aja, atau dorong pakai plus dan minus.',
-	promptWatch: 'CPU lewat batas. Robotnya lagi nambah mesin sendiri, kamu santai aja.',
-	promptDrop: 'Beban sudah normal lagi. Pas trafiknya turun nanti, mesinnya juga dikurangi sendiri.',
+	promptRaise: 'Jumlah pengunjung berubah otomatis. Kamu juga bisa menambah atau menguranginya.',
+	promptWatch: 'CPU melewati batas. Sistem sedang menambah server.',
+	promptDrop:
+		'Beban sudah normal lagi. Pas trafiknya turun nanti, mesinnya juga dikurangi sendiri.',
 	promptDone: 'Naik sendiri pas ramai, turun sendiri pas sepi. Kamu bayar sesuai pemakaian.'
 };

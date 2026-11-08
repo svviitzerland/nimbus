@@ -6,7 +6,8 @@ export const id: StorageTypesText = {
 		'Sekarang kita simpan data. Di cloud ada tiga bentuk penyimpanan, dan masing masing punya cara kerja serta jagoannya sendiri.',
 		'<b>Object storage</b> itu seperti ember raksasa. File dilempar masuk utuh utuh, tiap file dapat sebuah kunci untuk mengambilnya lagi, dan embernya seolah tidak pernah penuh.',
 		'<b>Block storage</b> itu disk mentah yang ditempel ke satu mesin, dipotong potong jadi blok kecil yang cepat banget dibaca tulis. <b>File storage</b> itu folder bersama, satu lemari berkas yang dibuka banyak mesin sekaligus.',
-		'Ketiganya sudah berjajar menunggu dibuka. Intip satu satu cara mereka menyimpan, dan ingat ingat kapan kamu bakal memakainya.'
+		'Ketiganya sudah berjajar menunggu dibuka. Intip satu satu cara mereka menyimpan, dan ingat ingat kapan kamu bakal memakainya.',
+		'[ingat] Object menyimpan data sebagai objek, block menyediakan blok penyimpanan, file mengatur berkas dalam folder.'
 	],
 	reactions: {
 		object:
@@ -16,13 +17,13 @@ export const id: StorageTypesText = {
 		file: 'Itu file storage. Satu folder yang sama dibuka banyak mesin sekaligus, semuanya melihat berkas yang sama. Pas buat kerja bareng.'
 	},
 	objectTitle: 'Object',
-	objectSub: 'ember file berkunci',
+	objectSub: 'Data disimpan sebagai objek',
 	objectNote: 'Tiap file utuh disimpan dengan sebuah kunci',
 	objectWhen: ['Foto & video pengguna', 'File unduhan', 'Arsip lama'],
 	objectFiles: ['foto.jpg', 'video.mp4', 'arsip.zip'],
 	blockTitle: 'Block',
-	blockSub: 'disk satu mesin',
-	blockNote: 'Disk dipotong jadi blok, nempel ke satu mesin',
+	blockSub: 'Penyimpanan dalam blok',
+	blockNote: 'Server mengakses penyimpanan sebagai perangkat disk',
 	blockWhen: ['Disk utama server', 'Tempat database jalan'],
 	blockMachine: 'Server',
 	fileTitle: 'File',

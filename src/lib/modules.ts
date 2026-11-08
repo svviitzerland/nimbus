@@ -26,7 +26,7 @@ export interface Module {
 	items: TrackItem[];
 }
 
-const soon = (id: string, idText: string, enText: string): TrackItem => ({
+export const soon = (id: string, idText: string, enText: string): TrackItem => ({
 	soon: id,
 	title: { id: idText, en: enText }
 });
@@ -95,6 +95,7 @@ export const modules: Module[] = [
 		'networking/dns',
 		'network/ipv6',
 		'network/subnet',
+		'network/arp',
 		'network/dhcp',
 		'network/nat'
 	]),
@@ -159,9 +160,23 @@ export const modules: Module[] = [
 		'web/html',
 		'web/css',
 		'web/js',
+		'web/forms',
 		'web/dom',
 		'web/responsive',
 		'web/a11y'
+	]),
+	m('web-debug', 'Debugging dan Pengujian', 'Debugging and Testing', [
+		'web/devtools',
+		'web/testing'
+	]),
+	m('web-security', 'Bekal Keamanan Web', 'Web Security Foundations', [
+		'web/http',
+		'web/html',
+		'web/js',
+		'web/forms',
+		'web/auth',
+		'resilience/database',
+		'web/sql'
 	]),
 	m('design', 'Desain', 'Design', ['web/ui-ux', 'web/design-to-code']),
 	m('frameworks', 'Framework', 'Frameworks', [
@@ -201,6 +216,7 @@ export const modules: Module[] = [
 	m('cloud-basics', 'Cloud', 'Cloud', [
 		'foundations/cli-gui',
 		'foundations/virtual-machine',
+		'cloud/data-center',
 		'cloud/cloud',
 		'cloud/remote-access',
 		'cloud/services',
@@ -243,7 +259,8 @@ export const modules: Module[] = [
 		'devops/iac',
 		'devops/config-mgmt',
 		'devops/kubernetes',
-		'devops/release'
+		'devops/release',
+		'devops/secrets'
 	]),
 	m('operations', 'Operasi', 'Operations', [
 		'compute/monitoring',
@@ -263,6 +280,7 @@ export const modules: Module[] = [
 	// Security
 	m('sec-mindset', 'Dasar Keamanan', 'Security Basics', [
 		'security/cia',
+		'security/risk',
 		'security/threats',
 		'security/hat-colors'
 	]),
@@ -281,6 +299,7 @@ export const modules: Module[] = [
 	]),
 	m('attacks', 'Serangan', 'Attacks', [
 		'security/sniffing',
+		'security/mitm',
 		'security/phishing',
 		'security/brute-force',
 		'security/web-attacks',
@@ -295,7 +314,23 @@ export const modules: Module[] = [
 		'security/incident',
 		'networking/shared-responsibility'
 	]),
-	m('sec-practice', 'Ethical Hacking', 'Ethical Hacking', ['security/pentest', 'security/ctf']),
+	m('sec-frameworks', 'Rujukan Keamanan', 'Security Frameworks', [
+		'security/owasp',
+		'security/nist'
+	]),
+	m('vulnerabilities', 'Menilai dan Memperbaiki Celah', 'Assessing and Fixing Vulnerabilities', [
+		'security/cve-cwe',
+		'security/cvss',
+		'security/vulnerability-management'
+	]),
+	m('sec-practice', 'Ethical Hacking', 'Ethical Hacking', [
+		'security/pentest',
+		'security/burp-suite',
+		'security/access-control',
+		'security/csrf',
+		'security/ssrf',
+		'security/ctf'
+	]),
 
 	// AI & ML
 	m('ai-intro', 'Dasar AI', 'AI Basics', ['ai/what-is-ai', 'ai/data']),
@@ -305,6 +340,7 @@ export const modules: Module[] = [
 		'ai/supervised',
 		'ai/overfitting',
 		'ai/evaluation',
+		'ai/data-leakage',
 		'ai/inference'
 	]),
 	m('deep-learning', 'Deep Learning', 'Deep Learning', [

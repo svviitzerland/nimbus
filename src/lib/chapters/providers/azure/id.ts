@@ -10,7 +10,7 @@ export const id: AzureText = {
 		'Lalu komputer yang menjalankan nimbus.com. <b>Virtual Machines</b> itu server sewaan, tanpa nama julukan sama sekali. <b>Container Apps</b> menjalankan container, dan <b>Functions</b> menjalankan sepotong kode waktu dipanggil.',
 		'Tiap website butuh tempat buat datanya. <b>Blob Storage</b> menyimpan file, <b>Azure SQL</b> itu database SQL yang diurus Microsoft, dan <b>Cosmos DB</b> itu database NoSQL yang menyalin dirinya ke banyak region.',
 		'Terakhir, alat yang menjaga dan mengawasi. <b>Entra ID</b> itu login yang menentukan siapa boleh apa, <b>Key Vault</b> menyimpan kunci dan password, dan <b>Azure Monitor</b> menggambar grafik dan membunyikan alarm.',
-		'[ingat] <b>Idenya sama, cuma ganti papan nama.</b> Kebanyakan nama di Azure polos, cuma sedikit yang aneh. Ini pasangan yang gampang nempel, <b>Blob Storage itu tempat file</b>. Blob artinya gumpalan, gumpalan apa saja, jadi file apa pun masuk ke situ.',
+		'[ingat] Virtual Machines menyediakan VM, Blob Storage menyediakan object storage, dan Azure SQL Database menyediakan database relasional terkelola.',
 		'[fyi] Satu kata, beda dunia. Server sewaan disebut EC2 di [[AWS|providers/aws]] dan Compute Engine di [[Google Cloud|providers/gcp]]. Azure juga mengumpulkan semua bagian satu proyek dalam <b>resource group</b>, seperti folder yang bisa dihapus sekaligus.',
 		'Lihat satu pengunjung berjalan melewati seluruh papan, dari Azure DNS sampai Azure Monitor. Mau coba sendiri? Pasang lagi nama namanya ke kartu, ini cuma bonus.'
 	],
@@ -41,9 +41,9 @@ export const id: AzureText = {
 	},
 	steps: [
 		{
-			tag: 'Ide polos',
+			tag: 'Kebutuhan situs',
 			title: 'Website di cloud',
-			body: 'Lima lapis, dari pintu depan sampai alat yang mengawasi. Tiap kartu itu ide yang sudah kamu kenal.'
+			body: 'Susunan ini mencakup akses situs, jaringan, komputasi, data, dan monitoring. Pilih kartu untuk melihat fungsi layanannya.'
 		},
 		{
 			tag: 'Sejak 2010',
@@ -52,7 +52,7 @@ export const id: AzureText = {
 		},
 		{
 			tag: 'Lapis 1',
-			title: 'Pintu depan',
+			title: 'DNS, CDN, dan load balancer',
 			body: '<b>Azure DNS</b> itu DNS, <b>Front Door</b> itu CDN, <b>Load Balancer</b> itu load balancer.'
 		},
 		{
@@ -72,22 +72,22 @@ export const id: AzureText = {
 		},
 		{
 			tag: 'Lapis 5',
-			title: 'Akses dan pantau',
+			title: 'Akses dan monitoring',
 			body: '<b>Entra ID</b> buat login, <b>Key Vault</b> buat kunci, <b>Azure Monitor</b> buat grafik dan alarm.'
 		},
 		{
 			tag: 'Cara ingat',
-			title: 'Ide sama, papan nama baru',
-			body: 'Kebanyakan papan nama Azure polos. Pasangan buat yang aneh, <b>blob itu file apa saja</b>.'
+			title: 'Nama layanan dan fungsinya',
+			body: 'Virtual Machines menyediakan VM, Blob Storage menyimpan objek, dan Azure SQL Database menyediakan database relasional.'
 		},
 		{
-			tag: 'Di tempat lain',
-			title: 'Tiga label, satu kotak',
-			body: 'Tempat file di AWS, Google Cloud, dan Azure. Yang berubah cuma papan namanya.'
+			tag: 'Perbandingan',
+			title: 'Perbandingan antar penyedia',
+			body: 'Ketiga penyedia menawarkan virtual machine. Nama, konfigurasi, batas layanan, dan harga perlu diperiksa pada masing masing penyedia.'
 		},
 		{
 			tag: 'Opsional',
-			title: 'Satu pengunjung, semua lapis',
+			title: 'Alur request pengunjung',
 			body: 'Permintaannya menyalakan tiap bagian yang dilewati. Ketuk tombolnya kalau mau mencocokkan sendiri.'
 		}
 	],

@@ -119,7 +119,7 @@
 								<div class="ln pad"><span class="k">"nama"</span><span class="v w40"></span></div>
 								<div class="ln pad"><span class="k">"id"</span><span class="v w20"></span></div>
 								<div class="ln pad"><span class="k">"aktif"</span><span class="v w16"></span></div>
-								<div class="ln"><span class="br">{'}'}</span></div>
+								<div class="ln"><span class="br">&#125;</span></div>
 							</div>
 						{:else}
 							<div class="sk img">

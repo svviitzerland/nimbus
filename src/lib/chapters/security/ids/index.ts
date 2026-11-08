@@ -6,8 +6,14 @@ import { en } from './en';
 export const ids: Lesson = {
 	id: 'ids',
 	mood: 'thinking',
-	moods: ['worried', 'idea', 'thinking', 'wink', 'thinking', 'calm', 'idea', 'excited'],
-	reactionMood: { ids: 'thinking', ips: 'happy' },
+	moods: ['worried', 'idea', 'wink', 'thinking', 'calm', 'excited'],
+	reactionMood: {
+		ids: 'surprised',
+		strict: 'worried',
+		loose: 'sad',
+		perfect: 'excited'
+	},
+	playable: true,
 	stage: IdsStage,
 	text: { id, en }
 };

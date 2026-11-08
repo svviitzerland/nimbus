@@ -6,8 +6,15 @@ import { en } from './en';
 export const wifi: Lesson = {
 	id: 'wifi',
 	mood: 'happy',
-	moods: ['happy', 'calm', 'worried', 'wink', 'thinking', 'idea', 'excited'],
-	reactionMood: { near: 'excited', mid: 'thinking', far: 'worried' },
+	moods: ['happy', 'thinking', 'worried', 'wink', 'excited'],
+	reactionMood: {
+		near5: 'excited',
+		weak5: 'worried',
+		through24: 'happy',
+		clash: 'surprised',
+		clear: 'wink'
+	},
+	playable: true,
 	stage: WifiStage,
 	text: { id, en }
 };

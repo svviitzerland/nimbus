@@ -3,92 +3,62 @@ import type { BrowserText } from './types';
 export const id: BrowserText = {
 	title: 'Cara kerja browser',
 	intro: [
-		'Kamu ketik <b>nimbus.com</b> dan halamannya muncul hampir seketika. Rasanya kayak satu barang yang datang, padahal browser kamu lagi diam diam nyusun halamannya sepotong demi sepotong. Yuk kita pelanin dan tonton.',
-		'Pertama browser minta halamannya ke server lewat request [[HTTP|web/http]]. Yang balik satu file, <b>index.html</b>. Isinya cuma teks dengan [[tag|web/html]], jadi di layar belum ada apa apa.',
-		'Browser membaca HTML itu dari atas ke bawah lalu mengubahnya jadi pohon keluarga. Tiap judul, paragraf, dan tombol jadi satu cabang. Pohon itu punya nama, <b>DOM</b>.',
-		'Sekarang dia ngitung di mana tiap kotak harus ditaruh (namanya <b>layout</b>) lalu mewarnai pikselnya (namanya <b>paint</b>). Ini tampilan pertamanya. Huruf polos, tombol abu abu, dan satu tempat kosong yang nunggu gambar.',
-		'Waktu membaca HTML tadi, browser sadar halamannya juga butuh <b>style.css</b>. File itu datang, tiap aturannya nemu cabangnya di pohon, dan halamannya dilukis ulang dengan warna aslinya.',
-		'Lalu <b>nim.png</b> nyampe. Gambar sering jadi file paling berat, jadi biasanya datang paling akhir. Dia langsung masuk ke tempat yang udah disiapin HTML.',
-		'Terakhir <b>app.js</b>, si JavaScript. Sekarang halamannya bisa bereaksi. Lihat tombol Suka ngitung sendiri, tanpa minta halaman baru ke server.',
-		'[ingat] Ingat <b>3K, Kerangka, Kostum, Kelakuan.</b> HTML itu kerangkanya, CSS kostumnya, JavaScript kelakuannya. Datangnya juga biasanya urut begitu.',
-		'[fyi] Kata sama, dunia beda. <b>Rendering</b> artinya mengubah kode jadi tampilan yang kamu lihat. Browser melakukannya di HP kamu, tapi server juga bisa merender HTML sebelum dikirim, para developer menyebutnya [[server side rendering|web/rendering]]. Kerjaannya sama, tempatnya beda.',
-		'Penasaran CSS sebenarnya ngapain? Geser tombolnya buat mencopot CSS dan lihat halamannya kehilangan kostum. Atau nikmatin aja halaman jadinya, itu juga boleh.'
+		'Saat nimbus.com dibuka, browser meminta HTML dan sumber daya yang diperlukan. Browser memprosesnya untuk menampilkan halaman dan menjalankan interaksi.',
+		'Request [[HTTP|web/http]] pertama pada contoh ini meminta file <b>HTML</b>. File tersebut menyusun elemen halaman menggunakan [[tag|web/html]].',
+		'Browser membaca HTML itu dari atas ke bawah lalu mengubahnya jadi sebuah pohon, tiap judul, paragraf, dan tombol jadi satu cabang. Pohon itu namanya <b>DOM</b>. Sambil membaca, dia nemu file lain yang dibutuhkan halamannya dan minta juga.',
+		'Biasanya ada file <b>CSS</b> buat tampilannya (warna, huruf, jarak), gambar kayak <b>nim.png</b>, dan file <b>JavaScript</b> yang bikin halaman bisa gerak dan bereaksi. Masing masing punya request kecilnya sendiri.',
+		'Tiap ada potongan baru, browser ngitung di mana tiap kotak harus ditaruh (namanya <b>layout</b>) lalu mewarnai piksel di layar kamu (namanya <b>paint</b>). Biasanya semua ini selesai jauh di bawah satu detik.',
+		'[fyi] Kata sama, dunia beda. <b>Rendering</b> artinya mengubah kode jadi tampilan yang kamu lihat. Browser melakukannya di HP kamu, tapi server juga bisa merender HTML sebelum dikirim, para developer menyebutnya server side rendering. Kerjaannya sama, tempatnya beda.',
+		'[ingat] <b>HTML menyusun isi, CSS mengatur tampilan, JavaScript menambahkan perilaku.</b> Browser memproses ketiganya untuk menampilkan halaman.',
+		'Minta nimbus.com, lalu amati perubahan halaman saat HTML, CSS, gambar, dan JavaScript diproses. Urutan dibuat bertahap agar mudah dilihat.'
 	],
 	reactions: {
+		html: 'HTML diterima dan browser membentuk DOM. Halaman masih memakai tampilan bawaan karena CSS belum diterapkan. Gambar diminta melalui request terpisah.',
+		css: 'style.css diterima. Browser menerapkan aturan warna, ukuran, dan tata letak pada elemen yang cocok.',
+		img: 'nim.png sampai dan dilukis di tempat yang sudah disiapkan HTML. Gambar sering jadi file paling berat, makanya di internet lemot kamu lihat teksnya dulu, gambarnya nyusul belakangan.',
+		deadbutton:
+			'Tombol sudah ditampilkan, tetapi kode untuk menambah hitungan belum dimuat. Muat JavaScript agar tindakan ini tersedia.',
+		js: 'app.js sekarang jalan. Pencet Suka dan lihat angkanya nambah, terus perhatiin baris kecil di bawahnya ganti sendiri. Habis itu coba matikan CSS atau JavaScript buat lihat tugas masing masing.',
+		liked:
+			'Angkanya naik tanpa minta halaman baru ke server. Itu JavaScript yang mengubah DOM langsung di HP kamu, dan browser cuma melukis ulang bagian kecil itu.',
 		nocss:
-			'CSS dicopot, dan halamannya langsung balik ke kerangka. Tulisan, gambar, dan tombolnya masih ada semua, cuma kostumnya yang lepas. CSS mengubah tampilan, bukan isi.',
-		cssback:
-			'CSS nyala lagi. Browser mencocokkan tiap aturan ke pohonnya lagi lalu melukis ulang, sekejap mata.'
+			'CSS dinonaktifkan. Isi HTML dan tombol Suka tetap ada, tetapi tampilannya kembali memakai gaya bawaan browser.',
+		nojs: 'JavaScript dinonaktifkan. Tampilan tetap ada, tetapi tombol Suka tidak lagi menambah hitungan.',
+		again: 'Tab dikosongkan. Jalankan lagi untuk melihat peran tiap file dalam contoh ini.'
 	},
-	steps: [
-		{
-			tag: 'Awalnya',
-			title: 'Ngetik nimbus.com',
-			body: 'Semuanya mulai dari kolom alamat. Di baliknya, browser siap ngambil setumpuk kecil file.'
-		},
-		{
-			tag: 'File 1',
-			title: 'index.html',
-			body: 'Halamannya, ditulis sebagai teks dengan tag. Dia bilang <b>apa</b> isi halamannya, bukan gimana tampilannya.'
-		},
-		{
-			tag: 'Pohonnya',
-			title: 'DOM',
-			body: 'Pohon keluarga halaman. <b>body</b> itu induknya, dan judul, paragraf, serta tombol itu anak anaknya.'
-		},
-		{
-			tag: 'Menggambar',
-			title: 'Layout dan paint',
-			body: '<b>Layout</b> nentuin posisi tiap kotak, <b>paint</b> mewarnai pikselnya. Ini diulang tiap ada yang baru datang.'
-		},
-		{
-			tag: 'File 2',
-			title: 'style.css',
-			body: 'Warna, huruf, jarak, sudut yang membulat. Isinya tetap sama, cuma tampilannya yang berubah.'
-		},
-		{
-			tag: 'File 3',
-			title: 'nim.png',
-			body: 'Gambar itu file sendiri dengan request sendiri. Teksnya nggak pernah nungguin dia.'
-		},
-		{
-			tag: 'File 4',
-			title: 'app.js',
-			body: 'JavaScript mengubah pohonnya sambil kamu lihat, jadi halamannya bereaksi tanpa dimuat ulang.'
-		},
-		{
-			tag: 'Cara gampang',
-			title: '3K',
-			body: '<b>Kerangka</b> itu HTML, <b>Kostum</b> itu CSS, <b>Kelakuan</b> itu JavaScript. Biasanya datang dengan urutan itu juga.'
-		},
-		{
-			tag: 'Kata sama',
-			title: 'Rendering',
-			body: 'Mengubah kode jadi piksel. Biasanya terjadi di perangkatmu, kalau server side rendering mulainya di server.'
-		},
-		{
-			tag: 'Opsional',
-			title: 'Copot CSS nya',
-			body: 'Geser tombolnya dan halamannya balik ke kerangka polos. Semua isinya masih ada, cuma tampilannya yang hilang.'
-		}
+	steps: ['Minta nimbus.com', 'Ambil style.css', 'Ambil nim.png', 'Ambil app.js'],
+	again: 'Kosongkan tab',
+	networkLabel: 'File yang datang',
+	downloading: '{file} lagi di jalan',
+	fileRoles: {
+		html: 'struktur halaman',
+		css: 'tampilan halaman',
+		img: 'sebuah gambar',
+		js: 'interaksi halaman'
+	},
+	work: [
+		'Tab kosong, belum minta apa apa',
+		'Membaca HTML, menyusun DOM, melukisnya polos',
+		'Mencocokkan aturan CSS, menata ulang, melukis berwarna',
+		'Melukis gambar di tempatnya',
+		'Menjalankan JavaScript, halamannya sekarang bisa bereaksi'
 	],
-	filesLabel: 'File yang datang',
-	domLabel: 'Pohon DOM',
-	blank: 'Belum ada yang dilukis',
+	blank: 'Belum ada apa apa',
 	page: {
 		nav: ['Beranda', 'Blog', 'Tentang'],
 		heading: 'Selamat datang di Nimbus',
-		text: 'Belajar cara kerja internet, satu langkah kecil tiap kali.',
+		text: 'Belajar cara kerja internet yang sebenarnya, satu game kecil demi satu game kecil.',
 		alt: 'Nim si awan',
 		like: 'Suka',
 		tips: [
-			'Tiap halaman itu setumpuk kecil file',
-			'CSS mengubah tampilan, bukan isi',
+			'Tiap halaman itu tumpukan kecil file',
+			'CSS mengubah tampilan, bukan isinya',
 			'JavaScript yang bikin halaman bereaksi',
 			'Gambar biasanya datang paling akhir'
 		]
 	},
 	cssToggle: 'CSS',
+	jsToggle: 'JavaScript',
 	on: 'nyala',
 	off: 'mati'
 };

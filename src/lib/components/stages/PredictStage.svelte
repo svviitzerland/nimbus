@@ -1,543 +1,664 @@
 <script lang="ts">
-	// A guided "watch" stage. Nim narrates, and the pictures follow the beats by themselves:
-	// sold houses drop onto a size and price chart, a line tilts until it fits them (regression),
-	// a new house reads its price off the line, then emails land in a spam zone or a safe zone
-	// (classification). The memory beats show both side by side. The only optional play is on the
-	// last beat, a slider for the size of the new house.
-	import { fade } from 'svelte/transition';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { PredictText } from '$lib/chapters/ai/predict/types';
-	import { runSeq, type SeqStep } from './webguide/seq';
 
-	let { text, oncomplete, onstate, onshow, beat = 0 }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as PredictText);
 
-	const LAST = 6;
+	// ---- shared chart frame (SVG viewBox 220 x 184) ----
+	const L = 30;
+	const R = 212;
+	const T = 10;
+	const B = 150;
+	type Dom = { x0: number; x1: number; y0: number; y1: number };
+	const sx = (d: Dom, v: number) => L + ((v - d.x0) / (d.x1 - d.x0)) * (R - L);
+	const sy = (d: Dom, v: number) => B - ((v - d.y0) / (d.y1 - d.y0)) * (B - T);
+	const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
-	// Houses that were sold, [size in m², price].
-	const HOUSES: [number, number][] = [
-		[45, 330],
-		[58, 450],
-		[70, 520],
-		[82, 610],
-		[95, 640],
-		[108, 780],
-		[120, 800],
-		[134, 930],
-		[148, 1010]
-	];
-	// The best straight line, worked out once (least squares).
-	const MX = HOUSES.reduce((a, [s]) => a + s, 0) / HOUSES.length;
-	const MY = HOUSES.reduce((a, [, p]) => a + p, 0) / HOUSES.length;
-	const SLOPE =
-		HOUSES.reduce((a, [s, p]) => a + (s - MX) * (p - MY), 0) /
-		HOUSES.reduce((a, [s]) => a + (s - MX) ** 2, 0);
-	// Chart coordinates, size 40 to 160 left to right, price 200 to 1400 bottom to top.
-	const PX = (size: number) => 70 + ((size - 40) / 120) * 250;
-	const PY = (price: number) => 210 - ((price - 200) / 1200) * 190;
-	// Email chart, links 0 to 10 left to right, exclamation marks 0 to 10 bottom to top.
-	const EX = (v: number) => 70 + v * 25;
-	const EY = (v: number) => 210 - v * 19;
-
-	type Mail = [links: number, marks: number];
-	const MAILS: Mail[] = [
-		[1, 1],
-		[2, 3.5],
-		[3.5, 1.5],
-		[1, 5],
-		[4.5, 3],
-		[7, 8],
-		[8.5, 6],
-		[6, 8.5],
-		[9, 9],
-		[8.5, 3.5]
-	];
-	const NEW_MAILS: Mail[] = [
-		[2.5, 2],
-		[7.5, 7.5],
-		[3, 5.5],
-		[8, 4.5]
-	];
-	const isSpam = ([l, m]: Mail) => l + m > 10;
-	// The tilting line, as multiples of the final slope (it swings, then settles).
-	const SWING = [0, 1.9, 0.4, 1.3, 0.85, 1.05, 1];
-
-	let peek = $state<number | null>(null);
-	let reduced = $state(false);
-	let shown = $state(HOUSES.length); // houses on the chart
-	let mult = $state(1); // how far the line has tilted towards the best fit
-	let landed = $state(NEW_MAILS.length); // new emails that already landed
-	let size = $state(100); // the new house
-	let asked = $state(false);
-
-	$effect(() => {
-		onshow?.(true);
-		oncomplete?.();
-		if (typeof matchMedia !== 'undefined') {
-			reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-		}
-	});
-
-	// A new beat always brings the picture back to the story.
-	$effect(() => {
-		void beat;
-		peek = null;
-		size = 100;
-		asked = false;
-	});
-
-	const scene = $derived(peek ?? Math.min(beat, LAST));
-
-	// Beat 1, the houses drop in one by one.
-	$effect(() => {
-		if (scene !== 0 || reduced) {
-			shown = HOUSES.length;
-			return;
-		}
-		shown = 0;
-		const t = setInterval(() => {
-			shown += 1;
-			if (shown >= HOUSES.length) clearInterval(t);
-		}, 420);
-		return () => clearInterval(t);
-	});
-
-	// Beat 2, the line swings and settles, then does it again after a pause.
-	$effect(() => {
-		if (scene !== 1 || reduced) {
-			mult = scene === 0 ? 0 : 1;
-			return;
-		}
-		let raf = 0;
-		let start = 0;
-		const SWING_MS = 4600;
-		const HOLD_MS = 2600;
-		const frame = (now: number) => {
-			if (!start) start = now;
-			const t = (now - start) % (SWING_MS + HOLD_MS);
-			if (t >= SWING_MS) mult = 1;
-			else {
-				const pos = (t / SWING_MS) * (SWING.length - 1);
-				const k = Math.floor(pos);
-				const f = pos - k;
-				const e = f * f * (3 - 2 * f);
-				mult = SWING[k] + (SWING[k + 1] - SWING[k]) * e;
-			}
-			raf = requestAnimationFrame(frame);
+	// Turn a pointer position into chart values.
+	function toData(e: MouseEvent | PointerEvent, svg: SVGSVGElement, d: Dom) {
+		const box = svg.getBoundingClientRect();
+		const px = ((e.clientX - box.left) / box.width) * 220;
+		const py = ((e.clientY - box.top) / box.height) * 184;
+		return {
+			x: clamp(d.x0 + ((px - L) / (R - L)) * (d.x1 - d.x0), d.x0, d.x1),
+			y: clamp(d.y0 + ((B - py) / (B - T)) * (d.y1 - d.y0), d.y0, d.y1),
+			inside: px >= L - 4 && px <= R + 4 && py >= T - 4 && py <= B + 4
 		};
-		raf = requestAnimationFrame(frame);
-		return () => cancelAnimationFrame(raf);
-	});
+	}
 
-	// Beat 4, new emails drop in and land in a zone, in a gentle loop.
-	$effect(() => {
-		if (scene !== 3 || reduced) {
-			landed = NEW_MAILS.length;
-			return;
+	let tab = $state<'reg' | 'cls'>('reg');
+	let askedReg = false;
+	let askedCls = false;
+	let completed = false;
+	function asked(which: 'reg' | 'cls') {
+		if (which === 'reg') askedReg = true;
+		else askedCls = true;
+		if (askedReg && askedCls && !completed) {
+			completed = true;
+			onstate?.('both');
+			oncomplete?.();
+			return true;
 		}
-		const steps: SeqStep[] = [[900, () => (landed = 0)]];
-		NEW_MAILS.forEach((_, k) => steps.push([1700, () => (landed = k + 1)]));
-		steps.push([2200, () => {}]);
-		return runSeq(steps, true);
+		return false;
+	}
+
+	// ---- regression: fit a straight line through the houses ----
+	const RD: Dom = { x0: 20, x1: 200, y0: 0, y1: 1500 };
+	const HOUSES = [
+		{ x: 36, y: 280 },
+		{ x: 60, y: 390 },
+		{ x: 90, y: 640 },
+		{ x: 120, y: 790 },
+		{ x: 160, y: 1100 }
+	];
+	let houses = $state(HOUSES.map((h) => ({ ...h })));
+	let size = $state(110);
+	let saidRegAdd = false;
+	let saidRegAsk = false;
+	let regSvg = $state<SVGSVGElement>();
+
+	// Least squares, the line with the smallest total squared miss.
+	const line = $derived.by(() => {
+		const n = houses.length;
+		if (n < 2) return null;
+		const mx = houses.reduce((s, p) => s + p.x, 0) / n;
+		const my = houses.reduce((s, p) => s + p.y, 0) / n;
+		let num = 0;
+		let den = 0;
+		for (const p of houses) {
+			num += (p.x - mx) * (p.y - my);
+			den += (p.x - mx) ** 2;
+		}
+		if (den === 0) return null;
+		const slope = num / den;
+		return { slope, icept: my - slope * mx };
 	});
+	const at = (x: number) => (line ? line.slope * x + line.icept : 0);
+	const price = $derived(Math.max(0, Math.round(at(size) / 10) * 10));
+	const clipY = (v: number) => clamp(v, RD.y0, RD.y1);
 
-	const lineY = (s: number) => MY + SLOPE * mult * (s - MX);
-	const priceOf = (s: number) => MY + SLOPE * (s - MX);
-	const fmtPrice = (p: number) => tx.price.replace('{p}', String(Math.round(p / 10) * 10));
+	function addHouse(e: MouseEvent) {
+		if (!regSvg) return;
+		const p = toData(e, regSvg, RD);
+		if (!p.inside) return;
+		houses = [...houses.slice(-13), { x: Math.round(p.x), y: Math.round(p.y / 10) * 10 }];
+		if (!saidRegAdd) onstate?.('reg_add');
+		saidRegAdd = true;
+	}
+	function ask(v: number) {
+		size = v;
+		if (!line) return;
+		if (asked('reg')) return;
+		if (!saidRegAsk) onstate?.('reg_ask');
+		saidRegAsk = true;
+	}
 
-	function onSlide() {
-		if (!asked) {
-			asked = true;
-			onstate?.('ask');
+	// ---- classification: the three nearest known emails vote ----
+	type Mail = { x: number; y: number; spam: boolean };
+	const CD: Dom = { x0: 0, x1: 10, y0: 0, y1: 10 };
+	const MAILS: Mail[] = [
+		{ x: 1, y: 1, spam: false },
+		{ x: 2, y: 0.4, spam: false },
+		{ x: 0.5, y: 2.2, spam: false },
+		{ x: 3, y: 2, spam: false },
+		{ x: 1.4, y: 3.4, spam: false },
+		{ x: 4.2, y: 1, spam: false },
+		{ x: 8, y: 7, spam: true },
+		{ x: 7, y: 9, spam: true },
+		{ x: 9, y: 8, spam: true },
+		{ x: 6, y: 6.5, spam: true },
+		{ x: 9.2, y: 5, spam: true },
+		{ x: 5.4, y: 8.4, spam: true }
+	];
+	let mails = $state(MAILS.map((m) => ({ ...m })));
+	let addSpam = $state(true);
+	let probe = $state({ x: 4.5, y: 3.5 });
+	let dragging = $state(false);
+	let saidClsAdd = false;
+	let saidClsAsk = false;
+	let saidFlip = false;
+	let clsSvg = $state<SVGSVGElement>();
+
+	function vote(x: number, y: number) {
+		const near = mails
+			.map((m) => ({ m, d: (m.x - x) ** 2 + (m.y - y) ** 2 }))
+			.sort((a, b) => a.d - b.d)
+			.slice(0, 3);
+		const spam = near.filter((n) => n.m.spam).length;
+		return { spam: spam * 2 > near.length, near: near.map((n) => n.m) };
+	}
+	const verdict = $derived(vote(probe.x, probe.y));
+
+	// shade the chart in a coarse grid so you can see the border between the groups
+	const CELLS = 20;
+	const shade = $derived.by(() => {
+		const out: { x: number; y: number; spam: boolean }[] = [];
+		for (let i = 0; i < CELLS; i++)
+			for (let j = 0; j < CELLS; j++) {
+				const x = ((i + 0.5) / CELLS) * 10;
+				const y = ((j + 0.5) / CELLS) * 10;
+				out.push({ x: i, y: j, spam: vote(x, y).spam });
+			}
+		return out;
+	});
+	const cw = (R - L) / CELLS;
+	const ch = (B - T) / CELLS;
+
+	function addMail(e: MouseEvent) {
+		if (!clsSvg || dragging) return;
+		const p = toData(e, clsSvg, CD);
+		if (!p.inside) return;
+		mails = [...mails.slice(-23), { x: p.x, y: p.y, spam: addSpam }];
+		if (!saidClsAdd) onstate?.('cls_add');
+		saidClsAdd = true;
+	}
+
+	function moveProbe(x: number, y: number) {
+		const was = verdict.spam;
+		probe = { x: clamp(x, 0, 10), y: clamp(y, 0, 10) };
+		const flipped = vote(probe.x, probe.y).spam !== was;
+		if (asked('cls')) return;
+		if (flipped && !saidFlip) {
+			saidFlip = true;
+			onstate?.('cls_flip');
+		} else if (!saidClsAsk) {
+			saidClsAsk = true;
+			onstate?.('cls_ask');
 		}
 	}
+	function grab(e: PointerEvent) {
+		e.stopPropagation();
+		dragging = true;
+		(e.currentTarget as Element).setPointerCapture(e.pointerId);
+	}
+	function drag(e: PointerEvent) {
+		if (!dragging || !clsSvg) return;
+		const p = toData(e, clsSvg, CD);
+		moveProbe(p.x, p.y);
+	}
+	function drop(e: PointerEvent) {
+		if (!dragging) return;
+		(e.currentTarget as Element).releasePointerCapture(e.pointerId);
+		// let the click that follows this release pass without adding a point
+		setTimeout(() => (dragging = false), 0);
+	}
+	function probeKey(e: KeyboardEvent) {
+		const step = 0.5;
+		const moves: Record<string, [number, number]> = {
+			ArrowLeft: [-step, 0],
+			ArrowRight: [step, 0],
+			ArrowUp: [0, step],
+			ArrowDown: [0, -step]
+		};
+		const m = moves[e.key];
+		if (!m) return;
+		e.preventDefault();
+		moveProbe(probe.x + m[0], probe.y + m[1]);
+	}
+
+	function clearReg() {
+		houses = HOUSES.map((h) => ({ ...h }));
+	}
+	function clearCls() {
+		mails = MAILS.map((m) => ({ ...m }));
+	}
+
+	const ticksReg = [50, 100, 150, 200];
+	const ticksCls = [0, 5, 10];
 </script>
 
-{#snippet house(x: number, y: number, fresh = false)}
-	<g transform="translate({x} {y})">
-		<path d="M-6.5 1 L0 -5.5 L6.5 1 V6.5 H-6.5 Z" class="house" class:fresh />
-		<rect x="-1.6" y="2" width="3.2" height="4.5" class="door" class:fresh />
-	</g>
-{/snippet}
-
-{#snippet mail(x: number, y: number, kind: 'spam' | 'ham' | 'new')}
-	<g transform="translate({x} {y})" class="mail {kind}">
-		<rect x="-7.5" y="-5.5" width="15" height="11" rx="1.8" />
-		<path d="M-7.5 -4.5 L0 1 L7.5 -4.5" />
-	</g>
-{/snippet}
-
-{#snippet regression(mini: boolean, guide: 'none' | 'draw' | 'live')}
-	<svg viewBox="0 0 340 250" class="chart" aria-hidden="true">
-		<defs>
-			<clipPath id={mini ? 'predict-plot-mini' : 'predict-plot'}>
-				<rect x="64" y="14" width="262" height="202" />
-			</clipPath>
-		</defs>
-		<path d="M70 14 V210 H324" class="axis" />
-		{#if !mini}
-			<text x="70" y="8" class="axis-name" style="text-anchor:middle">{tx.regY}</text>
-			<text x="322" y="232" class="axis-name" style="text-anchor:end">{tx.regX}</text>
-		{/if}
-
-		{#if scene >= 1}
-			<g clip-path="url(#{mini ? 'predict-plot-mini' : 'predict-plot'})">
-				{#if scene === 1}
-					{#each HOUSES as [s, p] (s)}
-						<line x1={PX(s)} y1={PY(p)} x2={PX(s)} y2={PY(lineY(s))} class="gap" />
-					{/each}
-				{/if}
-				<line x1={PX(30)} y1={PY(lineY(30))} x2={PX(170)} y2={PY(lineY(170))} class="fit" />
-			</g>
-		{/if}
-
-		{#each HOUSES.slice(0, shown) as [s, p] (s)}
-			<g class:drop={scene === 0 && !reduced}>{@render house(PX(s), PY(p))}</g>
-		{/each}
-
-		{#if guide !== 'none'}
-			{@const p = priceOf(size)}
-			{#key guide === 'draw' ? scene : 0}
-				<g class:guides-draw={guide === 'draw' && !reduced}>
-					<line x1={PX(size)} y1="210" x2={PX(size)} y2={PY(p)} pathLength="1" class="guide up" />
-					<line x1={PX(size)} y1={PY(p)} x2="70" y2={PY(p)} pathLength="1" class="guide across" />
-					<g class="tag">
-						<rect x={mini ? 6 : 2} y={PY(p) - 11} width={mini ? 62 : 66} height="22" rx="11" />
-						<text x={mini ? 37 : 35} y={PY(p) + 4}>{fmtPrice(p)}</text>
-					</g>
-				</g>
-			{/key}
-			{@render house(PX(size), 210, true)}
-			{#if !mini}
-				<text x={PX(size)} y="230" class="size-name">{tx.size.replace('{n}', String(size))}</text>
-			{/if}
-		{/if}
-	</svg>
-{/snippet}
-
-{#snippet classification(mini: boolean, count: number)}
-	<svg viewBox="0 0 340 250" class="chart" aria-hidden="true">
-		<polygon points="{EX(0)},{EY(0)} {EX(0)},{EY(10)} {EX(10)},{EY(0)}" class="zone ham" />
-		<polygon points="{EX(0)},{EY(10)} {EX(10)},{EY(10)} {EX(10)},{EY(0)}" class="zone spam" />
-		<line x1={EX(0)} y1={EY(10)} x2={EX(10)} y2={EY(0)} class="border" />
-		<path d="M70 14 V210 H324" class="axis" />
-		{#if !mini}
-			<text x="70" y="8" class="axis-name" style="text-anchor:start">{tx.clsY}</text>
-			<text x="322" y="232" class="axis-name" style="text-anchor:end">{tx.clsX}</text>
-		{/if}
-		<text x={EX(1.2)} y={EY(0.4)} class="zone-name ham">{tx.ham}</text>
-		<text x={EX(8.8)} y={EY(9.5)} class="zone-name spam" style="text-anchor:end">{tx.spam}</text>
-
-		{#each MAILS as m, k (k)}
-			{@render mail(EX(m[0]), EY(m[1]), isSpam(m) ? 'spam' : 'ham')}
-		{/each}
-		{#each NEW_MAILS.slice(0, count) as m, k (k)}
-			<g class:drop={!reduced && !mini}>
-				<g class="ring-new">
-					<circle cx={EX(m[0])} cy={EY(m[1])} r="12" />
-				</g>
-				{@render mail(EX(m[0]), EY(m[1]), 'new')}
-				<text
-					x={EX(m[0]) + 16}
-					y={EY(m[1]) + 4}
-					class="mail-tag {isSpam(m) ? 'spam' : 'ham'}"
-					in:fade={{ duration: reduced ? 0 : 300, delay: reduced || mini ? 0 : 700 }}
-					>{isSpam(m) ? tx.spam : tx.ham}</text
-				>
-			</g>
-		{/each}
-	</svg>
-{/snippet}
-
 <div class="stage">
-	<Guide steps={tx.panels} active={scene} onselect={(i) => (peek = i)}>
-		{#snippet visual(i: number)}
-			<div class="visual">
-				{#if i === LAST}
-					<label class="slider" in:fade={{ duration: 300 }}>
-						<span>{tx.slider}</span>
-						<input
-							type="range"
-							min="45"
-							max="155"
-							step="5"
-							bind:value={size}
-							onchange={onSlide}
-							aria-label={tx.slider}
-						/>
-					</label>
-				{/if}
-				{#if i === 4 || i === 5}
-					<div class="pair" in:fade={{ duration: 300 }}>
-						<figure>
-							<div class="card">{@render regression(true, 'live')}</div>
-							<figcaption>{tx.answerNumber}</figcaption>
-						</figure>
-						<figure>
-							<div class="card">{@render classification(true, 1)}</div>
-							<figcaption>{tx.answerGroup}</figcaption>
-						</figure>
-					</div>
-					{#if i === 4}
-						<p class="rule" in:fade={{ duration: 300 }}>{tx.rule}</p>
-					{/if}
-				{:else if i === 3}
-					<div class="card" in:fade={{ duration: 300 }}>
-						{@render classification(false, landed)}
-					</div>
-				{:else}
-					<div class="card" in:fade={{ duration: 300 }}>
-						{@render regression(false, i === 2 ? 'draw' : i === LAST ? 'live' : 'none')}
-					</div>
-				{/if}
+	<div class="tabs" role="tablist">
+		<button
+			type="button"
+			role="tab"
+			aria-selected={tab === 'reg'}
+			class:on={tab === 'reg'}
+			onclick={() => (tab = 'reg')}>{tx.tabReg}</button
+		>
+		<button
+			type="button"
+			role="tab"
+			aria-selected={tab === 'cls'}
+			class:on={tab === 'cls'}
+			onclick={() => (tab = 'cls')}>{tx.tabCls}</button
+		>
+	</div>
+
+	<div class="panels">
+		<!-- regression -->
+		<section class="panel" class:hide={tab !== 'reg'}>
+			<header>
+				<h3>{tx.regTitle}</h3>
+				<span class="kind num">{tx.regKind}</span>
+			</header>
+			<div class="control">
+				<input
+					type="range"
+					min="20"
+					max="200"
+					step="5"
+					value={size}
+					disabled={!line}
+					aria-label={tx.askSize}
+					oninput={(e) => ask(Number((e.currentTarget as HTMLInputElement).value))}
+				/>
+				<button type="button" class="ghost" onclick={clearReg}>{tx.clear}</button>
 			</div>
-		{/snippet}
-	</Guide>
+			<p class="answer">
+				{line
+					? tx.regAnswer.replace('{size}', String(size)).replace('{price}', String(price))
+					: tx.regNeed}
+			</p>
+			<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+			<svg
+				bind:this={regSvg}
+				class="chart tap"
+				viewBox="0 0 220 184"
+				role="img"
+				aria-label={tx.regTitle}
+				onclick={addHouse}
+			>
+				<rect x={L} y={T} width={R - L} height={B - T} class="frame" />
+				{#each ticksReg as t (t)}
+					<text class="tick" x={sx(RD, t)} y={B + 12}>{t}</text>
+				{/each}
+				<text class="axis" x={(L + R) / 2} y="180">{tx.regX}</text>
+				<text class="axis" transform="translate(12 {(T + B) / 2}) rotate(-90)">{tx.regY}</text>
+				{#if line}
+					<line
+						class="fit"
+						x1={sx(RD, RD.x0)}
+						y1={sy(RD, clipY(at(RD.x0)))}
+						x2={sx(RD, RD.x1)}
+						y2={sy(RD, clipY(at(RD.x1)))}
+					/>
+					<!-- the question, up to the line and across to the price -->
+					<line
+						class="guide"
+						x1={sx(RD, size)}
+						y1={B}
+						x2={sx(RD, size)}
+						y2={sy(RD, clipY(price))}
+					/>
+					<line
+						class="guide"
+						x1={L}
+						y1={sy(RD, clipY(price))}
+						x2={sx(RD, size)}
+						y2={sy(RD, clipY(price))}
+					/>
+				{/if}
+				{#each houses as h, i (i)}
+					<g transform="translate({sx(RD, h.x)} {sy(RD, h.y)})" class="house">
+						<path d="M-5 0.5 L0 -4.5 L5 0.5 V5 H-5 Z" />
+					</g>
+				{/each}
+				{#if line}
+					<circle class="askdot" cx={sx(RD, size)} cy={sy(RD, clipY(price))} r="5" />
+				{/if}
+			</svg>
+			<p class="hint">{tx.regHint}</p>
+		</section>
+
+		<!-- classification -->
+		<section class="panel" class:hide={tab !== 'cls'}>
+			<header>
+				<h3>{tx.clsTitle}</h3>
+				<span class="kind grp">{tx.clsKind}</span>
+			</header>
+			<div class="control">
+				<span class="addas">{tx.addAs}</span>
+				<div class="seg">
+					<button type="button" class:on={addSpam} class="spam" onclick={() => (addSpam = true)}
+						>{tx.spam}</button
+					>
+					<button type="button" class:on={!addSpam} class="ham" onclick={() => (addSpam = false)}
+						>{tx.ham}</button
+					>
+				</div>
+				<button type="button" class="ghost" onclick={clearCls}>{tx.clear}</button>
+			</div>
+			<p class="answer" class:spam={verdict.spam} class:ham={!verdict.spam}>
+				{tx.clsAnswer.replace('{label}', verdict.spam ? tx.spam : tx.ham)}
+			</p>
+			<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+			<svg
+				bind:this={clsSvg}
+				class="chart tap"
+				viewBox="0 0 220 184"
+				role="img"
+				aria-label={tx.clsTitle}
+				onclick={addMail}
+			>
+				{#each shade as c (c.x * CELLS + c.y)}
+					<rect
+						x={L + c.x * cw}
+						y={B - (c.y + 1) * ch}
+						width={cw + 0.3}
+						height={ch + 0.3}
+						class="cell"
+						class:spam={c.spam}
+					/>
+				{/each}
+				<rect x={L} y={T} width={R - L} height={B - T} class="frame clear" />
+				{#each ticksCls as t (t)}
+					<text class="tick" x={sx(CD, t)} y={B + 12}>{t}</text>
+				{/each}
+				<text class="axis" x={(L + R) / 2} y="180">{tx.clsX}</text>
+				<text class="axis" transform="translate(12 {(T + B) / 2}) rotate(-90)">{tx.clsY}</text>
+				{#each verdict.near as m, i (i)}
+					<line
+						class="vote"
+						x1={sx(CD, probe.x)}
+						y1={sy(CD, probe.y)}
+						x2={sx(CD, m.x)}
+						y2={sy(CD, m.y)}
+					/>
+				{/each}
+				{#each mails as m, i (i)}
+					<g transform="translate({sx(CD, m.x)} {sy(CD, m.y)})" class="mail" class:spam={m.spam}>
+						<rect x="-5.5" y="-4" width="11" height="8" rx="1.5" />
+						<path d="M-5 -3.3 L0 0.6 L5 -3.3" />
+					</g>
+				{/each}
+				<g
+					class="probe"
+					class:spam={verdict.spam}
+					class:grab={dragging}
+					transform="translate({sx(CD, probe.x)} {sy(CD, probe.y)})"
+					role="slider"
+					tabindex="0"
+					aria-label={tx.newEmail}
+					aria-valuetext={verdict.spam ? tx.spam : tx.ham}
+					aria-valuenow={Math.round(probe.x)}
+					onpointerdown={grab}
+					onpointermove={drag}
+					onpointerup={drop}
+					onpointercancel={drop}
+					onclick={(e) => e.stopPropagation()}
+					onkeydown={probeKey}
+				>
+					<circle r="15" class="halo" />
+					<rect x="-8" y="-6" width="16" height="12" rx="2" />
+					<text y="4">?</text>
+				</g>
+			</svg>
+			<p class="hint">{tx.clsHint}</p>
+		</section>
+	</div>
 </div>
 
 <style>
 	.stage {
 		display: flex;
-		height: 100%;
 		width: 100%;
-		justify-content: center;
-		align-items: safe center;
-		overflow-y: auto;
-		overflow-x: hidden;
-		padding-bottom: 16px;
-	}
-	.visual {
-		display: flex;
-		width: 100%;
-		max-width: 440px;
 		flex-direction: column;
 		align-items: center;
 		gap: 10px;
+		padding-bottom: 8px;
 	}
-	.card {
-		width: 100%;
-		border: 1px solid var(--color-line);
-		border-radius: 18px;
-		background: var(--color-card);
-		padding: 8px 8px 4px;
+	.tabs {
+		display: flex;
+		gap: 4px;
+		border-radius: 12px;
+		background: var(--color-paper);
+		border: 1.5px solid var(--color-line);
+		padding: 3px;
 	}
-	.chart {
-		display: block;
-		width: 100%;
-		height: auto;
-		overflow: visible;
-	}
-	.pair {
-		display: grid;
-		width: 100%;
-		grid-template-columns: 1fr 1fr;
-		gap: 10px;
-	}
-	.pair figure {
-		margin: 0;
-	}
-	.pair figcaption {
-		margin-top: 6px;
-		text-align: center;
+	.tabs button {
+		border-radius: 9px;
+		padding: 6px 14px;
 		font-size: 12.5px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.tabs button.on {
+		background: var(--color-card);
+		color: var(--color-ink);
+		box-shadow: 0 1px 4px rgba(22, 40, 60, 0.1);
+	}
+	.panels {
+		display: flex;
+		width: 100%;
+		max-width: 360px;
+		flex-direction: column;
+		gap: 16px;
+	}
+	.panel {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+	}
+	.panel.hide {
+		display: none;
+	}
+	header {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 6px;
+	}
+	h3 {
+		font-size: 13px;
 		font-weight: 700;
 		color: var(--color-ink);
 	}
-	.slider {
-		display: flex;
-		width: 100%;
-		max-width: 320px;
-		align-items: center;
-		gap: 10px;
-		font-size: 13px;
+	.kind {
+		border-radius: 999px;
+		padding: 2px 8px;
+		font-size: 10.5px;
 		font-weight: 700;
+	}
+	.kind.num {
+		background: var(--color-brand-soft);
 		color: var(--color-brand);
 	}
-	.slider input {
+	.kind.grp {
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
+	}
+	.control {
+		display: flex;
+		width: 100%;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		min-height: 34px;
+	}
+	.control input {
 		flex: 1;
+		min-width: 0;
 		accent-color: var(--color-brand);
 	}
+	.addas {
+		font-size: 11.5px;
+		color: var(--color-faint);
+	}
+	.seg {
+		display: flex;
+		gap: 4px;
+	}
+	.seg button {
+		border-radius: 999px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 4px 10px;
+		font-size: 11.5px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.seg .spam.on {
+		border-color: var(--color-danger);
+		background: var(--color-danger-soft);
+		color: var(--color-danger);
+	}
+	.seg .ham.on {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+	}
+	.ghost {
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
+		padding: 4px 6px;
+	}
+	.ghost:hover {
+		color: var(--color-ink);
+	}
+	.answer {
+		min-height: 20px;
+		font-size: 13.5px;
+		font-weight: 700;
+		color: var(--color-brand);
+		text-align: center;
+	}
+	.answer.spam {
+		color: var(--color-danger);
+	}
+	.answer.ham {
+		color: var(--color-grass);
+	}
+	.hint {
+		font-size: 11.5px;
+		color: var(--color-faint);
+		text-align: center;
+	}
 
-	.axis {
-		fill: none;
+	.chart {
+		width: 100%;
+		height: auto;
+		overflow: visible;
+		user-select: none;
+	}
+	.chart.tap {
+		cursor: crosshair;
+	}
+	.frame {
+		fill: var(--color-card);
 		stroke: var(--color-line);
-		stroke-width: 1.5;
+		stroke-width: 1.2;
 	}
-	.axis-name {
+	.frame.clear {
+		fill: none;
+	}
+	.tick {
+		font-size: 8.5px;
 		fill: var(--color-faint);
-		font-size: 11px;
-		font-weight: 700;
-	}
-	.house {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-brand);
-		stroke-width: 1.4;
-		stroke-linejoin: round;
-	}
-	.door {
-		fill: var(--color-brand);
-	}
-	.house.fresh {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-	}
-	.door.fresh {
-		fill: var(--color-amber);
-	}
-	.size-name {
-		fill: var(--color-amber);
-		font-size: 11px;
-		font-weight: 700;
 		text-anchor: middle;
 	}
-	.drop {
-		animation: drop 0.6s cubic-bezier(0.3, 1.3, 0.5, 1) both;
-	}
-	@keyframes drop {
-		from {
-			opacity: 0;
-			transform: translateY(-22px);
-		}
-		to {
-			opacity: 1;
-			transform: none;
-		}
+	.axis {
+		font-size: 9.5px;
+		font-weight: 600;
+		fill: var(--color-muted);
+		text-anchor: middle;
 	}
 	.fit {
-		stroke: var(--color-ink);
-		stroke-width: 2.2;
+		stroke: var(--color-brand);
+		stroke-width: 2.4;
 		stroke-linecap: round;
-	}
-	.gap {
-		stroke: var(--color-danger);
-		stroke-width: 1.4;
-		opacity: 0.55;
 	}
 	.guide {
-		stroke: var(--color-amber);
-		stroke-width: 1.6;
+		stroke: var(--color-brand);
+		stroke-opacity: 0.35;
+		stroke-width: 1.2;
 	}
-	.guides-draw .guide {
-		stroke-dasharray: 1;
-		stroke-dashoffset: 1;
-		animation: draw 0.8s ease forwards;
-	}
-	.guides-draw .up {
-		animation-delay: 0.6s;
-	}
-	.guides-draw .across {
-		animation-delay: 1.4s;
-	}
-	.guides-draw .tag {
-		opacity: 0;
-		animation: show 0.4s ease forwards 2.2s;
-	}
-	@keyframes draw {
-		to {
-			stroke-dashoffset: 0;
-		}
-	}
-	@keyframes show {
-		to {
-			opacity: 1;
-		}
-	}
-	.tag rect {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 1.4;
-	}
-	.tag text {
+	.house path {
 		fill: var(--color-ink);
-		font-size: 11.5px;
-		font-weight: 800;
-		text-anchor: middle;
+		fill-opacity: 0.75;
+	}
+	.askdot {
+		fill: var(--color-card);
+		stroke: var(--color-brand);
+		stroke-width: 2.4;
 	}
 
-	.zone.ham {
-		fill: color-mix(in srgb, var(--color-grass) 9%, transparent);
+	.cell {
+		fill: var(--color-grass-soft);
+		transition: fill 0.25s ease;
 	}
-	.zone.spam {
-		fill: color-mix(in srgb, var(--color-danger) 9%, transparent);
-	}
-	.border {
-		stroke: var(--color-ink);
-		stroke-width: 2;
-		stroke-linecap: round;
-	}
-	.zone-name {
-		font-size: 12px;
-		font-weight: 800;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-	}
-	.zone-name.ham,
-	.mail-tag.ham {
-		fill: var(--color-grass);
-	}
-	.zone-name.spam,
-	.mail-tag.spam {
-		fill: var(--color-danger);
+	.cell.spam {
+		fill: var(--color-danger-soft);
 	}
 	.mail rect {
-		stroke-width: 1.3;
+		fill: var(--color-card);
+		stroke: var(--color-grass);
+		stroke-width: 1.4;
 	}
 	.mail path {
 		fill: none;
-		stroke-width: 1.2;
-		stroke-linejoin: round;
-	}
-	.mail.ham rect {
-		fill: var(--color-grass-soft);
 		stroke: var(--color-grass);
+		stroke-width: 1.1;
 	}
-	.mail.ham path {
-		stroke: var(--color-grass);
-	}
-	.mail.spam rect {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-	}
+	.mail.spam rect,
 	.mail.spam path {
 		stroke: var(--color-danger);
 	}
-	.mail.new rect {
-		fill: var(--color-card);
+	.vote {
 		stroke: var(--color-ink);
+		stroke-opacity: 0.3;
+		stroke-width: 1.2;
+		pointer-events: none;
 	}
-	.mail.new path {
-		stroke: var(--color-ink);
+	.probe {
+		cursor: grab;
+		outline: none;
+		touch-action: none;
 	}
-	.ring-new circle {
-		fill: none;
-		stroke: var(--color-amber);
-		stroke-width: 1.6;
+	.probe.grab {
+		cursor: grabbing;
 	}
-	.mail-tag {
-		font-size: 11px;
+	.probe .halo {
+		fill: var(--color-ink);
+		fill-opacity: 0.06;
+	}
+	.probe:focus-visible .halo {
+		fill-opacity: 0.16;
+	}
+	.probe rect {
+		fill: var(--color-grass);
+		stroke: var(--color-card);
+		stroke-width: 1.5;
+	}
+	.probe.spam rect {
+		fill: var(--color-danger);
+	}
+	.probe text {
+		font-size: 10px;
 		font-weight: 800;
-	}
-	.rule {
-		margin: 0;
-		text-align: center;
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--color-grass);
+		fill: #fff;
+		text-anchor: middle;
+		pointer-events: none;
 	}
 
-	@media (max-width: 767px) {
-		.stage {
-			padding-bottom: 7rem;
+	@media (prefers-reduced-motion: reduce) {
+		.cell {
+			transition: none;
 		}
 	}
-	@media (prefers-reduced-motion: reduce) {
-		.drop,
-		.guides-draw .guide,
-		.guides-draw .tag {
-			animation: none;
-			opacity: 1;
-			stroke-dashoffset: 0;
+
+	@media (min-width: 768px) {
+		.tabs {
+			display: none;
+		}
+		.panels {
+			max-width: 760px;
+			flex-direction: row;
+			gap: 28px;
+		}
+		.panel,
+		.panel.hide {
+			display: flex;
+			flex: 1;
+			min-width: 0;
 		}
 	}
 </style>

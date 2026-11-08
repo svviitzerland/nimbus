@@ -5,9 +5,10 @@ import { en } from './en';
 
 export const configMgmt: Lesson = {
 	id: 'config-mgmt',
-	mood: 'calm',
-	moods: ['calm', 'thinking', 'worried', 'idea', 'excited', 'happy', 'wink', 'calm', 'happy'],
-	reactionMood: { drift: 'happy' },
+	mood: 'thinking',
+	moods: ['calm', 'worried', 'idea', 'thinking', 'wink', 'happy'],
+	reactionMood: { manual: 'thinking', typo: 'surprised', playbook: 'excited', again: 'happy' },
+	playable: true,
 	stage: ConfigMgmtStage,
 	text: { id, en }
 };

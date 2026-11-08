@@ -72,7 +72,7 @@
 	let peekBeat = -1;
 	const active = $derived(peek !== null && peekBeat === beat ? peek : fromBeat);
 	const focus = $derived(FOCUS[active] ?? 'closed');
-	const canPeek = $derived(beat >= tx.intro.length - 1);
+	const canPeek = true;
 	const lit = (p: Part) => LIT[focus].includes(p);
 	const showLabel = (p: Part) => focus !== 'closed' && focus !== 'open' && lit(p);
 	// the keyboard deck covers the inside while the laptop is whole, and again for typing

@@ -7,7 +7,8 @@ export const id: CableText = {
 		'Banyak yang ngira lewat satelit di langit. Padahal hampir semua, sekitar 99%, jalan lewat <b>kabel serat optik di dasar laut</b>. Datanya dikirim sebagai kilatan cahaya lewat kaca setipis rambut.',
 		'Garis-garis tipis di peta ini kabel laut sungguhan yang aktif sekarang.',
 		'Tiap kabel naik ke darat di titik yang disebut <b>landing station</b> (titik-titik kecil itu). Dari situ data masuk ke jaringan darat, lalu sampai ke data center.',
-		'Penggunamu di Argentina sudah siap mengirim. Pilihkan satu tujuan, lalu temani datanya menyelam sampai ke seberang.'
+		'Penggunamu di Argentina sudah siap mengirim. Pilihkan satu tujuan, lalu temani datanya menyelam sampai ke seberang.',
+		'[ingat] Internet lintas benua banyak melewati serat optik di laut. Datanya dibawa sebagai cahaya.'
 	],
 	reactions: {
 		leaving: 'Datamu keluar dari HP, lewat router dan ISP, menuju pantai...',
@@ -26,6 +27,10 @@ export const id: CableText = {
 	cablesNote: 'Garis tipis itu kabel laut yang aktif sekarang',
 	routeNote: 'Contoh jalur nyata, rute asli tiap paket bisa beda.',
 	credit: 'Data kabel oleh TeleGeography',
-	compare: { near: 'Dekat', far: 'Jauh', hint: 'Kirim ke satu tempat dekat dan satu yang jauh biar kerasa bedanya' },
+	compare: {
+		near: 'Dekat',
+		far: 'Jauh',
+		hint: 'Kirim ke satu tempat dekat dan satu yang jauh biar kerasa bedanya'
+	},
 	dests: { 'sa-east-1': 'São Paulo', 'eu-central-1': 'Frankfurt', 'ap-northeast-1': 'Tokyo' }
 };

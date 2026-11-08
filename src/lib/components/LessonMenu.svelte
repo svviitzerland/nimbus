@@ -2,6 +2,7 @@
 	import { fly, fade } from 'svelte/transition';
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { lang, t } from '$lib/i18n';
 	import { getChapter } from '$lib/chapters';
 	import { progress } from '$lib/progress.svelte';
@@ -44,7 +45,7 @@
 		if (!unlocked) return;
 		menuOpen = false;
 		if (chapterId === curChapter && lessonId === curLesson) return;
-		goto(`/${chapterId}/${lessonId}`);
+		goto(resolve('/[chapter]/[lesson]', { chapter: chapterId, lesson: lessonId }));
 	}
 	function onKey(e: KeyboardEvent) {
 		if (e.key === 'Escape') menuOpen = false;

@@ -217,7 +217,7 @@
 		top: 58px;
 		left: 2%;
 		right: 2%;
-		border-top: 2px dashed #e3ded5;
+		border-top: 2px solid #e3ded5;
 	}
 
 	/* the firewall is literally a wall with a single gate */

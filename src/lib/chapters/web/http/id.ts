@@ -3,83 +3,67 @@ import type { HttpText } from './types';
 export const id: HttpText = {
 	title: 'Apa itu HTTP',
 	intro: [
-		'Tiap kali kamu buka <b>nimbus.com</b>, ada dua komputer yang ngobrol sebentar. Di satu sisi ada <b>browser</b> kamu, aplikasi yang kamu pakai buat buka website. Di sisi lain ada [[server|foundations/server]], komputer yang nyimpen situsnya.',
-		'Mereka selalu ngobrol pakai tata krama yang sama, namanya <b>HTTP</b> (singkatan dari HyperText Transfer Protocol). <b>Protokol</b> itu cuma cara ngobrol yang udah disepakati, kayak telepon yang selalu dibuka pakai halo, jadi dua duanya selalu nyambung.',
-		'Browser ngomong duluan. Pesannya namanya <b>request</b>, isinya halaman mana yang dia mau, misalnya <b>/about</b>. Bagian itu namanya <b>path</b>. Lihat amplop kecilnya terbang ke server.',
-		'Tiap request dibuka pakai kata kerja yang namanya <b>method</b>. <b>GET</b> artinya tolong kasih ini, buat membaca halaman. <b>POST</b> artinya tolong terima ini, buat ngirim sesuatu, kayak komentar atau login.',
-		'Server baca requestnya, nyari halamannya, terus ngirim <b>response</b> balik. Browser membukanya dan nunjukin halamannya ke kamu. Perjalanan bolak balik ini biasanya lebih cepat dari kedipan mata.',
-		'Di paling atas tiap response ada <b>status code</b>, angka tiga digit yang bilang hasilnya gimana. 200 artinya aman, 301 artinya halamannya pindah, 404 artinya nggak ada, dan 500 artinya servernya lagi kesandung.',
-		'[ingat] Cukup lihat digit pertamanya. <b>2 beres, 3 belok, 4 salahmu, 5 salah server.</b> Ucapin sekali keras keras, pasti nempel.',
-		'[fyi] HTTP biasa dikirim sebagai teks yang bisa dibaca, jadi siapa pun di tengah jalan bisa ngintip. Huruf S di <b>HTTPS</b> ngunci amplopnya pakai enkripsi, nanti dibahas di [[SSL dan TLS|security/tls]]. [[API|foundations/api]] juga ngomong pakai HTTP yang sama, cuma jawabannya data, bukan halaman.',
-		'Mau coba ngirim sendiri? Pilih satu halaman dan lihat status code apa yang balik. Atau santai aja nonton obrolannya, itu juga boleh.'
+		'Buka <b>nimbus.com</b>, lalu browser meminta data ke [[server|foundations/server]]. Aturan pertukaran pesan itu bernama <b>HTTP</b>.',
+		'Pesan yang dikirim namanya <b>request</b>. <b>GET</b> meminta data. <b>POST</b> mengirim data untuk diproses, misalnya pesan baru di buku tamu.',
+		'<b>Path</b> memilih tujuan di situs, seperti /about. <b>Header</b> membawa keterangan tambahan. <b>Body</b> membawa isinya, misalnya teks pesanmu.',
+		'Server mengirim <b>response</b>. Di awal ada status, seperti 200 OK atau 404 Not Found. Lihat pesan mentahnya di bawah, bukan hanya halaman yang tampil.',
+		'Coba POST ke /messages lalu GET ke alamat yang sama. Pesanmu tersimpan di server simulasi dan muncul dalam balasan berikutnya.',
+		'[ingat] <b>2 berhasil, 3 diarahkan, 4 request tidak terpenuhi, 5 server bermasalah.</b> Baca juga isi balasannya untuk tahu penyebab yang lebih tepat.',
+		'[fyi] <b>HTTPS</b> melindungi pertukaran HTTP dengan [[TLS|security/tls]]. Lab memakai tampilan teks HTTP/1.1 agar mudah dibaca. HTTP/2 dan HTTP/3 memakai bentuk pengiriman berbeda.',
+		'Kumpulkan empat jawaban. Setelah berhasil membaca dan mengirim, coba halaman yang tidak ada dan laporan yang servernya bermasalah.'
 	],
 	reactions: {
-		ok: '<b>200 OK</b>. Server nemu /about dan langsung ngirim balik. Angka 2 di depan artinya semuanya beres.',
-		moved:
-			'<b>301 Moved</b>. Blog lamanya udah pindah alamat, jadi server ngasih tahu browser harus ke mana. Angka 3 di depan artinya belok ke tempat lain, dan browser ngikutin sendiri.',
+		ok: 'Dapat <b>200 OK</b>. Server nemu halamannya dan ngirim balik. Baca response dari atas, baris status dulu, lalu header kayak <b>Content-Type</b> yang bilang ke browser ini HTML, baru halamannya.',
+		list: 'GET ke <b>/messages</b> ngasih balik data, bukan halaman. Content-Type nya <b>application/json</b>, format rapi yang gampang dibaca aplikasi. Kalau tadi kamu sempat ngirim pesan, coba cari di daftarnya.',
+		created:
+			'<b>201 Created</b>. Pakai POST, pesanmu ikut di dalam <b>body</b> request dan server menyimpannya. Sekarang ganti lagi ke GET ke /messages, pesanmu udah nongkrong di sana.',
 		notfound:
-			'<b>404 Not Found</b>. Servernya sehat kok, cuma nggak punya halaman /pricing. Angka 4 di depan artinya request kamu minta yang salah, jadi salahnya di sisi yang nanya.',
+			'404. Server tidak menemukan /pricing. Penyebabnya bisa path keliru atau halaman yang sudah dihapus, jadi periksa alamatnya.',
+		notallowed:
+			'<b>405 Method Not Allowed</b>. Halamannya ada, tapi cuma boleh dibaca. Kamu nggak bisa POST ke situ, jadi server nolak dengan sopan, dan header <b>Allow</b> nya ngasih tahu apa yang boleh.',
 		broken:
-			'<b>500 Internal Server Error</b>. Request kamu kali ini benar, tapi kode di balik /report crash di server. Angka 5 di depan artinya sisi mereka yang rusak, bukan kamu.'
+			'<b>500 Internal Server Error</b>. Request kamu kali ini benar kok. Kode di balik /report yang crash di server, jadi angka 5 di depan artinya salah di sisi mereka, bukan kamu.',
+		done: 'Empat jawaban terkumpul! Method, path, header, status code, itulah HTTP. Browser kamu ngelakuin ini puluhan kali tiap buka satu halaman, diam diam, sekejap mata.'
 	},
-	steps: [
-		{
-			tag: 'Dua sisi',
-			title: 'Browser dan server',
-			body: '<b>Browser</b> di laptopmu yang nanya. <b>Server</b> nyimpen situsnya dan ngejawab. Semua halaman yang pernah kamu buka datang dari obrolan kayak gini.'
-		},
-		{
-			tag: 'Aturannya',
-			title: 'HTTP',
-			body: 'Satu tata krama bersama, jadi browser mana pun di dunia bisa ngobrol sama server mana pun di dunia.'
-		},
-		{
-			tag: 'Bertanya',
-			title: 'Request',
-			body: 'Pesan kecil dari browser. Isinya nama halaman yang dia mau, misalnya <b>/about</b>.'
-		},
-		{
-			tag: 'Kata kerjanya',
-			title: 'Method',
-			body: '<b>GET</b> buat membaca, <b>POST</b> buat mengirim. Hampir semua halaman yang kamu buka itu GET yang diam diam.'
-		},
-		{
-			tag: 'Menjawab',
-			title: 'Response',
-			body: 'Balasan dari server. Yang dibawa duluan status code, baru halamannya.'
-		},
-		{
-			tag: 'Hasilnya',
-			title: 'Status code',
-			body: 'Tiga digit di atas tiap response. Digit pertamanya udah cerita semuanya.'
-		},
-		{
-			tag: 'Cara gampang',
-			title: 'Baca digit pertama',
-			body: '<b>2</b> beres, <b>3</b> belok, <b>4</b> salahmu, <b>5</b> salah server.'
-		},
-		{
-			tag: 'Terkunci',
-			title: 'HTTPS',
-			body: 'Obrolan yang sama, tapi disegel. Orang di tengah jalan cuma lihat ada amplop lewat, nggak bisa baca isinya.'
-		},
-		{
-			tag: 'Opsional',
-			title: 'Kirim sendiri',
-			body: 'Pencet satu halaman buat memintanya. Tiap halaman balik dengan digit pertama yang beda.'
-		}
-	],
+	missionsLabel: 'Kumpulkan empat jawaban',
+	missions: {
+		read: 'Baca halaman dan dapat 200',
+		send: 'Kirim pesan pakai POST',
+		missing: 'Minta halaman yang nggak ada',
+		broken: 'Pergoki server yang kesandung'
+	},
+	methodLabel: 'Method',
+	pathLabel: 'Path',
+	bodyLabel: 'Pesanmu',
+	bodyDefault: 'Halo Nim!',
+	pathHints: {
+		'/': 'halaman depan',
+		'/about': 'tentang Nimbus',
+		'/messages': 'buku tamu',
+		'/pricing': 'halaman harga, mungkin',
+		'/report': 'laporan bulanan'
+	},
+	send: 'Kirim request',
+	sending: 'Lagi dikirim',
 	youLabel: 'Browser kamu',
-	serverLabel: 'Server nimbus.com',
+	serverLabel: 'nimbus.com',
+	requestLabel: 'Request',
+	responseLabel: 'Response',
+	waiting: 'Belum ada balasan',
 	screen: {
-		loading: 'Nunggu jawaban',
-		results: {
-			ok: { title: 'Tentang Nimbus', text: 'Awan yang ngajarin teknologi.' },
-			moved: { title: 'Halaman ini pindah', text: 'Lagi diarahkan ke alamat baru.' },
-			notfound: { title: 'Halaman nggak ada', text: 'Nggak ada apa apa di path ini.' },
-			broken: { title: 'Ada yang rusak', text: 'Servernya yang kesandung, bukan kamu.' }
-		}
+		home: 'Selamat datang di Nimbus',
+		about: 'Tentang Nimbus',
+		aboutText: 'Awan yang ngajarin teknologi.',
+		messages: 'Buku tamu',
+		created: 'Pesan terkirim',
+		notFound: 'Halaman nggak ketemu',
+		broken: 'Ada yang rusak',
+		notAllowed: 'Nggak boleh di sini'
 	},
-	legend: ['2 beres', '3 belok', '4 salahmu', '5 salah server'],
-	pagesLabel: 'Minta satu halaman'
+	statusNotes: {
+		ok: 'Diawali 2, berarti berhasil',
+		client: 'Diawali 4, request tidak bisa dipenuhi',
+		server: 'Diawali 5, berarti servernya rusak'
+	},
+	allDone: 'Empat response HTTP diperiksa'
 };

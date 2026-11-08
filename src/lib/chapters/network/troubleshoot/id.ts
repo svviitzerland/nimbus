@@ -4,66 +4,31 @@ export const id: TroubleshootText = {
 	title: 'Troubleshooting jaringan',
 	intro: [
 		'nimbus.com nggak mau kebuka. Gara gara WiFi? Router? Atau situsnya sendiri? Banyak orang langsung panik dan merestart semuanya asal asalan. Kadang berhasil, tapi nggak ada yang tahu kenapa.',
-		'Jaringan rumah itu dibangun kayak menara kecil bertingkat, tiap lantai berdiri di atas lantai di bawahnya. <b>Kabel</b> membawa sinyal, <b>WiFi</b> menyambungkanmu ke router, router memberimu <b>alamat IP</b>, <b>gateway</b> (router itu juga) membawamu keluar ke internet, <b>DNS</b> mengubah nama jadi alamat, baru setelah itu <b>website</b> menjawab.',
-		'Kalau lantai bawah rusak, semua yang di atasnya ikut rusak. Cabut kabelnya dan lihat, semua lantai di atasnya jadi merah. Jadi "situsnya nggak kebuka" hampir nggak memberi tahu di mana masalah sebenarnya.',
-		'Makanya orang mengecek dari <b>bawah ke atas</b>. Lihat menaranya. Kabel, aman. WiFi, aman. Alamat IP, aman. Gateway, nggak menjawab. Berhenti di situ.',
-		'Lantai merah pertama itu <b>biang keroknya</b>. DNS dan website di atasnya cuma <b>korban</b>, mereka gagal karena lantai di bawahnya rusak. Mengutak atik mereka cuma buang waktu.',
-		'Jadi yang dibenerin cuma gateway. Routernya macet, direstart, dan semua lantai di atasnya jadi hijau dengan sendirinya.',
-		'[ingat] Mulai dari kabel, berakhir di website. Merah pertama dari bawah, itu biang keroknya.',
+		'Jaringan itu dibangun bertingkat, tiap tingkat berdiri di atas tingkat di bawahnya. <b>Kabel</b> membawa sinyal, <b>WiFi</b> menyambungkanmu ke router, router memberimu <b>alamat IP</b>, <b>gateway</b> (router itu juga) membawamu keluar ke internet, <b>DNS</b> mengubah nama jadi alamat, baru setelah itu <b>situsnya</b> menjawab.',
+		'Kalau tingkat bawah rusak, semua yang di atasnya ikut rusak. Tanpa WiFi nggak dapat alamat, tanpa alamat DNS nggak jalan, dan di paling atas situsnya gagal. Jadi "situsnya nggak kebuka" hampir nggak memberi tahu apa apa soal letak masalahnya.',
+		'Makanya orang mengecek dari <b>bawah ke atas</b>. Cek tingkat paling bawah dulu, lalu naik. Tingkat pertama yang gagal itulah biang keroknya, semua yang di atasnya cuma ikut jadi korban.',
 		'[fyi] Tiap pengecekan pakai alat yang mungkin sudah kamu kenal. [[Ping|network/ping]] ke router menguji gateway, nslookup bertanya ke [[DNS|networking/dns]], dan alamat yang diawali 169.254 artinya [[DHCP|network/dhcp]] nggak pernah memberimu alamat.',
-		'Mau jadi detektif? Ketuk tombolnya buat jaringan rusak yang baru, lalu cek lantainya dari bawah. Atau lanjut saja, ini opsional.'
+		'[ingat] Periksa sambungan, konfigurasi IP, gateway, DNS, lalu aplikasi. Gunakan hasil tiap pemeriksaan untuk menentukan langkah berikutnya.',
+		'Ada satu kerusakan tersembunyi di jaringan ini. Jalankan pengecekannya, cari tingkat merah paling bawah, lalu tunjuk yang benar.'
 	],
 	reactions: {
-		start: 'Ada kerusakan baru yang sembunyi. Mulai dari kabel di paling bawah ya.',
-		ok: 'Hijau, lantai ini aman. Berarti masalahnya lebih ke atas, cek lantai berikutnya.',
-		skip: 'Hati hati, kamu melompati lantai. Merah di atas sini bisa jadi cuma korban dari yang di bawah. Cek lantai di bawahnya dulu.',
+		ok: 'Hijau, tingkat ini aman. Berarti masalahnya ada di atasnya, naik satu tingkat.',
+		fail: 'Merah. Tapi hati hati, tingkat bawah yang rusak bikin semua di atasnya ikut gagal. Semua tingkat di bawah ini sudah hijau? Kalau iya, ketemu.',
+		skip: 'Kamu loncat ke atas. Hasilnya bisa menipu, karena kalau ada yang rusak di bawah, yang ini juga ikut gagal. Mulai dari bawah lalu naik.',
+		wrong:
+			'Belum tepat. Yang ini merah cuma karena ada yang rusak lebih ke bawah. Cari tingkat merah yang paling bawah.',
 		solved:
-			'Ketemu! Semua lantai di bawahnya hijau, jadi ini biang kerok aslinya. Sudah dibenerin, dan seluruh menara hijau lagi.'
+			'Ketemu dan beres! Kalau mengecek dari bawah ke atas, tingkat merah pertama yang kamu temui itulah penyebab aslinya. Coba kasus baru, kerusakannya pindah pindah.'
 	},
-	steps: [
-		{
-			title: 'Gejalanya',
-			body: 'Yang kamu lihat cuma lantai paling atas yang gagal, website nggak mau terbuka. Penyebab aslinya bisa di lantai mana pun di bawahnya.'
-		},
-		{
-			title: 'Enam lantai',
-			body: 'Kabel, WiFi, alamat IP, gateway, DNS, website. Tiap lantai butuh semua lantai di bawahnya berfungsi.'
-		},
-		{
-			title: 'Ikut runtuh',
-			body: 'Satu lantai rusak bikin semua di atasnya ikut merah. Banyak lampu merah, tapi masalah aslinya cuma satu.'
-		},
-		{
-			tag: 'Bawah ke atas',
-			title: 'Menaiki daftar cek',
-			body: 'Cek lantai paling bawah dulu, lalu naik satu per satu. Berhenti di lantai pertama yang gagal.'
-		},
-		{
-			title: 'Biang kerok dan korban',
-			body: 'Lantai merah pertama itu <b>biang keroknya</b>. Lantai merah di atasnya cuma <b>korban</b>, mereka pulih begitu biang keroknya dibenerin.'
-		},
-		{
-			title: 'Satu perbaikan',
-			body: 'Restart router yang macet membereskan gateway, dan DNS serta website kembali tanpa disentuh.'
-		},
-		{
-			tag: 'Cara ingat',
-			title: 'Kabel dulu, website terakhir',
-			body: 'Mulai dari kabel, berakhir di website. Merah pertama dari bawah, itu biang keroknya.'
-		},
-		{
-			tag: 'Giliranmu',
-			title: 'Cari biang keroknya',
-			body: 'Ketuk lantainya dari bawah ke atas. Merah yang pertama itulah kerusakannya.'
-		}
-	],
-	pageError: 'Situs ini nggak bisa dijangkau',
-	culpritTag: 'biang kerok',
-	victimTag: 'korban',
-	startHere: 'mulai di sini',
-	endHere: 'selesai di sini',
-	playBtn: 'Cari kerusakan sendiri',
-	newCase: 'Kasus lain',
+	caseLabel: 'Kasus {n}',
+	symptom: 'nimbus.com nggak mau kebuka di laptopmu',
+	fixedSymptom: 'nimbus.com bisa dibuka lagi',
+	checkBtn: 'Cek',
+	blameBtn: 'Ini dia',
+	newCase: 'Kasus baru',
+	okTag: 'aman',
+	failTag: 'rusak',
+	bottomLabel: 'mulai di sini',
 	checks: {
 		cable: {
 			name: 'Kabel',

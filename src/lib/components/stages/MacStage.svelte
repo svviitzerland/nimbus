@@ -1,459 +1,517 @@
 <script lang="ts">
-	// Guided MAC and ARP lesson. The office room assembles itself beat by beat (devices, their IP
-	// addresses, their MAC name tags), then the laptop asks the room who owns the printer IP,
-	// the printer answers, and the print job goes straight to its name tag. One optional
-	// question on the last beat shows what silence looks like.
-	import { onDestroy, onMount } from 'svelte';
-	import { fade } from 'svelte/transition';
-	import Guide from '$lib/components/Guide.svelte';
+	import { onDestroy } from 'svelte';
+	import { SvelteMap } from 'svelte/reactivity';
+	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
 	import Device from '$lib/components/stages/addressing/Device.svelte';
 	import type { LessonText } from '$lib/chapters/types';
 	import type { MacText } from '$lib/chapters/network/mac/types';
 
 	let {
 		text,
-		beat = 0,
 		oncomplete,
-		onstate,
-		onshow
-	}: {
-		text: LessonText;
-		beat?: number;
-		oncomplete?: () => void;
-		onstate?: (s: string) => void;
-		onshow?: (v: boolean) => void;
-	} = $props();
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as MacText);
 
 	type Kind = 'laptop' | 'printer' | 'tv' | 'phone';
-	type Dev = {
-		key: 'you' | 'printer' | 'tv' | 'phone';
-		kind: Kind;
-		ip: string;
-		mac: string;
-		x: number;
-		y: number;
+	type Dev = { key: string; kind: Kind; ip: string; mac: string; x: number; y: number };
+	const YOU: Dev = {
+		key: 'you',
+		kind: 'laptop',
+		ip: '192.168.1.10',
+		mac: '3C:22:FB:1A:0B:7E',
+		x: 50,
+		y: 16
 	};
-	const DEVS: Dev[] = [
-		{ key: 'phone', kind: 'phone', ip: '192.168.1.40', mac: 'F0:18:98:6D:2A:04', x: 170, y: 58 },
-		{
-			key: 'printer',
-			kind: 'printer',
-			ip: '192.168.1.20',
-			mac: '00:1B:A9:4C:22:10',
-			x: 64,
-			y: 112
-		},
-		{ key: 'tv', kind: 'tv', ip: '192.168.1.30', mac: 'A4:77:33:9E:51:C2', x: 276, y: 112 },
-		{ key: 'you', kind: 'laptop', ip: '192.168.1.10', mac: '3C:22:FB:1A:0B:7E', x: 170, y: 214 }
+	const OTHERS: Dev[] = [
+		{ key: 'printer', kind: 'printer', ip: '192.168.1.20', mac: '00:1B:A9:4C:22:10', x: 24, y: 52 },
+		{ key: 'tv', kind: 'tv', ip: '192.168.1.30', mac: 'A4:77:33:9E:51:C2', x: 76, y: 52 },
+		{ key: 'phone', kind: 'phone', ip: '192.168.1.40', mac: 'F0:18:98:6D:2A:04', x: 24, y: 83 },
+		{ key: 'laptop', kind: 'laptop', ip: '192.168.1.50', mac: '8C:85:90:3E:C7:11', x: 76, y: 83 }
 	];
-	const PRINTER = DEVS[1];
-	const YOU = DEVS[3];
-	const GHOST = '192.168.1.99';
-	const LAST = $derived(tx.intro.length - 1);
+	const PRINTER = OTHERS[0];
+	const GHOST_IP = '192.168.1.99';
 
-	let still = $state(false);
-	let t = $state(0); // a slow tick for the scenes that loop
-	let peek = $state<number | null>(null);
-	let ghost = $state<'idle' | 'shout' | 'silent'>('idle');
+	const known = new SvelteMap<string, string>();
+	let asking = $state(''); // the IP currently being asked about
+	let phase = $state<'idle' | 'shout' | 'heard' | 'reply' | 'print'>('idle');
+	let note = $state('');
+	let printed = $state(false);
+	let flashIp = $state('');
 	let timers: ReturnType<typeof setTimeout>[] = [];
+	let completed = $state(false);
 
-	onMount(() => {
-		still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-		onshow?.(true);
-		oncomplete?.();
-	});
+	const busy = $derived(phase !== 'idle');
+	const owner = $derived(OTHERS.find((d) => d.ip === asking));
 
-	$effect(() => {
-		void beat;
-		peek = null;
-		t = 0;
-		if (still) return;
-		const id = setInterval(() => (t += 1), 1900);
-		return () => clearInterval(id);
-	});
-
-	onDestroy(() => timers.forEach(clearTimeout));
-
-	function askGhost() {
-		if (ghost !== 'idle') return;
-		ghost = 'shout';
-		const k = still ? 0.3 : 1;
-		timers.push(
-			setTimeout(() => {
-				ghost = 'silent';
-				onstate?.('nobody');
-			}, 1800 * k),
-			setTimeout(() => (ghost = 'idle'), 4200 * k)
-		);
+	function speed() {
+		const r =
+			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+		return r ? 0.25 : 1;
+	}
+	function later(ms: number, fn: () => void) {
+		timers.push(setTimeout(fn, ms * speed()));
 	}
 
+	function ask(ip: string) {
+		if (busy) return;
+		if (known.has(ip)) {
+			flashIp = ip;
+			note = tx.notes.cached;
+			onstate?.('cached');
+			later(1200, () => (flashIp = ''));
+			return;
+		}
+		asking = ip;
+		phase = 'shout';
+		note = tx.notes.shouting;
+		later(900, () => {
+			phase = 'heard';
+			note = OTHERS.some((d) => d.ip === ip) ? tx.notes.answered : tx.notes.nobody;
+		});
+		const dev = OTHERS.find((d) => d.ip === ip);
+		if (!dev) {
+			later(2200, () => {
+				phase = 'idle';
+				asking = '';
+				onstate?.('nobody');
+			});
+			return;
+		}
+		later(1700, () => (phase = 'reply'));
+		later(2600, () => {
+			known.set(dev.ip, dev.mac);
+			flashIp = dev.ip;
+			phase = 'idle';
+			asking = '';
+			onstate?.(dev.key === 'printer' ? 'reply' : 'tv');
+			later(1200, () => (flashIp = ''));
+		});
+	}
+
+	function print() {
+		if (busy || !known.has(PRINTER.ip)) return;
+		phase = 'print';
+		printed = false;
+		note = tx.notes.printing;
+		later(1000, () => {
+			phase = 'idle';
+			printed = true;
+			note = tx.notes.printed;
+			onstate?.('print');
+			if (!completed) {
+				completed = true;
+				oncomplete?.();
+			}
+		});
+	}
+
+	const shown = $derived(note || tx.notes.idle);
 	const fill = (s: string, ip: string) => s.replace('{ip}', ip);
+
+	onDestroy(() => timers.forEach(clearTimeout));
 </script>
 
-<div class="wrap">
-	{#if beat >= LAST}
-		<div class="play" in:fade={{ duration: 200 }}>
-			<button type="button" class="ask" disabled={ghost !== 'idle'} onclick={askGhost}>
-				{fill(tx.ghostBtn, GHOST)}
-			</button>
-		</div>
-	{/if}
-
-	<Guide steps={tx.steps} active={peek ?? beat} onselect={(k) => (peek = k)}>
-		{#snippet visual(i)}
-			<div class="scene">
-				{#if i === 3}
-					{@render memory()}
-				{:else}
-					{@render room(i)}
-				{/if}
-				{#if i >= 5 && i !== 3}
-					<div class="table" in:fade={{ duration: 300 }}>
-						<p class="t-title">{tx.tableTitle}</p>
-						<div class="row head"><span>{tx.ipHead}</span><span>{tx.macHead}</span></div>
-						<div class="row"><span>{PRINTER.ip}</span><span>{PRINTER.mac}</span></div>
-					</div>
-				{/if}
-			</div>
-		{/snippet}
-	</Guide>
-</div>
-
-{#snippet room(i: number)}
-	{@const showIp = i >= 1}
-	{@const showMac = i >= 2}
-	{@const shouting = i === 4 || (i === LAST && ghost === 'shout')}
-	{@const askIp = i === LAST ? GHOST : PRINTER.ip}
-	<svg viewBox="0 0 340 290" class="svg" role="img" aria-label={tx.roomLabel}>
-		<rect x="6" y="6" width="328" height="278" rx="22" class="floor" />
-		<text x="22" y="26" class="room-label">{tx.roomLabel}</text>
-
-		{#if shouting && !still}
-			{#each [0, 1, 2] as k (k)}
-				<circle
-					cx={YOU.x}
-					cy={YOU.y}
-					r="150"
-					class="ring"
-					style="transform-origin:{YOU.x}px {YOU.y}px; animation-delay:{k * 0.55}s"
-				/>
-			{/each}
-		{/if}
-
-		{#if i === 5 && !still}
-			<circle r="5" class="dot reply">
-				<animateMotion
-					dur="1.9s"
-					repeatCount="indefinite"
-					path="M{PRINTER.x} {PRINTER.y} L{YOU.x} {YOU.y}"
-				/>
-			</circle>
-		{/if}
-		{#if i === 6}
-			<line x1={YOU.x} y1={YOU.y} x2={PRINTER.x} y2={PRINTER.y} class="track" />
-			{#if !still}
-				<rect width="12" height="9" x="-6" y="-4.5" rx="2" class="job">
-					<animateMotion
-						dur="1.9s"
-						repeatCount="indefinite"
-						path="M{YOU.x} {YOU.y} L{PRINTER.x} {PRINTER.y}"
-					/>
-				</rect>
+{#snippet card(d: Dev, label: string)}
+	<div class="dev" class:me={d.key === 'you'} style="left:{d.x}%;top:{d.y}%">
+		{#if d.key !== 'you' && asking && (phase === 'shout' || phase === 'heard' || phase === 'reply')}
+			{#if phase === 'shout'}
+				<span class="bub q">?</span>
+			{:else if d.ip === asking}
+				<span class="bub yes">{tx.itsMe}</span>
+			{:else}
+				<span class="bub no">{tx.notMe}</span>
 			{/if}
 		{/if}
+		{#if d.key === 'printer' && printed}
+			<span class="bub yes">{tx.printed}</span>
+		{/if}
+		<Device kind={d.kind} size={d.key === 'you' ? 46 : 36} />
+		<span class="dname">{label}</span>
+		<span class="addr"><i>{tx.ipWord}</i>{d.ip}</span>
+		<span class="addr mac"><i>{tx.macWord}</i>{d.mac}</span>
+	</div>
+{/snippet}
 
-		{#each DEVS as d (d.key)}
-			{@const lit =
-				(d.key === 'printer' && i >= 5 && i <= 7) || (d.key === 'you' && (i === 4 || i === 6))}
-			{@const quiet = (i === 5 || i === 6) && (d.key === 'tv' || d.key === 'phone')}
-			<g class="dev" class:quiet>
-				<g transform="translate({d.x - 25} {d.y - 22})">
-					<Device
-						kind={d.kind}
-						size={50}
-						tone={lit ? 'var(--color-grass)' : 'var(--color-brand)'}
-					/>
-				</g>
-				<text x={d.x} y={d.y + 31} class="name">{tx.names[d.key]}</text>
-				{#if showIp}
-					<text x={d.x} y={d.y + 44} class="ip" class:hot={i === 1} in:fade={{ duration: 300 }}
-						>{d.ip}</text
-					>
-				{/if}
-				{#if showMac}
-					<g in:fade={{ duration: 300 }} class:swing={i === 2 && !still}>
-						<rect x={d.x - 46} y={d.y + 49} width="92" height="15" rx="5" class="tag" />
-						<circle cx={d.x - 39} cy={d.y + 56.5} r="1.8" class="hole" />
-						<text x={d.x + 3} y={d.y + 59.5} class="mac">{d.mac}</text>
-					</g>
-				{/if}
-			</g>
+<div class="wrap">
+	<!-- actions up top, clear of Nim -->
+	<div class="btns">
+		{#if !known.has(PRINTER.ip)}
+			<CallToActionButton onclick={() => ask(PRINTER.ip)} disabled={busy}>
+				{fill(tx.askBtn, PRINTER.ip)}
+			</CallToActionButton>
+		{:else if !completed || phase === 'print'}
+			<CallToActionButton onclick={print} disabled={busy}>
+				{tx.printBtn}
+			</CallToActionButton>
+		{:else}
+			<span class="more">{tx.moreLabel}</span>
+			<div class="chips">
+				<button type="button" class="chip" disabled={busy} onclick={() => ask('192.168.1.30')}
+					>{fill(tx.askTv, '192.168.1.30')}</button
+				>
+				<button type="button" class="chip" disabled={busy} onclick={() => ask(GHOST_IP)}
+					>{fill(tx.askNobody, GHOST_IP)}</button
+				>
+				<button type="button" class="chip" disabled={busy} onclick={() => ask(PRINTER.ip)}
+					>{fill(tx.askTv, PRINTER.ip)}</button
+				>
+				<button type="button" class="chip" disabled={busy} onclick={print}>{tx.printBtn}</button>
+			</div>
+		{/if}
+	</div>
+
+	<div class="room">
+		<span class="rlabel">{tx.roomLabel}</span>
+
+		<!-- the broadcast, a ring that washes over the whole room -->
+		{#if phase === 'shout'}
+			<span class="ring" style="left:{YOU.x}%;top:{YOU.y}%"></span>
+		{/if}
+		{#if asking && phase !== 'reply'}
+			<span class="shout">{fill(tx.shout, asking)}</span>
+		{/if}
+
+		{@render card(YOU, tx.youLabel)}
+		{#each OTHERS as d (d.key)}
+			{@render card(d, tx.names[d.key as keyof MacText['names']])}
 		{/each}
 
-		{#if shouting}
-			<g in:fade={{ duration: 200 }}>
-				<rect x={YOU.x - 78} y={YOU.y - 62} width="156" height="22" rx="11" class="bubble" />
-				<text x={YOU.x} y={YOU.y - 47} class="bubble-t">{fill(tx.shout, askIp)}</text>
-			</g>
+		<!-- the answer travels back, and the print job travels to one MAC only -->
+		{#if phase === 'reply' && owner}
+			<span class="frame back" style="--fx:{owner.x}%;--fy:{owner.y}%;--tx:{YOU.x}%;--ty:{YOU.y}%">
+				{owner.mac}
+			</span>
 		{/if}
-		{#if i === LAST && ghost === 'silent'}
-			<g in:fade={{ duration: 200 }}>
-				<rect x={YOU.x - 70} y={YOU.y - 62} width="140" height="22" rx="11" class="bubble mute" />
-				<text x={YOU.x} y={YOU.y - 47} class="bubble-t">{tx.silence}</text>
-			</g>
+		{#if phase === 'print'}
+			<span
+				class="frame job"
+				style="--fx:{YOU.x}%;--fy:{YOU.y}%;--tx:{PRINTER.x}%;--ty:{PRINTER.y}%"
+			>
+				nimbus.pdf <small>{tx.frameLabel} {PRINTER.mac}</small>
+			</span>
 		{/if}
-		{#if i === 5}
-			<g in:fade={{ duration: 200 }}>
-				<rect
-					x={PRINTER.x - 38}
-					y={PRINTER.y - 52}
-					width="76"
-					height="20"
-					rx="10"
-					class="bubble ok"
-				/>
-				<text x={PRINTER.x} y={PRINTER.y - 38} class="bubble-t">{tx.itsMe}</text>
-			</g>
-		{/if}
-		{#if i >= 6 && i <= 7}
-			<g in:fade={{ duration: 300 }}>
-				<rect
-					x={PRINTER.x - 30}
-					y={PRINTER.y - 50}
-					width="60"
-					height="18"
-					rx="9"
-					class="bubble ok"
-				/>
-				<text x={PRINTER.x} y={PRINTER.y - 37} class="bubble-t">{tx.printed}</text>
-			</g>
-		{/if}
-	</svg>
-{/snippet}
+	</div>
 
-{#snippet memory()}
-	{@const phone = DEVS[0]}
-	{@const away = t % 2 === 1}
-	<svg viewBox="0 0 340 290" class="svg" role="img" aria-label={tx.steps[3].title}>
-		<rect x="6" y="40" width="156" height="200" rx="20" class="floor" class:here={!away} />
-		<rect x="178" y="40" width="156" height="200" rx="20" class="floor" class:here={away} />
-		<text x="84" y="64" class="zone">{tx.officeLabel}</text>
-		<text x="256" y="64" class="zone">{tx.cafeLabel}</text>
-		<g class="walker" style="transform: translateX({away ? 172 : 0}px)">
-			<g transform="translate(55 104)">
-				<Device kind="phone" size={58} />
-			</g>
-			<text x="84" y="170" class="ip hot">{away ? '10.0.0.7' : phone.ip}</text>
-			<rect x="38" y="180" width="92" height="15" rx="5" class="tag" />
-			<circle cx="45" cy="187.5" r="1.8" class="hole" />
-			<text x="87" y="190.5" class="mac">{phone.mac}</text>
-		</g>
-	</svg>
-{/snippet}
+	<p class="note">{shown}</p>
+
+	<!-- what the laptop remembers -->
+	<div class="table">
+		<b>{tx.tableTitle}</b>
+		{#if known.size === 0}
+			<span class="empty">{tx.tableEmpty}</span>
+		{:else}
+			<div class="row head"><span>{tx.ipHead}</span><span>{tx.macHead}</span></div>
+			{#each [...known] as [ip, mac] (ip)}
+				<div class="row" class:flash={flashIp === ip}>
+					<span>{ip}</span><span>{mac}</span>
+				</div>
+			{/each}
+		{/if}
+	</div>
+</div>
 
 <style>
 	.wrap {
 		display: flex;
 		width: 100%;
-		flex-direction: column;
-		align-items: center;
-		gap: 14px;
-		padding: 8px 16px 112px;
-	}
-	@media (min-width: 768px) {
-		.wrap {
-			padding-bottom: 24px;
-		}
-	}
-	.play {
-		display: flex;
-		justify-content: center;
-	}
-	.ask {
-		border: 1px solid var(--color-line);
-		border-radius: 999px;
-		background: var(--color-card);
-		padding: 9px 18px;
-		font-size: 13.5px;
-		font-weight: 600;
-		color: var(--color-ink);
-		box-shadow: 0 6px 16px rgba(22, 40, 60, 0.06);
-	}
-	.ask:disabled {
-		opacity: 0.55;
-	}
-	.scene {
-		display: flex;
-		width: 100%;
-		max-width: 440px;
+		max-height: 100%;
 		flex-direction: column;
 		align-items: center;
 		gap: 10px;
+		overflow-x: hidden;
+		overflow-y: auto;
+		padding-bottom: 12px;
 	}
-	.svg {
-		width: 100%;
-		height: auto;
-		overflow: visible;
+	.btns {
+		display: flex;
+		min-height: 46px;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
 	}
-	.floor {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-		transition:
-			stroke 0.6s,
-			fill 0.6s;
+	.btns :global(.cta) {
+		padding: 10px 18px;
+		font-size: 13px;
 	}
-	.floor.here {
-		stroke: var(--color-brand);
+	.more {
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-faint);
 	}
-	.room-label,
-	.zone {
-		font-size: 10.5px;
-		font-weight: 700;
-		fill: var(--color-faint);
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 6px;
+		max-width: 360px;
 	}
-	.zone {
-		text-anchor: middle;
-	}
-	.name {
-		text-anchor: middle;
-		font-size: 10.5px;
+	.chip {
+		border-radius: 999px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-ink);
+		padding: 6px 12px;
+		font-size: 12px;
 		font-weight: 600;
-		fill: var(--color-ink);
+		transition: border-color 0.2s;
 	}
-	.ip {
-		text-anchor: middle;
-		font-family: var(--font-mono, ui-monospace, monospace);
+	.chip:enabled:hover {
+		border-color: var(--color-ink);
+	}
+	.chip:disabled {
+		opacity: 0.5;
+	}
+
+	.room {
+		position: relative;
+		width: min(94vw, 380px);
+		height: 300px;
+		overflow: hidden;
+		border-radius: 18px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+	}
+	.rlabel {
+		position: absolute;
+		top: 8px;
+		left: 12px;
 		font-size: 9.5px;
-		fill: var(--color-muted);
-	}
-	.ip.hot {
-		fill: var(--color-brand);
-		font-weight: 700;
-	}
-	.tag {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 1;
-	}
-	.hole {
-		fill: var(--color-amber);
-	}
-	.mac {
-		text-anchor: middle;
-		font-family: var(--font-mono, ui-monospace, monospace);
-		font-size: 7.6px;
-		font-weight: 600;
-		fill: var(--color-ink);
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-faint);
 	}
 	.dev {
-		transition: opacity 0.5s;
+		position: absolute;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1px;
+		transform: translate(-50%, -50%);
+		z-index: 2;
 	}
-	.dev.quiet {
-		opacity: 0.4;
+	.dname {
+		margin-top: 2px;
+		font-size: 10px;
+		font-weight: 700;
+		color: var(--color-muted);
+		white-space: nowrap;
 	}
-	.swing {
-		animation: swing 1.6s ease-in-out infinite;
-		transform-box: fill-box;
-		transform-origin: top left;
+	.me .dname {
+		color: var(--color-brand);
 	}
-	@keyframes swing {
-		0%,
-		100% {
-			transform: rotate(0deg);
-		}
-		50% {
-			transform: rotate(-3deg);
-		}
+	.addr {
+		display: flex;
+		gap: 3px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 8.5px;
+		color: var(--color-ink);
+		white-space: nowrap;
+	}
+	.addr i {
+		font-style: normal;
+		font-weight: 800;
+		color: var(--color-faint);
+	}
+	.addr.mac {
+		font-size: 7.5px;
+		color: var(--color-muted);
+	}
+	.bub {
+		position: absolute;
+		bottom: calc(100% + 2px);
+		left: 50%;
+		transform: translateX(-50%);
+		border-radius: 999px;
+		padding: 2px 7px;
+		font-size: 9px;
+		font-weight: 800;
+		white-space: nowrap;
+		animation: pop 0.25s ease;
+	}
+	.bub.q {
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
+	}
+	.bub.yes {
+		background: var(--color-grass);
+		color: #fff;
+	}
+	.bub.no {
+		background: var(--color-paper);
+		color: var(--color-faint);
+		border: 1px solid var(--color-line);
 	}
 	.ring {
-		fill: none;
-		stroke: var(--color-brand);
-		stroke-width: 1.4;
-		animation: ring 1.8s ease-out infinite;
+		position: absolute;
+		width: 760px;
+		height: 760px;
+		border-radius: 50%;
+		border: 3px solid var(--color-amber);
+		background: color-mix(in srgb, var(--color-amber) 10%, transparent);
+		transform: translate(-50%, -50%) scale(0);
+		animation: ring 0.9s ease-out forwards;
+		pointer-events: none;
+		z-index: 1;
 	}
 	@keyframes ring {
 		from {
-			transform: scale(0.08);
-			opacity: 0.7;
+			transform: translate(-50%, -50%) scale(0.04);
+			opacity: 1;
 		}
 		to {
-			transform: scale(1);
+			transform: translate(-50%, -50%) scale(1);
 			opacity: 0;
 		}
 	}
-	.dot.reply {
-		fill: var(--color-grass);
+	.shout {
+		position: absolute;
+		top: 31%;
+		left: 50%;
+		transform: translateX(-50%);
+		border-radius: 999px;
+		background: var(--color-amber);
+		color: #fff;
+		padding: 4px 11px;
+		font-size: 11px;
+		font-weight: 800;
+		white-space: nowrap;
+		z-index: 3;
+		animation: pop 0.25s ease;
 	}
-	.track {
-		stroke: var(--color-grass);
-		stroke-width: 1.5;
-		opacity: 0.35;
+	.frame {
+		position: absolute;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		border-radius: 8px;
+		padding: 3px 8px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 9px;
+		font-weight: 700;
+		white-space: nowrap;
+		transform: translate(-50%, -50%);
+		z-index: 4;
+		animation: fly 0.9s ease-in-out forwards;
+		box-shadow: 0 4px 12px rgba(22, 40, 60, 0.18);
 	}
-	.job {
-		fill: var(--color-card);
-		stroke: var(--color-grass);
-		stroke-width: 1.5;
-	}
-	.bubble {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-brand);
-		stroke-width: 1;
-	}
-	.bubble.ok {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-	}
-	.bubble.mute {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-	}
-	.bubble-t {
-		text-anchor: middle;
-		font-size: 10.5px;
+	.frame small {
+		font-size: 7.5px;
 		font-weight: 600;
-		fill: var(--color-ink);
+		opacity: 0.85;
 	}
-	.walker {
-		transition: transform 1.3s cubic-bezier(0.45, 0, 0.2, 1);
+	.frame.back {
+		background: var(--color-grass);
+		color: #fff;
+	}
+	.frame.job {
+		background: var(--color-brand);
+		color: #fff;
+	}
+	@keyframes fly {
+		from {
+			left: var(--fx);
+			top: var(--fy);
+		}
+		to {
+			left: var(--tx);
+			top: var(--ty);
+		}
+	}
+	@keyframes pop {
+		from {
+			opacity: 0;
+			transform: translateX(-50%) scale(0.5);
+		}
+		to {
+			opacity: 1;
+			transform: translateX(-50%) scale(1);
+		}
+	}
+
+	.note {
+		min-height: 1.4em;
+		max-width: 360px;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
 	}
 	.table {
-		width: 100%;
-		max-width: 300px;
+		display: flex;
+		width: min(94vw, 300px);
+		flex-direction: column;
+		gap: 3px;
+		border-radius: 13px;
 		border: 1px solid var(--color-line);
-		border-radius: 14px;
 		background: var(--color-card);
-		padding: 10px 14px;
-		font-size: 12px;
+		padding: 9px 12px;
 	}
-	.t-title {
-		margin: 0 0 6px;
-		font-weight: 700;
-		color: var(--color-ink);
+	.table b {
+		font-size: 9.5px;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+	}
+	.empty {
+		font-size: 11px;
+		color: var(--color-faint);
 	}
 	.row {
 		display: grid;
 		grid-template-columns: 1fr 1.4fr;
 		gap: 8px;
-		font-family: var(--font-mono, ui-monospace, monospace);
+		border-radius: 6px;
+		padding: 2px 4px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 10.5px;
 		color: var(--color-ink);
+		transition: background 0.3s;
 	}
 	.row.head {
 		font-family: inherit;
-		font-size: 10.5px;
-		font-weight: 700;
+		font-size: 9px;
+		font-weight: 800;
 		color: var(--color-faint);
 	}
+	.row.flash {
+		background: var(--color-grass-soft);
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.walker,
-		.floor,
-		.dev {
-			transition: none;
+		.ring,
+		.bub,
+		.shout {
+			animation-duration: 0.01s;
 		}
-		.swing,
-		.ring {
-			animation: none;
+		.frame {
+			animation-duration: 0.25s;
+		}
+	}
+	@media (min-width: 768px) {
+		.room {
+			width: 480px;
+			height: 320px;
+		}
+		.dname {
+			font-size: 11.5px;
+		}
+		.addr {
+			font-size: 10px;
+		}
+		.addr.mac {
+			font-size: 9px;
+		}
+		.note {
+			font-size: 14px;
+			max-width: 460px;
+		}
+		.table {
+			width: 340px;
 		}
 	}
 </style>

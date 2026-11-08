@@ -6,10 +6,15 @@ import { en } from './en';
 export const mac: Lesson = {
 	id: 'mac',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'idea', 'wink', 'thinking', 'happy', 'excited', 'idea', 'wink'],
+	moods: ['calm', 'thinking', 'idea', 'idea', 'thinking', 'happy', 'wink', 'excited'],
 	reactionMood: {
-		nobody: 'surprised'
+		reply: 'happy',
+		print: 'excited',
+		tv: 'happy',
+		nobody: 'surprised',
+		cached: 'wink'
 	},
+	playable: true,
 	stage: MacStage,
 	text: { id, en }
 };

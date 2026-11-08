@@ -1,21 +1,20 @@
 import type { LessonText } from '../../types';
 
-/** One part of the picture, explained in the side panel. */
-export type GuideStep = { title: string; body: string; tag?: string };
-
 export interface WiresharkText extends LessonText {
-	/** Side panel, one entry per part of the story (five). */
-	steps: GuideStep[];
-	capturing: string; // title bar of the capture window
+	captureBtn: string; // starts the capture
+	againBtn: string; // captures the page load again
+	capturing: string; // status while packets are arriving
+	captured: string; // template with {n}, status once the capture is done
+	filterLabel: string; // label over the protocol filter chips
+	filterAll: string; // the chip that shows every packet
 	colNo: string; // packet list column headings
 	colProto: string;
 	colInfo: string;
-	/** Names of the wrappings, from the outside in. */
-	layerNames: { frame: string; ip: string; port: string; content: string };
-	lockedLabel: string; // shown next to encrypted content
-	packetTitle: string; // template with {n}, panel title when the learner opens a packet
-	/** What sits in the middle of each of the nine packets, empty when it is encrypted. */
-	contents: string[];
-	/** One plain sentence per packet, in capture order (nine). */
+	idleHint: string; // empty list before the capture starts
+	pickHint: string; // shown until a packet is opened
+	layerLabel: string; // template with {n}, the layer badge
+	/** Layer names keyed by their number in the Layers lesson. */
+	layerNames: { 1: string; 2: string; 3: string; 4: string; 7: string };
+	/** One plain sentence per captured packet, in capture order (nine packets). */
 	packetNotes: string[];
 }

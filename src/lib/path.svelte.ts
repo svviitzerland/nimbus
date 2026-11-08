@@ -1,3 +1,4 @@
+import { resolve } from '$app/paths';
 // The learner's chosen track and any detour they are on, both persisted in the browser.
 //
 // A detour starts when the learner taps a cross link in Nim's line ("cryptography is covered in
@@ -111,9 +112,10 @@ export const path = {
 	entryUrl(track: Track): string {
 		const seq = trackSequence(track, choices);
 		const open = seq.find((r) => !progress.isDone(r.chapterId, r.lessonId));
-		if (open) return `/${open.chapterId}/${open.lessonId}`;
+		if (open)
+			return resolve('/[chapter]/[lesson]', { chapter: open.chapterId, lesson: open.lessonId });
 		const last = seq[seq.length - 1];
-		return `/${last.chapterId}/done?track=${track.id}`;
+		return `${resolve('/[chapter]/done', { chapter: last.chapterId })}?track=${track.id}`;
 	},
 
 	get detour(): Detour | null {

@@ -25,30 +25,36 @@
 
 	const i = $derived(Math.max(0, Math.min(active, steps.length - 1)));
 	const step = $derived(steps[i]);
+	const fadeDuration = () =>
+		typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+			? 0
+			: 180;
 </script>
 
 <div class="guide" style="--ac:{accent}">
 	<div class="visual">{@render visual(i)}</div>
 	<aside class="panel" aria-live="polite">
 		{#key i}
-			<div in:fade={{ duration: 220 }}>
+			<div in:fade={{ duration: fadeDuration() }}>
 				{#if step.tag}<span class="tag">{step.tag}</span>{/if}
 				<h3>{step.title}</h3>
+				<!-- Curated lesson markup, never learner input. -->
+				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				<p>{@html step.body}</p>
 			</div>
 		{/key}
 		{#if steps.length > 1}
-			<div class="dots" role="tablist">
+			<div class="dots" role="group" aria-label={step.title}>
 				{#each steps as s, k (k)}
 					<button
 						type="button"
-						role="tab"
-						aria-selected={k === i}
+						aria-pressed={k === i}
 						aria-label={s.title}
+						title={s.title}
 						class:on={k === i}
 						disabled={!onselect}
-						onclick={() => onselect?.(k)}
-					></button>
+						onclick={() => onselect?.(k)}><span></span></button
+					>
 				{/each}
 			</div>
 		{/if}
@@ -102,11 +108,18 @@
 	}
 	.dots {
 		display: flex;
-		gap: 6px;
-		margin-top: 16px;
+		gap: 2px;
+		flex-wrap: wrap;
+		margin-top: 10px;
 	}
 	.dots button {
-		height: 6px;
+		height: 44px;
+		width: 28px;
+		display: grid;
+		place-items: center;
+	}
+	.dots button span {
+		height: 4px;
 		width: 18px;
 		border-radius: 999px;
 		background: var(--color-line);
@@ -114,8 +127,8 @@
 			background 0.2s,
 			width 0.2s;
 	}
-	.dots button.on {
-		width: 30px;
+	.dots button.on span {
+		width: 24px;
 		background: var(--ac);
 	}
 	.dots button:disabled {

@@ -3,95 +3,53 @@ import type { NeuralNetText } from './types';
 export const id: NeuralNetText = {
 	title: 'Apa itu neural network',
 	intro: [
-		'Tiap ada berita soal AI, pasti muncul kata <b>neural network</b>. Kedengarannya canggih banget, tapi isinya sebenarnya cuma hitungan kecil yang disusun rapi. Ini satu yang beneran, cukup kecil buat kita bongkar.',
-		'Tiap lingkaran adalah <b>neuron</b>, semacam kalkulator mini. Mereka berdiri dalam kolom yang disebut <b>lapisan</b> (layer). Angka masuk dari kiri (masukan), lewat tengah (lapisan tersembunyi), dan jawabannya keluar di kanan (keluaran).',
-		'Tiap garis yang menyambungkan dua neuron punya <b>bobot</b> (weight), yaitu angka yang bilang seberapa penting sinyal itu. Garis biru tebal didengar banget, garis merah malah menahan.',
-		'Kerja neuron cuma satu. Dia menjumlahkan semua yang masuk, masing masing dikali bobot garisnya. Kalau totalnya cukup besar, dia <b>menyala</b> dan meneruskan sinyalnya. Perhatikan neuron yang paling bawah.',
-		'[ingat] Jumlahkan dulu, baru nyala. Neuron itu kayak ketel air, panasnya datang dari mana mana dan terkumpul, begitu cukup panas langsung bunyi tuiit.',
-		'Sekarang tugas beneran. Aku selalu bingung mau bawa payung atau nggak, jadi jaringan ini yang memutuskan dari tiga petunjuk, langit mendung, udara lembap, dan ramalan hujan. Ini empat hari kemarin lengkap dengan jawaban benarnya. Lihat dia mencoba tiap hari.',
-		'Cuma dua yang benar, bobotnya belum pas. Jadi jaringannya <b>berlatih</b> (training). Dia cek seberapa meleset tiap tebakan, lalu menggeser semua bobot sedikit ke arah yang bikin melesetnya berkurang. Lihat garisnya berubah.',
-		'Empat dari empat, tanpa ada yang menyentuh apa pun. Cara menggeser bobot sedikit demi sedikit ini namanya [[gradient descent|ai/learning-loop]], resep di balik hampir semua AI modern. Model besar melakukan persis ini, cuma garisnya ada miliaran.',
+		'Tiap ada berita soal AI, pasti muncul kata <b>neural network</b>. Kedengarannya canggih banget, tapi isinya sebenarnya cuma hitungan kecil yang disusun rapi. Yuk kita bongkar.',
+		'Bayangkan banyak <b>kalkulator mini</b> yang dijejer jadi beberapa barisan. Tiap kalkulator ini namanya <b>neuron</b>, dan tiap barisan namanya <b>lapisan</b> (layer). Angka masuk dari kiri, dioper ke kanan, sampai jawabannya keluar di ujung.',
+		'Tiap garis yang menyambungkan dua neuron punya <b>bobot</b> (weight), yaitu angka yang bilang seberapa penting sinyal itu. Bobot besar artinya didengar banget, bobot negatif artinya malah bikin ragu.',
+		'Kerja neuron cuma satu. Dia menjumlahkan semua angka yang masuk (masing masing dikali bobot garisnya), lalu <b>menyala</b> kalau totalnya cukup besar. Makin besar totalnya, makin terang nyalanya.',
 		'[fyi] Namanya memang terinspirasi dari sel saraf di otak yang juga saling oper sinyal. Tapi jangan dibayangkan terlalu jauh, aslinya cuma perkalian dan penjumlahan yang diulang jutaan kali.',
-		'Kalau penasaran, ketuk garis mana saja dan geser bobotnya. Lihat nyala neuronnya berubah, dan cek apakah keempat hari tetap benar.'
+		'Nah, aku lagi bingung mau bawa payung atau tidak. Jaringan kecil ini yang memutuskan dari tiga petunjuk, langit mendung, udara lembap, dan ramalan hujan. Di atas ada empat hari kemarin lengkap dengan jawaban yang benar.',
+		'[ingat] Sebuah neuron menghitung jumlah input berbobot dan bias, lalu menerapkan fungsi aktivasi pada hasilnya.',
+		'Ketuk lingkaran di kiri buat lihat sinyalnya mengalir. Lalu ketuk garis mana saja dan atur bobotnya sampai keempat hari ditebak benar. Kalau buntu, biarkan jaringannya belajar sendiri.'
 	],
 	reactions: {
+		input:
+			'Lihat angkanya mengalir? Masukan cuma 1 atau 0 (ya atau tidak). Tiap neuron di tengah menjumlahkan yang masuk lalu menyala sesuai totalnya, dan neuron terakhir yang memutuskan soal payung.',
 		select:
-			'Garis itu satu bobot. Biru mendorong neuron berikutnya biar menyala, merah menahannya. Geser angkanya dan perhatikan.',
+			'Garis itu satu bobot. Biru artinya mendorong neuron biar menyala, merah artinya menahan. Makin tebal garisnya, makin besar pengaruhnya. Coba geser angkanya.',
 		tweak:
-			'Nyalanya berubah, tapi jawabannya bertahan. Jaringan punya sedikit kelonggaran, satu bobot jarang bisa membalik semuanya.',
+			'Kamu baru saja mengubah bobot. Perhatikan nyala neuronnya ikut berubah, dan skor di atas juga bisa naik atau turun.',
+		better: 'Naik! Satu hari lagi ditebak dengan benar. Terus cari garis yang pas.',
 		worse:
-			'Waduh, satu hari jadi salah. Satu bobot ternyata cukup buat merusak jawaban, makanya training selalu mengecek semua hari sekaligus.',
-		better: 'Balik lagi empat dari empat. Kamu barusan melakukan sedikit training pakai tangan.'
+			'Waduh, malah turun. Kadang membenarkan satu hari bikin hari lain jadi salah, justru itu serunya.',
+		hand: 'Keempat contoh dijawab dengan benar setelah bobot diubah. Kamu menyesuaikan bobot secara manual. Proses pelatihan otomatis menghitung pembaruan bobot dari loss.',
+		learning:
+			'Sekarang dia mencoba sendiri. Tiap langkah dia cek seberapa meleset tebakannya, lalu menggeser semua bobot sedikit ke arah yang bikin melesetnya berkurang.',
+		trained:
+			'Beres, empat dari empat tanpa kamu sentuh. Cara menggeser bobot sedikit demi sedikit ini namanya [[gradient descent|ai/learning-loop]], resep di balik hampir semua AI modern.'
 	},
-	panels: [
-		{
-			tag: 'Neural network',
-			title: 'Hitungan kecil yang rapi',
-			body: 'Sinyal mengalir dari kiri ke kanan lewat garis. Lingkaran yang lebih terang adalah neuron yang sedang menyala.'
-		},
-		{
-			tag: 'Lapisan',
-			title: 'Kolom kolom neuron',
-			body: '<b>Lapisan masukan</b> memegang petunjuk, <b>lapisan tersembunyi</b> berpikir di tengah, dan <b>lapisan keluaran</b> memberi jawaban.'
-		},
-		{
-			tag: 'Bobot',
-			title: 'Seberapa penting tiap garis',
-			body: 'Ketebalan menunjukkan besarnya bobot. Biru artinya mendorong neuron berikutnya naik, merah artinya menekannya turun.'
-		},
-		{
-			tag: 'Neuron',
-			title: 'Jumlahkan, lalu nyala',
-			body: 'Meteran di samping neuron adalah totalnya. Tiap petunjuk yang menyala menambah bobotnya. Lewat garis tanda, neuronnya menyala.'
-		},
-		{
-			tag: 'Cara ingat',
-			title: 'Kayak ketel air',
-			body: 'Panas terkumpul dari mana mana, dan baru bunyi kalau sudah cukup panas. Neuron menjumlahkan sinyal dan baru menyala setelah lewat tandanya.'
-		},
-		{
-			tag: 'Tugasnya',
-			title: 'Payung atau nggak',
-			body: 'Tiap hari ada petunjuk yang nyala (1) atau mati (0). Neuron jawaban menyala terang untuk bawa payung dan redup kalau nggak perlu.'
-		},
-		{
-			tag: 'Training',
-			title: 'Geser semua bobot sedikit',
-			body: 'Tiap putaran dia membandingkan jawabannya dengan yang benar, lalu menggeser tiap garis sedikit. Perhatikan tebal dan warnanya berubah.'
-		},
-		{
-			tag: 'Sudah terlatih',
-			title: 'Empat hari benar semua',
-			body: 'Nggak ada yang menulis aturan "ada ramalan hujan berarti bawa payung". Jaringannya menemukan sendiri lewat bobotnya.'
-		},
-		{
-			tag: 'Coba',
-			title: 'Ubah satu bobot',
-			body: 'Ketuk sebuah garis, lalu geser bobotnya. Ada garis yang hampir nggak berpengaruh, ada juga yang bisa membalik jawaban sendirian.'
-		}
-	],
-	inputs: ['Mendung', 'Lembap', 'Ramalan'],
+	inputs: ['Mendung', 'Lembap', 'Ramalan hujan'],
 	layerIn: 'Masukan',
-	layerHidden: 'Lapisan tersembunyi',
+	layerHidden: 'Lapisan tengah',
 	layerOut: 'Keluaran',
 	outputLabel: 'Payung?',
 	dayLabel: 'Hari {n}',
 	answerYes: 'bawa payung',
 	answerNo: 'tanpa payung',
 	score: '{n} dari 4 hari benar',
-	training: 'Lagi belajar, putaran {n}',
-	trained: 'Selesai belajar dalam {n} putaran',
-	total: 'total',
-	bar: 'nyala',
-	rule: 'Jumlahkan dulu, baru nyala',
-	verdictYes: 'Bawa payung',
-	verdictNo: 'Nggak usah bawa payung',
-	tapHint: 'Ketuk garis mana saja buat mengatur bobotnya',
+	trainBtn: 'Biar dia belajar sendiri',
+	training: 'Lagi belajar, langkah {n}',
+	trained: 'Selesai belajar dalam {n} langkah',
+	reset: 'Ulangi',
+	pickHint: 'Ketuk garis mana saja buat mengatur bobotnya',
+	inputHint: 'Ketuk lingkaran di kiri buat nyalain atau matiin petunjuknya',
 	edgeLabel: 'Dari {a} ke {b}',
 	neuronName: 'neuron tengah {n}',
 	outputName: 'neuron jawaban',
 	weightLabel: 'Bobot',
 	stronger: 'Perkuat',
 	weaker: 'Perlemah',
-	reset: 'Kembalikan'
+	verdictYes: 'Bawa payung',
+	verdictNo: 'Tidak usah bawa payung',
+	confidence: '{n}% yakin bakal hujan'
 };

@@ -113,16 +113,12 @@
 	<div class="acts">
 		<div class="pick" class:on={badge === 'admin'} class:dim={tried.has('admin')}>
 			<CallToActionButton onclick={() => wear('admin')}>
-				{#snippet children()}
-					<b>{tx.badgeAdmin}</b><span>{tx.badgeAdminSub}</span>
-				{/snippet}
+				<b>{tx.badgeAdmin}</b><span>{tx.badgeAdminSub}</span>
 			</CallToActionButton>
 		</div>
 		<div class="pick" class:on={badge === 'scoped'} class:dim={tried.has('scoped')}>
 			<CallToActionButton onclick={() => wear('scoped')}>
-				{#snippet children()}
-					<b>{tx.badgeScoped}</b><span>{tx.badgeScopedSub}</span>
-				{/snippet}
+				<b>{tx.badgeScoped}</b><span>{tx.badgeScopedSub}</span>
 			</CallToActionButton>
 		</div>
 	</div>

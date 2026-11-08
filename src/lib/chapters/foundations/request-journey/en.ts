@@ -8,7 +8,8 @@ export const en: RequestJourneyText = {
 		'Out on the street on mobile data, the first hop is not a router but the nearest <b>cell tower</b>. This is the part that confuses people, if data travels on cables, what are those tall towers for? A cable cannot follow you around. It stops at the router, or at the foot of the tower, and the distance left between there and your phone is crossed by radio, a few metres over WiFi, a few kilometres from a tower.',
 		'And the waves stop right there. A router and a tower are both wired into fibre, and from either one your request is handed to your <b>ISP</b> (Internet Service Provider), through cables along the street, between cities, and later even the sea floor.',
 		'At its destination, the server reads your request and sends an answer back along the very same road, all the way to the page on your screen. The round trip usually takes just tens of milliseconds.',
-		'Now watch it happen. You go along from your own eyes, and I will explain each time we stop. Try the WiFi and mobile data buttons too, and watch only the first hop change.'
+		'Now watch it happen. You go along from your own eyes, and I will explain each time we stop. Try the WiFi and mobile data buttons too, and watch only the first hop change.',
+		'[ingat] A request carries the client’s request. A response carries the server’s reply.'
 	],
 	/** One line for each place the animation stops. */
 	reactions: {

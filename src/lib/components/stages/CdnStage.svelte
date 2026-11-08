@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
 	import { Tween } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 	import { geoDistance, geoInterpolate } from 'd3-geo';
@@ -237,7 +236,7 @@
 					fill="none"
 					stroke="#3a9c64"
 					stroke-width="1.3"
-					stroke-dasharray="4 5"
+					stroke-dasharray="none"
 					stroke-linecap="round"
 					opacity="0.32"
 				/>{/if}
@@ -259,7 +258,7 @@
 					fill="none"
 					stroke={served?.kind === 'edge' ? '#3a9c64' : '#2e6fe0'}
 					stroke-width="2.5"
-					stroke-dasharray="7 6"
+					stroke-dasharray="none"
 					stroke-linecap="round"
 					class="arcflow"
 				/>
@@ -472,7 +471,7 @@
 						fill="none"
 						stroke="#3a9c64"
 						stroke-width="1.3"
-						stroke-dasharray="4 5"
+						stroke-dasharray="none"
 						stroke-linecap="round"
 						opacity="0.32"
 					/>
@@ -487,7 +486,7 @@
 						fill="none"
 						stroke={served?.kind === 'edge' ? '#3a9c64' : '#2e6fe0'}
 						stroke-width="2.5"
-						stroke-dasharray="7 6"
+						stroke-dasharray="none"
 						stroke-linecap="round"
 						class="arcflow"
 					/>

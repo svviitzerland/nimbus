@@ -1,22 +1,21 @@
 import type { LessonText } from '../../types';
 
-/** One part of the side panel (title, one or two short sentences, an optional tag). */
-export type GuideStep = { title: string; body: string; tag?: string };
-
 export interface DetectionText extends LessonText {
-	/** Side panel parts, one per beat. */
-	steps: GuideStep[];
-	/** Title over the 1986 printout, and its last line (the 75 cent gap). */
-	printTitle: string;
-	printGap: string;
-	/** The trail Stoll followed, three short stops. */
-	trail: string[];
-	/** Title over the nimbus.com log window. */
-	logTitle: string;
-	/** Small labels for where each line came from, in the SIEM part. */
-	sources: { web: string; shop: string; auth: string };
-	/** The alert the SIEM raises, {ip} is the address. */
-	alert: string;
-	/** Hint on the last beat. */
-	tapHint: string;
+	searchLabel: string; // accessible label and placeholder of the search box
+	tryLabel: string; // caption before the suggested search words
+	countLabel: string; // template with {n}, lines that match
+	noMatch: string; // nothing matches the search
+	tapHint: string; // nudges the learner to tap a line
+	/** The panel about one address after tapping a line. */
+	ipLines: string; // template with {n}, lines from this address
+	ipFailed: string; // template with {n}, failed logins from this address
+	ipUsers: string; // caption before the user names it tried
+	markBtn: string; // marks the address as the attacker
+	markedTag: string; // shown once the right address is marked
+	siemBtn: string; // turns the hunt into a SIEM rule
+	ruleTitle: string; // heading over the rule card
+	ruleText: string; // the rule in plain words
+	liveLabel: string; // small label while new lines stream in
+	alertTitle: string; // heading of the alert the SIEM raises
+	alertText: string; // template with {ip}
 }

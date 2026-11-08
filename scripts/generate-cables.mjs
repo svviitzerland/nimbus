@@ -63,7 +63,6 @@ for (const f of cableGeo.features) {
 				if (Math.abs(lon - last[0]) > 180) {
 					if (seg.length > 1) lines.push(seg);
 					seg = [];
-					last = null;
 				} else if (lon === last[0] && lat === last[1]) {
 					continue;
 				}
@@ -234,7 +233,11 @@ function buildRoute(points) {
 			landHops++;
 		}
 	}
-	const route = [points[0].at.slice(), ...seq.map((n) => coords[n]), points[points.length - 1].at.slice()];
+	const route = [
+		points[0].at.slice(),
+		...seq.map((n) => coords[n]),
+		points[points.length - 1].at.slice()
+	];
 	return { route, landHops };
 }
 
@@ -255,4 +258,6 @@ const dir = new URL('../src/lib/data/', import.meta.url);
 writeFileSync(new URL('cables.json', dir), JSON.stringify(lines));
 writeFileSync(new URL('landing-points.json', dir), JSON.stringify(points));
 writeFileSync(new URL('routes.json', dir), JSON.stringify(routes));
-console.log(`cables.json: ${lines.length} lines | landing-points.json: ${points.length} points | graph: ${coords.length} nodes (reach ${reach.filter((d) => isFinite(d)).length})`);
+console.log(
+	`cables.json: ${lines.length} lines | landing-points.json: ${points.length} points | graph: ${coords.length} nodes (reach ${reach.filter((d) => isFinite(d)).length})`
+);

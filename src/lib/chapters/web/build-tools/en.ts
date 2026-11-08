@@ -3,68 +3,36 @@ import type { BuildToolsText } from './types';
 export const en: BuildToolsText = {
 	title: 'Build tools',
 	intro: [
-		'While you build nimbus.com, you write code for humans. Lots of small files, clear long names, neat spaces, and comments (notes to yourself that the computer skips). Great for you to read.',
-		'For a browser it is wasteful. Every file is a separate trip over the network, and every space and comment is extra weight to download. Watch six files make six trips to a phone.',
-		'So right before the site goes online, a <b>build tool</b> steps in. It is a program that takes your friendly code and packs it for travel. It does three jobs.',
-		'Job one, <b>bundle</b>. Many files are joined into a few. Six trips become two.',
-		'Job two, <b>minify</b>. Spaces and comments are stripped out, and long names become single letters. Hard for you to read, but the browser does not mind at all.',
-		'Job three, <b>compress</b>. The files are squeezed like a zip file, so they travel even lighter, and the browser unsqueezes them on arrival.',
-		'You keep editing the friendly version, and the build tool makes the tiny version only for browsers. Frameworks lean on this a lot, since your [[components|web/components]] all have to become plain [[JavaScript|web/js]] and CSS in the end.',
+		'While you build nimbus.com, you write code for humans. Lots of small files, clear names, spaces, and comments explaining things. That is great for you, and pretty wasteful for a browser.',
+		'Every file is a separate trip over the network, and every space and comment is extra weight to download. On a slow phone, nine chunky files can mean a long wait before the page works.',
+		'A <b>build tool</b> fixes that right before your site goes online. It <b>bundles</b> many files into a few, <b>minifies</b> them by stripping spaces and comments and shortening names, and <b>compresses</b> them so they travel even lighter.',
+		'You keep editing the friendly version, and the build tool spits out a tiny version only for browsers. Frameworks lean on this heavily, since your [[components|web/components]] all have to become plain [[JavaScript|web/js]] and [[CSS|web/css]] in the end.',
 		'[fyi] Popular build tools include <b>Vite</b>, <b>webpack</b>, and <b>esbuild</b>. Vite comes from the creator of Vue, and it is what builds this very site.',
-		'[ingat] Packing for a trip home. Bundle is putting everything into one suitcase, minify is leaving out what you do not need, compress is the vacuum bag that squeezes the air out.',
-		'Your turn, if you like. Switch the build tool off and on, and watch the download change.'
+		'[ingat] Bundling combines code modules. Minification shortens code without changing its behavior. Compression reduces the data sent.',
+		'Here are the nine source files of nimbus.com. Pick which build steps to switch on, press Build, and see how much lighter the site gets.'
 	],
 	reactions: {
-		off: 'Without the build tool, the browser gets your files exactly as you wrote them. Six trips, all the spaces and comments, far more to download.',
-		on: 'Build tool back on. Two small files instead of six big ones, same site, same features, just packed for travel.'
+		none: 'With every step switched off, the build just copies your files as they are. Same nine trips, same weight. Try switching a step on.',
+		partial:
+			'Lighter already! Each step helps in its own way, bundling cuts the trips and the other two cut the weight. See what happens with all three on.',
+		best: 'Look at that, nine files became three, and the download shrank to a small slice of the original. Same site, same features, just packed for travel.',
+		peek: '[fyi] That is minified code. Spaces gone, comments gone, long names turned into single letters. Hard for you to read, but the browser does not care at all.'
 	},
-	steps: [
-		{
-			title: 'Code for humans',
-			body: 'Many small files, long clear names, and <b>comments</b>. Easy to read and change, but heavy.'
-		},
-		{
-			title: 'Trips and weight',
-			body: 'Each file is <b>one trip</b> over the network, and every extra character is <b>weight</b>. Slow on a weak phone signal.'
-		},
-		{
-			title: 'The build tool',
-			body: 'A program that runs <b>before</b> your site goes online and packs your code for browsers.'
-		},
-		{
-			title: 'Bundle',
-			body: 'Joins <b>many files into a few</b>, so the browser makes fewer trips.'
-		},
-		{
-			title: 'Minify',
-			body: 'Removes spaces and comments and shortens names. <b>function addToCart(item)</b> becomes <b>function a(t)</b>.'
-		},
-		{
-			title: 'Compress',
-			body: 'Squeezes the files like a <b>zip</b> for the journey. The browser unsqueezes them when they arrive.'
-		},
-		{
-			title: 'Two versions',
-			body: 'You edit the <b>friendly</b> version. Browsers get the <b>packed</b> version. The build tool turns one into the other.'
-		},
-		{
-			title: 'Real tools',
-			tag: 'By the way',
-			body: '<b>Vite</b>, <b>webpack</b>, and <b>esbuild</b> are the common ones. Nimbus is built with Vite.'
-		},
-		{
-			title: 'Remember it',
-			tag: 'Remember it',
-			body: 'Bundle is <b>one suitcase</b>, minify is <b>leave the extras</b>, compress is the <b>vacuum bag</b>.'
-		}
-	],
-	srcLabel: 'Your code',
-	outLabel: 'Goes online',
-	toolLabel: 'Build tool',
-	jobs: { bundle: 'Bundle', minify: 'Minify', compress: 'Compress' },
-	tripsTpl: '{n} trips',
+	srcLabel: 'Your source code',
+	outLabel: 'What goes online',
+	steps: {
+		bundle: { label: 'Bundle', sub: 'Join files together' },
+		minify: { label: 'Minify', sub: 'Strip spaces and comments' },
+		compress: { label: 'Compress', sub: 'Squeeze for travel' }
+	},
+	build: 'Build',
+	building: 'Building',
+	filesLabel: 'Files',
 	sizeLabel: 'Download',
-	kbTpl: '{n} KB',
-	turnOff: 'Switch the build tool off',
-	turnOn: 'Switch the build tool on'
+	loadLabel: 'Slow phone',
+	loadValue: '{s} s',
+	outEmpty: 'Press Build to make the online version',
+	peek: 'Peek inside cart.js',
+	before: 'Before',
+	after: 'After minify'
 };

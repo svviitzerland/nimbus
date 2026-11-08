@@ -1,750 +1,546 @@
 <script lang="ts">
-	// Guided SSO and OAuth. One browser window plays the whole "Sign in with Google" flow by itself
-	// while Nim tells it. The address bar is the star, it changes from nimbus.com to
-	// accounts.google.com and back. Beats show password dominoes, the old bad way, the redirect,
-	// the Google login, consent, the token, and one login opening every app at work. On the last
-	// beat the learner may remove nimbus.com's access and watch the token stop working.
-	import { untrack } from 'svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import { onDestroy } from 'svelte';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { SsoScope, SsoText } from '$lib/chapters/security/sso/types';
-	import GuideWrap from './secbasics/GuideWrap.svelte';
-	import { startGuided } from './secbasics/guided.svelte';
-	import { prefersReducedMotion, runSeq, type SeqStep } from './webguide/seq';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as SsoText);
-	startGuided(() => {
-		onshow?.(true);
-		oncomplete?.();
-	});
 
-	const last = $derived(tx.steps.length - 1);
-	let peek = $state<number | null>(null);
+	type Screen = 'nimbus' | 'google' | 'consent' | 'returning' | 'home';
+	let screen = $state<Screen>('nimbus');
 	let revoked = $state(false);
-	$effect(() => {
-		void beat;
-		peek = null;
-		revoked = false;
-	});
-	const active = $derived(Math.max(0, Math.min(peek ?? beat, last)));
+	let completed = false;
+	let timers: ReturnType<typeof setTimeout>[] = [];
 
-	type Scene =
-		| 'many'
-		| 'sso'
-		| 'bad'
-		| 'redirect'
-		| 'google'
-		| 'consent'
-		| 'token'
-		| 'ingat'
-		| 'office'
-		| 'revoke';
-	const SCENES: Scene[] = [
-		'many',
-		'sso',
-		'bad',
-		'redirect',
-		'google',
-		'consent',
-		'token',
-		'ingat',
-		'office',
-		'revoke'
+	// What nimbus.com asks for. Name and email are needed, the rest you can switch off.
+	const scopeList: { id: SsoScope; required: boolean; risky: boolean }[] = [
+		{ id: 'name', required: true, risky: false },
+		{ id: 'email', required: true, risky: false },
+		{ id: 'photo', required: false, risky: false },
+		{ id: 'contacts', required: false, risky: true },
+		{ id: 'drive', required: false, risky: true }
 	];
-	const scene = $derived(SCENES[active] ?? 'sso');
-
-	type Page = 'nimbus' | 'bad' | 'google' | 'consent' | 'signed';
-	let page = $state<Page>('nimbus');
-	let cursor = $state(false);
-	let click = $state(false);
-	let dots = $state(10);
-	let next = $state(false);
-	let allow = $state(false);
-	let reduce = $state(false);
-	$effect(() => {
-		reduce = prefersReducedMotion();
+	// A sneaky default, the shop pre ticks your contacts, just like plenty of real apps do.
+	let granted = $state<Record<SsoScope, boolean>>({
+		name: true,
+		email: true,
+		photo: true,
+		contacts: true,
+		drive: false
 	});
 
-	function play(sc: Scene, still: boolean) {
-		cursor = false;
-		click = false;
-		dots = 10;
-		next = false;
-		allow = false;
-		if (sc === 'bad') {
-			page = 'bad';
-			return;
-		}
-		if (sc === 'redirect') {
-			if (still) {
-				page = 'google';
-				dots = 0;
-				return;
-			}
-			return runSeq(
-				[
-					[
-						1700,
-						() => {
-							page = 'nimbus';
-							cursor = false;
-							click = false;
-						}
-					],
-					[1000, () => (cursor = true)],
-					[600, () => (click = true)],
-					[
-						3400,
-						() => {
-							page = 'google';
-							cursor = false;
-							click = false;
-							dots = 0;
-						}
-					]
-				],
-				true
-			);
-		}
-		if (sc === 'google' || sc === 'ingat') {
-			page = 'google';
-			if (still || sc === 'ingat') {
-				next = sc === 'google';
-				return;
-			}
-			const typing = Array.from({ length: 10 }, (_, k): SeqStep => [170, () => (dots = k + 1)]);
-			return runSeq(
-				[
-					[
-						700,
-						() => {
-							dots = 0;
-							next = false;
-						}
-					],
-					...typing,
-					[2600, () => (next = true)]
-				],
-				true
-			);
-		}
-		if (sc === 'consent') {
-			page = 'consent';
-			if (still) {
-				allow = true;
-				return;
-			}
-			return runSeq(
-				[
-					[2000, () => (allow = false)],
-					[2400, () => (allow = true)]
-				],
-				true
-			);
-		}
-		if (sc === 'token' || sc === 'office' || sc === 'revoke') {
-			page = 'signed';
-			return;
-		}
-		page = 'nimbus';
+	const host = $derived(
+		screen === 'google' || screen === 'consent' ? 'accounts.google.com' : 'nimbus.com'
+	);
+	const hint = $derived(
+		screen === 'nimbus'
+			? tx.hints.start
+			: screen === 'google'
+				? tx.hints.google
+				: screen === 'consent'
+					? tx.hints.consent
+					: screen === 'returning'
+						? tx.returning
+						: revoked
+							? tx.revokedNote
+							: tx.hints.done
+	);
+
+	function reduced() {
+		return (
+			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+		);
 	}
-
-	$effect(() => {
-		const sc = scene;
-		const still = reduce;
-		return untrack(() => play(sc, still));
-	});
-
+	function toGoogle() {
+		screen = 'google';
+		onstate?.('redirect');
+	}
+	function signIn() {
+		screen = 'consent';
+		onstate?.('google');
+	}
+	function allow() {
+		screen = 'returning';
+		const greedy = scopeList.some((s) => s.risky && granted[s.id]);
+		timers.push(
+			setTimeout(
+				() => {
+					screen = 'home';
+					onstate?.(greedy ? 'greedy' : 'consent');
+					if (!completed) {
+						completed = true;
+						oncomplete?.();
+					}
+				},
+				reduced() ? 150 : 1100
+			)
+		);
+	}
 	function revoke() {
-		if (revoked) return;
-		peek = null;
 		revoked = true;
 		onstate?.('revoke');
 	}
 
-	const URLS: Record<Page, string> = {
-		nimbus: 'nimbus.com/login',
-		bad: 'nimbus.com/friends',
-		google: 'accounts.google.com',
-		consent: 'accounts.google.com',
-		signed: 'nimbus.com'
-	};
-	const atGoogle = $derived(page === 'google' || page === 'consent');
-	const SCOPES: SsoScope[] = ['name', 'email', 'photo'];
+	onDestroy(() => timers.forEach(clearTimeout));
 </script>
 
-{#snippet visual(s: number)}
-	<div class="vis">
-		{#if s === last}
-			<button type="button" class="revoke" disabled={revoked} onclick={revoke}>
-				{revoked ? tx.revokedNote : tx.revokeBtn}
-			</button>
-		{/if}
-
-		<svg viewBox="0 0 420 296" class="scene" role="img" aria-label={tx.title}>
-			<!-- the browser window -->
-			<rect x="10" y="8" width="400" height="240" rx="13" class="win" />
-			<path d="M10 44 V21 a13 13 0 0 1 13 -13 H397 a13 13 0 0 1 13 13 V44 Z" class="bar" />
-			{#each [28, 42, 56] as x (x)}
-				<circle cx={x} cy="26" r="4.5" class="light" />
-			{/each}
-			<rect
-				x="76"
-				y="16"
-				width="314"
-				height="20"
-				rx="10"
-				class="addr"
-				class:google={atGoogle}
-				class:hot={scene === 'ingat' || scene === 'redirect'}
-			/>
-			<g transform="translate(88 21)" class="lock" class:google={atGoogle}>
-				<rect x="0" y="4" width="8" height="6.5" rx="1.2" />
-				<path d="M1.7 4V2.6a2.3 2.3 0 0 1 4.6 0V4" />
-			</g>
-			{#key page}
-				<text x="102" y="30" class="url" class:google={atGoogle}>{URLS[page]}</text>
-			{/key}
-
-			<!-- the page itself -->
-			{#if page === 'nimbus'}
-				<text x="210" y="78" class="h">{tx.signInTitle}</text>
-				<g class="gbtn" class:pulse={scene === 'sso' && !reduce} class:pressed={click}>
-					<rect x="110" y="92" width="200" height="32" rx="16" />
-					<circle cx="130" cy="108" r="9" class="g-dot" />
-					<text x="130" y="112" class="g-letter">G</text>
-					<text x="222" y="112.5" class="g-text">{tx.googleBtn}</text>
-				</g>
-				<text x="210" y="146" class="faint" class:warn={scene === 'many'}>{tx.orPassword}</text>
-				<rect x="130" y="156" width="160" height="22" rx="7" class="field" />
-				<text x="140" y="171" class="ph">{tx.emailField}</text>
-				<rect
-					x="130"
-					y="184"
-					width="160"
-					height="22"
-					rx="7"
-					class="field"
-					class:amber={scene === 'many'}
-				/>
-				<text x="140" y="199" class="ph">{tx.passwordField}</text>
-				<g class="cursor" class:on={cursor || click}>
-					<path d="M0 0 L0 16 L4.5 12 L8 19 L10.5 18 L7 11 L13 11 Z" />
-				</g>
-			{:else if page === 'bad'}
-				<text x="210" y="84" class="h">{tx.badTitle}</text>
-				<rect x="100" y="104" width="220" height="30" rx="8" class="field danger" />
-				<text x="114" y="123" class="danger-t">{tx.badField}</text>
-				<g transform="translate(296 119)" class="key-ico">
-					<circle r="6" />
-					<path d="M6 0 H18 M14 0 V5 M18 0 V4" />
-				</g>
-				<text x="210" y="160" class="faint">{tx.badSub}</text>
-				<rect x="170" y="176" width="80" height="24" rx="12" class="btn danger-b" />
-			{:else if page === 'google'}
-				<text x="210" y="78" class="gword">Google</text>
-				<text x="210" y="100" class="h small">{tx.googleTitle}</text>
-				<text x="210" y="116" class="faint">{tx.googleSub}</text>
-				<rect x="120" y="128" width="180" height="24" rx="7" class="field" />
-				<text x="132" y="144" class="val">{tx.googleEmail}</text>
-				<rect
-					x="120"
-					y="160"
-					width="180"
-					height="24"
-					rx="7"
-					class="field"
-					class:ok={scene === 'ingat'}
-				/>
-				<text x="132" y="177" class="val dots">{'•'.repeat(dots)}</text>
-				<g class="btn-g" class:on={next}>
-					<rect x="246" y="196" width="54" height="24" rx="12" />
-					<text x="273" y="212">{tx.nextBtn}</text>
-				</g>
-			{:else if page === 'consent'}
-				<text x="210" y="72" class="gword small">Google</text>
-				<text x="210" y="94" class="h small">{tx.consentTitle}</text>
-				{#each SCOPES as sc, k (sc)}
-					<rect x="124" y={108 + k * 24} width="13" height="13" rx="3" class="check" />
-					<path d="M127 {115 + k * 24} l3 3 l5 -6" class="tick" />
-					<text x="146" y={119 + k * 24} class="val">{tx.scopes[sc]}</text>
-				{/each}
-				<g class="btn-g" class:on={allow}>
-					<rect x="238" y="192" width="62" height="24" rx="12" />
-					<text x="269" y="208">{tx.allowBtn}</text>
-				</g>
-			{:else}
-				<circle cx="140" cy="84" r="17" class="avatar" class:gone={revoked} />
-				<circle cx="140" cy="79" r="6" class="avatar-head" class:gone={revoked} />
-				<path d="M129 95 Q140 84 151 95" class="avatar-body" class:gone={revoked} />
-				<text x="166" y="82" class="h left">{revoked ? tx.revokedTitle : tx.welcomeTitle}</text>
-				<text x="166" y="98" class="faint left">{revoked ? tx.revokedNote : tx.welcomeSub}</text>
-				{#if scene === 'office'}
-					{#each tx.apps as app, k (app)}
-						{@const x = 126 + k * 62}
-						<g class="app-tile" style="animation-delay:{k * 0.35}s">
-							<rect {x} y="124" width="48" height="48" rx="12" />
-							<path d="M{x + 16} 148 l6 6 l11 -12" class="tick big" />
-							<text x={x + 24} y="190" class="app-name">{app}</text>
-						</g>
-					{/each}
-				{:else}
-					<rect x="110" y="114" width="200" height="104" rx="11" class="box" />
-					<text x="124" y="134" class="cap">{tx.gotTitle}</text>
-					<g class="token" class:arrive={scene === 'token' && !reduce} class:dead={revoked}>
-						<rect x="124" y="142" width="116" height="24" rx="12" />
-						<g transform="translate(138 154)" class="key-ico small">
-							<circle r="4.5" />
-							<path d="M4.5 0 H13 M10 0 V4" />
-						</g>
-						<text x="194" y="158">{tx.tokenChip}</text>
-						{#if revoked}
-							<line x1="128" y1="154" x2="236" y2="154" class="strike" />
-						{/if}
-					</g>
-					<text x="124" y="190" class="val small">{tx.passwordRow}</text>
-					<g class="never">
-						<rect x="234" y="178" width="64" height="18" rx="9" />
-						<text x="266" y="191">{tx.neverTag}</text>
-					</g>
-					<text x="124" y="210" class="faint left tiny"
-						>{tx.scopes.name}, {tx.scopes.email.toLowerCase()}</text
-					>
-				{/if}
-			{/if}
-
-			<!-- the domino row, only on the first beat -->
-			{#if scene === 'many'}
-				{#each tx.sites as site, k (site)}
-					{@const x = 56 + k * 66}
-					<g class="domino" class:first={k === 0} style="animation-delay:{k * 0.32}s">
-						<rect {x} y="258" width="50" height="32" rx="7" />
-						<text x={x + 25} y="278">{site}</text>
-					</g>
-				{/each}
-			{/if}
-		</svg>
-	</div>
+{#snippet lock(color: string)}
+	<svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		<rect x="5" y="10.5" width="14" height="9.5" rx="2.5" stroke={color} stroke-width="2.6" />
+		<path d="M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3" stroke={color} stroke-width="2.6" />
+	</svg>
 {/snippet}
 
-<GuideWrap steps={tx.steps} {active} onselect={(k) => (peek = k)} {visual} />
+{#snippet gmark()}
+	<span class="gmark" aria-hidden="true">G</span>
+{/snippet}
+
+<div class="wrap">
+	<div class="phone">
+		<!-- the address bar, the most important clue on this stage -->
+		<div class="addr" class:away={host !== 'nimbus.com'}>
+			{@render lock(host === 'nimbus.com' ? 'var(--color-grass)' : 'var(--color-brand)')}
+			{#key host}<span class="host pop">{host}</span>{/key}
+		</div>
+
+		<div class="page" class:short={screen === 'home'}>
+			{#if screen === 'nimbus'}
+				<div class="pane pop">
+					<p class="ptitle">{tx.signInTitle}</p>
+					<button type="button" class="gbtn" onclick={toGoogle}>
+						{@render gmark()}{tx.googleBtn}
+					</button>
+					<p class="alt">{tx.orPassword}</p>
+				</div>
+			{:else if screen === 'google'}
+				<div class="pane pop">
+					<div class="ghead">{@render gmark()}</div>
+					<p class="ptitle">{tx.googleTitle}</p>
+					<p class="psub">{tx.googleSub}</p>
+					<span class="field"><i>email</i>{tx.googleEmail}</span>
+					<span class="field"><i>{tx.passwordField}</i>••••••••••</span>
+					<button type="button" class="pbtn" onclick={signIn}>{tx.nextBtn}</button>
+				</div>
+			{:else if screen === 'consent'}
+				<div class="pane pop">
+					<div class="ghead">{@render gmark()}</div>
+					<p class="ptitle">{tx.consentTitle}</p>
+					<ul class="scopes">
+						{#each scopeList as s (s.id)}
+							<li>
+								<label class:risky={s.risky && granted[s.id]}>
+									<input type="checkbox" bind:checked={granted[s.id]} disabled={s.required} />
+									<span class="sname">{tx.scopes[s.id]}</span>
+									{#if s.required}<span class="req">{tx.requiredTag}</span>{/if}
+								</label>
+							</li>
+						{/each}
+					</ul>
+					<button type="button" class="pbtn" onclick={allow}>{tx.allowBtn}</button>
+				</div>
+			{:else if screen === 'returning'}
+				<div class="pane center">
+					<span class="token travel">{@render lock('#fff')}{tx.tokenChip}</span>
+				</div>
+			{:else}
+				<div class="pane pop">
+					<div class="hello">
+						<span class="avatar" class:pic={granted.photo && !revoked}
+							>{tx.googleEmail.charAt(0).toUpperCase()}</span
+						>
+						<div>
+							<p class="ptitle">{revoked ? tx.signInTitle : tx.welcomeTitle}</p>
+							{#if !revoked}<p class="psub">{tx.welcomeSub}</p>{/if}
+						</div>
+					</div>
+					<div class="skel"><i></i><i class="s"></i><i></i></div>
+				</div>
+			{/if}
+		</div>
+	</div>
+
+	<p class="hint">{hint}</p>
+
+	{#if screen === 'home'}
+		<div class="got pop">
+			<p class="gtitle">
+				{tx.gotTitle}
+				<span class="token small" class:dead={revoked}>{@render lock('#fff')}{tx.tokenChip}</span>
+			</p>
+			{#each scopeList as s (s.id)}
+				<div class="grow" class:no={!granted[s.id]} class:risky={s.risky && granted[s.id]}>
+					<span>{tx.scopes[s.id]}</span>
+					<b>{granted[s.id] ? '✓' : tx.notSharedTag}</b>
+				</div>
+			{/each}
+			<div class="safe grow">
+				<span>{tx.passwordRow}</span>
+				<b>{tx.neverTag}</b>
+			</div>
+			{#if !revoked}
+				<button type="button" class="ghost" onclick={revoke}>{tx.revokeBtn}</button>
+			{/if}
+		</div>
+	{/if}
+</div>
 
 <style>
-	.vis {
+	.wrap {
 		display: flex;
-		width: 100%;
+		width: min(94vw, 360px);
+		max-height: 100%;
 		flex-direction: column;
 		align-items: center;
 		gap: 10px;
+		overflow-y: auto;
 	}
-	.scene {
-		width: 100%;
-		max-width: 420px;
-		height: auto;
-		overflow: visible;
-	}
-	.revoke {
-		border: 1px solid var(--color-danger);
-		border-radius: 999px;
+	.phone {
+		display: flex;
+		width: 230px;
+		flex: none;
+		flex-direction: column;
+		gap: 8px;
+		border-radius: 24px;
+		border: 1px solid var(--color-line);
 		background: var(--color-card);
-		padding: 7px 16px;
-		font-size: 13px;
-		font-weight: 700;
-		color: var(--color-danger);
-		transition: background 0.2s;
-	}
-	.revoke:hover:not(:disabled) {
-		background: var(--color-danger-soft);
-	}
-	.revoke:disabled {
-		border-color: var(--color-line);
-		color: var(--color-muted);
-		cursor: default;
-	}
-
-	.win {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-	}
-	.bar {
-		fill: var(--color-paper);
-	}
-	.light {
-		fill: var(--color-line);
+		padding: 10px;
+		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.08);
 	}
 	.addr {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 5px;
+		border-radius: 999px;
+		background: var(--color-paper);
+		border: 1.5px solid var(--color-line);
+		padding: 4px 10px;
 		transition:
-			stroke 0.3s,
-			fill 0.3s;
+			border-color 0.3s,
+			background 0.3s;
 	}
-	.addr.google {
-		fill: var(--color-brand-soft);
+	.addr.away {
+		border-color: var(--color-brand);
+		background: var(--color-brand-soft);
 	}
-	.addr.hot {
-		stroke: var(--color-grass);
-		stroke-width: 2.5;
-	}
-	.lock rect {
-		fill: var(--color-faint);
-	}
-	.lock path {
-		fill: none;
-		stroke: var(--color-faint);
-		stroke-width: 1.3;
-	}
-	.lock.google rect {
-		fill: var(--color-grass);
-	}
-	.lock.google path {
-		stroke: var(--color-grass);
-	}
-	.url {
-		font-size: 10.5px;
+	.host {
+		font-size: 11px;
 		font-weight: 700;
-		fill: var(--color-muted);
+		color: var(--color-ink);
 	}
-	.url.google {
-		fill: var(--color-brand);
+	.page {
+		min-height: 230px;
 	}
-
-	.h {
+	.page.short {
+		min-height: 0;
+	}
+	.pane {
+		display: flex;
+		flex-direction: column;
+		gap: 7px;
+		padding: 4px 2px;
+	}
+	.pane.center {
+		height: 230px;
+		align-items: center;
+		justify-content: center;
+	}
+	.ptitle {
 		font-family: var(--font-display);
-		font-size: 15px;
+		font-size: 16px;
+		color: var(--color-ink);
+	}
+	.psub {
+		margin-top: -5px;
+		font-size: 10.5px;
 		font-weight: 600;
-		text-anchor: middle;
-		fill: var(--color-ink);
+		color: var(--color-faint);
 	}
-	.h.small {
+	.gmark {
+		display: inline-grid;
+		place-items: center;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		background: var(--color-brand);
+		color: #fff;
+		font-size: 11px;
+		font-weight: 800;
+	}
+	.ghead {
+		display: flex;
+	}
+	.gbtn {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		margin-top: 10px;
+		border-radius: 10px;
+		border: 1.5px solid var(--color-ink);
+		background: var(--color-card);
+		color: var(--color-ink);
 		font-size: 13px;
-	}
-	.h.left,
-	.faint.left {
-		text-anchor: start;
-	}
-	.faint {
-		font-size: 10px;
-		text-anchor: middle;
-		fill: var(--color-faint);
-	}
-	.faint.tiny {
-		font-size: 9px;
-	}
-	.faint.warn {
-		fill: var(--color-amber);
 		font-weight: 700;
+		padding: 9px 10px;
+		animation: invite 2s ease-in-out infinite;
+	}
+	.alt {
+		text-align: center;
+		font-size: 10.5px;
+		color: var(--color-faint);
+		text-decoration: line-through;
 	}
 	.field {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-	}
-	.field.amber {
-		stroke: var(--color-amber);
-		fill: var(--color-amber-soft);
-	}
-	.field.danger {
-		stroke: var(--color-danger);
-		fill: var(--color-danger-soft);
-	}
-	.field.ok {
-		stroke: var(--color-grass);
-		stroke-width: 2;
-	}
-	.ph {
-		font-size: 9.5px;
-		fill: var(--color-faint);
-	}
-	.val {
-		font-size: 10px;
-		font-weight: 600;
-		fill: var(--color-ink);
-	}
-	.val.small {
-		font-size: 9.5px;
-		fill: var(--color-muted);
-	}
-	.val.dots {
-		font-size: 12px;
-		letter-spacing: 0.08em;
-	}
-	.danger-t {
+		display: flex;
+		flex-direction: column;
+		border-radius: 8px;
+		border: 1px solid var(--color-line);
+		background: var(--color-paper);
+		padding: 3px 8px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-size: 11px;
+		color: var(--color-ink);
+	}
+	.field i {
+		font-family: var(--font-sans);
+		font-style: normal;
+		font-size: 8.5px;
 		font-weight: 700;
-		fill: var(--color-danger);
+		color: var(--color-faint);
 	}
-	.btn.danger-b {
-		fill: var(--color-danger);
-		opacity: 0.85;
+	.pbtn {
+		align-self: flex-end;
+		border-radius: 10px;
+		background: var(--color-brand);
+		color: #fff;
+		font-size: 12.5px;
+		font-weight: 700;
+		padding: 7px 18px;
+		animation: invite 2s ease-in-out infinite;
 	}
-	.key-ico circle,
-	.key-ico path {
-		fill: none;
-		stroke: var(--color-danger);
-		stroke-width: 2;
-		stroke-linecap: round;
+	.scopes {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
 	}
-	.key-ico.small circle,
-	.key-ico.small path {
-		stroke: var(--color-brand);
-		stroke-width: 1.6;
-	}
-
-	.gbtn rect {
-		fill: var(--color-card);
-		stroke: var(--color-brand);
-		stroke-width: 1.8;
-		transition: fill 0.2s;
-	}
-	.gbtn.pressed rect {
-		fill: var(--color-brand-soft);
-	}
-	.g-dot {
-		fill: var(--color-brand);
-	}
-	.g-letter {
-		font-size: 11px;
-		font-weight: 800;
-		text-anchor: middle;
-		fill: #fff;
-	}
-	.g-text {
+	.scopes label {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		border-radius: 8px;
+		padding: 4px 6px;
 		font-size: 11.5px;
-		font-weight: 700;
-		text-anchor: middle;
-		fill: var(--color-brand);
+		color: var(--color-ink);
+		cursor: pointer;
+		transition: background 0.2s;
 	}
-	.gword {
-		font-family: var(--font-display);
-		font-size: 20px;
-		font-weight: 700;
-		text-anchor: middle;
-		fill: var(--color-brand);
+	.scopes label.risky {
+		background: var(--color-amber-soft);
 	}
-	.gword.small {
-		font-size: 13px;
+	.scopes input {
+		width: 15px;
+		height: 15px;
+		accent-color: var(--color-brand);
 	}
-	.btn-g rect {
-		fill: var(--color-line);
-		transition: fill 0.3s;
+	.sname {
+		flex: 1;
 	}
-	.btn-g text {
-		font-size: 10.5px;
-		font-weight: 700;
-		text-anchor: middle;
-		fill: var(--color-muted);
-	}
-	.btn-g.on rect {
-		fill: var(--color-brand);
-	}
-	.btn-g.on text {
-		fill: #fff;
-	}
-	.check {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		stroke-width: 1.4;
-	}
-	.tick {
-		fill: none;
-		stroke: var(--color-grass);
-		stroke-width: 2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-	.tick.big {
-		stroke-width: 3;
-	}
-	.cursor {
-		opacity: 0;
-		transform: translate(340px, 226px);
-		transition:
-			transform 0.9s cubic-bezier(0.45, 0, 0.3, 1),
-			opacity 0.3s;
-	}
-	.cursor.on {
-		opacity: 1;
-		transform: translate(236px, 106px);
-	}
-	.cursor path {
-		fill: var(--color-ink);
-		stroke: var(--color-card);
-		stroke-width: 1.2;
-	}
-
-	.avatar {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-brand);
-		stroke-width: 1.6;
-	}
-	.avatar-head {
-		fill: var(--color-brand);
-	}
-	.avatar-body {
-		fill: none;
-		stroke: var(--color-brand);
-		stroke-width: 3;
-		stroke-linecap: round;
-	}
-	.gone {
-		opacity: 0.3;
-	}
-	.box {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-	}
-	.cap {
+	.req {
+		border-radius: 999px;
+		background: var(--color-line);
+		color: var(--color-muted);
 		font-size: 8.5px;
 		font-weight: 800;
-		letter-spacing: 0.07em;
-		text-transform: uppercase;
-		fill: var(--color-faint);
+		padding: 1px 6px;
 	}
-	.token rect {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-brand);
-		stroke-width: 1.5;
-	}
-	.token text {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 9.5px;
-		font-weight: 700;
-		text-anchor: middle;
-		fill: var(--color-brand);
-	}
-	.token.dead rect {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-	}
-	.token.dead text {
-		fill: var(--color-danger);
-	}
-	.token.dead .key-ico.small circle,
-	.token.dead .key-ico.small path {
-		stroke: var(--color-danger);
-	}
-	.strike {
-		stroke: var(--color-danger);
-		stroke-width: 2;
-		stroke-linecap: round;
-	}
-	.never rect {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-	}
-	.never text {
-		font-size: 9.5px;
+	.token {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		border-radius: 999px;
+		background: var(--color-grass);
+		color: #fff;
+		font-size: 11px;
 		font-weight: 800;
-		text-anchor: middle;
-		fill: var(--color-grass);
+		padding: 4px 10px;
 	}
-	.app-tile rect {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		stroke-width: 1.6;
+	.token.small {
+		font-size: 9px;
+		padding: 1px 7px;
 	}
-	.app-name {
-		font-size: 10.5px;
+	.token.dead {
+		background: var(--color-faint);
+		text-decoration: line-through;
+	}
+	.travel {
+		animation: travel 1.1s ease-in-out forwards;
+	}
+	.hello {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+		margin-top: 6px;
+	}
+	.avatar {
+		display: grid;
+		place-items: center;
+		width: 34px;
+		height: 34px;
+		flex: none;
+		border-radius: 50%;
+		background: var(--color-line);
+		color: var(--color-muted);
+		font-weight: 800;
+	}
+	.avatar.pic {
+		background: var(--color-amber);
+		color: #fff;
+	}
+	.skel {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		margin-top: 10px;
+	}
+	.skel i {
+		height: 8px;
+		border-radius: 6px;
+		background: var(--color-line);
+	}
+	.skel i.s {
+		width: 60%;
+	}
+	.hint {
+		min-height: 1.4em;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.got {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		gap: 3px;
+		border-radius: 14px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 9px 12px;
+	}
+	.gtitle {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 6px;
+		margin-bottom: 2px;
+		font-size: 11.5px;
+		font-weight: 800;
+		color: var(--color-ink);
+	}
+	.grow {
+		display: flex;
+		justify-content: space-between;
+		gap: 8px;
+		border-radius: 6px;
+		padding: 2px 6px;
+		font-size: 11px;
+		color: var(--color-ink);
+	}
+	.grow b {
+		font-weight: 800;
+		color: var(--color-grass);
+		white-space: nowrap;
+	}
+	.grow.no {
+		color: var(--color-faint);
+	}
+	.grow.no b {
+		color: var(--color-faint);
+	}
+	.grow.risky {
+		background: var(--color-amber-soft);
+	}
+	.grow.risky b {
+		color: var(--color-amber);
+	}
+	.grow.safe {
+		margin-top: 3px;
+		background: var(--color-grass-soft);
+	}
+	.ghost {
+		margin-top: 6px;
+		align-self: center;
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-muted);
+		font-size: 12px;
 		font-weight: 700;
-		text-anchor: middle;
-		fill: var(--color-ink);
+		padding: 6px 14px;
 	}
-	.domino rect {
-		fill: var(--color-card);
-		stroke: var(--color-muted);
-		stroke-width: 1.5;
+	.ghost:hover {
+		border-color: var(--color-danger);
+		color: var(--color-danger);
 	}
-	.domino text {
-		font-size: 10px;
-		font-weight: 700;
-		text-anchor: middle;
-		fill: var(--color-muted);
+	.pop {
+		animation: popin 0.25s ease;
 	}
-	.domino.first rect {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-	}
-	.domino.first text {
-		fill: var(--color-danger);
-	}
-	.domino {
-		transform-box: fill-box;
-		transform-origin: right bottom;
-		transform: rotate(14deg);
-	}
-
-	@media (prefers-reduced-motion: no-preference) {
-		.gbtn.pulse rect {
-			animation: pulse 1.8s ease-in-out infinite;
-		}
-		.domino {
-			animation: topple 5s ease-in-out infinite;
-		}
-		.token.arrive {
-			animation: arrive 4.2s cubic-bezier(0.3, 0.8, 0.3, 1) infinite;
-		}
-		.app-tile {
-			animation: unlock 0.5s ease both;
-		}
-	}
-	@keyframes pulse {
-		0%,
-		100% {
-			stroke-width: 1.8;
-		}
-		50% {
-			stroke-width: 4;
-		}
-	}
-	@keyframes topple {
-		0%,
-		12% {
-			transform: rotate(0);
-		}
-		22%,
-		82% {
-			transform: rotate(14deg);
-		}
-		94%,
-		100% {
-			transform: rotate(0);
-		}
-	}
-	@keyframes arrive {
-		0% {
-			transform: translate(150px, -120px);
-			opacity: 0;
-		}
-		25% {
-			opacity: 1;
-		}
-		40%,
-		100% {
-			transform: translate(0, 0);
-			opacity: 1;
-		}
-	}
-	@keyframes unlock {
+	@keyframes popin {
 		from {
 			opacity: 0;
-			transform: translateY(8px);
+			transform: translateY(4px);
+		}
+	}
+	@keyframes travel {
+		from {
+			transform: translateY(-70px) scale(0.8);
+			opacity: 0;
+		}
+		30% {
+			opacity: 1;
 		}
 		to {
+			transform: translateY(40px) scale(1);
 			opacity: 1;
-			transform: translateY(0);
+		}
+	}
+	@keyframes invite {
+		0%,
+		100% {
+			box-shadow: 0 0 0 0 rgba(46, 111, 224, 0);
+		}
+		50% {
+			box-shadow: 0 0 0 5px rgba(46, 111, 224, 0.14);
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.cursor,
-		.addr,
-		.gbtn rect,
-		.btn-g rect,
-		.revoke {
-			transition: none;
+		.pop,
+		.travel {
+			animation-duration: 0.01s;
+		}
+		.gbtn,
+		.pbtn {
+			animation: none;
+		}
+	}
+	@media (min-width: 768px) {
+		.wrap {
+			width: 440px;
+			gap: 14px;
+		}
+		.phone {
+			width: 260px;
+		}
+		.hint {
+			font-size: 14px;
+		}
+		.grow {
+			font-size: 12px;
 		}
 	}
 </style>

@@ -139,12 +139,12 @@
 	<div class="acts">
 		<div class="btn-wrap" class:tried={tried.has('plain')}>
 			<CallToActionButton onclick={() => send('plain')} disabled={mode !== '' && !landed}>
-				{#snippet children()}{tx.sendPlain}{/snippet}
+				{tx.sendPlain}
 			</CallToActionButton>
 		</div>
 		<div class="btn-wrap" class:tried={tried.has('locked')}>
 			<CallToActionButton onclick={() => send('locked')} disabled={mode !== '' && !landed}>
-				{#snippet children()}{tx.sendLocked}{/snippet}
+				{tx.sendLocked}
 			</CallToActionButton>
 		</div>
 	</div>
@@ -194,7 +194,7 @@
 		top: 50%;
 		left: 0;
 		right: 0;
-		border-top: 2px dashed #e3ded5;
+		border-top: 2px solid #e3ded5;
 	}
 	.snoop {
 		position: absolute;

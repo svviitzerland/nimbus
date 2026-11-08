@@ -3,62 +3,38 @@ import type { CssText } from './types';
 export const en: CssText = {
 	title: 'What is CSS',
 	intro: [
-		'Remember the nimbus.com page you built with [[HTML|web/html]]? A heading, a paragraph, a button, and Nim. It works, but it looks plain, black letters on white, like a school form from 1995.',
-		'That is because HTML only says what each part is. How it looks is a separate job, done by <b>CSS</b> (short for Cascading Style Sheets). If HTML is the skeleton, CSS is the clothes. Watch, Nim starts a rule.',
-		'Inside the curly brackets go small instructions, each one a <b>property</b> and a <b>value</b>. Here the property is background and the value is a soft blue. One line, and the whole page changes.',
-		'Now a rule that picks only <b>h1</b>, the heading. Its color turns tomato red, and nothing else on the page moves. The part before the bracket, called the <b>selector</b>, decides who gets the change.',
-		'Back in body, one more line swaps the font. Every piece of text switches at once, because tags inside body borrow their font from it. That borrowing is called <b>inheritance</b>.',
-		'The button gets its own rule, a color, no border, round corners, and some padding (space inside the box). Every button you have ever tapped in an app was shaped with lines like these.',
-		'[fyi] The word cascading means rules can pile up. Nim adds a second h1 rule at the bottom, and the heading turns blue. When two rules are equally specific, the one written later wins.',
-		'[ingat] Read every rule like a little sentence. The selector is <b>who</b>, the property is <b>what</b>, the value is <b>how</b>. So h1, color, tomato means the heading, its color, tomato red.',
-		'Same HTML the whole time, only the clothes changed. If you like, tap a color under the code and watch the heading follow. Next, the button learns to do something with [[JavaScript|web/js]].'
+		'The nimbus.com page has a heading, paragraph, button, and image. Now we will set their colors, sizes, and spacing.',
+		'<b>CSS</b>, Cascading Style Sheets, controls the appearance of HTML elements. Its rules can change text color, layout, and button shape.',
+		'CSS is a list of small rules. Each rule first picks something on the page with a <b>selector</b>, like <b>h1</b> for every heading, then lists what to change inside curly brackets.',
+		'Every line inside a rule is a <b>property</b> and a <b>value</b>. In <b>color tomato</b>, color is the property and tomato is the value. Colors, fonts, spacing, and layout all work this same way, one line at a time.',
+		'[fyi] The word cascading means rules can pile up. When two rules disagree, the more specific one wins, and if they are equally specific, the later one wins. That is why one extra line can change a whole page.',
+		'[ingat] A selector chooses elements, a property names what to change, and a value specifies the setting. Setting an h1’s color to tomato makes its text tomato red.',
+		'Your turn! The stylesheet for nimbus.com already has a few plain values. Change one line at a time, by typing or tapping a value, and watch the page dress up.'
 	],
 	reactions: {
+		background:
+			'The whole page changed color with one line. The rule picked <b>body</b>, the tag that wraps everything you see, so the new background spread across the whole page.',
 		color:
-			'See how only the last h1 rule changed, and the heading followed right away? That is the cascade at work, the later rule still wins.'
+			'Now the heading has its own color. Only the <b>h1</b> changed, because the selector picked just that tag. The paragraph stayed exactly as it was.',
+		font: 'New font, and every piece of text switched at once. Tags inside <b>body</b> borrow their font from it (this is called inheritance), so you only had to say it once.',
+		button:
+			'Soft corners! <b>border-radius</b> rounds the edges of a box. The buttons, cards, and profile pictures in every app you use are shaped with lines like this one.',
+		typo: 'Hmm, the browser skipped one line. CSS never complains when something is misspelled, it quietly ignores that line. So when a page refuses to change, look for a typo first.',
+		center:
+			'[fyi] <b>text-align</b> centered the text inside its box. Arranging boxes is the biggest part of CSS, and soon you will see a page rearrange itself for phones in [[responsive design|web/responsive]].',
+		done: 'Same HTML, a totally different look. That is the deal, HTML says what things are and CSS says how they look. Next, let us make that button actually do something with [[JavaScript|web/js]].'
 	},
-	steps: [
-		{
-			tag: 'index.html',
-			title: 'Just HTML',
-			body: 'The page has structure but no style yet, so the browser falls back to its plain default look.'
-		},
-		{
-			title: 'A rule begins',
-			body: '<b>body</b> picks the tag that wraps everything you see. The curly brackets will hold what should change.'
-		},
-		{
-			title: 'Property and value',
-			body: '<b>background</b> is the property and the soft blue is the value. Every line ends with a semicolon.'
-		},
-		{
-			title: 'The selector',
-			body: 'A rule only touches what its selector picks. <b>h1</b> means the main heading, nothing more.'
-		},
-		{
-			title: 'Inheritance',
-			body: 'Text styles flow down from a parent to everything inside it, so one font line on body covers the whole page.'
-		},
-		{
-			title: 'Shaping a box',
-			body: 'Every element is a box. <b>padding</b> is the space inside it and <b>border-radius</b> rounds its corners.'
-		},
-		{
-			title: 'The cascade',
-			body: 'Two h1 rules disagree about the color. They are equally specific, so the one further down wins.'
-		},
-		{
-			tag: 'Remember it',
-			title: 'Who, what, how',
-			body: '<b>h1</b> is who, <b>color</b> is what, <b>tomato</b> is how. Every CSS line you will ever read fits this pattern.'
-		},
-		{
-			title: 'Your stylesheet',
-			body: 'Tap a color to rewrite the last h1 rule. The page changes as soon as the line is written.'
-		}
-	],
-	comment: 'styles for nimbus.com',
+	missionsLabel: 'Style nimbus.com',
+	missions: {
+		background: 'Paint the page background',
+		color: 'Give the heading a color',
+		font: 'Pick a new font',
+		button: 'Round the button corners'
+	},
+	tryLabel: 'Tap a value to try it',
+	extraLabel: 'A little extra',
 	cssLabel: 'style.css',
+	htmlLabel: 'index.html',
 	previewLabel: 'nimbus.com',
 	page: {
 		heading: 'Welcome to Nimbus',
@@ -66,5 +42,8 @@ export const en: CssText = {
 		button: 'Start now',
 		alt: 'Nim the cloud'
 	},
-	tryLabel: 'Pick a heading color'
+	starterComment: 'Change one value, then look at the page',
+	typoHint: 'The browser skipped "{line}" because it does not know it',
+	allDone: 'Four CSS changes complete',
+	reset: 'Start over'
 };

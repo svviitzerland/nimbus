@@ -6,8 +6,17 @@ import { en } from './en';
 export const css: Lesson = {
 	id: 'css',
 	mood: 'calm',
-	moods: ['calm', 'thinking', 'idea', 'happy', 'idea', 'excited', 'wink', 'idea', 'excited'],
-	reactionMood: { color: 'happy' },
+	moods: ['calm', 'thinking', 'idea', 'calm', 'wink', 'excited'],
+	reactionMood: {
+		background: 'happy',
+		color: 'happy',
+		font: 'idea',
+		button: 'excited',
+		typo: 'thinking',
+		center: 'wink',
+		done: 'excited'
+	},
+	playable: true,
 	stage: CssStage,
 	text: { id, en }
 };

@@ -42,7 +42,7 @@
 			<span></span><span></span><span></span><span></span><span></span><span></span>
 		</div>
 		<div class="doors">
-			{#each tx.ports as p}
+			{#each tx.ports as p, eachIndex1271 (eachIndex1271)}
 				<button
 					type="button"
 					class="door"

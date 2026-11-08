@@ -6,23 +6,16 @@ import { en } from './en';
 export const hatColors: Lesson = {
 	id: 'hat-colors',
 	mood: 'thinking',
-	moods: [
-		'wink',
-		'idea',
-		'happy',
-		'worried',
-		'thinking',
-		'surprised',
-		'calm',
-		'wink',
-		'excited',
-		'happy'
-	],
+	moods: ['wink', 'idea', 'thinking', 'surprised', 'calm', 'happy', 'excited'],
 	reactionMood: {
-		white: 'happy',
-		gray: 'thinking',
-		black: 'sad'
+		lab: 'happy',
+		wifi: 'thinking',
+		pentest: 'excited',
+		extort: 'sad',
+		warn: 'worried',
+		bounty: 'excited'
 	},
+	playable: true,
 	stage: HatColorsStage,
 	text: { id, en }
 };

@@ -6,22 +6,18 @@ import { en } from './en';
 export const keys: Lesson = {
 	id: 'keys',
 	mood: 'thinking',
-	moods: [
-		'calm',
-		'idea',
-		'thinking',
-		'worried',
-		'surprised',
-		'idea',
-		'wink',
-		'thinking',
-		'surprised',
-		'happy'
-	],
+	moods: ['calm', 'idea', 'thinking', 'worried', 'surprised', 'idea', 'excited', 'wink', 'happy'],
 	reactionMood: {
-		shared: 'worried',
-		padlock: 'excited'
+		symKey: 'worried',
+		symRead: 'sad',
+		padlock: 'idea',
+		sealed: 'excited',
+		multiply: 'happy',
+		factor1: 'happy',
+		factor2: 'thinking',
+		factor3: 'surprised'
 	},
+	playable: true,
 	stage: KeysStage,
 	text: { id, en }
 };

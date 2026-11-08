@@ -6,8 +6,16 @@ import { en } from './en';
 export const designToCode: Lesson = {
 	id: 'design-to-code',
 	mood: 'calm',
-	moods: ['calm', 'thinking', 'idea', 'happy', 'excited', 'wink', 'idea', 'happy'],
-	reactionMood: { nopad: 'surprised', pad: 'happy' },
+	moods: ['calm', 'idea', 'thinking', 'wink', 'happy'],
+	reactionMood: {
+		inspect: 'idea',
+		color: 'happy',
+		radius: 'happy',
+		padding: 'happy',
+		font: 'happy',
+		done: 'excited'
+	},
+	playable: true,
 	stage: DesignToCodeStage,
 	text: { id, en }
 };

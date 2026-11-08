@@ -5,7 +5,8 @@ export const en: BottleneckText = {
 	intro: [
 		'This is your online shop. Visitors open it from their own phones, and behind the scenes each request is handled by a server and then visits one <b>database</b> to fetch data.',
 		'With few visitors everything is smooth. But when it gets busy, everyone piles up at the slowest point, that database. The one point that limits everyone is called a <b>bottleneck</b>.',
-		'Add visitors until the database is overwhelmed. They line up in front of it (the red ones are waiting) and their page takes ages to open. Then make the database bigger, the line clears and the page is fast again.'
+		'Add visitors until the database is overwhelmed. They line up in front of it (the red ones are waiting) and their page takes ages to open. Then make the database bigger, the line clears and the page is fast again.',
+		'[ingat] A bottleneck is the part limiting system performance. Improve that part, then measure the result.'
 	],
 	reactions: {
 		jam: 'There, the database is overwhelmed. Only this one point is slow, but every visitor feels it, the page takes ages to open.',

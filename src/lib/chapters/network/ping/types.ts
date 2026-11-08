@@ -1,22 +1,23 @@
 import type { LessonText } from '../../types';
 
-/** One part of the picture, explained in the side panel. */
-export type GuideStep = { title: string; body: string; tag?: string };
-
 export interface PingText extends LessonText {
-	/** Side panel, one entry per part of the story (seven). */
-	steps: GuideStep[];
-	youLabel: string; // the first node on the road, your laptop
-	/** Every stop between your laptop and nimbus.com, in order (six, the last is the server). */
-	hops: string[];
+	missionsLabel: string; // heading of the mission checklist
+	missions: string[]; // two labels, in order: ping, traceroute
+	hintBtn: string; // chip that types the mission command for you
+	doneNote: string; // shown once both missions are done
 	inputLabel: string; // aria label of the command field
-	suggestLabel: string; // aria label of the suggestion chips
-	// Muted "#" lines the terminal prints
-	demoHint: string; // before the stage types anything
-	termHint: string; // when the learner's turn starts
+	// Muted "#" lines the terminal prints to help
+	termHint: string;
 	hintUnknownCmd: string;
 	hintNeedHost: string;
 	didYouMean: string; // template with {word}
 	hintTimeout: string;
 	hintStars: string;
+	routeLabel: string; // heading over the hop list
+	youLabel: string; // the first row, your laptop
+	/** Every stop between your laptop and nimbus.com, in order. The last one is the server. */
+	hops: { name: string; place: string }[];
+	hiddenHop: string; // a hop ping cannot see
+	quietTag: string; // tag on the hop that did not answer
+	roundTrip: string; // template with {ms}
 }

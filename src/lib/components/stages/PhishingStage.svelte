@@ -1,475 +1,509 @@
 <script lang="ts">
-	// Guided phishing lesson. A pretend mail app shows one new email. Nim reads it like a
-	// detective and the three clues light up by themselves, beat by beat (the sender, the
-	// pressure, the link). The only optional play, on the last beat, is flipping to a genuine
-	// nimbus.com email to compare. Nothing here is a real link, the button is only a picture.
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
-	import type { PhishingKind, PhishingText } from '$lib/chapters/security/phishing/types';
-	import { guided } from './attacks2/guided.svelte';
+	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
+	import type { LessonText } from '$lib/chapters/types';
+	import type { PhishingEmailId, PhishingText } from '$lib/chapters/security/phishing/types';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as PhishingText);
 
-	const g = guided({
-		beat: () => beat,
-		last: () => tx.steps.length - 1,
-		onshow: (v) => onshow?.(v),
-		oncomplete: () => oncomplete?.()
-	});
-	const step = $derived(g.step);
-	const last = $derived(tx.steps.length - 1);
+	type Clue = 'sender' | 'link' | 'urgency' | null;
+	// Which emails are fakes, and the clue that gives each one away.
+	const EMAILS: { id: PhishingEmailId; fake: boolean; clue: Clue }[] = [
+		{ id: 'invoice', fake: false, clue: null },
+		{ id: 'lookalike', fake: true, clue: 'sender' },
+		{ id: 'reset', fake: true, clue: 'link' },
+		{ id: 'boss', fake: true, clue: 'urgency' },
+		{ id: 'signin', fake: false, clue: null }
+	];
 
-	const KINDS: PhishingKind[] = ['fake', 'real'];
-	let pick = $state<PhishingKind>('fake');
-	function choose(k: PhishingKind) {
-		pick = k;
-		onstate?.(k);
+	let idx = $state(0);
+	let peeked = $state(false);
+	let picked = $state<'' | 'real' | 'fake'>('');
+	let results = $state<Partial<Record<PhishingEmailId, boolean>>>({});
+	let finished = $state(false);
+	let peekedOnce = false;
+	let completed = false;
+
+	const cur = $derived(EMAILS[idx]);
+	const mail = $derived(tx.emails[cur.id]);
+	const revealed = $derived(picked !== '');
+	const right = $derived(picked !== '' && (picked === 'fake') === cur.fake);
+	const score = $derived(Object.values(results).filter(Boolean).length);
+
+	// Split an address into the disguise and the part that really names the site.
+	const host = $derived(mail.url.split('/')[0]);
+	const path = $derived(mail.url.slice(host.length));
+	const hostParts = $derived.by(() => {
+		const labels = host.split('.');
+		const main = labels.slice(-2).join('.');
+		const lead = labels.length > 2 ? labels.slice(0, -2).join('.') + '.' : '';
+		return { lead, main };
+	});
+
+	function peek() {
+		if (peeked) return;
+		peeked = true;
+		if (!peekedOnce) {
+			peekedOnce = true;
+			onstate?.('peek');
+		}
 	}
 
-	const kind = $derived<PhishingKind>(step === last ? pick : 'fake');
-	const mail = $derived(tx.emails[kind]);
-	const clue = $derived(tx.clues[kind]);
+	function judge(choice: 'real' | 'fake') {
+		if (picked) return;
+		picked = choice;
+		peeked = true;
+		const ok = (choice === 'fake') === cur.fake;
+		results[cur.id] = ok;
+		onstate?.(`${cur.id}${ok ? 'Right' : 'Wrong'}`);
+	}
 
-	// Clues light up one after another and stay lit, the newest one in focus.
-	const showSender = $derived(step >= 3);
-	const showUrgency = $derived(step >= 4);
-	const showLink = $derived(step >= 5);
-	const focus = $derived(step === 3 ? 'sender' : step === 4 ? 'urgency' : step === 5 ? 'link' : '');
+	function next() {
+		if (idx === EMAILS.length - 1) {
+			finished = true;
+			onstate?.('done');
+			if (!completed) {
+				completed = true;
+				oncomplete?.();
+			}
+			return;
+		}
+		idx += 1;
+		picked = '';
+		peeked = false;
+	}
 
-	/** Splits an address so the true owner (the name right before the first slash) stands out. */
-	const link = $derived.by(() => {
-		const host = mail.url.split('/')[0];
-		const owner = host.split('.').slice(-2).join('.');
-		return {
-			before: host.slice(0, host.length - owner.length),
-			owner,
-			after: mail.url.slice(host.length)
-		};
-	});
+	function again() {
+		idx = 0;
+		picked = '';
+		peeked = false;
+		results = {};
+		finished = false;
+	}
+
+	const fill = (s: string, n: number) =>
+		s.replace('{n}', String(n)).replace('{total}', String(EMAILS.length));
+	const flag = (c: Clue) => revealed && cur.clue === c;
 </script>
 
-{#snippet visual(i: number)}
-	<div class="vis">
-		{#if i === last}
-			<div class="pick" role="group" aria-label={tx.pickLabel}>
-				<span class="cap">{tx.pickLabel}</span>
-				<div class="chips">
-					{#each KINDS as k (k)}
-						<button
-							type="button"
-							class="chip {k}"
-							class:on={pick === k}
-							aria-pressed={pick === k}
-							onclick={() => choose(k)}>{tx.modes[k]}</button
-						>
-					{/each}
-				</div>
-			</div>
-		{/if}
+<div class="wrap">
+	<p class="safe">{tx.safeNote}</p>
 
-		<div class="mail {kind}" aria-label={tx.inboxLabel}>
-			<div class="bar">
-				<span class="dot"></span><span class="dot"></span><span class="dot"></span>
-				<span class="barT">{tx.inboxLabel}</span>
-			</div>
-
-			{#if i === 0}
-				<ul class="inbox">
-					<li class="row new">
-						<span class="unread"></span>
-						<span class="rFrom">{tx.emails.fake.fromName}</span>
-						<span class="rSub">{tx.emails.fake.subject}</span>
-					</li>
-					{#each tx.olderRows as r (r.from)}
-						<li class="row">
-							<span class="unread off"></span>
-							<span class="rFrom">{r.from}</span>
-							<span class="rSub">{r.subject}</span>
-						</li>
-					{/each}
-				</ul>
-			{:else}
-				<div class="body">
-					{#if i === 2}<div class="scan" aria-hidden="true"></div>{/if}
-					<div class="head">
-						<span class="avatar">{mail.fromName.charAt(0).toUpperCase()}</span>
-						<div class="who">
-							<div class="fromName">{mail.fromName}</div>
-							<div class="fromAddr">
-								<span class="mark" class:lit={showSender} class:focus={focus === 'sender'}
-									>{mail.fromAddr}</span
-								>
-								{#if showSender}<span class="clue">{clue.sender}</span>{/if}
-							</div>
-						</div>
-						<span class="time">{mail.time}</span>
-					</div>
-					<h4 class="subject">{mail.subject}</h4>
-					<p class="text">{mail.body}</p>
-					{#if mail.urgent}
-						<p class="text">
-							<span class="mark" class:lit={showUrgency} class:focus={focus === 'urgency'}
-								>{mail.urgent}</span
-							>
-							{#if showUrgency}<span class="clue">{clue.urgency}</span>{/if}
-						</p>
-					{:else if showUrgency}
-						<p class="text"><span class="clue">{clue.urgency}</span></p>
-					{/if}
-					<div class="ctaRow">
-						<span class="cta" class:hover={showLink} class:focus={focus === 'link'}>{mail.cta}</span
-						>
-						{#if showLink}
-							<div class="tip">
-								<span class="tipCap">{tx.goesTo}</span>
-								<span class="url">{link.before}<b class="owner">{link.owner}</b>{link.after}</span>
-								<span class="clue">{clue.link}</span>
-							</div>
-						{/if}
-					</div>
-				</div>
-			{/if}
-		</div>
-
-		{#if i === 6}
-			<p class="rule">{tx.rule}</p>
+	<!-- actions, kept up top and clear of Nim -->
+	<div class="btns">
+		{#if finished}
+			<CallToActionButton onclick={again}>
+				{tx.again}
+			</CallToActionButton>
+		{:else if !revealed}
+			<button type="button" class="pick real" onclick={() => judge('real')}>{tx.markReal}</button>
+			<button type="button" class="pick fake" onclick={() => judge('fake')}>{tx.markFake}</button>
+		{:else}
+			<span class="verdict" class:good={right}>{right ? tx.verdictRight : tx.verdictWrong}</span>
+			<CallToActionButton onclick={next}>
+				{tx.nextEmail}
+			</CallToActionButton>
 		{/if}
 	</div>
-{/snippet}
 
-<div class="stage">
-	<Guide steps={tx.steps} active={step} onselect={g.select} {visual} />
+	{#if !finished}
+		<p class="counter">{fill(tx.counter, idx + 1)}</p>
+
+		{#key cur.id}
+			<article class="mail pop">
+				<header class="head">
+					<span class="avatar">{mail.fromName.charAt(0)}</span>
+					<div class="from">
+						<span class="fname">{mail.fromName}</span>
+						<span class="faddr" class:bad={flag('sender')} class:okc={revealed && !cur.fake}
+							>{mail.fromAddr}</span
+						>
+					</div>
+					<span class="time">{mail.time}</span>
+				</header>
+				<p class="subject">{mail.subject}</p>
+				<p class="body">
+					{mail.body}
+					{#if mail.urgent}
+						<span class="urgent" class:bad={flag('urgency')}>{mail.urgent}</span>
+					{/if}
+				</p>
+
+				<button type="button" class="incta" onclick={peek} title={tx.peek}>{mail.cta}</button>
+
+				<div class="peekrow">
+					{#if !peeked}
+						<button type="button" class="peek" onclick={peek}>{tx.peek}</button>
+					{:else if mail.url}
+						<p class="where pop" class:bad={flag('link')} class:okc={revealed && !cur.fake}>
+							<span class="wlabel">{tx.peekLabel}</span>
+							<span class="url"
+								><span class="lead">{hostParts.lead}</span><b>{hostParts.main}</b><span class="lead"
+									>{path}</span
+								></span
+							>
+						</p>
+					{:else}
+						<p class="where pop"><span class="wlabel">{tx.noLink}</span></p>
+					{/if}
+				</div>
+
+				{#if revealed}
+					<div class="tags pop">
+						<span class="tag" class:fake={cur.fake}>{cur.fake ? tx.fakeTag : tx.realTag}</span>
+						<span class="clue">{cur.clue ? tx.clues[cur.clue] : tx.clues.none}</span>
+					</div>
+				{/if}
+			</article>
+		{/key}
+	{:else}
+		<div class="summary pop">
+			<p class="shead">{tx.inboxLabel}</p>
+			{#each EMAILS as e (e.id)}
+				<div class="srow">
+					<span class="mark" class:good={results[e.id]}>{results[e.id] ? '✓' : '✗'}</span>
+					<span class="stext">
+						<b>{tx.emails[e.id].fromName}</b>
+						<span>{tx.emails[e.id].subject}</span>
+					</span>
+					<span class="tag" class:fake={e.fake}>{e.fake ? tx.fakeTag : tx.realTag}</span>
+				</div>
+			{/each}
+			<p class="score">{fill(tx.scoreLabel, score)}</p>
+		</div>
+	{/if}
 </div>
 
 <style>
-	.stage {
-		display: flex;
-		width: 100%;
-		max-height: 100%;
-		justify-content: center;
-		overflow-x: hidden;
-		overflow-y: auto;
-		padding-bottom: 8px;
-	}
-	@media (max-width: 767px) {
-		.stage {
-			padding-bottom: 7rem;
-		}
-	}
-	.vis {
+	.wrap {
 		display: flex;
 		width: 100%;
 		flex-direction: column;
-		align-items: center;
-		gap: 12px;
-	}
-	.pick {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 6px;
-	}
-	.cap {
-		font-size: 11px;
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--color-faint);
-	}
-	.chips {
-		display: flex;
-		gap: 6px;
-	}
-	.chip {
-		border: 1px solid var(--color-line);
-		border-radius: 999px;
-		background: var(--color-card);
-		padding: 6px 14px;
-		font-size: 13px;
-		font-weight: 700;
-		color: var(--color-muted);
-		transition:
-			border-color 0.2s,
-			background 0.2s,
-			color 0.2s;
-	}
-	.chip.fake.on {
-		border-color: var(--color-danger);
-		background: var(--color-danger-soft);
-		color: var(--color-danger);
-	}
-	.chip.real.on {
-		border-color: var(--color-grass);
-		background: var(--color-grass-soft);
-		color: var(--color-grass);
-	}
-	.rule {
-		margin: 0;
-		border-radius: 999px;
-		background: var(--color-grass-soft);
-		padding: 5px 14px;
-		font-size: 13px;
-		font-weight: 700;
-		color: var(--color-grass);
-		text-align: center;
-	}
-
-	/* ---- the mail app ---- */
-	.mail {
-		--clue: var(--color-danger);
-		--clue-soft: var(--color-danger-soft);
-		width: 100%;
-		max-width: 440px;
-		overflow: hidden;
-		border: 1px solid var(--color-line);
-		border-radius: 16px;
-		background: var(--color-card);
-		box-shadow: 0 10px 28px rgba(22, 40, 60, 0.08);
-	}
-	.mail.real {
-		--clue: var(--color-grass);
-		--clue-soft: var(--color-grass-soft);
-	}
-	.bar {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		border-bottom: 1px solid var(--color-line);
-		background: var(--color-paper);
-		padding: 9px 14px;
-	}
-	.dot {
-		height: 9px;
-		width: 9px;
-		border-radius: 999px;
-		background: var(--color-line);
-	}
-	.barT {
-		margin-left: 8px;
-		font-size: 12px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	.inbox {
-		margin: 0;
-		padding: 6px 0;
-		list-style: none;
-	}
-	.row {
-		display: grid;
-		grid-template-columns: 10px minmax(0, 0.9fr) minmax(0, 1.3fr);
 		align-items: center;
 		gap: 10px;
-		padding: 11px 16px;
+	}
+	.safe {
+		font-size: 10.5px;
+		font-weight: 600;
+		color: var(--color-faint);
+	}
+	.btns {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		min-height: 46px;
+	}
+	.btns :global(.cta) {
+		padding: 10px 18px;
 		font-size: 13px;
+	}
+	.pick {
+		min-width: 120px;
+		border-radius: 12px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 10px 16px;
+		font-size: 13px;
+		font-weight: 700;
+		color: var(--color-ink);
+		transition:
+			border-color 0.2s,
+			background 0.2s;
+	}
+	.pick.real:hover {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
+	}
+	.pick.fake:hover {
+		border-color: var(--color-danger);
+		background: var(--color-danger-soft);
+	}
+	.verdict {
+		border-radius: 999px;
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
+		font-size: 12px;
+		font-weight: 800;
+		padding: 4px 12px;
+	}
+	.verdict.good {
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+	}
+	.counter {
+		font-size: 11px;
+		font-weight: 700;
 		color: var(--color-muted);
 	}
-	.row + .row {
-		border-top: 1px solid var(--color-line);
-	}
-	.row.new {
-		color: var(--color-ink);
-		font-weight: 700;
-		animation: land 0.7s cubic-bezier(0.2, 0.8, 0.3, 1) both;
-	}
-	@keyframes land {
-		from {
-			opacity: 0;
-			transform: translateY(-10px);
-		}
-	}
-	.rFrom,
-	.rSub {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-	.unread {
-		height: 8px;
-		width: 8px;
-		border-radius: 999px;
-		background: var(--color-brand);
-		animation: pulse 1.6s ease-in-out infinite;
-	}
-	.unread.off {
-		visibility: hidden;
-	}
-	@keyframes pulse {
-		50% {
-			opacity: 0.3;
-		}
-	}
 
-	.body {
-		position: relative;
-		padding: 16px 18px 18px;
-	}
-	.scan {
-		position: absolute;
-		inset: 0 0 auto;
-		height: 40px;
-		background: linear-gradient(
-			to bottom,
-			transparent,
-			color-mix(in srgb, var(--color-brand) 14%, transparent),
-			transparent
-		);
-		animation: scan 2.6s ease-in-out infinite;
-		pointer-events: none;
-	}
-	@keyframes scan {
-		from {
-			transform: translateY(0);
-		}
-		to {
-			transform: translateY(260px);
-		}
+	/* the email */
+	.mail {
+		display: flex;
+		width: min(92vw, 360px);
+		flex-direction: column;
+		gap: 8px;
+		border-radius: 16px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 12px 14px;
+		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.06);
 	}
 	.head {
 		display: flex;
-		align-items: flex-start;
-		gap: 10px;
+		align-items: center;
+		gap: 9px;
 	}
 	.avatar {
 		display: grid;
-		height: 34px;
-		width: 34px;
 		flex: none;
 		place-items: center;
-		border-radius: 999px;
+		width: 30px;
+		height: 30px;
+		border-radius: 50%;
 		background: var(--color-brand-soft);
-		font-weight: 800;
 		color: var(--color-brand);
+		font-size: 13px;
+		font-weight: 800;
 	}
-	.who {
+	.from {
+		display: flex;
 		min-width: 0;
 		flex: 1;
+		flex-direction: column;
 	}
-	.fromName {
-		font-size: 14px;
+	.fname {
+		font-size: 12.5px;
 		font-weight: 700;
 		color: var(--color-ink);
 	}
-	.fromAddr {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 6px;
-		margin-top: 2px;
-		font-size: 12.5px;
+	.faddr {
+		overflow-wrap: anywhere;
+		border-radius: 4px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 10.5px;
 		color: var(--color-muted);
+		transition:
+			background 0.2s,
+			color 0.2s;
 	}
 	.time {
-		font-size: 12px;
+		align-self: flex-start;
+		font-size: 10px;
+		font-weight: 600;
 		color: var(--color-faint);
 	}
 	.subject {
-		margin: 14px 0 6px;
-		font-size: 16px;
-		font-weight: 700;
+		font-family: var(--font-display);
+		font-size: 15px;
 		color: var(--color-ink);
 	}
-	.text {
-		margin: 0 0 10px;
-		font-size: 13.5px;
-		line-height: 1.55;
+	.body {
+		font-size: 12px;
+		line-height: 1.5;
 		color: var(--color-muted);
 	}
-	.mark {
-		border-radius: 5px;
-		padding: 1px 3px;
-		transition:
-			background 0.4s,
-			box-shadow 0.4s,
-			color 0.4s;
-	}
-	.mark.lit {
-		background: var(--clue-soft);
+	.urgent {
+		font-weight: 700;
 		color: var(--color-ink);
+		transition:
+			background 0.2s,
+			color 0.2s;
 	}
-	.mark.focus {
-		box-shadow: 0 0 0 2px var(--clue);
+	.bad {
+		background: var(--color-danger-soft);
+		color: var(--color-danger) !important;
 	}
-	.clue {
-		display: inline-block;
-		border-radius: 999px;
-		background: var(--clue);
-		padding: 2px 8px;
-		font-size: 10.5px;
-		font-weight: 800;
-		letter-spacing: 0.03em;
-		color: #fff;
-		animation: pop 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.4) both;
+	.okc {
+		background: var(--color-grass-soft);
+		color: var(--color-grass) !important;
 	}
-	@keyframes pop {
-		from {
-			opacity: 0;
-			transform: scale(0.7);
-		}
-	}
-	.ctaRow {
-		position: relative;
-		margin-top: 6px;
-	}
-	.cta {
-		display: inline-block;
-		border-radius: 10px;
+	.incta {
+		align-self: flex-start;
+		border-radius: 9px;
 		background: var(--color-brand);
-		padding: 8px 18px;
-		font-size: 13.5px;
-		font-weight: 700;
 		color: #fff;
-		transition: box-shadow 0.3s;
-	}
-	.cta.focus {
-		box-shadow: 0 0 0 3px var(--clue-soft);
-	}
-	.tip {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 6px;
-		margin-top: 10px;
-		border-radius: 10px;
-		background: var(--color-paper);
-		border: 1px solid var(--color-line);
-		padding: 8px 10px;
-		animation: pop 0.4s ease both;
-	}
-	.tipCap {
-		width: 100%;
-		font-size: 10.5px;
+		padding: 7px 14px;
+		font-size: 12px;
 		font-weight: 700;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
+	}
+	.peekrow {
+		min-height: 34px;
+	}
+	.peek {
+		font-size: 11.5px;
+		font-weight: 700;
+		color: var(--color-brand);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+	.where {
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+		border-radius: 9px;
+		border: 1px solid var(--color-line);
+		background: var(--color-paper);
+		padding: 5px 9px;
+	}
+	.wlabel {
+		font-size: 9.5px;
+		font-weight: 800;
 		color: var(--color-faint);
 	}
 	.url {
 		overflow-wrap: anywhere;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 12.5px;
+		font-size: 11.5px;
+		color: var(--color-ink);
+	}
+	.where.bad .url,
+	.where.okc .url {
+		color: inherit;
+	}
+	.lead {
+		opacity: 0.6;
+	}
+	.tags {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 6px;
+	}
+	.tag {
+		flex: none;
+		border-radius: 999px;
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+		font-size: 10px;
+		font-weight: 800;
+		padding: 2px 9px;
+	}
+	.tag.fake {
+		background: var(--color-danger);
+		color: #fff;
+	}
+	.clue {
+		font-size: 11px;
+		font-weight: 700;
 		color: var(--color-muted);
 	}
-	.owner {
-		color: var(--clue);
+
+	/* the sorted inbox */
+	.summary {
+		display: flex;
+		width: min(92vw, 360px);
+		flex-direction: column;
+		gap: 6px;
+		border-radius: 16px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 12px 14px;
+	}
+	.shead {
+		font-size: 11px;
+		font-weight: 800;
+		color: var(--color-muted);
+	}
+	.srow {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		border-top: 1px solid var(--color-line);
+		padding-top: 6px;
+	}
+	.mark {
+		display: grid;
+		flex: none;
+		place-items: center;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
+		font-size: 10px;
+		font-weight: 800;
+	}
+	.mark.good {
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+	}
+	.stext {
+		display: flex;
+		min-width: 0;
+		flex: 1;
+		flex-direction: column;
+		font-size: 11px;
+		color: var(--color-muted);
+	}
+	.stext b {
+		color: var(--color-ink);
+	}
+	.score {
+		margin-top: 2px;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--color-ink);
 	}
 
+	.pop {
+		animation: popin 0.25s ease;
+	}
+	@keyframes popin {
+		from {
+			transform: scale(0.96);
+			opacity: 0;
+		}
+		to {
+			transform: scale(1);
+			opacity: 1;
+		}
+	}
 	@media (prefers-reduced-motion: reduce) {
-		.row.new,
-		.unread,
-		.scan,
-		.clue,
-		.tip {
-			animation: none;
+		.pop {
+			animation-duration: 0.01s;
 		}
-		.scan {
-			display: none;
+	}
+	@media (min-width: 768px) {
+		.wrap {
+			gap: 14px;
 		}
-		.mark,
-		.cta,
-		.chip {
-			transition: none;
+		.btns :global(.cta) {
+			padding: 12px 22px;
+			font-size: 14px;
+		}
+		.pick {
+			font-size: 14px;
+			padding: 12px 20px;
+		}
+		.mail,
+		.summary {
+			width: 440px;
+			padding: 16px 18px;
+		}
+		.fname {
+			font-size: 14px;
+		}
+		.faddr {
+			font-size: 12px;
+		}
+		.subject {
+			font-size: 18px;
+		}
+		.body {
+			font-size: 13.5px;
+		}
+		.url {
+			font-size: 13px;
+		}
+		.stext {
+			font-size: 12.5px;
 		}
 	}
 </style>

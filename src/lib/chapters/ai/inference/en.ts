@@ -6,55 +6,24 @@ const ham = (text: string) => ({ text, spam: false });
 export const en: InferenceText = {
 	title: 'Training and inference',
 	intro: [
-		'A model has two very different moments in its life. First it learns, then it works. Those two moments have names, <b>training</b> and <b>inference</b>.',
-		'<b>Training</b> is the studying. The computer reads lots of examples (here, emails already marked spam or normal) again and again, adjusting itself a tiny bit each time. For a big model that keeps thousands of computers busy for weeks.',
-		'What comes out is the <b>model</b>, basically a file full of numbers. It moves onto a server, and from then on it is frozen. It does not learn anything new while it works.',
-		'<b>Inference</b> is the working. Someone sends a question, the model runs once and answers, done. One answer takes a tiny fraction of a second.',
-		'And it never gets tired. The same frozen model can answer millions of people a day, one quick answer after another.',
-		'[ingat] Cook once, serve many times. Training is cooking a huge pot, slow and expensive. Inference is scooping out a plate, quick, again and again.',
-		"[fyi] Every time you chat with an AI app, you are doing inference. The training happened months earlier on special chips called [[GPUs|ai/gpu]]. Apps that use someone else's model pay a little for every answer, through an [[API|ai/ai-api]].",
-		'If you like, tap one of the emails below and send it to the model yourself. The answer is back before you can blink.'
+		'A model is used in two processes, <b>training</b> to adjust parameters and <b>inference</b> to produce predictions.',
+		'<b>Training</b> adjusts model parameters using training data. Time and cost depend on the model, data, and hardware.',
+		'Training produces a model with adjusted parameters. In this example they remain fixed during inference. Updating them requires more training.',
+		'<b>Inference</b> uses the model to process new input. This spam filter reads words in an email and predicts spam or not spam.',
+		'[fyi] An application can run its own model or use an [[AI API|ai/ai-api]]. Inference costs depend on hardware, model, and usage.',
+		'[ingat] Training adjusts model parameters. Inference uses the model to produce predictions or new outputs.',
+		'Train the spam filter, deploy it to the simulated server, and try some emails. Compare training with inference.'
 	],
 	reactions: {
-		ask: 'Answered in less than a millisecond! It did not study anything new, it just looked the words up in what it already learned. That is inference.'
+		training:
+			'The filter counts words in spam and non-spam emails. Displayed time and cost are illustrations for this exercise.',
+		trained:
+			'Training is complete. The model stores word counts to use when predicting new emails.',
+		ask: 'The prediction uses the trained model. This input does not change its parameters.',
+		typed:
+			'Your own sentence, one it has never seen, and still an instant answer. It only knows words from training, so a word it never met simply counts for nothing.',
+		rush: 'Multiple inference requests use the same model. Total cost still grows with usage.'
 	},
-	panels: [
-		{
-			tag: 'Two moments',
-			title: 'Learn first, then work',
-			body: 'The top half is where the model learns, the bottom half is where it works for people. They happen at different times, often on different machines.'
-		},
-		{
-			tag: 'Training',
-			title: 'The long study',
-			body: 'Examples flow into the machines, and the model adjusts itself after each one. The bar is slow on purpose, real training takes days or weeks.'
-		},
-		{
-			tag: 'The model',
-			title: 'A frozen file of numbers',
-			body: 'All that studying ends up as one file. It gets copied onto a server, and from now on it only answers, it does not learn.'
-		},
-		{
-			tag: 'Inference',
-			title: 'One question, one quick answer',
-			body: 'A phone sends an email to the server, the model checks its words against what it learned, and replies spam or not spam in under a millisecond.'
-		},
-		{
-			tag: 'At scale',
-			title: 'Again and again',
-			body: 'Each answer is tiny, but there are millions of them. That is why companies care about the cost of inference too, not just training.'
-		},
-		{
-			tag: 'Remember',
-			title: 'Cook once, serve many times',
-			body: 'Training happens once (or once in a while, for a new version) and is slow. Inference happens on every question and is fast.'
-		},
-		{
-			tag: 'Try it',
-			title: 'Ask the model',
-			body: 'Tap an email. The model has never seen it, but it still answers instantly from what it learned.'
-		}
-	],
 	examples: [
 		spam('win a free phone now'),
 		ham('the meeting moved to monday'),
@@ -79,25 +48,32 @@ export const en: InferenceText = {
 		'click this link to win',
 		'dinner with the team tonight'
 	],
-	trainTitle: 'Training, happens once',
-	inferTitle: 'Inference, every question',
+	trainTitle: 'Training the model',
+	trainBtn: 'Train the model',
 	reading: 'Reading example {n} of {total}',
-	day: 'Day {n} of computer time',
+	days: 'Computers busy',
+	daysValue: '{n} days',
+	cost: 'Bill so far',
+	costValue: '${n} million',
+	decimal: '.',
+	scaleNote: 'Meters show a big model at real scale',
+	trainedOnce: 'Trained once, {days} days and {cost}',
 	modelFile: 'spam model',
-	frozen: 'frozen',
+	modelInfo: '{n} words learned',
+	frozen: 'frozen, not learning',
 	you: 'You',
 	server: 'Server',
+	inferTitle: 'Using the model for inference',
+	askHint: 'Tap an email or type your own',
+	placeholder: 'Type an email line',
+	askBtn: 'Ask',
 	spam: 'spam',
 	ham: 'not spam',
-	spamTag: 'spam',
-	hamTag: 'normal',
 	fast: 'under 1 ms',
-	answered: '{n} answered',
-	sep: ',',
-	longBar: 'Training',
-	shortBar: 'One answer',
-	longTime: 'weeks',
-	shortTime: 'a blink',
-	rule: 'Cook once, serve many times',
-	askHint: 'Tap an email to ask the model'
+	ms: '{n} ms',
+	answered: '{n} questions answered',
+	rushBtn: 'Send 1,000 at once',
+	rushDone: '1,000 answers in {time}',
+	spamTag: 'spam',
+	hamTag: 'normal'
 };

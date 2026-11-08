@@ -5,9 +5,10 @@ import { en } from './en';
 
 export const whatDevops: Lesson = {
 	id: 'what-devops',
-	mood: 'calm',
-	moods: ['calm', 'thinking', 'worried', 'idea', 'happy', 'thinking', 'wink', 'calm', 'excited'],
-	reactionMood: { old: 'worried', new: 'happy' },
+	mood: 'thinking',
+	moods: ['calm', 'worried', 'sad', 'idea', 'wink', 'happy'],
+	reactionMood: { yearly: 'worried', middle: 'thinking', daily: 'happy', both: 'excited' },
+	playable: true,
 	stage: WhatDevopsStage,
 	text: { id, en }
 };

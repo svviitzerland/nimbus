@@ -6,23 +6,17 @@ import { en } from './en';
 export const languages: Lesson = {
 	id: 'languages',
 	mood: 'calm',
-	moods: [
-		'calm',
-		'surprised',
-		'idea',
-		'thinking',
-		'happy',
-		'thinking',
-		'wink',
-		'wink',
-		'idea',
-		'excited'
-	],
+	moods: ['calm', 'surprised', 'thinking', 'idea', 'wink', 'happy', 'excited'],
 	reactionMood: {
 		machine: 'surprised',
 		c: 'thinking',
-		python: 'happy'
+		python: 'happy',
+		data: 'happy',
+		web: 'wink',
+		fast: 'excited',
+		wrong: 'thinking'
 	},
+	playable: true,
 	stage: LanguagesStage,
 	text: { id, en }
 };

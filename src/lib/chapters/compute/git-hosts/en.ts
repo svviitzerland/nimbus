@@ -1,11 +1,12 @@
 import type { GitHostsText } from '../../types';
 
 export const en: GitHostsText = {
-	title: 'Not only GitHub',
+	title: 'Git hosting services',
 	intro: [
 		'GitHub is the most famous, but it is not the only one. Git is the tool, and the place you keep it can vary. There is <b>GitLab</b>, <b>Bitbucket</b>, even <b>Gitea</b> that you install on your own server.',
 		'The key thing is they all speak the same Git. You can move the same repo from one to another without changing how you commit or push. Tap each service to see its own flavour.',
-		'Then one question, if any of them works, why do most people still pick GitHub? Open the answer.'
+		'Then one question, if any of them works, why do most people still pick GitHub? Open the answer.',
+		'[ingat] Git stays Git even when the repository host changes.'
 	],
 	reactions: {
 		github:

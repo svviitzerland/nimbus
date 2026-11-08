@@ -6,8 +6,9 @@ export const en: ContainerText = {
 		'Your app does not run alone. It needs a language, libraries, and config files. Move it to another computer, forget one piece, instant error. The classic, "works on my laptop".',
 		'So everything it needs gets wrapped into one package called a <b>container</b>. Look at the stack. The machine sits at the bottom, <b>Docker</b> sits on it as the base that runs containers, and on top the containers stand in a row, each carrying its own needs.',
 		'<b>Docker</b> is the most common container tool, nearly everyone starts here. When there is more than one machine, <b>Docker Swarm</b> makes a few machines run containers together.',
-		'Then there is <b>Kubernetes</b>, and that is a different world. A brain called the <b>control plane</b> manages many machines holding hundreds of containers, with its own automatic scaling and failover. Companies the size of Spotify or Gojek run their services on Kubernetes. And note this, Docker does not have to come with Kubernetes. Many people assume they are a bundle, yet Docker stands perfectly well on its own, and your small project does fine with plain Docker.',
-		'Now it is your app’s turn to be packed. Turn it into an image, then run the exact same copy in three different places.'
+		'<b>Kubernetes</b> coordinates containers across machines through a control plane. It can maintain replicas and replace failed instances. Docker does not require Kubernetes. We will try [[Kubernetes|devops/kubernetes]] after understanding containers.',
+		'Now it is your app’s turn to be packed. Turn it into an image, then run the exact same copy in three different places.',
+		'[ingat] Containers package apps and their dependencies while sharing the host kernel.'
 	],
 	reactions: {
 		built:

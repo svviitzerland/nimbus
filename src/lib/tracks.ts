@@ -100,6 +100,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'network/protocols',
 			'network/mac',
 			'network/subnet',
+			'network/arp',
 			'network/dhcp',
 			'network/nat',
 			'network/ipv6',
@@ -113,9 +114,11 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		keys: [
 			'web/http',
 			'web/browser',
+			'web/devtools',
 			'web/html',
 			'web/css',
 			'web/js',
+			'web/forms',
 			'web/dom',
 			'web/responsive',
 			'web/a11y',
@@ -131,6 +134,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'web/components',
 			'web/rendering',
 			'web/build-tools',
+			'web/testing',
 			'web/backend-what',
 			'foundations/api',
 			'foundations/apiRest',
@@ -188,6 +192,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		id: 'Cloud',
 		en: 'Cloud',
 		keys: [
+			'cloud/data-center',
 			'cloud/cloud',
 			'cloud/remote-access',
 			'cloud/services',
@@ -251,6 +256,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		en: 'Security Basics',
 		keys: [
 			'security/cia',
+			'security/risk',
 			'security/threats',
 			'security/hat-colors',
 			'networking/iam',
@@ -276,6 +282,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		en: 'Attacks and Defense',
 		keys: [
 			'security/sniffing',
+			'security/mitm',
 			'security/phishing',
 			'security/brute-force',
 			'security/web-attacks',
@@ -284,8 +291,29 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'security/hardening',
 			'security/ids',
 			'security/detection',
-			'security/incident',
+			'security/incident'
+		]
+	},
+	{
+		id: 'Rujukan dan Penilaian Keamanan',
+		en: 'Security References and Assessment',
+		keys: [
+			'security/owasp',
+			'security/nist',
+			'security/cve-cwe',
+			'security/cvss',
+			'security/vulnerability-management'
+		]
+	},
+	{
+		id: 'Lab Keamanan Web',
+		en: 'Web Security Lab',
+		keys: [
 			'security/pentest',
+			'security/burp-suite',
+			'security/access-control',
+			'security/csrf',
+			'security/ssrf',
 			'security/ctf'
 		]
 	},
@@ -302,6 +330,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'devops/config-mgmt',
 			'devops/kubernetes',
 			'devops/release',
+			'devops/secrets',
 			'compute/monitoring',
 			'devops/logs',
 			'devops/on-call',
@@ -319,6 +348,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'ai/supervised',
 			'ai/overfitting',
 			'ai/evaluation',
+			'ai/data-leakage',
 			'ai/inference'
 		]
 	},
@@ -388,6 +418,7 @@ const topicTracks: TrackDef[] = [
 		},
 		modules: [
 			'internet',
+			'net-essentials',
 			'net-basics',
 			'addressing',
 			'delivery',
@@ -410,8 +441,10 @@ const topicTracks: TrackDef[] = [
 		modules: [
 			'code',
 			'internet',
+			'net-essentials',
 			'web-how',
 			'frontend',
+			'web-debug',
 			'design',
 			'frameworks',
 			'backend',
@@ -455,13 +488,18 @@ const topicTracks: TrackDef[] = [
 			en: 'How attackers think, how data gets locked, and how to keep a system safe.'
 		},
 		modules: [
+			'code',
 			'internet',
 			'net-essentials',
+			'linux',
+			'web-security',
 			'sec-mindset',
 			'identity',
 			'crypto',
 			'attacks',
 			'defense',
+			'sec-frameworks',
+			'vulnerabilities',
 			'sec-practice'
 		]
 	},

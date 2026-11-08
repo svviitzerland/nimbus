@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { lang, t, setLang } from '$lib/i18n';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 	import Nim from '$lib/components/Nim.svelte';
@@ -35,7 +36,7 @@
 		path.cancelDetour();
 		const r = path.firstOpen(track);
 		// The view transition in the root layout glides Nim from here to the lesson corner.
-		if (r) goto(`/${r.chapterId}/${r.lessonId}`);
+		if (r) goto(resolve('/[chapter]/[lesson]', { chapter: r.chapterId, lesson: r.lessonId }));
 	}
 	function onKey(e: KeyboardEvent) {
 		if (e.code === 'Space' && !isLast) {
@@ -119,6 +120,8 @@
 							in:fade={{ duration: 220 }}
 							class="mt-1.5 min-h-[6.5rem] text-[15.5px] leading-relaxed text-ink/90 md:min-h-[5rem]"
 						>
+							<!-- Curated lesson markup, never learner input. -->
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							{@html lines[shown]}
 						</p>
 					{/key}

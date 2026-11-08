@@ -6,7 +6,8 @@ export const en: ScalingText = {
 		'Your traffic keeps climbing and a single ordinary server starts to struggle. There are two ways to add power, and they work in very different styles.',
 		'The first is <b>vertical scaling</b>. You make one machine stronger, adding CPU, RAM, and disk. It is easy to grow, but it hits a ceiling, and shrinking it back is awkward because the machine has to be switched off first.',
 		'The second is <b>horizontal scaling</b>. Instead of one big machine, you run many identical machines and share the load through a load balancer. Adding or removing is easy, and if one dies the rest keep going.',
-		'These two sides start from the exact same machine. Raise the visitor count until both struggle, then rescue the left side with Upgrade and the right side with Add.'
+		'These two sides start from the exact same machine. Raise the visitor count until both struggle, then rescue the left side with Upgrade and the right side with Add.',
+		'[ingat] Vertical scaling enlarges one server. Horizontal scaling adds more servers.'
 	],
 	reactions: {
 		surge:
@@ -22,30 +23,33 @@ export const en: ScalingText = {
 	},
 	tabVertical: 'Vertical',
 	tabHorizontal: 'Horizontal',
-	hintVertical: 'Make one machine stronger',
-	hintHorizontal: 'Share load across machines',
+	hintVertical: 'Increase one server’s capacity',
+	hintHorizontal: 'Increase the number of servers',
 	trafficLabel: 'Visitors',
 	levelCalm: 'Quiet',
 	levelBusy: 'Busy',
-	levelFlood: 'Flooding',
-	statusOk: 'Fine',
+	levelFlood: 'Heavy traffic',
+	statusOk: 'Enough capacity',
 	statusOver: 'Overwhelmed',
-	promptRaise: 'Both sides are calm. Raise the visitor count and see who copes.',
-	promptRescue: 'The servers are overwhelmed. Save the left side with Upgrade, the right side with Add.',
-	promptDone: 'Both are strong again, in very different ways. The left machine grew bigger, the right side got more machines.',
+	promptRaise: 'Add visitors to see the capacity limit of each system.',
+	promptRescue: 'Increase the server capacity on the left or the server count on the right.',
+	promptDone:
+		'Both are strong again, in very different ways. The left machine grew bigger, the right side got more machines.',
 	specCpu: 'CPU',
 	specRam: 'RAM',
 	specDisk: 'Disk',
 	perMachineSpec: 'Each machine 2 vCPU, 4 GB',
-	capacity: 'handles ~{n} visitors',
+	capacity: 'Capacity of about {n} visitors',
 	upgrade: 'Upgrade',
 	downgrade: 'Shrink',
-	maxedOut: 'Maxed out',
+	maxedOut: 'Maximum capacity',
 	siteDown: 'Site down briefly',
 	addMachine: 'Add',
 	removeMachine: 'Remove',
 	balancerLabel: 'Load balancer',
 	machineLabel: 'Machine {n}',
-	tradeoffVertical: 'Simple, but it hits a ceiling and shrinking it is awkward since the machine must go off first.',
-	tradeoffHorizontal: 'Flexible, easy to add or remove, and survives a machine dying. It needs a load balancer.'
+	tradeoffVertical:
+		'Simple, but it hits a ceiling and shrinking it is awkward since the machine must go off first.',
+	tradeoffHorizontal:
+		'Flexible, easy to add or remove, and survives a machine dying. It needs a load balancer.'
 };

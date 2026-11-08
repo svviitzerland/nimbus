@@ -1,525 +1,563 @@
 <script lang="ts">
-	// Guided Wireshark lesson. A laptop loads nimbus.com while packets fly in and out, then its
-	// screen turns into a capture that fills up by itself, and one packet is unwrapped below it
-	// like a parcel inside a parcel. On the last beat the learner may tap any row to unwrap it.
-	import { onMount } from 'svelte';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import { SvelteSet } from 'svelte/reactivity';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { WiresharkText } from '$lib/chapters/network/wireshark/types';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as WiresharkText);
 
-	const STEP_OF_BEAT = [0, 1, 2, 3, 4, 4, 4];
-	const last = $derived(beat >= tx.intro.length - 1);
-	let peek = $state<number | null>(null);
-	let picked = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const beatStep = $derived(STEP_OF_BEAT[Math.min(beat, STEP_OF_BEAT.length - 1)]);
-	const step = $derived(peek ?? beatStep);
+	// ---- A real looking capture of one page load (data, not copy) ----
+	const LAPTOP = { ip: '192.168.1.23', mac: '3c:22:fb:9a:10:4e' };
+	const ROUTER = { ip: '192.168.1.1', mac: 'a4:91:b1:0c:22:7f' };
+	const SERVER_IP = '76.76.21.21';
+	const CIPHER = '17 03 03 01 8f a2 9c 4e 0b 71 e3 5d c8 26 9a f0 44 b7 1e 63';
 
-	// The nine packets of one page load (real looking protocol data, not copy)
-	type Kind = 'dns' | 'tcp' | 'hello' | 'data';
-	const ME = '192.168.1.23';
-	const PACKETS: { proto: string; info: string; kind: Kind; ip: string; port: string }[] = [
+	type Kind = 'dns' | 'tcp' | 'tls' | 'data';
+	type Pkt = {
+		kind: Kind;
+		proto: string;
+		out: boolean; // sent by your laptop, or coming back to it
+		peer: string; // the other end's IP
+		size: number;
+		info: string;
+		l4: string;
+		l7: string | null;
+	};
+	const PKTS: Pkt[] = [
 		{
+			kind: 'dns',
 			proto: 'DNS',
+			out: true,
+			peer: ROUTER.ip,
+			size: 72,
 			info: 'Standard query A nimbus.com',
-			kind: 'dns',
-			ip: `${ME} → 192.168.1.1`,
-			port: 'UDP 53'
+			l4: 'UDP, Src Port 52114, Dst Port 53',
+			l7: 'DNS, Standard query A nimbus.com'
 		},
 		{
+			kind: 'dns',
 			proto: 'DNS',
+			out: false,
+			peer: ROUTER.ip,
+			size: 88,
 			info: 'Standard query response A 76.76.21.21',
-			kind: 'dns',
-			ip: `192.168.1.1 → ${ME}`,
-			port: 'UDP 53'
+			l4: 'UDP, Src Port 53, Dst Port 52114',
+			l7: 'DNS, response nimbus.com A 76.76.21.21'
 		},
 		{
-			proto: 'TCP',
-			info: '51234 → 443 [SYN]',
 			kind: 'tcp',
-			ip: `${ME} → 76.76.21.21`,
-			port: 'TCP 443'
-		},
-		{
 			proto: 'TCP',
-			info: '443 → 51234 [SYN, ACK]',
-			kind: 'tcp',
-			ip: `76.76.21.21 → ${ME}`,
-			port: 'TCP 443'
+			out: true,
+			peer: SERVER_IP,
+			size: 78,
+			info: '52116 → 443 [SYN]',
+			l4: 'TCP, Src Port 52116, Dst Port 443, Flags [SYN]',
+			l7: null
 		},
 		{
+			kind: 'tcp',
 			proto: 'TCP',
-			info: '51234 → 443 [ACK]',
+			out: false,
+			peer: SERVER_IP,
+			size: 74,
+			info: '443 → 52116 [SYN, ACK]',
+			l4: 'TCP, Src Port 443, Dst Port 52116, Flags [SYN, ACK]',
+			l7: null
+		},
+		{
 			kind: 'tcp',
-			ip: `${ME} → 76.76.21.21`,
-			port: 'TCP 443'
+			proto: 'TCP',
+			out: true,
+			peer: SERVER_IP,
+			size: 66,
+			info: '52116 → 443 [ACK]',
+			l4: 'TCP, Src Port 52116, Dst Port 443, Flags [ACK]',
+			l7: null
 		},
 		{
-			proto: 'TLS',
-			info: 'Client Hello (nimbus.com)',
-			kind: 'hello',
-			ip: `${ME} → 76.76.21.21`,
-			port: 'TCP 443'
+			kind: 'tls',
+			proto: 'TLSv1.3',
+			out: true,
+			peer: SERVER_IP,
+			size: 583,
+			info: 'Client Hello (SNI=nimbus.com)',
+			l4: 'TCP, Src Port 52116, Dst Port 443',
+			l7: 'TLSv1.3, Client Hello, SNI nimbus.com'
 		},
 		{
-			proto: 'TLS',
+			kind: 'tls',
+			proto: 'TLSv1.3',
+			out: false,
+			peer: SERVER_IP,
+			size: 1514,
 			info: 'Server Hello, Certificate',
-			kind: 'hello',
-			ip: `76.76.21.21 → ${ME}`,
-			port: 'TCP 443'
+			l4: 'TCP, Src Port 443, Dst Port 52116',
+			l7: 'TLSv1.3, Server Hello, Certificate nimbus.com'
 		},
 		{
-			proto: 'TLS',
-			info: 'Application Data',
 			kind: 'data',
-			ip: `${ME} → 76.76.21.21`,
-			port: 'TCP 443'
+			proto: 'TLSv1.3',
+			out: true,
+			peer: SERVER_IP,
+			size: 410,
+			info: 'Application Data',
+			l4: 'TCP, Src Port 52116, Dst Port 443',
+			l7: 'TLSv1.3, Application Data (encrypted)'
 		},
 		{
-			proto: 'TLS',
-			info: 'Application Data',
 			kind: 'data',
-			ip: `76.76.21.21 → ${ME}`,
-			port: 'TCP 443'
+			proto: 'TLSv1.3',
+			out: false,
+			peer: SERVER_IP,
+			size: 1514,
+			info: 'Application Data',
+			l4: 'TCP, Src Port 443, Dst Port 52116',
+			l7: 'TLSv1.3, Application Data (encrypted)'
 		}
 	];
-	const MAC = (i: number) =>
-		PACKETS[i].ip.startsWith(ME) ? 'a4:83:e7 → 3c:22:fb' : '3c:22:fb → a4:83:e7';
 
-	// rows fill in by themselves when the capture starts
-	let count = $state(0);
-	let timer: ReturnType<typeof setInterval> | undefined;
-	$effect(() => {
-		const capturing = step >= 1;
-		clearInterval(timer);
-		if (!capturing) {
-			count = 0;
-			return;
-		}
-		const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-		if (reduced || step >= 2) {
-			count = PACKETS.length;
-			return;
-		}
+	// Real display filters. Note that "tcp" also matches TLS, since TLS rides on TCP.
+	type Filter = 'all' | 'dns' | 'tcp' | 'tls';
+	const FILTERS: Filter[] = ['all', 'dns', 'tcp', 'tls'];
+	const MATCH: Record<Filter, Kind[]> = {
+		all: ['dns', 'tcp', 'tls', 'data'],
+		dns: ['dns'],
+		tcp: ['tcp', 'tls', 'data'],
+		tls: ['tls', 'data']
+	};
+
+	let count = $state(0); // how many packets have arrived so far
+	let capturing = $state(false);
+	let filter = $state<Filter>('all');
+	let picked = $state<number | null>(null);
+	const opened = new SvelteSet<Kind>();
+	let done = false;
+
+	const rows = $derived(
+		PKTS.slice(0, count)
+			.map((p, i) => ({ p, i }))
+			.filter(({ p }) => MATCH[filter].includes(p.kind))
+	);
+
+	let timers: ReturnType<typeof setTimeout>[] = [];
+	$effect(() => () => timers.forEach(clearTimeout));
+	const reduced =
+		typeof window !== 'undefined' &&
+		window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+
+	function capture() {
+		if (capturing) return;
+		timers.forEach(clearTimeout);
+		timers = [];
 		count = 0;
-		timer = setInterval(() => {
-			count += 1;
-			if (count >= PACKETS.length) clearInterval(timer);
-		}, 420);
-		return () => clearInterval(timer);
-	});
-
-	// which packet is unwrapped below the laptop
-	const open = $derived(
-		last && picked !== null && peek === null ? picked : step === 2 ? 0 : step >= 3 ? 7 : null
-	);
-
-	const steps = $derived(
-		last && picked !== null
-			? [
-					...tx.steps,
-					{
-						tag: PACKETS[picked].proto,
-						title: tx.packetTitle.replace('{n}', String(picked + 1)),
-						body: tx.packetNotes[picked]
-					}
-				]
-			: tx.steps
-	);
-	const active = $derived(last && picked !== null && peek === null ? tx.steps.length : step);
-
-	function pick(i: number) {
-		if (!last) return;
-		picked = i;
-		peek = null;
-		onstate?.(PACKETS[i].kind);
+		picked = null;
+		capturing = true;
+		const gap = reduced ? 30 : 280;
+		PKTS.forEach((_, i) => timers.push(setTimeout(() => (count = i + 1), 200 + i * gap)));
+		timers.push(
+			setTimeout(
+				() => {
+					capturing = false;
+					onstate?.('capture');
+				},
+				260 + PKTS.length * gap
+			)
+		);
 	}
 
-	onMount(() => {
-		onshow?.(true);
-		oncomplete?.();
-	});
+	function open(i: number) {
+		picked = i;
+		const k = PKTS[i].kind;
+		opened.add(k);
+		onstate?.(k === 'tls' ? 'hello' : k);
+		if (!done && opened.has('dns') && opened.has('tcp') && opened.has('data')) {
+			done = true;
+			oncomplete?.();
+		}
+	}
+
+	type Layer = { n: 1 | 2 | 3 | 4 | 7; line: string };
+	function layersOf(i: number): Layer[] {
+		const p = PKTS[i];
+		const src = p.out ? LAPTOP.ip : p.peer;
+		const dst = p.out ? p.peer : LAPTOP.ip;
+		const smac = p.out ? LAPTOP.mac : ROUTER.mac;
+		const dmac = p.out ? ROUTER.mac : LAPTOP.mac;
+		const out: Layer[] = [
+			{ n: 1, line: `Frame ${i + 1}, ${p.size} bytes on wire` },
+			{ n: 2, line: `Ethernet II, Src ${smac}, Dst ${dmac}` },
+			{ n: 3, line: `IPv4, Src ${src}, Dst ${dst}` },
+			{ n: 4, line: p.l4 }
+		];
+		if (p.l7) out.push({ n: 7, line: p.l7 });
+		return out;
+	}
+	const detail = $derived(picked === null ? [] : layersOf(picked));
+	const pickedPkt = $derived(picked === null ? null : PKTS[picked]);
+
+	const status = $derived(
+		capturing ? tx.capturing : count ? tx.captured.replace('{n}', String(count)) : tx.idleHint
+	);
 </script>
 
-{#snippet scene(_: number)}
-	<div class="flex w-full max-w-[440px] flex-col items-center gap-3">
-		<div class="laptop">
-			<div class="lid">
-				<div class="screen">
-					{#if step === 0}
-						<div class="browser">
-							<div class="addr"><span class="lockico"></span>nimbus.com</div>
-							<div class="page">
-								<i class="w60"></i><i class="w90"></i><i class="w75"></i>
-								<div class="cards"><i></i><i></i></div>
-							</div>
-						</div>
-					{:else}
-						<div class="ws">
-							<div class="wsbar"><span class="rec"></span>{tx.capturing}</div>
-							<div class="row head">
-								<span class="no">{tx.colNo}</span><span class="pr">{tx.colProto}</span><span
-									class="inf">{tx.colInfo}</span
-								>
-							</div>
-							{#each PACKETS.slice(0, count) as p, i (i)}
-								<button
-									type="button"
-									class="row {p.kind}"
-									class:sel={open === i}
-									class:tap={last}
-									tabindex={last ? 0 : -1}
-									onclick={() => pick(i)}
-								>
-									<span class="no">{i + 1}</span><span class="pr">{p.proto}</span><span class="inf"
-										>{p.info}</span
-									>
-								</button>
-							{/each}
-						</div>
-					{/if}
-				</div>
-			</div>
-			<div class="base"></div>
-			{#if step === 0}
-				<div class="fly" aria-hidden="true">
-					{#each [0, 1, 2, 3] as k (k)}
-						<span class="env" class:back={k % 2 === 1} style="animation-delay:{k * 0.55}s"></span>
-					{/each}
-				</div>
-			{/if}
+<div class="wrap">
+	<div class="top">
+		<button type="button" class="cta" disabled={capturing} onclick={capture}>
+			<span class="rec" class:on={capturing}></span>
+			{count && !capturing ? tx.againBtn : tx.captureBtn}
+		</button>
+		<span class="status">{status}</span>
+	</div>
+
+	<div class="shark">
+		<div class="filters">
+			<span class="flabel">{tx.filterLabel}</span>
+			{#each FILTERS as f (f)}
+				<button
+					type="button"
+					class="fchip"
+					class:sel={filter === f}
+					aria-pressed={filter === f}
+					onclick={() => (filter = f)}>{f === 'all' ? tx.filterAll : f}</button
+				>
+			{/each}
 		</div>
 
-		{#if open !== null}
-			{@const p = PACKETS[open]}
-			{@const content = tx.contents[open]}
-			<div class="parcel">
-				<div class="wrap l2">
-					<div class="lh"><span>{tx.layerNames.frame}</span><code>{MAC(open)}</code></div>
-					<div class="wrap l3">
-						<div class="lh"><span>{tx.layerNames.ip}</span><code>{p.ip}</code></div>
-						<div class="wrap l4">
-							<div class="lh"><span>{tx.layerNames.port}</span><code>{p.port}</code></div>
-							<div class="wrap core" class:locked={!content}>
-								<div class="lh">
-									<span>{tx.layerNames.content}</span>
-									{#if content}
-										<code>{content}</code>
-									{:else}
-										<code class="noise"
-											><span class="lockico dark"></span>{tx.lockedLabel} 7f3a9ce1b2…</code
-										>
-									{/if}
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
+		<div class="list">
+			<div class="lhead" aria-hidden="true">
+				<span class="c-no">{tx.colNo}</span>
+				<span class="c-proto">{tx.colProto}</span>
+				<span class="c-info">{tx.colInfo}</span>
 			</div>
+			{#each rows as { p, i } (i)}
+				<button
+					type="button"
+					aria-pressed={picked === i}
+					class="prow {p.kind}"
+					class:sel={picked === i}
+					onclick={() => open(i)}
+				>
+					<span class="c-no">{i + 1}</span>
+					<span class="c-proto">{p.proto}</span>
+					<span class="c-info">
+						{p.info}
+						<small>{p.out ? LAPTOP.ip : p.peer} → {p.out ? p.peer : LAPTOP.ip}</small>
+					</span>
+				</button>
+			{:else}
+				<div class="empty">{tx.idleHint}</div>
+			{/each}
+		</div>
+	</div>
+
+	<div class="detail">
+		{#if pickedPkt && picked !== null}
+			{#key picked}
+				<p class="pnote">{tx.packetNotes[picked]}</p>
+				<ol class="layers">
+					{#each detail as l, j (l.n)}
+						<li class="layer l{l.n}" style="animation-delay:{j * 70}ms">
+							<span class="badge"
+								>{tx.layerLabel.replace('{n}', String(l.n))}
+								<b>{tx.layerNames[l.n]}</b></span
+							>
+							<code>{l.line}</code>
+							{#if l.n === 7 && pickedPkt.kind === 'data'}
+								<code class="cipher">{CIPHER}</code>
+							{/if}
+						</li>
+					{/each}
+				</ol>
+			{/key}
+		{:else}
+			<p class="hint">{count ? tx.pickHint : ''}</p>
 		{/if}
 	</div>
-{/snippet}
-
-<div class="flex max-h-full w-full flex-col items-center gap-3 overflow-y-auto pb-28 md:pb-0">
-	<Guide {steps} {active} onselect={(i) => (peek = i)} visual={scene} />
 </div>
 
 <style>
-	.laptop {
-		position: relative;
-		width: 100%;
-		max-width: 400px;
-	}
-	.lid {
-		border-radius: 14px 14px 4px 4px;
-		background: var(--color-ink);
-		padding: 9px 9px 10px;
-	}
-	.screen {
-		height: 214px;
-		overflow: hidden;
-		border-radius: 6px;
-		background: var(--color-card);
-	}
-	.base {
-		height: 12px;
-		margin: 0 -18px;
-		border-radius: 2px 2px 12px 12px;
-		background: color-mix(in srgb, var(--color-ink) 75%, var(--color-faint));
-	}
-	.browser {
-		padding: 10px;
-	}
-	.addr {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		border-radius: 999px;
-		background: var(--color-paper);
-		padding: 5px 12px;
-		font-size: 11.5px;
-		color: var(--color-muted);
-	}
-	.lockico {
-		position: relative;
-		display: inline-block;
-		width: 8px;
-		height: 7px;
-		margin-top: 3px;
-		border-radius: 1.5px;
-		background: var(--color-grass);
-	}
-	.lockico::before {
-		content: '';
-		position: absolute;
-		left: 1px;
-		top: -5px;
-		width: 6px;
-		height: 6px;
-		border: 1.5px solid var(--color-grass);
-		border-bottom: none;
-		border-radius: 4px 4px 0 0;
-		box-sizing: border-box;
-	}
-	.lockico.dark {
-		background: var(--color-muted);
-		margin-right: 5px;
-	}
-	.lockico.dark::before {
-		border-color: var(--color-muted);
-	}
-	.page {
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		padding: 16px 6px 0;
-	}
-	.page i {
-		display: block;
-		height: 9px;
-		border-radius: 5px;
-		background: var(--color-line);
-	}
-	.page i.w60 {
-		width: 60%;
-		height: 14px;
-		background: var(--color-brand-soft);
-	}
-	.page i.w90 {
-		width: 90%;
-	}
-	.page i.w75 {
-		width: 75%;
-	}
-	.cards {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 8px;
-		margin-top: 6px;
-	}
-	.cards i {
-		height: 64px;
-		border-radius: 8px;
-	}
-	.fly {
-		position: absolute;
-		top: 40%;
-		right: -6px;
-		width: 60px;
-		height: 60px;
-		pointer-events: none;
-	}
-	.env {
-		position: absolute;
-		left: 0;
-		top: 22px;
-		width: 18px;
-		height: 12px;
-		border-radius: 2px;
-		border: 1.5px solid var(--color-brand);
-		background: var(--color-card);
-		opacity: 0;
-		animation: out 2.2s ease-in-out infinite;
-	}
-	.env.back {
-		border-color: var(--color-grass);
-		animation-name: in;
-	}
-	@keyframes out {
-		0% {
-			transform: translate(0, 0);
-			opacity: 0;
-		}
-		20% {
-			opacity: 1;
-		}
-		100% {
-			transform: translate(46px, -30px);
-			opacity: 0;
-		}
-	}
-	@keyframes in {
-		0% {
-			transform: translate(46px, 26px);
-			opacity: 0;
-		}
-		80% {
-			opacity: 1;
-		}
-		100% {
-			transform: translate(0, 0);
-			opacity: 0;
-		}
-	}
-	.ws {
-		display: flex;
-		flex-direction: column;
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 10.5px;
-	}
-	.wsbar {
-		display: flex;
-		align-items: center;
-		gap: 6px;
-		padding: 5px 9px;
-		border-bottom: 1px solid var(--color-line);
-		font-family: var(--font-sans);
-		font-size: 11px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	.rec {
-		width: 7px;
-		height: 7px;
-		border-radius: 50%;
-		background: var(--color-danger);
-	}
-	.row {
-		display: grid;
-		grid-template-columns: 22px 52px 1fr;
-		gap: 4px;
-		width: 100%;
-		padding: 2.5px 9px;
-		text-align: left;
-		color: var(--color-ink);
-		animation: rowin 0.3s ease-out;
-		cursor: default;
-	}
-	.row.tap {
-		cursor: pointer;
-	}
-	.row.head {
-		font-family: var(--font-sans);
-		font-weight: 700;
-		font-size: 10px;
-		color: var(--color-faint);
-		animation: none;
-	}
-	.row .inf {
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-	}
-	.row.dns {
-		background: var(--color-brand-soft);
-	}
-	.row.tcp {
-		background: var(--color-paper);
-	}
-	.row.hello,
-	.row.data {
-		background: var(--color-grass-soft);
-	}
-	.row.sel {
-		background: var(--color-ink);
-		color: var(--color-card);
-	}
-	.row.tap:hover:not(.sel) {
-		outline: 1px solid var(--color-brand);
-		outline-offset: -1px;
-	}
-	@keyframes rowin {
-		from {
-			opacity: 0;
-			transform: translateY(-4px);
-		}
-	}
-	.parcel {
-		width: 100%;
-		max-width: 400px;
-		animation: rowin 0.35s ease-out;
-	}
 	.wrap {
-		border-radius: 12px;
-		border: 1.5px solid var(--color-line);
-		padding: 5px 7px 7px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+		width: min(94vw, 410px);
+		max-height: 100%;
+		overflow-y: auto;
+		padding-bottom: 4px;
 	}
-	.wrap .wrap {
-		margin-top: 4px;
-	}
-	.l2 {
-		background: var(--color-amber-soft);
-		border-color: color-mix(in srgb, var(--color-amber) 50%, transparent);
-	}
-	.l3 {
-		background: var(--color-brand-soft);
-		border-color: color-mix(in srgb, var(--color-brand) 40%, transparent);
-	}
-	.l4 {
-		background: var(--color-grass-soft);
-		border-color: color-mix(in srgb, var(--color-grass) 45%, transparent);
-	}
-	.core {
-		background: var(--color-card);
-	}
-	.core.locked {
-		background: var(--color-paper);
-	}
-	.lh {
+	.top {
 		display: flex;
 		flex-wrap: wrap;
-		align-items: baseline;
-		justify-content: space-between;
-		gap: 2px 8px;
-		font-size: 11px;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
 	}
-	.lh span {
-		font-weight: 700;
-		color: var(--color-ink);
+	.cta {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		border-radius: 12px;
+		background: var(--btn-primary);
+		color: #fff;
+		padding: 10px 16px;
+		font-size: 13px;
+		font-weight: 600;
+		transition: filter 0.2s ease;
 	}
-	.lh code {
-		font-size: 10.5px;
+	.cta:enabled:hover {
+		filter: brightness(1.18);
+	}
+	.cta:disabled {
+		opacity: 0.7;
+	}
+	.rec {
+		width: 9px;
+		height: 9px;
+		border-radius: 50%;
+		background: #e06a5b;
+	}
+	.rec.on {
+		animation: blink 0.9s steps(2) infinite;
+	}
+	@keyframes blink {
+		50% {
+			opacity: 0.25;
+		}
+	}
+	.status {
+		font-size: 12px;
+		font-weight: 600;
 		color: var(--color-muted);
 	}
-	.core .lh code {
-		color: var(--color-ink);
-		font-weight: 600;
+
+	.shark {
+		width: 100%;
+		border-radius: 12px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		overflow: hidden;
 	}
-	.core .lh code.noise {
+	.filters {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		padding: 7px 9px;
+		border-bottom: 1px solid var(--color-line);
+		background: var(--color-paper);
+	}
+	.flabel {
+		margin-right: 2px;
+		font-size: 10.5px;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
 		color: var(--color-faint);
 	}
-	@media (max-width: 767px) {
-		.screen {
-			height: 196px;
+	.fchip {
+		border-radius: 999px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-muted);
+		padding: 2px 10px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 11px;
+		font-weight: 700;
+	}
+	.fchip.sel {
+		border-color: var(--color-brand);
+		background: var(--color-brand);
+		color: #fff;
+	}
+	.list {
+		display: flex;
+		flex-direction: column;
+		min-height: 120px;
+		max-height: 210px;
+		overflow-y: auto;
+	}
+	.lhead,
+	.prow {
+		display: grid;
+		grid-template-columns: 26px 62px 1fr;
+		gap: 6px;
+		align-items: start;
+		padding: 4px 9px;
+		text-align: left;
+	}
+	.lhead {
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+		border-bottom: 1px solid var(--color-line);
+	}
+	.prow {
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 11px;
+		line-height: 1.35;
+		color: var(--color-ink);
+		border-bottom: 1px solid color-mix(in srgb, var(--color-line) 60%, transparent);
+		animation: arrive 0.25s ease;
+		transition: box-shadow 0.15s ease;
+	}
+	.prow.dns {
+		background: var(--color-brand-soft);
+	}
+	.prow.tcp {
+		background: var(--color-paper);
+	}
+	.prow.tls,
+	.prow.data {
+		background: var(--color-grass-soft);
+	}
+	.prow.sel {
+		background: var(--color-ink);
+		color: var(--color-paper);
+	}
+	.prow.sel small {
+		color: color-mix(in srgb, var(--color-paper) 70%, transparent);
+	}
+	.prow:hover:not(.sel) {
+		box-shadow: inset 3px 0 0 var(--color-brand);
+	}
+	.c-no {
+		font-variant-numeric: tabular-nums;
+		color: inherit;
+		opacity: 0.7;
+	}
+	.c-proto {
+		font-weight: 700;
+	}
+	.c-info small {
+		display: block;
+		font-size: 9.5px;
+		color: var(--color-faint);
+	}
+	@keyframes arrive {
+		from {
+			opacity: 0;
+			transform: translateY(-3px);
 		}
 	}
+	.empty {
+		padding: 30px 10px;
+		text-align: center;
+		font-size: 12px;
+		font-style: italic;
+		color: var(--color-faint);
+	}
+
+	.detail {
+		width: 100%;
+		min-height: 60px;
+	}
+	.hint {
+		margin: 6px 0 0;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.pnote {
+		margin: 0 0 6px;
+		text-align: center;
+		font-size: 12.5px;
+		font-weight: 650;
+		color: var(--color-ink);
+	}
+	.layers {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.layer {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		border-radius: 9px;
+		/* each layer gets a soft tint of its colour instead of a thick side stripe */
+		border: 1px solid color-mix(in srgb, var(--lc, var(--color-line)) 35%, var(--color-line));
+		background: color-mix(in srgb, var(--lc, transparent) 9%, var(--color-card));
+		padding: 5px 9px;
+		animation: unwrap 0.3s ease both;
+	}
+	.layer.l1 {
+		--lc: var(--color-faint);
+	}
+	.layer.l2 {
+		--lc: var(--color-muted);
+	}
+	.layer.l3 {
+		--lc: var(--color-amber);
+	}
+	.layer.l4 {
+		--lc: var(--color-brand);
+	}
+	.layer.l7 {
+		--lc: var(--color-grass);
+	}
+	@keyframes unwrap {
+		from {
+			opacity: 0;
+			transform: translateX(-6px);
+		}
+	}
+	.badge {
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+	}
+	.badge b {
+		margin-left: 3px;
+		color: var(--color-ink);
+	}
+	.layer code {
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 11px;
+		color: var(--color-muted);
+		word-break: break-word;
+	}
+	.layer code.cipher {
+		color: var(--color-danger);
+		letter-spacing: 0.02em;
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.env {
+		.rec.on {
 			animation: none;
-			opacity: 1;
 		}
-		.env.back {
-			transform: translate(30px, 20px);
+		.prow,
+		.layer {
+			animation-duration: 0.01s;
+			animation-delay: 0s !important;
 		}
-		.row,
-		.parcel {
-			animation: none;
+	}
+	@media (min-width: 768px) {
+		.wrap {
+			width: 480px;
+			gap: 12px;
+		}
+		.lhead,
+		.prow {
+			grid-template-columns: 30px 70px 1fr;
+		}
+		.prow,
+		.layer code {
+			font-size: 12px;
+		}
+		.list {
+			max-height: 240px;
 		}
 	}
 </style>

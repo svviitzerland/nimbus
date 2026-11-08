@@ -1,27 +1,22 @@
 import type { LessonText } from '../../types';
 
-/** One part of the side panel (title, one or two short sentences, an optional tag). */
-export type GuideStep = { title: string; body: string; tag?: string };
-
-/** The six doors (ports) on the fresh server. */
-export type HardenDoor = 'ftp' | 'ssh' | 'telnet' | 'web' | 'db' | 'test';
+/** Every unneeded open door on the fresh server, in the order the scanner lists them. */
+export type HardenDoor = 'update' | 'telnet' | 'db' | 'sshkey' | 'root' | 'default';
 
 export interface HardeningText extends LessonText {
-	/** Side panel parts, one per beat. */
-	steps: GuideStep[];
-	/** Caption under the server cabinet. */
-	serverLabel: string;
-	/** Caption over the bots on the left. */
-	botsLabel: string;
-	/** Caption under the scanner gauge. */
-	scoreLabel: string;
-	/** The software plate on the server, its name and the two states. */
-	software: string;
-	outdated: string;
-	patched: string;
-	/** Short name under each door (about 9 letters). */
-	doors: Record<HardenDoor, string>;
-	/** The optional toggle on the last beat. */
-	reopen: string;
-	reclose: string;
+	serverLabel: string; // caption on the server card, the nimbus.com server
+	scanBtn: string; // runs the scanner for the first time
+	scoreLabel: string; // heading over the security score
+	/** Each open door, what it is, why it is risky, the fix button, and the line once fixed. */
+	doors: Record<HardenDoor, { name: string; risk: string; fix: string; done: string }>;
+	/** The one door that must stay open, the HTTPS port visitors use. */
+	web: { name: string; note: string; close: string; reopen: string; closedNote: string };
+	openTag: string;
+	closedTag: string;
+	neededTag: string;
+	siteUp: string;
+	siteDown: string;
+	hintIdle: string; // before the first scan
+	hintScan: string; // after the scan, while doors are open
+	hintDone: string; // every unneeded door is closed
 }

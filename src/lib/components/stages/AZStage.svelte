@@ -1,15 +1,15 @@
 <script lang="ts">
+	import { SvelteSet } from 'svelte/reactivity';
+
 	import { onDestroy } from 'svelte';
 	import { geoEquirectangular, geoPath } from 'd3-geo';
+	import type { Polygon, MultiPolygon, Position } from 'geojson';
 	import Browser from '../Browser.svelte';
 	import WorldMap from '../WorldMap.svelte';
 	import Plane from '../Plane.svelte';
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	import regionShapesData from '$lib/data/region-shapes.json';
 	import type { LessonText, AZText } from '$lib/chapters/types';
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const SHAPES = regionShapesData as any as Record<string, any>;
+	const SHAPES = regionShapesData as unknown as Record<string, Polygon | MultiPolygon>;
 
 	let {
 		text,
@@ -85,7 +85,7 @@
 	];
 
 	let region = $state<RegionKey | null>(null);
-	let servers = $state(new Set<string>());
+	const servers = new SvelteSet<string>();
 	let downAz = $state<string | null>(null);
 	let strikeTo = $state<[number, number] | null>(null); // where the incoming jet is headed (region coords)
 	let namedShown = false; // whether Nim has explained the AZ naming for this region visit
@@ -112,15 +112,12 @@
 	const cfg = $derived(region ? REGIONS[region] : null);
 	const siteDown = $derived(browser === 'offline');
 	const countHere = $derived(cfg ? cfg.azs.filter((a) => servers.has(cfg.code + a.l)).length : 0);
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	function geomBounds(g: any): [[number, number], [number, number]] {
+	function geomBounds(g: Polygon | MultiPolygon): [[number, number], [number, number]] {
 		let minX = 180;
 		let minY = 90;
 		let maxX = -180;
 		let maxY = -90;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		const scan = (ring: any) => {
+		const scan = (ring: Position[]) => {
 			for (const [x, y] of ring) {
 				if (x < minX) minX = x;
 				if (x > maxX) maxX = x;
@@ -129,8 +126,7 @@
 			}
 		};
 		if (g.type === 'Polygon') g.coordinates.forEach(scan);
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		else g.coordinates.forEach((p: any) => p.forEach(scan));
+		else g.coordinates.forEach((p) => p.forEach(scan));
 		return [
 			[minX, minY],
 			[maxX, maxY]
@@ -207,9 +203,7 @@
 		namedShown = false;
 		const c = REGIONS[k];
 		if (!c.azs.some((a) => servers.has(c.code + a.l))) {
-			const s = new Set(servers);
-			s.add(c.code + 'a');
-			servers = s;
+			servers.add(c.code + 'a');
 		}
 		// First Nim says which region this is and what the dots are.
 		onstate?.(k);
@@ -225,10 +219,8 @@
 			namedShown = true;
 			onstate?.(region + '-name');
 		}
-		const s = new Set(servers);
-		if (s.has(id)) s.delete(id);
-		else s.add(id);
-		servers = s;
+		if (servers.has(id)) servers.delete(id);
+		else servers.add(id);
 	}
 	function trigger() {
 		if (striking || !cfg) return;
@@ -271,24 +263,6 @@
 		clearTimeout(it4);
 	});
 </script>
-
-{#snippet serverIcon()}
-	<svg
-		width="26"
-		height="26"
-		viewBox="0 0 24 24"
-		fill="none"
-		stroke="currentColor"
-		stroke-width="1.7"
-		stroke-linecap="round"
-		aria-hidden="true"
-	>
-		<rect x="3.5" y="5" width="17" height="6" rx="1.6" />
-		<rect x="3.5" y="13" width="17" height="6" rx="1.6" />
-		<circle cx="7" cy="8" r="1" fill="currentColor" stroke="none" />
-		<circle cx="7" cy="16" r="1" fill="currentColor" stroke="none" />
-	</svg>
-{/snippet}
 
 {#snippet boomBurst()}
 	<g class="azboom">
@@ -374,6 +348,8 @@
 				{#if showNews}
 					<div class="pointer-events-none absolute inset-0">
 						{#each tx.news as n, i (n.url)}
+							<!-- External news URL from the curated lesson data. -->
+							<!-- eslint-disable svelte/no-navigation-without-resolve -->
 							<a
 								class="newscard absolute"
 								href={n.url}
@@ -385,6 +361,7 @@
 								<p class="src">{n.src}</p>
 								<p class="head">{n.head}</p>
 							</a>
+							<!-- eslint-enable svelte/no-navigation-without-resolve -->
 						{/each}
 					</div>
 				{/if}

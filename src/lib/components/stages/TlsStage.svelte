@@ -1,630 +1,843 @@
 <script lang="ts">
-	// A guided TLS lesson. Your laptop and the nimbus.com server play the handshake by themselves,
-	// one step per beat (hello, certificate, check, session key, secure), and on the café beat an
-	// impostor slips a self signed certificate in and the browser shows a warning. The only
-	// optional play is switching between home and café WiFi on the last beat.
-	import { untrack } from 'svelte';
-	import { fade } from 'svelte/transition';
-	import Guide from '$lib/components/Guide.svelte';
-	import Padlock from './crypto/Padlock.svelte';
-	import Key from './crypto/Key.svelte';
-	import Person from './crypto/Person.svelte';
-	import { prefersReducedMotion, runSeq, type SeqStep } from './webguide/seq';
-	import type { StageProps } from '$lib/chapters/types';
-	import type { TlsText, TlsWifi } from '$lib/chapters/security/tls/types';
+	import { onDestroy } from 'svelte';
+	import Browser from '$lib/components/Browser.svelte';
+	import Server from '$lib/components/Server.svelte';
+	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
+	import Acts from './crypto/Acts.svelte';
+	import type { LessonText } from '$lib/chapters/types';
+	import type { TlsText } from '$lib/chapters/security/tls/types';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as TlsText);
 
-	// Watch first, play optional, so the stage is visible from the start and Next never locks.
-	$effect(() => {
-		untrack(() => {
-			onshow?.(true);
+	// Two acts. 0 = the handshake, step by step. 1 = an impostor with a bad certificate.
+	let act = $state(0);
+	const actDone = $state([false, false]);
+	let completed = false;
+	let timers: ReturnType<typeof setTimeout>[] = [];
+
+	function reduced() {
+		return (
+			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+		);
+	}
+	function clearTimers() {
+		timers.forEach(clearTimeout);
+		timers = [];
+	}
+
+	// Act 1. `step` counts finished steps (0 to 5), `flying` is the step whose chip is on the wire.
+	const tokens = ['hello', 'cert', 'check', 'key', 'secure'];
+	// Which way each step's chip travels, true means from you to the server.
+	const outward = [true, false, true, true, true];
+	let step = $state(0);
+	let flying = $state(-1);
+
+	function nextStep() {
+		if (flying !== -1 || step >= tokens.length) return;
+		const i = step;
+		const finish = () => {
+			step = i + 1;
+			flying = -1;
+			onstate?.(tokens[i]);
+			if (step === tokens.length) actDone[0] = true;
+		};
+		if (tx.steps[i].chip) {
+			flying = i;
+			timers.push(setTimeout(finish, reduced() ? 200 : 1100));
+		} else finish();
+	}
+	function nextAct() {
+		clearTimers();
+		act = 1;
+	}
+
+	// Act 2. 'idle', then the warning, then the learner's choice.
+	let visit = $state<'idle' | 'warn' | 'back' | 'proceed'>('idle');
+	const fakePass = [true, true, false, true];
+	function openFake() {
+		visit = 'warn';
+		onstate?.('warn');
+	}
+	function choose(c: 'back' | 'proceed') {
+		visit = c;
+		onstate?.(c);
+		actDone[1] = true;
+		if (!completed) {
+			completed = true;
 			oncomplete?.();
-		});
-	});
-
-	let reduce = $state(false);
-	$effect(() => {
-		reduce = prefersReducedMotion();
-	});
-
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const last = $derived(tx.steps.length - 1);
-	const step = $derived(Math.max(0, Math.min(peek ?? beat, last)));
-
-	let wifi = $state<TlsWifi>('home');
-	let runId = $state(0);
-	function pick(w: TlsWifi) {
-		wifi = w;
-		runId += 1;
-		onstate?.(w);
-	}
-
-	const L = 204;
-	const R = 316;
-	const M = 260;
-	type Msg = 'hello' | 'cert' | 'fake' | 'key' | 'data' | 'http' | null;
-	let msg = $state<Msg>(null);
-	let x = $state(L);
-	let snap = $state(true);
-	let certShown = $state(false);
-	let checks = $state(0);
-	let fake = $state(false);
-	let keysBoth = $state(false);
-	let secure = $state(false);
-	let warn = $state(false);
-	let cafe = $state(false);
-
-	function reset() {
-		msg = null;
-		snap = true;
-		certShown = false;
-		checks = 0;
-		fake = false;
-		keysBoth = false;
-		secure = false;
-		warn = false;
-		cafe = false;
-	}
-
-	/** A message that flies from one end of the wire to the other. */
-	function fly(
-		m: Msg,
-		from: number,
-		to: number,
-		after: () => void = () => (msg = null)
-	): SeqStep[] {
-		return [
-			[
-				60,
-				() => {
-					snap = true;
-					msg = m;
-					x = from;
-				}
-			],
-			[60, () => (snap = false)],
-			[1400, () => (x = to)],
-			[700, after]
-		];
-	}
-	const hello = (): SeqStep[] => fly('hello', L, R);
-	const cert = (): SeqStep[] =>
-		fly('cert', R, L, () => {
-			msg = null;
-			certShown = true;
-		});
-	const check = (): SeqStep[] => [
-		[700, () => ((certShown = true), (checks = 0))],
-		[800, () => (checks = 1)],
-		[800, () => (checks = 2)],
-		[1600, () => (checks = 3)]
-	];
-	const key = (): SeqStep[] => [
-		[400, () => (certShown = false)],
-		...fly('key', L, R, () => {
-			msg = null;
-			keysBoth = true;
-		}),
-		[800, () => {}]
-	];
-	const data = (): SeqStep[] => [
-		[200, () => ((keysBoth = true), (secure = true))],
-		...fly('data', L, R),
-		...fly('data', R, L)
-	];
-	const begin = (fn: () => void = () => {}): SeqStep => [
-		200,
-		() => {
-			reset();
-			fn();
-		}
-	];
-	const fakeSeq = (): SeqStep[] => [
-		begin(() => (cafe = true)),
-		...fly('hello', L, M, () => (msg = 'fake')),
-		[60, () => (snap = false)],
-		[1400, () => (x = L)],
-		[
-			700,
-			() => {
-				msg = null;
-				fake = true;
-				certShown = true;
-				checks = 0;
-			}
-		],
-		[700, () => (checks = 1)],
-		[700, () => (checks = 2)],
-		[1100, () => (checks = 3)],
-		[
-			4200,
-			() => {
-				certShown = false;
-				warn = true;
-			}
-		]
-	];
-	const fullSeq = (): SeqStep[] => [
-		begin(),
-		...hello(),
-		...cert(),
-		...check(),
-		...key(),
-		...data()
-	];
-
-	function still(s: number, w: TlsWifi) {
-		reset();
-		if (s === 2) {
-			msg = 'http';
-			x = M;
-		} else if (s === 3) {
-			msg = 'hello';
-			x = M;
-		} else if (s === 4) {
-			msg = 'cert';
-			x = M;
-		} else if (s === 5) {
-			certShown = true;
-			checks = 3;
-		} else if (s === 6) {
-			keysBoth = true;
-		} else if (s === 7 || s === 8 || (s === last && w === 'home')) {
-			keysBoth = true;
-			secure = true;
-			msg = 'data';
-			x = M;
-		} else if (s === 9 || s === last) {
-			cafe = true;
-			warn = true;
 		}
 	}
 
-	function play(s: number, w: TlsWifi, stillOnly: boolean): (() => void) | undefined {
-		if (stillOnly || s <= 1) {
-			still(s, w);
-			return;
-		}
-		if (s === 2) return runSeq([begin(), ...fly('http', L, R)], true);
-		if (s === 3) return runSeq([begin(), ...hello()], true);
-		if (s === 4) return runSeq([begin(), ...cert()], true);
-		if (s === 5) return runSeq([begin(), ...check()], true);
-		if (s === 6) return runSeq([begin(), ...key()], true);
-		if (s === 7) return runSeq([begin(), ...data()], true);
-		if (s === 9 || (s === last && w === 'cafe')) return runSeq(fakeSeq(), true);
-		return runSeq(fullSeq(), true);
-	}
+	const locked = $derived(act === 0 && step >= 5);
 
-	$effect(() => {
-		const s = step;
-		const w = wifi;
-		const st = reduce;
-		void runId;
-		return untrack(() => play(s, w, st));
-	});
-
-	const FAKE_OK = [true, false, true];
-	const tunnel = $derived(step === 2);
-	const history = $derived(step === 1);
+	onDestroy(clearTimers);
 </script>
 
-{#snippet visual(i: number)}
-	<div class="vis">
-		{#if i === last}
-			<div class="modes" role="group" aria-label={tx.wifi.label}>
-				<span class="cap">{tx.wifi.label}</span>
-				<div class="chips">
-					<button type="button" class="chip" class:on={wifi === 'home'} onclick={() => pick('home')}
-						>{tx.wifi.home}</button
-					>
-					<button type="button" class="chip" class:on={wifi === 'cafe'} onclick={() => pick('cafe')}
-						>{tx.wifi.cafe}</button
-					>
+{#snippet padlock(size: number, open: boolean, color: string)}
+	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		<rect x="5" y="10.5" width="14" height="9.5" rx="2.5" stroke={color} stroke-width="2.4" />
+		<path
+			d={open ? 'M8.5 10.5V6a3.5 3.5 0 0 1 7 0v.5' : 'M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3'}
+			stroke={color}
+			stroke-width="2.4"
+			stroke-linecap="round"
+		/>
+	</svg>
+{/snippet}
+
+{#snippet keyIcon(size: number)}
+	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		<circle cx="8" cy="8" r="4.5" stroke="var(--color-amber)" stroke-width="2.6" />
+		<path
+			d="M11 11.5 20 20m-3.5.5V17"
+			stroke="var(--color-amber)"
+			stroke-width="2.6"
+			stroke-linecap="round"
+		/>
+	</svg>
+{/snippet}
+
+{#snippet mark(ok: boolean)}
+	<span class="mark" class:bad={!ok}>
+		<svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+			{#if ok}
+				<path
+					d="m5 12.5 4.5 4.5L19 7.5"
+					stroke="#fff"
+					stroke-width="3.2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+				/>
+			{:else}
+				<path d="M7 7l10 10M17 7 7 17" stroke="#fff" stroke-width="3.2" stroke-linecap="round" />
+			{/if}
+		</svg>
+	</span>
+{/snippet}
+
+<div class="wrap">
+	<Acts
+		names={tx.acts}
+		current={act}
+		done={actDone}
+		label={tx.actLabel.replace('{n}', String(act + 1))}
+	/>
+
+	<!-- the action for this act, up top and clear of Nim -->
+	<div class="btns">
+		{#if act === 0 && actDone[0]}
+			<CallToActionButton onclick={nextAct}>
+				{tx.nextAct}
+			</CallToActionButton>
+		{:else if act === 0}
+			<CallToActionButton onclick={nextStep} disabled={flying !== -1}>
+				{tx.stepBtn} ({step + 1}/5)
+			</CallToActionButton>
+		{:else if visit === 'idle'}
+			<CallToActionButton onclick={openFake}>
+				{tx.visitBtn}
+			</CallToActionButton>
+		{:else if visit !== 'warn'}
+			<CallToActionButton onclick={() => (visit = 'idle')}>
+				{tx.again}
+			</CallToActionButton>
+		{/if}
+	</div>
+
+	{#if act === 0}
+		<!-- the address bar of your browser, the padlock lights up at the end -->
+		<div class="addr" class:on={locked}>
+			{@render padlock(13, !locked, locked ? 'var(--color-grass)' : 'var(--color-faint)')}
+			<span>{locked ? 'https://' : ''}nimbus.com</span>
+		</div>
+
+		<div class="scene">
+			<div class="actor">
+				<div class="shrink" class:got={locked}><Browser phase={locked ? 'loaded' : 'idle'} /></div>
+				<span class="alabel">{tx.youLabel}</span>
+				<div class="hold">
+					{#if step >= 4}<span class="skey pop">{@render keyIcon(11)}{tx.sessionKey}</span>{/if}
 				</div>
+			</div>
+
+			<div class="road">
+				<div class="wire" class:safe={locked}></div>
+				{#if flying !== -1}
+					{#key flying}
+						<div class="chip" class:back={!outward[flying]} class:dark={flying === 4}>
+							{#if flying === 1}{@render padlock(10, true, 'var(--color-brand)')}{/if}
+							{tx.steps[flying].chip}
+						</div>
+					{/key}
+				{:else if locked}
+					<div class="chip loop dark">{@render padlock(10, false, '#fff')}{tx.secretMsg}</div>
+				{/if}
+			</div>
+
+			<div class="actor">
+				<div class="srv"><Server active={step >= 1} /></div>
+				<span class="alabel">{tx.serverLabel}</span>
+				<div class="hold">
+					{#if step >= 4}<span class="skey pop">{@render keyIcon(11)}{tx.sessionKey}</span>{/if}
+				</div>
+			</div>
+		</div>
+
+		{#if step >= 2}
+			<div class="cert pop">
+				<p class="chead">{tx.cert.heading}</p>
+				<dl>
+					<dt>{tx.cert.subjectLabel}</dt>
+					<dd>{tx.cert.subject}</dd>
+					<dt>{tx.cert.issuerLabel}</dt>
+					<dd>{tx.cert.issuer}</dd>
+					<dt>{tx.cert.validLabel}</dt>
+					<dd>{tx.cert.valid}</dd>
+					<dt>{tx.cert.keyLabel}</dt>
+					<dd class="mono">{tx.cert.keyValue}</dd>
+				</dl>
+				{#if step >= 3}
+					<ul class="checks">
+						{#each tx.checks as c, i (i)}
+							<li class="tick" style="animation-delay:{i * 0.22}s">{@render mark(true)}{c}</li>
+						{/each}
+					</ul>
+				{/if}
 			</div>
 		{/if}
 
-		<svg viewBox="0 0 420 224" class="art" role="img" aria-label="{tx.youLabel}, {tx.serverLabel}">
-			<!-- the wire, and the tunnel around it on the HTTPS beat -->
-			{#if tunnel}
-				<rect x="182" y="66" width="160" height="32" rx="16" class="tunnel" in:fade />
-				<text x="262" y="60" class="wire-label">TLS</text>
-			{/if}
-			<line x1="182" y1="82" x2="340" y2="82" class="wire" class:lit={secure} />
-			{#if cafe}
-				<line x1={M} y1="82" x2={M} y2="150" class="wire bad" />
-				<Person x={M} y={176} label={tx.attackerLabel} sneaky />
-			{/if}
-
-			<!-- laptop -->
-			<rect x="8" y="16" width="174" height="128" rx="10" class="shell" />
-			<rect x="16" y="24" width="158" height="112" rx="5" class="screen" class:warn />
-			<rect x="24" y="31" width="142" height="15" rx="7.5" class="addr" />
-			{#if secure}
-				<Padlock x={34} y={37} size={0.42} tone="var(--color-grass)" />
-			{:else if warn}
-				<path d="M34 33 L40 44 H28 Z" class="tri" />
-			{/if}
-			<text x="46" y="42" class="url">nimbus.com</text>
-
-			{#if warn}
-				<g in:fade={{ duration: 200 }}>
-					<path d="M95 58 L113 90 H77 Z" class="tri big" />
-					<text x="95" y="86" class="bang">!</text>
-					<text x="95" y="108" class="w-title">{tx.warnTitle}</text>
-					<text x="95" y="124" class="w-body">{tx.warnBody}</text>
-				</g>
-			{:else if certShown}
-				<g in:fade={{ duration: 200 }}>
-					<rect x="28" y="54" width="134" height="76" rx="6" class="card" class:bad={fake} />
-					<text x="38" y="70" class="c-head">{tx.certHeading}</text>
-					{#each tx.checks as c, k (k)}
-						{@const ok = !fake || FAKE_OK[k]}
-						<text x="38" y={88 + k * 15} class="c-row">{c}</text>
-						{#if checks > k}
-							<text x="152" y={88 + k * 15} class="mark" class:bad={!ok} in:fade={{ duration: 150 }}
-								>{ok ? '✓' : '✗'}</text
-							>
-						{/if}
-					{/each}
-				</g>
-			{:else if secure}
-				<text x="28" y="68" class="p-title">nimbus.com</text>
-				<rect x="28" y="78" width="120" height="6" rx="3" class="bar" />
-				<rect x="28" y="90" width="96" height="6" rx="3" class="bar" />
-				<rect x="28" y="106" width="44" height="12" rx="6" class="btn" />
-			{:else}
-				<rect x="28" y="60" width="90" height="8" rx="4" class="bar faint" />
-				<rect x="28" y="76" width="130" height="6" rx="3" class="bar faint" />
-				<rect x="28" y="88" width="110" height="6" rx="3" class="bar faint" />
-			{/if}
-			<path d="M0 146H190L182 156H8Z" class="base" />
-			<text x="95" y="174" class="lbl">{tx.youLabel}</text>
-
-			<!-- server rack -->
-			<rect x="344" y="22" width="68" height="120" rx="9" class="shell" />
-			{#each [32, 68, 104] as y (y)}
-				<rect x="351" {y} width="54" height="28" rx="4" class="unit" />
-				<circle cx="361" cy={y + 14} r="3.2" class="led" />
-				<line x1="372" y1={y + 11} x2="396" y2={y + 11} class="vent" />
-				<line x1="372" y1={y + 18} x2="390" y2={y + 18} class="vent" />
+		<ol class="steps">
+			{#each tx.steps as s, i (i)}
+				<li class:done={i < step} class:now={i === step || i === flying}>
+					<span class="snum">{i + 1}</span>
+					<span class="stext"><b>{s.title}</b>{s.body}</span>
+				</li>
 			{/each}
-			<text x="378" y="160" class="lbl">{tx.serverLabel}</text>
+		</ol>
+	{:else}
+		<div class="scene">
+			<div class="actor">
+				<div class="shrink"><Browser phase="idle" /></div>
+				<span class="alabel">{tx.youLabel}</span>
+			</div>
+			<div class="road">
+				<div class="wire" class:bad={visit === 'proceed'}></div>
+				<div class="mitm">
+					<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<circle cx="12" cy="8" r="4" fill="var(--color-danger)" />
+						<path d="M4 21a8 8 0 0 1 16 0Z" fill="var(--color-danger)" />
+					</svg>
+					<span class="mlabel">{tx.attackerLabel}</span>
+				</div>
+				{#if visit === 'proceed'}
+					<div class="chip half bad">{@render keyIcon(10)}password</div>
+				{/if}
+				<span class="wifi">{tx.wifiLabel}</span>
+			</div>
+			<div class="actor faded">
+				<div class="srv"><Server /></div>
+				<span class="alabel">{tx.serverLabel}</span>
+			</div>
+		</div>
 
-			<!-- the shared session key on both sides -->
-			{#if keysBoth}
-				<g in:fade={{ duration: 250 }}>
-					<Key x={150} y={196} />
-					<Key x={378} y={186} />
-					<text x="150" y="216" class="lbl small">{tx.sessionKey}</text>
-					<text x="378" y="206" class="lbl small">{tx.sessionKey}</text>
-				</g>
-			{/if}
+		{#if visit !== 'idle'}
+			<div class="window pop">
+				<div class="wbar">
+					<span class="badlock">{@render padlock(12, true, 'var(--color-danger)')}</span>
+					<span class="waddr">{tx.addr}</span>
+				</div>
+				{#if visit === 'warn'}
+					<div class="wbody">
+						<svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+							<path d="M12 3 22 20H2L12 3Z" fill="var(--color-danger)" />
+							<path d="M12 9.5v5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" />
+							<circle cx="12" cy="17.4" r="1.2" fill="#fff" />
+						</svg>
+						<p class="wtitle">{tx.warn.title}</p>
+						<p class="wtext">{tx.warn.body}</p>
+						<div class="wbtns">
+							<button type="button" class="wgood" onclick={() => choose('back')}
+								>{tx.warn.back}</button
+							>
+							<button type="button" class="wbad" onclick={() => choose('proceed')}
+								>{tx.warn.proceed}</button
+							>
+						</div>
+					</div>
+				{:else}
+					<div class="wbody">
+						<p class="verdict pop" class:bad={visit === 'proceed'}>
+							{visit === 'proceed' ? tx.stolen : tx.safe}
+						</p>
+					</div>
+				{/if}
+			</div>
 
-			<!-- the history line on the second beat -->
-			{#if history}
-				<g in:fade={{ duration: 250 }}>
-					<line x1="200" y1="196" x2="404" y2="196" class="wire" />
-					{#each tx.history as h, k (k)}
-						<circle
-							cx={210 + k * 62}
-							cy="196"
-							r="5"
-							class="hdot"
-							class:now={k === tx.history.length - 1}
-						/>
-						<text x={210 + k * 62} y="184" class="h-name">{h.name}</text>
-						<text x={210 + k * 62} y="214" class="h-year">{h.year}</text>
+			<div class="cert fake">
+				<p class="chead">{tx.warn.details}</p>
+				<dl>
+					<dt>{tx.cert.subjectLabel}</dt>
+					<dd>{tx.cert.subject}</dd>
+					<dt>{tx.cert.issuerLabel}</dt>
+					<dd class="red">{tx.fakeIssuer}</dd>
+					<dt>{tx.cert.validLabel}</dt>
+					<dd>{tx.fakeValid}</dd>
+				</dl>
+				<ul class="checks">
+					{#each tx.checks as c, i (i)}
+						<li class:fail={!fakePass[i]}>
+							{@render mark(fakePass[i])}<span>{c} <em>({tx.fakeChecks[i]})</em></span>
+						</li>
 					{/each}
-				</g>
-			{/if}
-
-			<!-- the message on the wire -->
-			{#if msg}
-				<g class="mover" class:snap={snap || reduce} style="transform: translate({x}px, 82px)">
-					{#if msg === 'cert' || msg === 'fake'}
-						<rect
-							x="-24"
-							y="-16"
-							width="48"
-							height="32"
-							rx="5"
-							class="card"
-							class:bad={msg === 'fake'}
-						/>
-						<rect
-							x="-18"
-							y="-10"
-							width="12"
-							height="14"
-							rx="2"
-							class="photo"
-							class:bad={msg === 'fake'}
-						/>
-						<rect x="-2" y="-9" width="20" height="4" rx="2" class="bar" />
-						<rect x="-2" y="-1" width="14" height="4" rx="2" class="bar" />
-						<text y="13" class="chip-text">{tx.chips.cert}</text>
-					{:else if msg === 'key'}
-						<rect x="-20" y="-14" width="40" height="28" rx="5" class="env" />
-						<Padlock x={0} y={-1} size={0.7} />
-					{:else if msg === 'data'}
-						<rect x="-26" y="-12" width="52" height="24" rx="5" class="env scr" />
-						<text y="4" class="chip-text mono">x7#Qz9</text>
-					{:else}
-						<rect x="-26" y="-12" width="52" height="24" rx="5" class="env" />
-						<text y="4" class="chip-text">{msg === 'http' ? 'HTTP' : tx.chips.hello}</text>
-					{/if}
-				</g>
-			{/if}
-		</svg>
-	</div>
-{/snippet}
-
-<div class="stage">
-	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
+				</ul>
+			</div>
+		{/if}
+	{/if}
 </div>
 
 <style>
-	.stage {
-		display: flex;
-		width: 100%;
-		max-height: 100%;
-		justify-content: center;
-		overflow-x: hidden;
-		overflow-y: auto;
-		padding-bottom: 8px;
-	}
-	@media (max-width: 767px) {
-		.stage {
-			padding-bottom: 7rem;
-		}
-	}
-	.vis {
+	.wrap {
 		display: flex;
 		width: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 10px;
+		gap: 12px;
 	}
-	.art {
-		width: 100%;
-		max-width: 460px;
-		height: auto;
-		overflow: visible;
-	}
-	.modes {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 6px;
-	}
-	.cap {
-		font-size: 11px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	.chips {
+	.btns {
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: center;
-		gap: 6px;
+		gap: 10px;
+		min-height: 46px;
 	}
-	.chip {
-		border: 1px solid var(--color-line);
-		border-radius: 999px;
-		background: var(--color-card);
-		padding: 6px 14px;
-		font-size: 12.5px;
-		font-weight: 600;
-		color: var(--color-ink);
-		transition:
-			border-color 0.2s,
-			background 0.2s;
-	}
-	.chip:hover {
-		border-color: var(--color-brand);
-	}
-	.chip.on {
-		border-color: var(--color-brand);
-		background: var(--color-brand-soft);
-		color: var(--color-brand);
-	}
-
-	.wire {
-		stroke: var(--color-line);
-		stroke-width: 3;
-		stroke-linecap: round;
-		transition: stroke 0.3s;
-	}
-	.wire.lit {
-		stroke: var(--color-grass);
-	}
-	.wire.bad {
-		stroke: var(--color-danger);
-		opacity: 0.5;
-		stroke-width: 2;
-	}
-	.tunnel {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-brand);
-		stroke-width: 1.5;
-	}
-	.wire-label {
-		font-size: 11px;
-		font-weight: 800;
-		letter-spacing: 0.08em;
-		fill: var(--color-brand);
-		text-anchor: middle;
-	}
-	.shell {
-		fill: var(--color-card);
-		stroke: var(--color-ink);
-		stroke-width: 2;
-	}
-	.screen {
-		fill: var(--color-paper);
-		transition: fill 0.3s;
-	}
-	.screen.warn {
-		fill: var(--color-danger-soft);
+	.btns :global(.cta) {
+		padding: 10px 18px;
+		font-size: 13px;
 	}
 	.addr {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.2;
-	}
-	.url {
-		font-size: 9.5px;
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		border-radius: 999px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 4px 12px;
+		font-size: 12px;
 		font-weight: 600;
-		fill: var(--color-muted);
+		color: var(--color-muted);
+		transition:
+			border-color 0.3s,
+			color 0.3s;
 	}
-	.base {
-		fill: var(--color-ink);
+	.addr.on {
+		border-color: var(--color-grass);
+		color: var(--color-ink);
 	}
-	.lbl {
-		font-size: 11px;
-		font-weight: 700;
-		fill: var(--color-muted);
-		text-anchor: middle;
+
+	.scene {
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		gap: 4px;
+		width: min(94vw, 380px);
 	}
-	.lbl.small {
-		font-size: 9.5px;
-		fill: var(--color-amber);
+	.actor {
+		display: flex;
+		width: 84px;
+		flex: none;
+		flex-direction: column;
+		align-items: center;
+		gap: 3px;
+		transition: opacity 0.3s;
 	}
-	.unit {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-		stroke-width: 1.2;
-	}
-	.led {
-		fill: var(--color-grass);
-	}
-	.vent {
-		stroke: var(--color-line);
-		stroke-width: 2;
-		stroke-linecap: round;
-	}
-	.bar {
-		fill: var(--color-brand);
+	.actor.faded {
 		opacity: 0.45;
 	}
-	.bar.faint {
-		fill: var(--color-line);
-		opacity: 1;
+	.shrink {
+		width: 79px;
+		height: 125px;
+		overflow: visible;
 	}
-	.btn {
-		fill: var(--color-brand);
+	.shrink > :global(.phone) {
+		max-width: none;
+		transform: scale(0.5);
+		transform-origin: top left;
+		transition: border-color 0.3s;
 	}
-	.p-title {
-		font-size: 12px;
+	.shrink.got > :global(.phone) {
+		border-color: var(--color-grass);
+	}
+	.srv {
+		display: flex;
+		height: 125px;
+		align-items: center;
+	}
+	.srv > :global(.server) {
+		width: 70px;
+	}
+	.alabel {
+		font-size: 10.5px;
 		font-weight: 700;
-		fill: var(--color-ink);
+		color: var(--color-muted);
+		white-space: nowrap;
 	}
-	.card {
-		fill: var(--color-card);
-		stroke: var(--color-brand);
-		stroke-width: 1.8;
+	.hold {
+		display: flex;
+		min-height: 18px;
+		align-items: center;
+		justify-content: center;
 	}
-	.card.bad {
-		stroke: var(--color-danger);
+	.skey {
+		gap: 3px;
+		border-radius: 999px;
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
+		font-size: 8.5px;
+		font-weight: 800;
+		padding: 2px 6px;
+		white-space: nowrap;
 	}
-	.photo {
-		fill: var(--color-brand-soft);
+	.road {
+		position: relative;
+		flex: 1;
+		min-width: 0;
+		height: 125px;
 	}
-	.photo.bad {
-		fill: var(--color-danger-soft);
+	.wire {
+		position: absolute;
+		top: 50%;
+		left: 0;
+		right: 0;
+		height: 2px;
+		border-radius: 2px;
+		background: var(--color-line);
+		transition: background 0.3s;
 	}
-	.c-head {
+	.wire.safe {
+		background: var(--color-grass);
+	}
+	.wire.bad {
+		background: var(--color-danger);
+	}
+	.chip {
+		position: absolute;
+		top: calc(50% - 22px);
+		left: 0;
+		z-index: 2;
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		border-radius: 999px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-ink);
+		font-size: 9px;
+		font-weight: 800;
+		padding: 2px 8px;
+		white-space: nowrap;
+		animation: out 1.1s ease-in-out forwards;
+	}
+	.chip.back {
+		animation-name: back;
+	}
+	.chip.dark {
+		border-color: var(--color-ink);
+		background: var(--color-ink);
+		color: var(--color-paper);
+	}
+	.chip.loop {
+		animation: out 1.6s linear infinite;
+	}
+	.chip.half {
+		animation: half 1s ease-in forwards;
+	}
+	.chip.bad {
+		border-color: var(--color-danger);
+		background: var(--color-danger);
+		color: #fff;
+	}
+	@keyframes out {
+		from {
+			left: 0;
+			opacity: 0;
+		}
+		15% {
+			opacity: 1;
+		}
+		85% {
+			opacity: 1;
+		}
+		to {
+			left: calc(100% - 64px);
+			opacity: 0;
+		}
+	}
+	@keyframes back {
+		from {
+			left: calc(100% - 72px);
+			opacity: 0;
+		}
+		15% {
+			opacity: 1;
+		}
+		85% {
+			opacity: 1;
+		}
+		to {
+			left: 0;
+			opacity: 0;
+		}
+	}
+	@keyframes half {
+		from {
+			left: 0;
+			opacity: 0;
+		}
+		20% {
+			opacity: 1;
+		}
+		to {
+			left: calc(50% - 34px);
+		}
+	}
+	.mitm {
+		position: absolute;
+		top: calc(50% + 8px);
+		left: 50%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 3px;
+		transform: translateX(-50%);
+	}
+	.mlabel {
+		max-width: 110px;
+		text-align: center;
+		font-size: 8.5px;
+		font-weight: 700;
+		line-height: 1.2;
+		color: var(--color-danger);
+	}
+	.wifi {
+		position: absolute;
+		top: 12px;
+		left: 50%;
+		transform: translateX(-50%);
+		font-size: 8.5px;
+		font-weight: 700;
+		color: var(--color-faint);
+		white-space: nowrap;
+	}
+
+	.cert {
+		display: flex;
+		width: min(94vw, 340px);
+		flex-direction: column;
+		gap: 6px;
+		border-radius: 14px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 10px 12px;
+	}
+	.cert.fake {
+		border-color: var(--color-danger);
+	}
+	.chead {
 		font-size: 10.5px;
 		font-weight: 800;
-		fill: var(--color-ink);
+		color: var(--color-muted);
 	}
-	.c-row {
-		font-size: 9.5px;
-		fill: var(--color-muted);
+	dl {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 2px 10px;
+		font-size: 11px;
+	}
+	dt {
+		color: var(--color-faint);
+		font-weight: 600;
+	}
+	dd {
+		color: var(--color-ink);
+		font-weight: 700;
+	}
+	dd.red {
+		color: var(--color-danger);
+	}
+	.mono {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-weight: 500;
+	}
+	.checks {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		border-top: 1px solid var(--color-line);
+		padding-top: 6px;
+	}
+	.checks li {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 11px;
+		font-weight: 600;
+		color: var(--color-ink);
+	}
+	.checks li.fail {
+		color: var(--color-danger);
+	}
+	.checks em {
+		font-style: normal;
+		font-weight: 500;
+		color: var(--color-faint);
+	}
+	.checks li.fail em {
+		color: var(--color-danger);
+	}
+	.tick {
+		opacity: 0;
+		animation: popin 0.3s ease forwards;
 	}
 	.mark {
-		font-size: 11px;
-		font-weight: 800;
-		fill: var(--color-grass);
-		text-anchor: end;
+		display: inline-grid;
+		flex: none;
+		place-items: center;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: var(--color-grass);
 	}
 	.mark.bad {
-		fill: var(--color-danger);
+		background: var(--color-danger);
 	}
-	.tri {
-		fill: var(--color-danger);
+
+	.steps {
+		display: flex;
+		width: min(94vw, 340px);
+		flex-direction: column;
+		gap: 4px;
 	}
-	.bang {
-		font-size: 16px;
-		font-weight: 800;
-		fill: var(--color-card);
-		text-anchor: middle;
+	.steps li {
+		display: flex;
+		align-items: flex-start;
+		gap: 8px;
+		border-radius: 10px;
+		padding: 4px 8px;
+		color: var(--color-faint);
+		transition:
+			background 0.2s,
+			color 0.2s;
 	}
-	.w-title {
-		font-size: 12px;
-		font-weight: 800;
-		fill: var(--color-danger);
-		text-anchor: middle;
+	.steps li.now {
+		background: var(--color-brand-soft);
+		color: var(--color-ink);
 	}
-	.w-body {
-		font-size: 8.5px;
-		fill: var(--color-muted);
-		text-anchor: middle;
+	.steps li.done {
+		color: var(--color-muted);
 	}
-	.env {
-		fill: var(--color-card);
-		stroke: var(--color-muted);
-		stroke-width: 1.6;
-	}
-	.env.scr {
-		stroke: var(--color-amber);
-		fill: var(--color-amber-soft);
-	}
-	.chip-text {
-		font-size: 10px;
-		font-weight: 700;
-		fill: var(--color-ink);
-		text-anchor: middle;
-	}
-	.chip-text.mono {
-		font-family: var(--font-mono, ui-monospace, monospace);
-	}
-	.mover {
-		transition: transform 1.3s ease-in-out;
-	}
-	.mover.snap {
-		transition: none;
-	}
-	.hdot {
-		fill: var(--color-card);
-		stroke: var(--color-brand);
-		stroke-width: 2;
-	}
-	.hdot.now {
-		fill: var(--color-brand);
-	}
-	.h-name {
-		font-size: 10px;
-		font-weight: 700;
-		fill: var(--color-ink);
-		text-anchor: middle;
-	}
-	.h-year {
+	.snum {
+		display: inline-grid;
+		flex: none;
+		place-items: center;
+		width: 18px;
+		height: 18px;
+		border-radius: 50%;
+		background: var(--color-line);
+		color: var(--color-muted);
 		font-size: 9.5px;
-		fill: var(--color-faint);
-		text-anchor: middle;
+		font-weight: 800;
 	}
+	.steps li.now .snum {
+		background: var(--color-brand);
+		color: #fff;
+	}
+	.steps li.done .snum {
+		background: var(--color-grass);
+		color: #fff;
+	}
+	.stext {
+		font-size: 11px;
+		line-height: 1.35;
+	}
+	.stext b {
+		margin-right: 5px;
+		font-weight: 800;
+	}
+
+	.window {
+		display: flex;
+		width: min(94vw, 340px);
+		flex-direction: column;
+		overflow: hidden;
+		border-radius: 14px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		box-shadow: 0 10px 26px rgba(22, 40, 60, 0.1);
+	}
+	.wbar {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		border-bottom: 1px solid var(--color-line);
+		padding: 7px 10px;
+	}
+	.badlock {
+		display: inline-flex;
+		position: relative;
+	}
+	.badlock::after {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 50%;
+		width: 100%;
+		height: 2px;
+		background: var(--color-danger);
+		transform: rotate(-40deg);
+	}
+	.waddr {
+		flex: 1;
+		border-radius: 999px;
+		background: var(--color-paper);
+		padding: 2px 10px;
+		font-size: 11px;
+		font-weight: 600;
+		color: var(--color-danger);
+	}
+	.wbody {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+		background: var(--color-danger-soft);
+		padding: 14px 14px 12px;
+		text-align: center;
+	}
+	.wtitle {
+		font-family: var(--font-display);
+		font-size: 17px;
+		color: var(--color-ink);
+	}
+	.wtext {
+		font-size: 11.5px;
+		color: var(--color-muted);
+	}
+	.wbtns {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 8px;
+		margin-top: 4px;
+	}
+	.wgood,
+	.wbad {
+		border-radius: 10px;
+		padding: 7px 14px;
+		font-size: 12px;
+		font-weight: 700;
+	}
+	.wgood {
+		background: var(--color-brand);
+		color: #fff;
+	}
+	.wbad {
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-muted);
+	}
+	.verdict {
+		font-size: 13px;
+		font-weight: 800;
+		color: var(--color-grass);
+	}
+	.verdict.bad {
+		color: var(--color-danger);
+	}
+
+	.pop {
+		display: inline-flex;
+		align-items: center;
+		animation: popin 0.25s ease;
+	}
+	.cert.pop,
+	.window.pop {
+		display: flex;
+	}
+	@keyframes popin {
+		from {
+			transform: scale(0.6);
+			opacity: 0;
+		}
+		to {
+			transform: scale(1);
+			opacity: 1;
+		}
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.wire,
-		.screen {
-			transition: none;
+		.chip,
+		.pop,
+		.tick {
+			animation-duration: 0.01s;
+			animation-delay: 0s !important;
+		}
+		.chip.loop {
+			animation: none;
+			left: calc(50% - 34px);
+		}
+	}
+	@media (min-width: 768px) {
+		.wrap {
+			gap: 16px;
+		}
+		.btns :global(.cta) {
+			padding: 12px 22px;
+			font-size: 14px;
+		}
+		.scene {
+			width: 560px;
+			gap: 10px;
+		}
+		.actor {
+			width: 116px;
+		}
+		.shrink {
+			width: 107px;
+			height: 170px;
+		}
+		.shrink > :global(.phone) {
+			transform: scale(0.68);
+		}
+		.srv,
+		.road {
+			height: 170px;
+		}
+		.srv > :global(.server) {
+			width: 86px;
+		}
+		.alabel {
+			font-size: 12px;
+		}
+		.chip,
+		.skey,
+		.mlabel,
+		.wifi {
+			font-size: 10.5px;
+		}
+		.cert,
+		.steps,
+		.window {
+			width: 420px;
+		}
+		dl,
+		.checks li,
+		.stext {
+			font-size: 12.5px;
 		}
 	}
 </style>

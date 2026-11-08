@@ -139,7 +139,7 @@
 						<span class="ssub">{tx.screenSub}</span>
 					</div>
 					<div class="marquee">
-						{#each PROVIDERS as prov}
+						{#each PROVIDERS as prov, eachIndex3574 (eachIndex3574)}
 							<div class="mrow">
 								<div class="rlabel">
 									<ProviderLogo id={prov.id} size={15} />
@@ -147,7 +147,7 @@
 								</div>
 								<div class="rtrack">
 									<div class="rseq" class:rev={prov.reverse}>
-										{#each [...prov.items, ...prov.items] as [file, label]}
+										{#each [...prov.items, ...prov.items] as [file, label], eachIndex3845 (eachIndex3845)}
 											<span class="chip">
 												<img src={url[file]} alt="" width="22" height="22" />
 												<span>{label}</span>

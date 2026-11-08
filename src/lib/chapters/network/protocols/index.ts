@@ -6,13 +6,19 @@ import { en } from './en';
 export const protocols: Lesson = {
 	id: 'protocols',
 	mood: 'thinking',
-	moods: ['calm', 'idea', 'happy', 'happy', 'thinking', 'idea', 'wink', 'idea', 'happy'],
+	moods: ['calm', 'idea', 'thinking', 'idea', 'wink', 'happy'],
 	reactionMood: {
-		http: 'thinking',
 		https: 'happy',
-		ssh: 'wink',
-		dns: 'idea'
+		http: 'worried',
+		smtp: 'happy',
+		imap: 'happy',
+		sftp: 'happy',
+		ftp: 'worried',
+		ssh: 'happy',
+		wrong: 'thinking',
+		done: 'excited'
 	},
+	playable: true,
 	stage: ProtocolsStage,
 	text: { id, en }
 };

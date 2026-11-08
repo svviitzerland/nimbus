@@ -110,7 +110,7 @@
 				rx="3"
 				stroke="currentColor"
 				stroke-width="1.9"
-				stroke-dasharray="3.5 3"
+				stroke-dasharray="none"
 			/>
 			<circle cx="12" cy="12" r="2.2" fill="currentColor" />
 		</svg>
@@ -219,7 +219,7 @@
 
 	{#if lastBeat}
 		<CallToActionButton onclick={call} disabled={fnState !== 'sleep'}>
-			{#snippet children()}{tx.send}{/snippet}
+			{tx.send}
 		</CallToActionButton>
 	{/if}
 </div>
@@ -297,7 +297,7 @@
 		top: 22px;
 		left: 8%;
 		right: 8%;
-		border-top: 2px dashed #e3ded5;
+		border-top: 2px solid #e3ded5;
 	}
 	.fpkt {
 		position: absolute;

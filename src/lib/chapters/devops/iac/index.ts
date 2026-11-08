@@ -5,9 +5,16 @@ import { en } from './en';
 
 export const iac: Lesson = {
 	id: 'iac',
-	mood: 'calm',
-	moods: ['calm', 'worried', 'idea', 'happy', 'thinking', 'surprised', 'wink', 'calm', 'excited'],
-	reactionMood: { more: 'happy', less: 'thinking' },
+	mood: 'thinking',
+	moods: ['calm', 'worried', 'idea', 'thinking', 'wink', 'happy'],
+	reactionMood: {
+		hand: 'thinking',
+		handLost: 'sad',
+		applied: 'happy',
+		diff: 'idea',
+		rebuilt: 'excited'
+	},
+	playable: true,
 	stage: IacStage,
 	text: { id, en }
 };

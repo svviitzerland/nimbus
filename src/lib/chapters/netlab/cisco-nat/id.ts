@@ -7,7 +7,7 @@ export const id: CiscoNatText = {
 		'ISP cuma ngasih kantor ini satu alamat yang bisa dipakai, <b>10.20.30.2</b> di Gi0/0. Jadi router jadi bagian surat menyurat. Tiap surat keluar dicap alamat kantor, terus dicatat siapa pengirimnya, biar balasannya nyampe ke meja yang bener. Trik ini namanya <b>NAT</b>, lihat [[Apa itu NAT|network/nat]].',
 		'Pertama, router harus tau sisi mana yang mana. Gi0/1 ngadep ke kantor, jadi <b>ip nat inside</b>. Gi0/0 ngadep ke internet, jadi <b>ip nat outside</b>. Lihat label kecil di bawah portnya.',
 		'Berikutnya, siapa yang boleh ditranslasi? Kita tulis di <b>access list</b>, daftar pendek berisi alamat. access-list 1 ngizinin satu kantor, 192.168.88.0 dengan <b>0.0.0.255</b>.',
-		'[ingat] 0.0.0.255 itu <b>wildcard</b>, subnet mask yang dibalik. 0 artinya bagian ini harus sama, 255 artinya bebas. Jadi 255.255.255.0 dibalik jadi 0.0.0.255. Gampangnya, nol itu wajib, 255 itu terserah.',
+		'[ingat] Pada wildcard mask, bit 0 harus cocok dan bit 1 diabaikan. Wildcard 0.0.0.255 mencocokkan tiga oktet pertama alamat.',
 		'Sekarang aturan yang nyatuin semuanya. Translasi sumber inside di list 1 jadi alamat g0/0, dan <b>overload</b>. Overload artinya banyak laptop berbagi satu alamat itu, dibedain pakai nomor port.',
 		'Semua orang buka nimbus.com barengan. Perhatiin label tiap paket berubah di router, dan tiap laptop nambah satu baris baru di tabel.',
 		'IOS nampilin tabel yang sama pakai <b>show ip nat translations</b>. Inside local itu alamat asli laptop, inside global itu yang dilihat internet.',
@@ -18,7 +18,8 @@ export const id: CiscoNatText = {
 		task: 'Nah itu. Tiga laptop di kiri, satu alamat publik di kanan, masing masing dengan nomor port sendiri. Dari port itulah router tau balasan mana buat meja siapa.',
 		cleared:
 			'Kamu barusan ngapus tabelnya. Nggak ada yang rusak kok, begitu ada yang buka halaman lagi router tinggal nulis baris baru.',
-		needEnable: 'Itu butuh prompt bos. Ketik <b>enable</b> dulu.',
+		needEnable:
+			'Perintah ini memerlukan mode privileged EXEC. Jalankan <b>enable</b>, lalu coba kembali.',
 		needConfig: 'Itu ngubah router, ketik <b>conf t</b> dulu.',
 		needDo:
 			'Di mode config, kasih <b>do</b> di depan, misalnya <b>do sh ip nat tr</b>, atau ketik <b>end</b> dulu.',
@@ -34,19 +35,19 @@ export const id: CiscoNatText = {
 			body: 'Alamat 192.168.x.x dipakai ulang sama jutaan kantor, jadi internet nggak pernah ngirim ke sana. Paket yang keluar pakai alamat itu dibuang.'
 		},
 		{
-			title: 'Trik bagian surat',
+			title: 'Mengubah alamat sumber',
 			body: 'NAT itu Network Address Translation. Router nuker pengirim privat jadi alamat publiknya waktu keluar, terus nuker balik waktu masuk.'
 		},
 		{
 			title: 'Inside dan outside',
-			body: '<code>ip nat inside</code> di port kantor, <code>ip nat outside</code> di port internet. Bayangin pintu depan rumah, inside itu rumah, outside itu jalan.'
+			body: 'Pasang <code>ip nat inside</code> pada interface kantor dan <code>ip nat outside</code> pada interface menuju internet.'
 		},
 		{
 			title: 'Access list 1',
 			body: '<code>access-list 1 permit 192.168.88.0 0.0.0.255</code> cocok sama semua alamat dari 192.168.88.0 sampai 192.168.88.255.'
 		},
 		{
-			title: 'Wildcard',
+			title: 'Mencocokkan alamat dengan wildcard',
 			tag: 'Cara ingat',
 			body: 'Balik masknya. <b>0</b> wajib sama, <b>255</b> terserah. 255.255.255.0 jadi <b>0.0.0.255</b>.'
 		},
@@ -55,19 +56,19 @@ export const id: CiscoNatText = {
 			body: '<code>ip nat inside source list 1 interface g0/0 overload</code>. Sumber inside di list 1 dapat alamat g0/0, dipakai rame rame.'
 		},
 		{
-			title: 'Banyak jadi satu',
+			title: 'Berbagi satu IP publik',
 			body: 'Semua laptop keluar sebagai 10.20.30.2. Cuma nomor port yang ngebedain, makanya ini juga disebut PAT (Port Address Translation).'
 		},
 		{
-			title: 'Tabelnya',
+			title: 'Tabel translasi NAT',
 			body: '<b>Inside local</b> itu laptopnya, <b>inside global</b> itu wajah publiknya. <b>Outside</b> itu websitenya, di sini nimbus.com port 443.'
 		},
 		{
-			title: 'Ide yang sama di tempat lain',
+			title: 'NAT di router lain',
 			body: 'MikroTik nyebutnya masquerade, router rumah ngerjainnya diam diam, dan jaringan cloud nyewain dalam bentuk NAT gateway.'
 		},
 		{
-			title: 'Giliran kamu',
+			title: 'Konfigurasikan NAT overload',
 			tag: 'Coba',
 			body: 'Tap console lalu ketik <code>sh ip nat tr</code>. Cocokin alamat tiap laptop sama portnya.'
 		}
@@ -92,10 +93,10 @@ export const id: CiscoNatText = {
 		'! kependekan, ada lebih dari satu perintah yang awalnya begitu, tambah satu dua huruf',
 	hintUnknown: '! perintah itu nggak ada di sini, ketik ? buat lihat daftarnya',
 	didYouMean: '! mungkin maksudnya {word}',
-	hintNeedEnable: '! itu butuh mode bos, ketik enable dulu',
+	hintNeedEnable: '! gunakan enable untuk masuk ke privileged EXEC',
 	hintNeedConfig: '! itu ngubah router, ketik conf t dulu',
 	hintDo: '! kamu lagi di mode config, kasih do di depan, contohnya do sh run',
 	hintSub: '! perintah itu tempatnya di dalam interface, pool, atau line, masuk dulu ke sana',
-	hintMask: '! Cisco mau masknya ditulis lengkap, kayak 255.255.255.0',
+	hintMask: '! tulis subnet mask lengkap, misalnya 255.255.255.0',
 	hintWild: '! hati hati, wildcard itu kebalikan mask, 255.255.255.0 jadi 0.0.0.255'
 };

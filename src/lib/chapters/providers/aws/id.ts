@@ -10,7 +10,7 @@ export const id: AwsText = {
 		'Lalu komputer yang benar benar menjalankan nimbus.com. <b>EC2</b> itu server sewaan, <b>ECS</b> menjalankan container, dan <b>Lambda</b> menjalankan satu fungsi kecil cuma waktu ada yang memanggil.',
 		'Tiap website butuh tempat buat datanya. <b>S3</b> menyimpan file seperti foto dan backup, <b>RDS</b> itu database SQL yang diurus AWS, dan <b>DynamoDB</b> itu database NoSQL buat trafik raksasa.',
 		'Terakhir, alat yang menjaga dan mengawasi. <b>IAM</b> menentukan siapa boleh apa, <b>KMS</b> menyimpan kunci enkripsi, dan <b>CloudWatch</b> menggambar grafik dan membunyikan alarm.',
-		'[ingat] <b>Idenya sama, cuma ganti papan nama.</b> Di AWS kamu nggak belajar ide baru, cuma nama baru buat ide lama. Mulai dari satu pasang, <b>EC2 itu VM</b>. Dua C nya, Compute dan Cloud, komputer di cloud.',
+		'[ingat] EC2 menyediakan virtual machine, S3 menyediakan object storage, dan RDS menyediakan database relasional terkelola.',
 		'[fyi] Satu kata, beda dunia. Server sewaan disebut Compute Engine di [[Google Cloud|providers/gcp]] dan Virtual Machines di [[Azure|providers/azure]]. Kotaknya sama, labelnya tiga.',
 		'Lihat satu pengunjung berjalan melewati seluruh papan, dari Route 53 sampai CloudWatch. Mau coba sendiri? Pasang lagi nama namanya ke kartu, ini cuma bonus.'
 	],
@@ -41,9 +41,9 @@ export const id: AwsText = {
 	},
 	steps: [
 		{
-			tag: 'Ide polos',
+			tag: 'Kebutuhan situs',
 			title: 'Website di cloud',
-			body: 'Lima lapis, dari pintu depan sampai alat yang mengawasi. Tiap kartu itu ide yang sudah kamu kenal.'
+			body: 'Susunan ini mencakup akses situs, jaringan, komputasi, data, dan monitoring. Pilih kartu untuk melihat fungsi layanannya.'
 		},
 		{
 			tag: 'Sejak 2006',
@@ -52,7 +52,7 @@ export const id: AwsText = {
 		},
 		{
 			tag: 'Lapis 1',
-			title: 'Pintu depan',
+			title: 'DNS, CDN, dan load balancer',
 			body: '<b>Route 53</b> itu DNS, <b>CloudFront</b> itu CDN, <b>Elastic Load Balancing</b> itu load balancer.'
 		},
 		{
@@ -72,22 +72,22 @@ export const id: AwsText = {
 		},
 		{
 			tag: 'Lapis 5',
-			title: 'Akses dan pantau',
+			title: 'Akses dan monitoring',
 			body: '<b>IAM</b> buat siapa boleh apa, <b>KMS</b> buat kunci, <b>CloudWatch</b> buat grafik dan alarm.'
 		},
 		{
 			tag: 'Cara ingat',
-			title: 'Ide sama, papan nama baru',
-			body: 'Balik kartu mana saja, ide di baliknya sudah kamu kenal. Pasangan paling gampang, <b>EC2 itu VM</b>.'
+			title: 'Nama layanan dan fungsinya',
+			body: 'EC2 menyediakan VM, S3 menyimpan objek, dan RDS mengelola database relasional.'
 		},
 		{
-			tag: 'Di tempat lain',
-			title: 'Tiga label, satu kotak',
-			body: 'Virtual machine di AWS, Google Cloud, dan Azure. Yang berubah cuma papan namanya.'
+			tag: 'Perbandingan',
+			title: 'Perbandingan antar penyedia',
+			body: 'Ketiga penyedia menawarkan virtual machine. Nama, konfigurasi, batas layanan, dan harga perlu diperiksa pada masing masing penyedia.'
 		},
 		{
 			tag: 'Opsional',
-			title: 'Satu pengunjung, semua lapis',
+			title: 'Alur request pengunjung',
 			body: 'Permintaannya menyalakan tiap bagian yang dilewati. Ketuk tombolnya kalau mau mencocokkan sendiri.'
 		}
 	],

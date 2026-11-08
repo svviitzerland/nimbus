@@ -6,14 +6,16 @@ import { en } from './en';
 export const ping: Lesson = {
 	id: 'ping',
 	mood: 'thinking',
-	moods: ['worried', 'idea', 'thinking', 'thinking', 'idea', 'wink', 'wink', 'happy'],
+	moods: ['worried', 'idea', 'wink', 'thinking', 'idea', 'wink', 'happy'],
 	reactionMood: {
 		ping: 'happy',
 		pingRouter: 'idea',
 		trace: 'excited',
 		unknown: 'surprised',
-		error: 'thinking'
+		error: 'thinking',
+		done: 'excited'
 	},
+	playable: true,
 	stage: PingStage,
 	text: { id, en }
 };

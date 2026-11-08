@@ -3,78 +3,54 @@ import type { BackendFrameworksText } from './types';
 export const en: BackendFrameworksText = {
 	title: 'Backend frameworks',
 	intro: [
-		'Remember the order? To the backend it arrives as a request called <b>POST /orders</b>. The bit of code that handles one such address is called an <b>endpoint</b>.',
-		'This one small endpoint has plenty of chores. Send the request to the right code, read the form, check that the numbers make sense.',
-		'Then turn away fake requests, save to the database, and send an answer back. Watch the line count climb.',
-		'Every shop on the internet needs the very same chores, again and again. So people packed them into a ready made toolbox called a <b>framework</b>. You only write the part that is special about your shop.',
-		'Each language has a favourite. <b>Laravel</b> for PHP, <b>Express</b> for JavaScript, <b>Django</b> for Python, <b>Spring</b> for Java. Different names, same idea.',
-		'[ingat] Framework literally means a frame. The walls and pipes are already up, you just furnish the rooms.',
-		'[fyi] Same word, different world. The frontend has frameworks too (like React or Svelte), and they solve a different problem, building what you see. More in [[frontend frameworks|web/why-framework]].',
-		'Want to feel the difference? Take the framework away and watch all those chores land back on you.'
+		'Remember the order from earlier? To the backend it arrives as a request, <b>POST /orders</b>, and some code has to handle it. That piece of code is called an <b>endpoint</b>.',
+		'Even this one small endpoint has a lot of chores. Notice which address was hit, read the form, check the numbers make sense, block fake requests, save to the database, and send an answer back.',
+		'Every shop on the internet needs those same chores, over and over. So people bundled the boring, risky parts into a ready made toolkit called a <b>framework</b>. You write only the part that is special to your shop.',
+		'Each popular language has its favourites. <b>Laravel</b> for PHP, <b>Express</b> for JavaScript, <b>Django</b> for Python, and <b>Spring</b> for Java. Different words, the same idea underneath.',
+		'[fyi] Same word, different world. The frontend has frameworks too (like React or Svelte), and they solve a different problem, building the screen. More on those in [[frontend frameworks|web/why-framework]].',
+		'[ingat] A framework provides structure and common features such as routing. Application logic and security configuration still need implementation and testing.',
+		'First write the order endpoint by hand, chore by chore, and watch the code pile up. Then pick a framework and see how much of it simply disappears.'
 	],
 	reactions: {
+		route:
+			'Routing done. The code now checks the method and the address, so only POST /orders lands here. A real shop has hundreds of these.',
+		read: 'The form arrives as raw text in small chunks, so you have to collect it and pull the fields out yourself. Tedious, right?',
+		validate:
+			'Never trust what comes in. Someone could order minus five caps. Checking every field is boring work that is easy to forget.',
+		security:
+			'This one blocks forged requests (an attack called CSRF), where another site tricks your browser into ordering for you. Forget it and nobody notices, until someone does.',
+		db: 'Talking to the database means opening a connection, writing the query, and remembering to close it. One mistake here and data leaks or the server slowly runs dry.',
+		respond: 'Finally the answer goes back. Phew, all that for a single endpoint.',
 		byhand:
-			'Every chore is yours again, and the line count jumps. Now imagine doing this for login, the cart, search, and payments too.',
-		framework:
-			'Framework back, and most of the code melts into it. What is left is the part only your shop has.'
+			'All six chores written by hand, and look at the line count. Now imagine doing this for login, cart, search, and payment too. Pick a framework.',
+		laravel:
+			'Laravel (PHP). Routing, form reading, validation, CSRF protection, and the database helper are all built in. What is left is mostly your shop logic.',
+		express:
+			'Express (JavaScript) is the minimalist one. It handles routing and responses, then lets you add small packages for the rest. Lighter, but you choose more yourself.',
+		django:
+			'Django (Python) is famous for being batteries included. Forms, validation, CSRF, and the database layer (called an ORM) come in the box.',
+		spring:
+			'Spring (Java) is the big one many banks and large companies use. A few annotations (those words starting with @) set up routing, validation, and saving.'
 	},
-	steps: [
-		{
-			title: 'Endpoint',
-			body: 'The code that answers <b>one address</b>, like POST /orders. A real shop has hundreds of them.'
-		},
-		{
-			title: 'Chores',
-			body: '<b>Routing</b> sends the request to the right code. Then the form is read and <b>checked</b>, so nobody orders minus five caps.'
-		},
-		{
-			title: 'More chores',
-			body: 'Blocking <b>fake requests</b>, talking to the <b>database</b>, sending the <b>answer</b>. Boring, and easy to get wrong.'
-		},
-		{
-			title: 'Framework',
-			body: 'A ready made toolbox that <b>does the common chores</b> for you. Your code shrinks to what makes your shop yours.'
-		},
-		{
-			title: 'Popular picks',
-			body: 'Laravel (PHP), Express (JavaScript), Django (Python), Spring (Java). You pick the one for <b>your language</b>.'
-		},
-		{
-			title: 'Remember it',
-			tag: 'Remember it',
-			body: 'A framework is the <b>frame of a house</b>, you furnish the rooms.'
-		},
-		{
-			title: 'Frontend frameworks',
-			tag: 'Side note',
-			body: 'React and Svelte build <b>what you see</b>. Backend frameworks handle <b>what you do not see</b>.'
-		},
-		{
-			title: 'Same result, less code',
-			body: 'Both ways save the order. The framework just means <b>far less code</b> to write and keep safe.'
-		}
-	],
-	fileName: 'orders endpoint',
-	requestTag: 'POST /orders',
-	emptyHint: 'nothing written yet',
-	lines: '{n} lines',
+	byHand: 'By hand',
+	choresLabel: 'Chores for POST /orders',
+	writeHint: 'Tap a chore to write its code',
 	chores: {
-		route: { label: 'Routing', lines: 24 },
-		read: { label: 'Read the form', lines: 36 },
-		check: { label: 'Check the input', lines: 42 },
-		guard: { label: 'Block fake requests', lines: 38 },
-		db: { label: 'Save to database', lines: 52 },
-		reply: { label: 'Send the answer', lines: 22 }
+		route: 'Routing',
+		read: 'Read the form',
+		validate: 'Validate input',
+		security: 'Block forged requests',
+		db: 'Save to the database',
+		respond: 'Send a response'
 	},
-	ready: 'ready',
-	yourCode: 'Your shop logic',
-	yourLines: 18,
-	frameworks: [
-		{ name: 'Laravel', lang: 'PHP' },
-		{ name: 'Express', lang: 'JavaScript' },
-		{ name: 'Django', lang: 'Python' },
-		{ name: 'Spring', lang: 'Java' }
-	],
-	byHandBtn: 'Write it all by hand',
-	frameworkBtn: 'Use the framework'
+	lines: '{n} lines',
+	built: 'built in',
+	addon: 'add a package',
+	todo: 'not written yet',
+	frameworks: {
+		laravel: { lang: 'PHP', blurb: 'Batteries included, loved by small teams' },
+		express: { lang: 'JavaScript', blurb: 'Tiny core, add what you need' },
+		django: { lang: 'Python', blurb: 'Batteries included, admin page for free' },
+		spring: { lang: 'Java', blurb: 'Big and sturdy, common in large companies' }
+	}
 };

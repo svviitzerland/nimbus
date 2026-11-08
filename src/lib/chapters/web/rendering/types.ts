@@ -1,24 +1,21 @@
 import type { LessonText } from '../../types';
 
-/** One part of the side panel (title, one or two short sentences, an optional tag). */
-export type GuideStep = { title: string; body: string; tag?: string };
-
 export type RenderMode = 'csr' | 'ssr' | 'ssg';
 
 export interface RenderingText extends LessonText {
-	/** Side panel parts, one per beat (the last beat reuses the last part). */
-	steps: GuideStep[];
-	/** Short names of the three ways, used on the play buttons and the scene caption. */
-	modes: Record<RenderMode, string>;
+	/** Short button label and a one line meaning for each mode. */
+	modes: Record<RenderMode, { label: string; sub: string }>;
+	/** The slow phone switch. */
+	slow: string;
 	youLabel: string;
 	serverLabel: string;
+	/** Caption on the server when the page is already built (SSG). */
 	shelfLabel: string;
-	/** Status line under the picture, one per moment of the story. */
-	status: {
-		build: string;
-		where: string;
+	/** What is happening, shown under the scene while a load plays. */
+	steps: {
 		ask: string;
 		emptyHtml: string;
+		downloadJs: string;
 		jsBuilds: string;
 		serverBuilds: string;
 		fullHtml: string;
@@ -26,6 +23,11 @@ export interface RenderingText extends LessonText {
 		prebuilt: string;
 		ready: string;
 	};
-	/** Shown once the content is on screen, {s} is the time in seconds. */
-	readyAfter: string;
+	idle: string;
+	/** Scoreboard heading and its template, {s} is seconds. */
+	scoreLabel: string;
+	firstPaint: string;
+	/** Marks a score that was measured with slow phone switched off. */
+	fastTag: string;
+	notYet: string;
 }

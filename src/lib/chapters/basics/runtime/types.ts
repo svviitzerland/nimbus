@@ -1,30 +1,38 @@
 import type { LessonText } from '../../types';
 
-/** One part of the side panel (title, one or two short sentences, an optional tag). */
-export type GuideStep = { title: string; body: string; tag?: string };
+export type FeatureId = 'login' | 'payments' | 'charts';
 
 export interface RuntimeText extends LessonText {
-	/** Side panel parts, one per beat. */
-	steps: GuideStep[];
+	/** Names of the three steps, shown in the step row. */
+	steps: string[];
 	/** The layers of the stack, top to bottom. */
-	layers: { code: string; runtime: string; os: string; hw: string };
+	layers: { code: string; libs: string; runtime: string; os: string; hw: string };
 	osNote: string;
 	hwNote: string;
-	/** Runtimes shown in turn on the runtime layer, with what each one runs. */
-	runtimes: { name: string; note: string }[];
-	/** The three library bricks (the third one arrives through the package manager). */
-	libs: string[];
-	/** The command the little terminal types for the third brick (real command, shown as is). */
-	installCmd: string;
-	installDone: string;
-	appName: string;
+	appName: string; // the app on the top layer
 	appUp: string;
 	appDown: string;
 	appOff: string;
-	/** The version lock part. */
-	newVersion: string;
-	oldVersion: string;
-	/** The optional toggle on the last beat. */
-	removeBtn: string;
-	returnBtn: string;
+	notInstalled: string;
+	noLibs: string;
+	/** Step 1. */
+	runBtn: string;
+	installBtn: string;
+	installing: string; // terminal line while installing
+	installed: string; // terminal line once installed
+	/** Step 2. */
+	features: Record<FeatureId, { name: string; days: number; lines: number }>;
+	scratchBtn: string; // template with {n} days
+	libBtn: string; // template with {lib}
+	wroteChip: string; // shown on a feature you wrote yourself
+	linesLabel: string; // template with {n}
+	daysLabel: string; // template with {n}
+	secondsLabel: string;
+	toUpdate: string;
+	needLib: string;
+	/** Step 3. */
+	updateBtn: string;
+	pinBtn: string; // template with {lib} and {v}
+	runningAgain: string;
+	fixedNote: string;
 }

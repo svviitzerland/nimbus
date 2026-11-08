@@ -3,75 +3,44 @@ import type { IacText } from './types';
 export const id: IacText = {
 	title: 'Infrastructure as Code',
 	intro: [
-		'Buat ngejalanin nimbus.com kamu butuh [[server|foundations/server]] di cloud. Langkah pertama yang biasa, buka website cloudnya. Klik bikin server, pilih ukuran, pilih region, klik create. Terus ulangi semuanya buat server berikutnya.',
-		'Buat satu dua server sih oke. Tapi bulan depan, siapa yang ingat persis tadi milih apa? Ada yang ngeklik medium padahal harusnya small, dan sekarang servernya nggak sama persis. Nggak ada yang nyatet.',
-		'<b>Infrastructure as Code</b> (IaC) ngebalik caranya. <b>Infrastruktur</b> itu mesin dan jaringan tempat aplikasimu jalan. Daripada ngeklik, kamu tulis semuanya di file teks biasa, kayak resep.',
-		'Ada alat namanya <b>Terraform</b> yang baca file itu. Kamu ketik <b>terraform apply</b>, dia ngebandingin isi file sama yang udah ada di cloud, terus bikin yang belum ada. Tiga server, langsung dari teks.',
-		'Butuh lebih banyak? Ganti satu angka di file, dari 3 jadi 5, terus apply lagi. Terraform cuma bikin selisihnya (dua server baru) dan nggak ngutak atik tiga yang lama.',
-		'Sekarang bagian serem. Ada yang nggak sengaja ngehapus semuanya. Selama filenya ada, sekali apply semua lima server balik lagi, persis kayak sebelumnya.',
-		'[ingat] <b>File itu resepnya, Terraform yang masak.</b> Resep sama, masakannya pasti sama. Dan kalau nggak ada di file, berarti nggak ada.',
-		'[fyi] Karena cuma teks, filenya bisa disimpan di [[Git|compute/version-control]] bareng kodemu, jadi tiap perubahan server punya riwayat dan bisa dibatalin. Terraform juga bisa ngobrol sama banyak cloud (AWS, Google Cloud, Azure) bahkan sama mesinmu sendiri yang on premise.',
-		'Mau coba? Ubah jumlahnya pakai tombol, terus lihat Terraform nambah atau ngurangin server biar sama kayak isi file. Atau tonton aja, itu juga boleh.'
+		'Untuk menjalankan nimbus.com kamu butuh server. Langkah pertama yang biasa, buka situs penyedia cloud, klik "buat server", pilih ukuran, pilih region, lalu klik buat. Ulangi untuk setiap server.',
+		'Untuk satu dua server sih oke. Tapi bulan depan siapa yang ingat persis ukuran dan region yang kamu pilih? Dan kalau suatu hari semuanya hilang, kamu harus mengulang semua klik itu dari ingatan.',
+		'<b>Infrastructure as Code</b> (IaC) membalik caranya. Kamu menuliskan server yang kamu mau di sebuah file teks, lalu ada alat yang membangunnya untukmu. File yang sama selalu menghasilkan hasil yang sama.',
+		'Alat yang paling terkenal namanya <b>Terraform</b>. Kamu tulis apa yang kamu mau ("tiga server kecil di Jakarta"), lalu jalankan <b>terraform apply</b>. Terraform membandingkan file dengan yang sudah ada, lalu cuma membuat, mengubah, atau menghapus bagian yang beda.',
+		'[fyi] Karena cuma file teks, dia bisa disimpan di [[Git|compute/version-control]] seperti kodemu. Setiap perubahan server bisa direview, punya riwayat, dan bisa dibatalkan. Terraform juga nggak terbatas satu cloud, dia bisa ngobrol dengan AWS, Google Cloud, Azure, bahkan server milikmu sendiri di kantor (on premise).',
+		'[ingat] IaC mencatat konfigurasi infrastruktur dalam kode. Periksa rencana perubahan dan kondisi sebenarnya sebelum menerapkannya.',
+		'Bangun tiga server pakai tangan dulu, lalu biarkan bencana datang. Habis itu, tulis mereka sebagai kode dan bangun ulang semuanya sekaligus.'
 	],
 	reactions: {
-		more: 'Angkanya kamu naikin, jadi Terraform lihat ada server yang kurang dan cuma bikin yang kurang itu. Yang udah jalan nggak disentuh sama sekali.',
-		less: 'Angkanya kamu turunin, jadi Terraform ngehapus server yang kelebihan. File yang nentuin jumlahnya, cloud tinggal ngikut.'
+		hand: 'Tiga server, lumayan banyak klik. Sekarang cek, apa semuanya sama persis? Kalau pakai tangan, gampang banget salah pilih tanpa sadar.',
+		handLost:
+			'Hilang. Data center lagi apes dan ketiga server lenyap. Kamu masih ingat persis apa yang kamu pilih untuk masing masing? Yuk coba cara kode.',
+		applied:
+			'Terraform membaca file, melihat belum ada apa apa, lalu membuat semua yang tertulis. Satu perintah, semua server sama persis.',
+		diff: 'Lihat rencananya? Terraform cuma mengubah selisih antara file dan yang sedang jalan. Yang kamu ubah filenya, bukan servernya.',
+		rebuilt:
+			'Bencana lagi, tapi kali ini santai. File yang sama, perintah yang sama, dan semuanya kembali persis seperti semula. Itulah Infrastructure as Code.'
 	},
-	steps: [
-		{
-			tag: 'Pakai tangan',
-			title: 'Ngeklik di console',
-			body: 'Website cloud (namanya <b>console</b>) punya formulir. Isi, pencet create, dan muncul satu server.'
-		},
-		{
-			tag: 'Masalahnya',
-			title: 'Nggak ada yang ingat',
-			body: 'Satu server jadinya <b>medium</b>, bukan small. Klik nggak ninggalin catatan, jadi salah kayak gini gampang ngumpet.'
-		},
-		{
-			tag: 'Idenya',
-			title: 'Infrastructure as Code',
-			body: 'Server yang kamu mau, ditulis sebagai teks. File di bawah minta <b>3</b> server small di Jakarta.'
-		},
-		{
-			tag: 'Alatnya',
-			title: 'terraform apply',
-			body: 'Terraform baca filenya, bikin <b>rencana</b> (apa yang ditambah, diubah, atau dihapus), baru dibangun.'
-		},
-		{
-			tag: 'Mengubah',
-			title: 'Cuma selisihnya',
-			body: 'Jumlahnya dari 3 jadi 5. Rencananya bilang <b>2 to add</b>, dan tiga yang pertama tetap apa adanya.'
-		},
-		{
-			tag: 'Bencana',
-			title: 'Dibangun ulang sekaligus',
-			body: 'Semuanya hilang, tapi resepnya nggak. Sekali apply, kelimanya balik dan sama persis.'
-		},
-		{
-			tag: 'Cara gampang',
-			title: 'Resep dan koki',
-			body: '<b>File</b> itu resepnya, <b>Terraform</b> kokinya. Resep sama, hasil sama.'
-		},
-		{
-			tag: 'Perlu tahu',
-			title: 'Disimpan di Git',
-			body: 'File teks bisa direview, punya versi, dan bisa dibatalin, persis kayak kode.'
-		},
-		{
-			tag: 'Opsional',
-			title: 'Ubah jumlahnya',
-			body: 'Pencet plus atau minus. Filenya berubah duluan, baru Terraform nyamain isi cloudnya.'
-		}
-	],
-	consoleTitle: 'Bikin server',
+	acts: ['Pakai tangan', 'Pakai kode'],
+	consoleTitle: 'Buat server',
 	sizeLabel: 'Ukuran',
 	regionLabel: 'Region',
-	regionValue: 'Jakarta',
-	createBtn: 'Create',
-	cloudLabel: 'Cloud kamu, region Jakarta',
-	emptyLabel: 'Belum ada server',
-	countLabel: 'Jumlah server di file',
-	lessBtn: 'Kurangi satu server',
-	moreBtn: 'Tambah satu server'
+	sizes: ['small', 'medium', 'large'],
+	regions: ['jakarta', 'singapore'],
+	createBtn: 'Buat',
+	clicksTag: '{n} klik',
+	serverLabel: 'server {n}',
+	sameTag: 'sama semua',
+	driftTag: 'nggak sama',
+	disasterBtn: 'Bencana datang',
+	applyBtn: 'terraform apply',
+	countHint: 'Ubah jumlahnya, lalu apply lagi',
+	nextAct: 'Coba cara kode',
+	noteHand: 'Pilih ukuran dan region, lalu buat. Tinggal {n} lagi.',
+	noteHandDone: 'Tiga server, dibangun satu klik demi satu klik',
+	noteHandLost: 'Semuanya hilang. Sekarang bangun ulang dari ingatan',
+	noteCode: 'Filenya menjelaskan servernya. Jalankan apply.',
+	noteCodeLive: 'Yang jalan sekarang sama persis dengan isi file',
+	noteCodeLost: 'Hilang lagi, tapi filenya masih ingat semuanya',
+	noteRebuilt: 'Dibangun ulang sekaligus, persis seperti yang tertulis'
 };

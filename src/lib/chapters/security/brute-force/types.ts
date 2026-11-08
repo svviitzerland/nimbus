@@ -1,19 +1,26 @@
 import type { LessonText } from '../../types';
-import type { GuideStep } from '$lib/components/stages/attacks2/types';
 
 export interface BruteForceText extends LessonText {
-	/** The side panel, one entry per beat. */
-	steps: GuideStep[];
+	passLabel: string;
+	passPlaceholder: string;
+	passHint: string; // reminds the learner to make one up
+	lockLabel: string; // the lockout switch
+	runBtn: string;
+	emptyPass: string; // shown when the box is empty
 	machineLabel: string;
-	speedFast: string; // the machine's speed with nothing in its way
-	speedLock: string; // the machine's speed once the login locks after a few tries
-	listLabel: string; // shown on the machine screen while it reads the leaked list
-	waitLabel: string; // shown on the machine screen while the lockout makes it wait
-	letters: string; // template with {n}, the length of a password
-	cracked: string;
-	holding: string;
-	onList: string; // tag for a password found on a leaked list
-	/** How long the machine needs, each a template with {n} except instant. */
+	targetLabel: string; // the pretend login being attacked
+	lockedTag: string; // flashes on the login while it is locked
+	/** Character kinds the machine has to cover. */
+	kinds: { lower: string; upper: string; digits: string; symbols: string };
+	lengthStat: string; // template with {n}
+	combosStat: string; // caption under the number of possible passwords
+	speedFast: string; // the machine's speed without a lockout
+	speedLock: string; // the machine's speed with a lockout
+	resultLabel: string; // heading over the time it needs
+	leakedTitle: string;
+	leakedSub: string; // template with {n}, which entry on the leaked list
+	verdicts: { leaked: string; fast: string; medium: string; strong: string };
+	/** Time units, each a template with {n} except instant and forever. */
 	units: {
 		instant: string;
 		seconds: string;
@@ -23,8 +30,9 @@ export interface BruteForceText extends LessonText {
 		years: string;
 		million: string;
 		billion: string;
+		forever: string;
 	};
-	numberLocale: string; // how big numbers are written, 138,000 or 138.000
-	rule: string; // the rule of thumb line
-	sliderLabel: string; // caption of the optional length slider
+	historyLabel: string;
+	lockShort: string; // tiny tag in the history row for a run with the lockout on
+	goals: string[]; // two goals, a strong result and a run with the lockout
 }

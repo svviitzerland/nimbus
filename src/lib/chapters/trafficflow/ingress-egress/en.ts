@@ -5,7 +5,8 @@ export const en: IngressEgressText = {
 	intro: [
 		'Your server works both ways, some data comes in and some goes out.',
 		'What comes into the server, like requests and photo uploads, is called <b>ingress</b>. What leaves the server, like photos and video sent back to visitors, is called <b>egress</b>.',
-		'Try both, people upload photos (in) then people download photos (out), and watch the bill.'
+		'Try both, people upload photos (in) then people download photos (out), and watch the bill.',
+		'[ingat] Ingress comes in; egress goes out. First choose the side you are measuring.'
 	],
 	reactions: {
 		in: 'That is <b>ingress</b>, data coming into your server. In the cloud, ingress is usually <b>free</b>, so the bill does not move.',

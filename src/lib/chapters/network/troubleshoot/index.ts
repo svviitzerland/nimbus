@@ -6,13 +6,15 @@ import { en } from './en';
 export const troubleshoot: Lesson = {
 	id: 'troubleshoot',
 	mood: 'thinking',
-	moods: ['worried', 'idea', 'surprised', 'thinking', 'idea', 'happy', 'wink', 'thinking', 'happy'],
+	moods: ['worried', 'idea', 'thinking', 'idea', 'wink', 'happy'],
 	reactionMood: {
-		start: 'thinking',
 		ok: 'happy',
-		skip: 'surprised',
+		fail: 'thinking',
+		skip: 'wink',
+		wrong: 'surprised',
 		solved: 'excited'
 	},
+	playable: true,
 	stage: TroubleshootStage,
 	text: { id, en }
 };

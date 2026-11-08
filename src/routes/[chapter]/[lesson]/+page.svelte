@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { lang, t } from '$lib/i18n';
+	import { lessonUi } from '$lib/lesson-ui';
 	import { getChapter } from '$lib/chapters';
 	import { progress } from '$lib/progress.svelte';
 	import { path } from '$lib/path.svelte';
@@ -14,6 +16,8 @@
 	const chapter = $derived(getChapter(data.chapterId)!);
 	const lesson = $derived(chapter.lessons[data.index]);
 	const Stage = $derived(lesson.stage);
+	const lessonKey = $derived(`${data.chapterId}/${data.lessonId}`);
+	let attempt = $state(0);
 	const text = $derived(lesson.text[$lang]);
 	// "Next" both paginates the narrative beats and, on the last beat, advances the lesson.
 	let beat = $state(0);
@@ -23,13 +27,13 @@
 	// stage calls oncomplete() as it mounts, which runs before the reset effect below; a flag
 	// would be wiped right after it was set and Next would stay locked.
 	let completedFor = $state<string | null>(null);
-	const completed = $derived(completedFor === data.lessonId);
+	const completed = $derived(completedFor === lessonKey);
 	// A stage can lock Next (during an intro animation) and ask to be shown on an early beat.
 	let locked = $state(false);
 	let shown = $state(false);
 	// reset when the lesson (URL) changes
 	$effect(() => {
-		void data.lessonId;
+		void lessonKey;
 		beat = 0;
 		reaction = null;
 		reactionToken = null;
@@ -60,7 +64,8 @@
 	// reached from the menu of another track, falls back to the classic chapter order.
 	const inTrack = $derived(path.includes(here));
 	const group = $derived(inTrack ? path.groupOf(here) : undefined);
-	const go = (r: LessonRef) => goto(`/${r.chapterId}/${r.lessonId}`);
+	const go = (r: LessonRef) =>
+		goto(resolve('/[chapter]/[lesson]', { chapter: r.chapterId, lesson: r.lessonId }));
 
 	function jump(ref: LessonRef) {
 		path.startDetour(here, beat);
@@ -75,11 +80,9 @@
 	const isLastLesson = $derived(
 		inTrack && !detour ? path.next(here) === 'end' : data.index === data.total - 1
 	);
-	const canNext = $derived(!((isLastBeat && !completed) || locked));
+	const canNext = $derived(!((isLastBeat && !completed && !lesson.playable) || locked));
 	const final = $derived(isLastLesson && isLastBeat);
 	const canBack = $derived(beat > 0 || (inTrack ? path.prev(here) !== undefined : data.index > 0));
-	// every line this lesson can show, so the dock keeps one height for the whole lesson
-	const lines = $derived([...text.intro, ...Object.values(text.reactions ?? {})]);
 	const message = $derived(reaction ?? text.intro[Math.min(beat, text.intro.length - 1)]);
 	// "Your turn": on the last beat, before the step is finished, the stage is what matters, so
 	// Nim steps out (on phones, after a brief moderator-style peek). This also covers reactions:
@@ -88,7 +91,7 @@
 	const aside = $derived(isLastBeat && !completed);
 	// Stage stays locked + dimmed while Nim is still narrating; it unlocks on the last beat,
 	// the one that invites interaction, or earlier if the stage asks to be shown (an intro).
-	const stageActive = $derived(isLastBeat || shown);
+	const stageActive = $derived(lesson.playable || isLastBeat || shown);
 	// Nim's face: a reaction mood if one is showing, else this beat's mood, else the lesson default.
 	const currentMood = $derived(
 		(reactionToken ? lesson.reactionMood?.[reactionToken] : undefined) ??
@@ -97,7 +100,7 @@
 	);
 
 	function onComplete() {
-		completedFor = data.lessonId;
+		completedFor = lessonKey;
 	}
 	function onLock(v: boolean) {
 		locked = v;
@@ -116,7 +119,7 @@
 			beat += 1;
 			return;
 		}
-		// finishing the last beat completes the lesson (Next is locked until the step is done),
+		// Finishing the story completes the lesson; experiments can be replayed anytime.
 		// which unlocks the next lesson in the menu and persists to localStorage
 		progress.markDone(data.chapterId, data.lessonId);
 		shown = false;
@@ -125,12 +128,21 @@
 		if (detour) return returnFromDetour();
 		if (inTrack) {
 			const n = path.next(here);
-			if (n === 'end') goto(`/${chapter.id}/done?track=${path.track.id}`);
-			else if (n) go(n);
+			if (n === 'end') {
+				// Base path is resolved before adding the selected track query.
+				// eslint-disable-next-line svelte/no-navigation-without-resolve
+				goto(`${resolve('/[chapter]/done', { chapter: chapter.id })}?track=${path.track.id}`);
+			} else if (n) go(n);
 			return;
 		}
-		if (isLastLesson) goto(`/${chapter.id}/done`);
-		else goto(`/${chapter.id}/${chapter.lessons[data.index + 1].id}`);
+		if (isLastLesson) goto(resolve('/[chapter]/done', { chapter: chapter.id }));
+		else
+			goto(
+				resolve('/[chapter]/[lesson]', {
+					chapter: chapter.id,
+					lesson: chapter.lessons[data.index + 1].id
+				})
+			);
 	}
 	function back() {
 		reaction = null;
@@ -146,7 +158,13 @@
 			if (p) go(p);
 			return;
 		}
-		if (data.index > 0) goto(`/${chapter.id}/${chapter.lessons[data.index - 1].id}`);
+		if (data.index > 0)
+			goto(
+				resolve('/[chapter]/[lesson]', {
+					chapter: chapter.id,
+					lesson: chapter.lessons[data.index - 1].id
+				})
+			);
 	}
 	function onKey(e: KeyboardEvent) {
 		if (e.code !== 'Space') return;
@@ -198,20 +216,39 @@
 		{/if}
 		<p class="text-[11px] font-semibold tracking-widest text-faint uppercase">
 			{group && path.track.id === 'general'
-				? `${$t.chapter} ${group.index + 1}: ${group.group.title[$lang]}`
+				? `${$t.chapter} ${group.index + 1} / ${group.group.title[$lang]}`
 				: inTrack
 					? $t.termTrack.replace('{name}', path.track.title[$lang])
 					: chapter.unnumbered
 						? chapter.title[$lang]
-						: `${$t.chapter} ${chapter.number}: ${chapter.title[$lang]}`}
+						: `${$t.chapter} ${chapter.number} / ${chapter.title[$lang]}`}
 		</p>
 		<h1 class="mt-1 font-display text-2xl font-medium text-ink md:text-[1.9rem]">{text.title}</h1>
 	</div>
 
+	{#if lesson.playable}
+		<div class="activity-bar">
+			<span class:done={completed}
+				>{completed ? lessonUi[$lang].complete : lessonUi[$lang].experiment}</span
+			>
+			<button
+				type="button"
+				onclick={() => {
+					attempt += 1;
+					completedFor = null;
+					reaction = null;
+					reactionToken = null;
+				}}
+			>
+				{lessonUi[$lang].restart}
+			</button>
+		</div>
+	{/if}
+
 	<!-- Stage. Sits between the title and Nim's dock and gets all the room left. Stages centre
 	     themselves in it (so every picture sits at the same height) and scroll if taller. -->
 	<section class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 py-2 md:px-8 md:py-3">
-		{#key data.lessonId}
+		{#key `${lessonKey}/${attempt}`}
 			<div class="stage-in h-full w-full">
 				<div
 					class="stage-slot flex h-full w-full items-center-safe justify-center transition-opacity duration-300 {stageActive
@@ -236,7 +273,11 @@
 	<div class="shrink-0 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-6 md:pb-5">
 		<SpeechBubble
 			nim={message}
-			{lines}
+			reacting={reaction !== null}
+			onresume={() => {
+				reaction = null;
+				reactionToken = null;
+			}}
 			mood={currentMood}
 			{canNext}
 			{canBack}
@@ -252,6 +293,30 @@
 </main>
 
 <style>
+	.activity-bar {
+		width: min(calc(100% - 32px), 880px);
+		margin: 0 auto;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		font-size: 12px;
+		color: var(--color-muted);
+	}
+	.activity-bar button {
+		min-height: 44px;
+		color: var(--color-brand);
+		text-align: right;
+	}
+	.activity-bar .done {
+		color: var(--color-grass);
+	}
+	@media (prefers-reduced-motion: reduce) {
+		:global(.stage-in) {
+			animation: none !important;
+		}
+	}
+
 	/* Stages were written for a page where Nim floated over them, so many reserve a big empty
 	   space at the bottom or pin themselves to the top. Nim now lives in the dock under the stage,
 	   so that space is taken back. */

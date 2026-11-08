@@ -3,79 +3,44 @@ import type { DdosText } from './types';
 export const id: DdosText = {
 	title: 'Apa itu DDoS',
 	intro: [
-		'Bayangin nimbus.com itu toko kecil dengan beberapa kasir. Server di belakangnya cuma punya tenaga komputer dan kabel internet yang terbatas, jadi cuma bisa melayani sekian pengunjung tiap detik. Sekarang semua orang masuk dengan lancar.',
-		'Sekarang ada satu pembuat onar yang ngirim request terus terusan, kayak pembeli palsu yang nanya hal nggak penting dan nggak pernah pergi. Itu namanya serangan <b>denial of service</b>, disingkat DoS. Nggak ada yang dicuri, tujuannya cuma bikin orang lain nggak bisa masuk. Tapi satu pengirim gampang diatasi, tinggal blokir satu alamat itu.',
-		'Makanya penyerang bawa kerumunan. Ribuan perangkat yang dibajak (komputer, kamera, router rumahan) membanjiri situs yang sama sekaligus. Kerumunan itu namanya <b>botnet</b>, dan serangannya disebut <b>distributed</b> denial of service, atau <b>DDoS</b>. Servernya tenggelam, dan pengunjung asli nggak bisa masuk.',
-		'Bulan Oktober 2016, botnet bernama <b>Mirai</b>, yang kebanyakan terdiri dari kamera dan router yang masih pakai password bawaan pabrik, membanjiri perusahaan bernama Dyn yang membantu internet menemukan alamat website. Berjam jam banyak orang di Amerika dan Eropa nggak bisa buka Twitter, Netflix, atau Reddit.',
-		'Penjaga bisa melawan. Pertama pakai <b>rate limit</b>, tiap alamat cuma boleh ngirim sekian request per detik, sisanya ditolak di pintu. Ini membantu, tapi botnet raksasa punya alamat sebanyak itu sampai masih banyak yang lolos.',
-		'Perisai besarnya adalah [[CDN|traffic/cdn]], ratusan server yang tersebar di seluruh dunia dan berdiri di depan servermu. Banjirnya pecah di sana, jauh dari servermu, sementara pengunjung asli tetap lewat. nimbus.com tetap buka.',
-		'[ingat] <b>DDoS itu bukan maling, tapi kerumunan yang nutup pintu.</b> Nggak ada yang diambil. Obatnya pintu yang lebih lebar di tempat jauh (CDN) dan satpam yang sopan (rate limit).',
-		'[fyi] Tahun 2018, GitHub diserang banjir sebesar 1,35 terabit per detik, salah satu yang terbesar pada masanya. Dengan bantuan layanan perlindungan DDoS, GitHub pulih dalam sekitar sepuluh menit.',
-		'Mau ngerasain bedanya? Matikan dan nyalakan perisainya, lalu lihat banjirnya. Semua di sini cuma pura pura, nggak ada situs asli yang dirugikan.'
+		'Server nimbus.com memiliki kapasitas komputasi dan jaringan yang terbatas. Jika beban melebihi kapasitas, request dapat melambat atau gagal.',
+		'<b>Denial of service</b> atau DoS mengganggu ketersediaan layanan. Pada contoh ini, trafik berlebih menghabiskan kapasitas sehingga pengunjung lain sulit mengakses situs.',
+		'<b>Distributed denial of service</b> atau DDoS memakai banyak sumber serangan. Sebagian serangan memakai botnet, yaitu kumpulan perangkat yang dikendalikan penyerang.',
+		'Oktober 2016, botnet bernama <b>Mirai</b>, yang sebagian besar terdiri dari kamera dan router yang masih pakai password bawaan pabrik, membanjiri perusahaan DNS bernama Dyn. Berjam jam banyak orang di Amerika dan Eropa nggak bisa membuka Twitter, Netflix, Reddit, dan banyak situs lain.',
+		'[fyi] Tahun 2018 GitHub diserang banjir sebesar 1,35 terabit per detik, salah satu yang terbesar saat itu. Dengan bantuan layanan perlindungan DDoS, GitHub kembali normal dalam sekitar sepuluh menit.',
+		'[ingat] DDoS mengganggu ketersediaan dengan trafik atau pekerjaan berlebih. Perlindungan perlu sesuai jenis serangan dan kapasitas jaringan.',
+		'Penjaga melawan dengan <b>rate limit</b> (setiap alamat cuma boleh mengirim sekian request per detik) dan [[CDN|traffic/cdn]], ratusan server di seluruh dunia yang menyerap banjir jauh dari servermu. Mulai banjirnya, lalu jaga nimbus.com tetap terbuka untuk pengunjung asli, bahkan saat botnetnya paling besar.'
 	],
 	reactions: {
-		shieldOff:
-			'Perisai mati. Seluruh botnet langsung menghantam nimbus.com, servernya megap megap, dan hampir nggak ada pengunjung asli yang bisa masuk.',
-		shieldOn:
-			'Perisai nyala. Banjirnya pecah di CDN yang jauh, rate limit menolak sisanya, dan pengunjung asli masuk dengan santai.'
+		flood:
+			'Tumbang. Titik merah itu request sampah dari botnet, dan yang hijau itu orang sungguhan. Server sibuk banget menjawab sampah sampai hampir nggak ada pengunjung asli yang kebagian giliran.',
+		rateWin:
+			'Hidup lagi. Sekarang setiap bot cuma boleh mengirim sedikit request per detik, dan orang sungguhan yang klik sana sini nggak pernah menyentuh batas itu. Melawan botnet kecil, ini saja sudah cukup. Coba besarkan botnetnya.',
+		rateLose:
+			'Rate limit membantu, tapi botnya kebanyakan. Masing masing tetap sopan di bawah batas, tapi kalau digabung tetap menenggelamkan server. Kamu butuh sesuatu yang jauh lebih lega.',
+		cdnWin:
+			'Perisainya kuat. CDN menyebarkan banjir ke banyak edge server di seluruh dunia, jadi masing masing cuma kena sedikit. Kebanyakan sampah bahkan nggak sampai ke servermu.',
+		cdnLose:
+			'Di ukuran segini CDN pun kewalahan, setiap bot menembak dengan kecepatan penuh. Ada cara supaya setiap bot mengirim lebih sedikit?',
+		down: 'Lalu lintasnya kebanyakan, pengunjung asli ditolak lagi. Coba kombinasi pertahanan yang lain.',
+		holding: 'Masih berdiri. Coba besarkan botnetnya dan lihat apakah pertahananmu masih kuat.',
+		saved:
+			'Sepuluh ribu bot dan nimbus.com tetap terbuka untuk orang sungguhan. Rate limit bikin setiap bot lemah, dan CDN memberi ruang untuk menyerap sisanya. Di belakang perisai, [[load balancer|traffic/load-balancer]] membagi sisa request, dan kalau satu region tetap tumbang, [[failover|resilience/failover]] siap menggantikan.'
 	},
-	steps: [
-		{
-			tag: 'Hari biasa',
-			title: 'Toko kecil',
-			body: 'Server cuma bisa menjawab sekian <b>request</b> tiap detik. Di hari biasa itu lebih dari cukup.'
-		},
-		{
-			tag: 'Satu pengirim',
-			title: 'DoS',
-			body: 'Satu mesin membanjiri situs supaya yang lain <b>nggak bisa masuk</b>. Blokir satu alamat itu, selesai.'
-		},
-		{
-			tag: 'Kerumunan',
-			title: 'DDoS dan botnet',
-			body: 'Ribuan <b>perangkat yang dibajak</b> membanjiri sekaligus. Nggak ada satu alamat yang bisa diblokir.'
-		},
-		{
-			tag: 'Oktober 2016',
-			title: 'Mirai',
-			body: 'Kamera dan router dengan <b>password bawaan pabrik</b> jadi botnet yang bikin situs besar tumbang berjam jam.'
-		},
-		{
-			tag: 'Pertahanan',
-			title: 'Rate limit',
-			body: 'Tiap alamat cuma dapat sedikit request per detik. Ini <b>memperlambat</b> banjir, tapi nggak cukup buat yang raksasa.'
-		},
-		{
-			tag: 'Pertahanan',
-			title: 'Perisai CDN',
-			body: 'Banyak server di seluruh dunia <b>menyerap</b> banjirnya jauh dari servermu, dan meloloskan pengunjung asli.'
-		},
-		{
-			tag: 'Cara ingat',
-			title: 'Kerumunan di pintu',
-			body: 'DDoS nggak mengambil apa pun, dia <b>nutup pintu</b>. Lebarkan pintunya dan tambah satpam.'
-		},
-		{
-			tag: 'Sekilas',
-			title: 'GitHub, 2018',
-			body: 'Banjir terbesar pada masanya, dan pulih dalam sekitar <b>sepuluh menit</b> berkat layanan perlindungan.'
-		},
-		{
-			tag: 'Opsional',
-			title: 'Perisai nyala, perisai mati',
-			body: 'Ganti saklarnya dan lihat berapa banyak pengunjung asli yang bisa masuk.'
-		}
-	],
+	startBtn: 'Mulai banjirnya',
+	stopBtn: 'Hentikan banjirnya',
+	sizeLabel: 'Ukuran botnet',
+	rateToggle: 'Rate limit',
+	cdnToggle: 'Perisai CDN',
+	on: 'nyala',
+	off: 'mati',
 	visitorsLabel: 'Pengunjung asli',
-	attackerLabel: 'Satu pembuat onar',
-	botsLabel: 'Botnet',
+	botsLabel: '{n} perangkat dibajak',
+	cdnLabel: 'Edge server CDN',
 	serverLabel: 'nimbus.com',
-	rateLabel: 'Rate limit',
-	cdnLabel: 'CDN',
-	states: { up: 'Buka', slow: 'Kewalahan', down: 'Tumbang' },
-	served: '{n}% pengunjung asli bisa masuk',
-	stamp: 'Oktober 2016',
-	rule: 'Kerumunan di pintu, bukan maling',
-	pickLabel: 'Perisainya',
-	modes: { off: 'Mati', on: 'Nyala' }
+	rps: '{n} request per detik',
+	served: 'Pengunjung asli yang bisa masuk, {n}%',
+	calm: 'Hari yang tenang, semua pengunjung bisa masuk',
+	states: { up: 'online', slow: 'lambat banget', down: 'tumbang' },
+	numberLocale: 'id-ID'
 };

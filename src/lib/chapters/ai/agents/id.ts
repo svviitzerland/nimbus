@@ -3,94 +3,66 @@ import type { AgentsText } from './types';
 export const id: AgentsText = {
 	title: 'AI agent',
 	intro: [
-		'Chatbot cuma bisa <b>ngomong</b>. Kamu tanya, dia jawab pakai kata kata, selesai. <b>Agen AI</b> juga bisa <b>mengerjakan</b> sesuatu buat kamu.',
-		'Rahasianya adalah <b>alat</b> (tools). Alat itu program kecil yang boleh dipakai model, misalnya kalender. Model nggak pernah menyentuh kalendernya langsung, dia menulis permintaan, lalu program biasa yang mengerjakannya.',
-		'Aku minta agenku membuat janji ketemu Raka hari Kamis jam sepuluh. Pertama dia <b>berpikir</b>, dan menulis rencana kecil buat dirinya sendiri.',
-		'Lalu dia <b>bertindak</b>. Dia memanggil alat kalender, dan kalendernya menjawab dengan data polos.',
-		'Lalu dia <b>memeriksa</b> hasilnya. Jam sepuluh ternyata sudah dipakai rapat tim! Jadi rencananya diubah, jam sebelas masih kosong.',
-		'Membuat janji itu mengubah kalendermu yang asli, jadi agen yang baik berhenti dan <b>bertanya dulu</b>. Kamu tetap yang pegang kendali.',
-		'Kamu bilang boleh, dia memesan jam sebelas, lalu menceritakan apa yang dia lakukan. Satu kalimat darimu berubah jadi beberapa langkah kecil.',
-		'[ingat] Agen itu model yang punya tangan. Ingat 3P, Pikir, Pakai alat, Periksa, lalu ulangi sampai tugasnya beres.',
-		'[fyi] Di balik layar, yang berpikir tetap [[model bahasa|ai/llm]] yang sama dengan chatbot. Panggilan alat cuma teks dengan format ketat, yang dibaca dan dijalankan oleh program, sering lewat [[API|foundations/api]].',
-		'Giliranmu, kalau mau. Agennya sedang minta izin. Izinkan atau tolak, lalu lihat bagaimana agen yang baik bersikap.'
+		'Chatbot cuma bisa <b>ngobrol</b>. Kamu tanya, dia jawab pakai teks, selesai. Sebuah <b>AI agent</b> juga bisa <b>mengerjakan</b> sesuatu buat kamu.',
+		'Rahasianya ada di <b>tool</b> (alat). Tool adalah fungsi kecil yang boleh dipakai model, misalnya membaca kalender atau mengirim email. Modelnya sendiri nggak pernah menyentuh kalendermu, dia minta tolong ke program biasa, lalu program itu mengirim balik hasilnya.',
+		'Agent bekerja dalam <b>putaran</b> (loop). Dia mikir dulu mau ngapain, memanggil tool, membaca hasilnya, lalu mikir lagi. Begitu terus sampai tugasnya beres.',
+		'Di balik layar, yang mikir itu [[model bahasa|ai/llm]] yang sama dengan chatbot. Panggilan tool cuma teks yang ditulis dengan format ketat, lalu dibaca dan dijalankan oleh program, sering kali lewat sebuah [[API|foundations/api]].',
+		'[fyi] Karena agent bertindak di dunia nyata, agent yang baik bertanya dulu sebelum melakukan hal yang nggak bisa dibatalkan, misalnya membayar, menghapus file, atau mengubah kalendermu. Manusia tetap yang pegang kendali.',
+		'Aku minta agentku menjadwalkan rapat sama Raka hari Kamis jam sepuluh. Yuk kita tonton dia bekerja, langkah demi langkah, tanpa ada yang disembunyikan.',
+		'[ingat] Agent dapat memakai model untuk memilih tindakan dan memanggil alat. Batasi izin, periksa hasil, dan tentukan kapan proses harus berhenti.',
+		'Jalankan agentnya selangkah demi selangkah, atau biarkan jalan sendiri. Kalau dia minta izin, kamu yang memutuskan.'
 	],
 	reactions: {
-		allow:
-			'Diizinkan. Janjinya langsung tercatat, dan agennya memberi tahu persis apa yang berubah.',
-		deny: 'Ditolak. Agen yang baik menghormati itu, nggak memesan apa pun, dan nggak cari cara diam diam.'
+		think:
+			'Model memilih langkah berikutnya berdasarkan tugas dan hasil yang sudah tersedia. Setelah itu aplikasi dapat memanggil alat yang dipilih.',
+		tool: 'Sekarang dia memanggil tool. Lihat kalendernya menyala? Model cuma menulis permintaannya, program kalender yang mengerjakan beneran.',
+		result:
+			'Toolnya menjawab dengan data polos. Model membacanya seperti teks biasa, lalu memutuskan langkah berikutnya.',
+		busy: 'Pintar, jam sepuluh sudah terisi, jadi dia ganti rencana. Inilah putarannya. Bertindak, lihat hasilnya, lalu menyesuaikan.',
+		ask: 'Menjadwalkan rapat berarti mengubah kalendermu yang asli, jadi agentnya berhenti dan bertanya. Terserah kamu!',
+		allow: 'Diizinkan. Rapatnya langsung dipesan dan kalendernya ikut berubah.',
+		deny: 'Ditolak. Agent yang baik menghormati itu dan nggak mencari jalan belakang.',
+		email:
+			'Dia mengambil tool kedua tanpa disuruh. Menyambung beberapa tool begini yang bikin agent terasa seperti asisten kecil.',
+		done: 'Beres! Satu kalimat darimu berubah jadi beberapa langkah, dua tool, dan satu pertanyaan balik buatmu. Semua langkahnya kelihatan, makanya agent bisa dipercaya dan gampang diperbaiki kalau salah.',
+		done_deny:
+			'Dia selesai tanpa memesan apa pun, karena kamu bilang tidak. Ulangi dan izinkan kali ini biar kelihatan tugasnya sampai tuntas.',
+		auto: '[fyi] Agent sungguhan memang jalan sendiri begini, kadang sampai puluhan langkah. Justru karena itu catatan tiap langkah yang bisa dibaca jadi penting banget.'
 	},
-	panels: [
-		{
-			tag: 'Chatbot',
-			title: 'Cuma kata kata',
-			body: 'Chatbot bisa menjelaskan <b>cara</b> membuat janji. Tapi dia nggak bisa membuatkannya.'
-		},
-		{
-			tag: 'Alat',
-			title: 'Tangannya',
-			body: 'Alat adalah program biasa, misalnya kalender. Model menulis permintaan, programnya yang benar benar bekerja.'
-		},
-		{
-			tag: 'Pikir',
-			title: 'Bikin rencana kecil',
-			body: 'Sebelum bertindak, model menulis apa yang dia butuhkan dulu. Di sini, dia butuh jadwal hari Kamis.'
-		},
-		{
-			tag: 'Pakai alat',
-			title: 'Panggil alatnya',
-			body: 'Permintaannya dikirim ke kalender, dan kalender membalas dengan data polos, jam mana yang sudah terisi.'
-		},
-		{
-			tag: 'Periksa',
-			title: 'Lihat, lalu sesuaikan',
-			body: 'Jam sepuluh terisi, jadi rencananya ganti ke jam sebelas. Memeriksa hasil itulah yang bikin agen nggak melenceng.'
-		},
-		{
-			tag: 'Izin',
-			title: 'Tanya sebelum bertindak',
-			body: 'Apa pun yang mengubah barang aslimu, seperti kalender atau uang, menunggu izin dari <b>kamu</b>.'
-		},
-		{
-			tag: 'Beres',
-			title: 'Tercatat dan dilaporkan',
-			body: 'Kalender sekarang menampilkan janji jam sebelas, dan agennya menjelaskan apa yang diubah dan kenapa.'
-		},
-		{
-			tag: 'Cara ingat',
-			title: 'Model yang punya tangan',
-			body: '<b>Pikir, Pakai alat, Periksa</b>, lalu ulangi. Putaran itulah seluruh isi sebuah agen.'
-		},
-		{
-			tag: 'Coba',
-			title: 'Kamu yang putuskan',
-			body: 'Izinkan atau tolak janjinya. Apa pun pilihanmu, agen yang baik menjelaskan dengan jujur apa yang terjadi.'
-		}
-	],
-	picture:
-		'Sebuah agen AI dikelilingi putaran tiga langkah, pikir, pakai alat, dan periksa, terhubung ke aplikasi kalender hari Kamis, dengan pertanyaan izin di bawahnya.',
-	goal: 'Buatkan janji dengan Raka hari Kamis jam 10.',
-	youLabel: 'Kamu',
-	chatOnly:
-		'Bisa! Buka aplikasi kalender, ketuk hari Kamis, lalu tambahkan janji jam 10. Habis itu kirim undangan ke Raka.',
-	chatbotLabel: 'Chatbot',
-	agentLabel: 'Agen AI',
-	loop: { think: 'Pikir', act: 'Pakai alat', check: 'Periksa' },
+	youLabel: 'Kamu minta',
+	goal: 'Jadwalkan rapat dengan Raka hari Kamis jam 10.',
+	modelLabel: 'AI agent',
 	calendarLabel: 'Kalender',
+	emailLabel: 'Email',
 	day: 'Kamis',
 	free: 'kosong',
 	teamSync: 'Rapat tim',
-	withRaka: 'Raka',
-	think1: 'Aku butuh jadwal hari Kamis dulu. Aku tanya kalendernya.',
-	think2: 'Jam sepuluh dipakai rapat tim. Jam sebelas kosong, aku tawarkan jam sebelas.',
-	think3: 'Ini mengubah kalender asli, jadi aku harus tanya dulu.',
-	call: 'calendar.read("Kamis")',
-	result: '10:00 terisi, 11:00 kosong',
-	approvalQ: 'Pesan Kamis jam 11 dengan Raka?',
+	withRaka: 'Rapat dengan Raka',
+	emailIdle: 'Belum ada yang dikirim',
+	emailSent: 'Undangan terkirim ke Raka',
+	kinds: { think: 'Mikir', call: 'Panggil tool', result: 'Dapat balasan', answer: 'Menjawab' },
+	think1: 'Buat menjadwalkan ini, aku perlu lihat jadwal hari Kamis dulu. Aku tanya kalendernya.',
+	think2:
+		'Jam sepuluh sudah dipakai rapat tim, tapi jam sebelas kosong. Aku pesan jam sebelas saja.',
+	finalAllow:
+		'Beres! Kamu rapat dengan Raka hari Kamis jam 11 (jam 10 sudah dipakai rapat tim), dan undangannya sudah aku kirim ke Raka.',
+	finalDeny: 'Oke, aku nggak memesan apa pun. Kalendermu tetap seperti semula.',
+	status: {
+		idle: 'Menunggu dimulai',
+		thinking: 'Lagi mikir',
+		calling: 'Bertanya ke {tool}',
+		reading: 'Membaca jawaban',
+		waiting: 'Menunggu izinmu',
+		done: 'Selesai'
+	},
+	stepBtn: 'Langkah berikutnya',
+	autoBtn: 'Jalan sendiri',
+	running: 'Sedang jalan',
+	reset: 'Ulangi',
+	approvalQ: 'Agent mau memesan Kamis jam 11.00 di kalendermu. Boleh?',
 	allow: 'Izinkan',
 	deny: 'Tolak',
-	finalAllow: 'Beres! Kamu ketemu Raka hari Kamis jam 11, karena jam 10 sudah terisi.',
-	finalDeny: 'Oke, aku nggak memesan apa pun. Kalendermu tetap seperti semula.',
-	memo: 'model yang punya tangan',
-	rule: 'Ingat 3P, Pikir, Pakai alat, Periksa',
-	again: 'Tanya lagi'
+	logLabel: 'Semua langkah, berurutan',
+	logEmpty: 'Belum ada, agentnya menunggu langkah pertama',
+	stepCount: '{n} langkah'
 };

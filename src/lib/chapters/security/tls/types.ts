@@ -1,25 +1,47 @@
 import type { LessonText } from '../../types';
 
-/** Which WiFi the optional switch on the last beat uses. */
-export type TlsWifi = 'home' | 'cafe';
-
 export interface TlsText extends LessonText {
-	/** The side panel, one entry per beat (a small tag, a title, a short plain explanation). */
-	steps: { tag: string; title: string; body: string }[];
+	/** Short names for the two acts, shown in the step row at the top. */
+	acts: string[];
+	actLabel: string; // template with {n}
+	nextAct: string;
 	youLabel: string;
 	serverLabel: string;
+	/** Act 1, the handshake. */
+	stepBtn: string; // plays the next handshake step
+	/** Five steps, in order hello, cert, check, key, secure. `chip` rides the wire (empty for none). */
+	steps: { chip: string; title: string; body: string }[];
+	/** The four things the browser checks on the certificate. */
+	checks: string[];
+	cert: {
+		heading: string;
+		subjectLabel: string;
+		issuerLabel: string;
+		validLabel: string;
+		keyLabel: string;
+		subject: string; // nimbus.com
+		issuer: string; // Let's Encrypt
+		valid: string; // a date
+		keyValue: string; // a short public key preview
+	};
+	sessionKey: string; // caption on the shared session key
+	secretMsg: string; // the page content travelling once secure
+	/** Act 2, the impostor on a shady WiFi. */
+	wifiLabel: string;
 	attackerLabel: string;
-	/** Labels on the messages that travel along the wire. */
-	chips: { hello: string; cert: string; key: string };
-	/** The certificate as the browser shows it while checking. */
-	certHeading: string;
-	/** The three things the browser checks, in order. */
-	checks: [string, string, string];
-	sessionKey: string; // caption under the shared session key
-	warnTitle: string; // the warning page the browser shows
-	warnBody: string;
-	/** The little history line on the second beat, one entry per dot. */
-	history: { name: string; year: string }[];
-	/** The optional switch on the last beat. */
-	wifi: { label: string; home: string; cafe: string };
+	visitBtn: string;
+	addr: string; // what the address bar shows
+	warn: {
+		title: string;
+		body: string;
+		back: string;
+		proceed: string;
+		details: string; // heading over the fake certificate
+	};
+	fakeIssuer: string; // the fake certificate signed by itself
+	fakeValid: string;
+	fakeChecks: string[]; // short status per check, same order as `checks`
+	stolen: string; // shown when the learner proceeds anyway
+	safe: string; // shown when the learner turns back
+	again: string; // try the fake site again
 }

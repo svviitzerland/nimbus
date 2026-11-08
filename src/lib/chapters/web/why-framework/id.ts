@@ -3,55 +3,44 @@ import type { WhyFrameworkText } from './types';
 export const id: WhyFrameworkText = {
 	title: 'Apa itu framework',
 	intro: [
-		'nimbus.com awalnya kecil, cuma satu halaman depan yang ditulis manual pakai [[HTML|web/html]]. Lalu dia tumbuh. Ada halaman toko, halaman mug, keranjang, checkout, dan struk. Masing masing file sendiri, dan semuanya menampilkan harga mug.',
-		'Sekarang mug Nim lagi diskon, dari 12 turun jadi 9. Harus ada yang membuka tiap file, mencari harganya, lalu mengubahnya satu per satu. Enam halaman sih oke, enam ratus halaman ya tepar.',
-		'Dan manusia bisa capek. Lupa satu aja, keranjang bilang 12 sementara checkout bilang 9. Pembelinya bingung, dan kamu punya <b>bug</b>, kesalahan di dalam program.',
-		'<b>Framework</b> itu struktur siap pakai buat membangun aplikasi, biar kamu nggak mengulang ulang hal yang sama. Harganya tinggal di <b>satu tempat</b>, tiap halaman membacanya dari situ, dan kalau harganya berubah, semua halaman ikut berubah sendiri.',
-		'Buat halaman di browser, nama nama besarnya <b>React</b> (dari Facebook), <b>Vue</b>, <b>Svelte</b>, dan <b>Angular</b> (dari Google). Semuanya jalan di atas [[JavaScript|web/js]] dan menyelesaikan masalah yang sama, cuma gayanya beda beda.',
-		'[fyi] Halaman yang lagi kamu buka ini dibangun pakai Svelte. Tiap pelajaran memakai ulang Nim yang sama, balon bicara yang sama, dan tombol yang sama, persis trik yang bakal kamu lihat di [[komponen|web/components]].',
-		'[ingat] Satu data, satu tempat. Kayak pengumuman di grup kelas, sekali kirim semua tahu, nggak perlu japri tiga puluh teman satu satu.',
-		'Kalau mau, giliran kamu. Ubah harga di satu tempat itu dan lihat semua halaman ikut berubah.'
+		'nimbus.com awalnya kecil, cuma satu halaman depan yang ditulis manual pakai [[HTML|web/html]]. Lalu dia tumbuh. Ada halaman toko, keranjang, checkout, hasil pencarian, email struk. Masing masing file sendiri.',
+		'Sekarang mug Nim lagi diskon. Harganya ada di sepuluh file berbeda, dan harus ada yang nyari lalu ngubah satu per satu. Ketinggalan satu aja, keranjang bilang harga A tapi checkout bilang harga B.',
+		'<b>Framework</b> itu struktur siap pakai buat bikin aplikasi, biar kamu nggak ngulang ngulang hal yang sama. Tiap data disimpan di <b>satu tempat</b>, dan semua halaman yang memakainya ikut berubah sendiri waktu datanya diganti.',
+		'Buat halaman di browser, nama nama besarnya itu <b>React</b> (buatan Facebook), <b>Vue</b>, <b>Svelte</b>, dan <b>Angular</b> (buatan Google). Semuanya jalan di atas [[JavaScript|web/js]], dan semuanya menyelesaikan masalah yang sama dengan gaya yang sedikit beda.',
+		'[fyi] Halaman yang lagi kamu buka ini dibangun pakai Svelte. Tiap pelajaran memakai ulang Nim yang sama, balon kata yang sama, dan tombol yang sama, persis trik yang bakal kamu lihat di [[komponen|web/components]].',
+		'[ingat] Simpan data yang sama di satu sumber, lalu gunakan kembali pada komponen yang membutuhkannya.',
+		'Giliran kamu. Harga mug turun dari 12 jadi 9. Pertama, ubah kesepuluh tempat itu secara manual lalu publish, habis itu coba cara framework dan rasakan bedanya.'
 	],
 	reactions: {
-		price:
-			'Sekali ubah, keenam halaman langsung ikut. Nggak ada file yang dibuka satu satu, dan nggak ada halaman yang bisa kelupaan.'
+		missed:
+			'Waduh, situsnya tayang dengan harga campur aduk. Pembeli lihat satu harga di keranjang dan harga lain di checkout. Persis begini bug menyelinap kalau data yang sama disalin ke mana mana.',
+		handDone:
+			'Kesepuluhnya beres. Berhasil sih, tapi bayangin toko beneran dengan ratusan halaman dan puluhan harga. Sekarang pindah ke tab framework.',
+		framework:
+			'Sekali ubah, dan kesepuluh tempat langsung ikut. Harganya tinggal di satu tempat dan semua halaman membacanya dari situ. Itulah inti dari apa yang dikasih sebuah framework.'
 	},
-	steps: [
-		{
-			title: 'Situs yang tumbuh',
-			body: 'Tiap halaman punya file sendiri, dan data yang sama (kayak harga) <b>disalin</b> ke banyak file.'
-		},
-		{
-			title: 'Cara manual',
-			body: 'Buat mengubah data yang disalin, kamu harus <b>mendatangi tiap salinan</b>. Lambat, dan makin lambat kalau situsnya makin besar.'
-		},
-		{
-			title: 'Satu salinan terlewat',
-			body: 'Dua halaman sekarang nggak kompak. Kesalahan kayak gini di program namanya <b>bug</b>.'
-		},
-		{
-			title: 'Framework',
-			body: 'Datanya tinggal di <b>satu tempat</b>. Halaman nggak menyalin, tapi <b>membaca</b>, jadi perubahan sampai ke semuanya sekaligus.'
-		},
-		{
-			title: 'Nama nama besar',
-			body: '<b>React</b>, <b>Vue</b>, <b>Svelte</b>, dan <b>Angular</b>. Gayanya beda, idenya sama, semuanya ditulis pakai JavaScript.'
-		},
-		{
-			title: 'Kamu ada di dalamnya',
-			tag: 'Info',
-			body: 'Nimbus dibangun pakai <b>Svelte</b>. Nim dan balon bicaranya ditulis sekali lalu dipakai ulang di tiap pelajaran.'
-		},
-		{
-			title: 'Cara ingat',
-			tag: 'Cara ingat',
-			body: '<b>Satu data, satu tempat.</b> Kayak pengumuman di grup kelas, sekali kirim semua tahu.'
-		}
+	modes: { hand: 'Manual', framework: 'Pakai framework' },
+	handHint: 'Tap tiap file buat ganti harga mug jadi 9, lalu publish',
+	frameworkHint: 'Ubah harganya sekali dan lihat semua halaman',
+	places: [
+		'home.html',
+		'shop.html',
+		'mug.html',
+		'cart.html',
+		'checkout.html',
+		'search.html',
+		'deals.html',
+		'wishlist.html',
+		'receipt.html',
+		'email.html'
 	],
-	pages: ['Beranda', 'Toko', 'Mug', 'Keranjang', 'Checkout', 'Struk'],
-	money: '${n}',
-	storeLabel: 'harga',
-	bugNote: 'Keranjang $12, checkout $9',
-	lower: 'Turunkan harga',
-	raise: 'Naikkan harga'
+	money: 'Rp{n}rb',
+	publish: 'Publish',
+	publishedOk: 'Tayang dengan harga yang sama di semua halaman',
+	publishedMissed: 'Tayang, tapi {n} halaman masih pakai harga lama',
+	edits: '{n} kali edit',
+	priceLabel: 'harga',
+	cheaper: 'Turunkan harga',
+	pricier: 'Naikkan harga',
+	reset: 'Ulang dari awal'
 };

@@ -1,25 +1,56 @@
 import type { LessonText } from '../../types';
-import type { GuideStep } from '$lib/components/stages/attacks2/types';
-
-/** How the login travels, a readable postcard (http) or a sealed envelope (https). */
-export type SniffMode = 'http' | 'https';
 
 export interface SniffingText extends LessonText {
-	/** The side panel, one entry per beat. */
-	steps: GuideStep[];
+	/** Short names for the two acts, shown in the step row at the top. */
+	acts: string[];
+	actLabel: string; // template with {n}
+	nextAct: string;
 	youLabel: string;
-	routerLabel: string; // the café WiFi box
 	serverLabel: string; // always nimbus.com
+	routerLabel: string; // the real café WiFi box in act 1
 	snooperLabel: string; // the stranger at the next table
-	twinLabel: string; // the snooper's laptop posing as a hotspot
-	engineerLabel: string; // the same laptop, used by an engineer on their own network
-	notSecure: string; // tag in the address bar when there is no padlock
+	twinLabel: string; // the snooper's laptop acting as a fake hotspot
+	/** Act 1, the same login sent twice. */
+	sendHttp: string;
+	sendHttps: string;
+	loginTitle: string;
+	userLabel: string;
+	passLabel: string;
 	loginBtn: string;
-	/** The snooper's screen. */
-	snoop: { title: string; waiting: string; recording: string; readable: string; noise: string };
-	/** The rule of thumb line under the picture. */
-	rule: string;
-	/** Caption and buttons of the optional switch on the last beat. */
-	pickLabel: string;
-	modes: Record<SniffMode, string>;
+	loggedIn: string;
+	/** The little window under the scene showing what the snooper captured. */
+	captureTitle: string;
+	captureEmpty: string;
+	readableTag: string;
+	scrambledTag: string;
+	/** Act 2, the fake hotspot. */
+	pickWifi: string;
+	wifiReal: string;
+	wifiTwin: string;
+	strongSignal: string;
+	openHttp: string;
+	openHttps: string;
+	blankPage: string;
+	pageWelcome: string;
+	tamperedTitle: string;
+	tamperedBody: string;
+	tamperedTag: string; // small label on the box the snooper added
+	warnTitle: string;
+	warnBody: string;
+	warnBack: string;
+	/** Human readable lines inside the capture window (raw packet lines live in the stage). */
+	capture: {
+		swapped: string;
+		refused: string;
+	};
+	notes: {
+		idle: string;
+		http: string;
+		https: string;
+		pick: string;
+		real: string;
+		twin: string;
+		mitmHttp: string;
+		mitmHttps: string;
+	};
 }

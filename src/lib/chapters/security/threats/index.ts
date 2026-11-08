@@ -6,13 +6,15 @@ import { en } from './en';
 export const threats: Lesson = {
 	id: 'threats',
 	mood: 'thinking',
-	moods: ['wink', 'idea', 'thinking', 'calm', 'surprised', 'worried', 'wink', 'idea', 'excited'],
+	moods: ['wink', 'idea', 'thinking', 'worried', 'calm', 'excited'],
 	reactionMood: {
-		door: 'thinking',
-		window: 'idea',
-		gate: 'surprised',
-		pot: 'wink'
+		first: 'happy',
+		vendor: 'surprised',
+		backup: 'idea',
+		compareAll: 'excited',
+		compareSome: 'wink'
 	},
+	playable: true,
 	stage: ThreatsStage,
 	text: { id, en }
 };

@@ -1,36 +1,37 @@
 import type { LessonText } from '../../types';
 
-/** One part of the side panel (title, one or two short sentences, an optional tag). */
-export type GuideStep = { title: string; body: string; tag?: string };
-
 export interface AuthText extends LessonText {
-	/** Side panel parts, one per beat. */
-	steps: GuideStep[];
-	serverLabel: string;
+	/** Labels for the two ways of remembering a visitor. */
+	modeSession: string;
+	modeToken: string;
+	/** The three actions. */
+	login: string;
+	browse: string;
+	deleteCookie: string;
 	/** What the phone shows on each page. */
 	page: {
 		loginTitle: string;
 		email: string;
-		loginBtn: string;
+		loginHint: string;
 		hello: string;
-		ordersLabel: string;
 		orders: string[];
-		whoTitle: string;
-		whoHint: string;
+		kickedTitle: string;
+		kickedHint: string;
 	};
-	/** Under the phone, what the browser is holding. */
-	sessionNumber: string;
-	wristband: string;
+	/** The cookie jar under the phone. */
+	jarLabel: string;
+	jarEmpty: string;
+	/** What the token says inside, shown under it once decoded. */
+	tokenInside: string;
+	/** Caption over the request log. */
+	logLabel: string;
+	logIdle: string;
 	noCookie: string;
-	/** The board under the server. */
-	listLabel: string;
-	listRows: { number: string; name: string }[];
-	tokenLabel: string;
-	tokenNote: string;
-	hashLabel: string;
-	hashUser: string;
-	hashValue: string;
-	/** The optional toggle on the last beat. */
-	deleteBtn: string;
-	againBtn: string;
+	/** The server card. */
+	serverLabel: string;
+	sessionsLabel: string;
+	sessionsEmpty: string;
+	/** Who a session belongs to. */
+	sessionOwner: string;
+	tokenServer: string;
 }

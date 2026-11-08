@@ -1,3 +1,6 @@
+import { forms } from './forms';
+import { testing } from './testing';
+import { devtools } from './devtools';
 import type { Chapter } from '../types';
 import { http } from './http';
 import { browser } from './browser';
@@ -38,9 +41,11 @@ export const webChapter: Chapter = {
 	lessons: [
 		http,
 		browser,
+		devtools,
 		html,
 		css,
 		js,
+		forms,
 		dom,
 		responsive,
 		a11y,
@@ -50,6 +55,7 @@ export const webChapter: Chapter = {
 		components,
 		rendering,
 		buildTools,
+		testing,
 		backendWhat,
 		auth,
 		backendFrameworks,

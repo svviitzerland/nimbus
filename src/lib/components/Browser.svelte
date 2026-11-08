@@ -219,4 +219,11 @@
 	:global(.dark) .mask {
 		background: rgba(18, 26, 36, 0.82);
 	}
+	@media (prefers-reduced-motion: reduce) {
+		.content > * {
+			animation: none;
+			opacity: 1;
+			transform: none;
+		}
+	}
 </style>

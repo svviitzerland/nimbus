@@ -1,476 +1,456 @@
 <script lang="ts">
-	// A guided "watch" stage. Nim narrates, and a picture of nested circles fills in by itself:
-	// first a calculator waits outside (a normal program), then Turing asks his famous question,
-	// then the circles appear one by one (AI, machine learning, deep learning, generative AI) and
-	// an everyday example drops into each. The only optional play is on the last beat, tapping an
-	// example to light up its circle.
-	import { fade } from 'svelte/transition';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { AiRing, AiThingId, WhatIsAiText } from '$lib/chapters/ai/what-is-ai/types';
+	import type { LessonText } from '$lib/chapters/types';
+	import type { AiCardId, AiRing, WhatIsAiText } from '$lib/chapters/ai/what-is-ai/types';
 
-	import type { StageProps } from '$lib/chapters/types';
-
-	let { text, oncomplete, onstate, onshow, beat = 0 }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as WhatIsAiText);
 
-	const LAST = 8;
-	type Ring = { id: AiRing; cy: number; r: number; color: string; from: number };
-	// Circles share the same bottom edge, so each one leaves a band on top for its name and example.
-	const RINGS: Ring[] = [
-		{ id: 'ai', cy: 185, r: 170, color: 'var(--color-ink)', from: 2 },
-		{ id: 'ml', cy: 227, r: 128, color: 'var(--color-brand)', from: 3 },
-		{ id: 'dl', cy: 267, r: 88, color: 'var(--color-grass)', from: 5 },
-		{ id: 'gen', cy: 299, r: 56, color: 'var(--color-amber)', from: 6 }
-	];
-	const LABEL_Y: Record<AiRing, number> = { ai: 40, ml: 118, dl: 194, gen: 266 };
-	type Thing = { id: AiThingId; x: number; y: number; ring: AiRing | null; from: number };
-	const THINGS: Thing[] = [
-		{ id: 'calc', x: 38, y: 38, ring: null, from: 0 },
-		{ id: 'chess', x: 180, y: 64, ring: 'ai', from: 2 },
-		{ id: 'spam', x: 180, y: 144, ring: 'ml', from: 3 },
-		{ id: 'face', x: 180, y: 214, ring: 'dl', from: 5 },
-		{ id: 'chat', x: 158, y: 296, ring: 'gen', from: 6 },
-		{ id: 'image', x: 202, y: 296, ring: 'gen', from: 6 }
-	];
-	// Which circle each beat puts in focus (null means none, 'all' means every circle).
-	const FOCUS: (AiRing | null | 'all')[] = [
-		null,
-		null,
-		'ai',
-		'ml',
-		'ml',
-		'dl',
-		'gen',
-		'all',
-		'all'
+	/** Where each card truly belongs. Language independent, so it lives here. */
+	const home: Record<AiCardId, AiRing> = {
+		calc: 'out',
+		chess: 'ai',
+		spam: 'ml',
+		price: 'ml',
+		face: 'dl',
+		chat: 'gen',
+		image: 'gen'
+	};
+
+	/** Ring geometry in container width units (cqw), bottom aligned so the labels sit in each band. */
+	const rings: { id: Exclude<AiRing, 'out'>; d: number; top: number }[] = [
+		{ id: 'ai', d: 88, top: 14 },
+		{ id: 'ml', d: 68, top: 34 },
+		{ id: 'dl', d: 48, top: 54 },
+		{ id: 'gen', d: 30, top: 72 }
 	];
 
-	let peek = $state<number | null>(null);
-	let picked = $state<AiThingId | null>(null);
-	let reduced = $state(false);
+	let selected = $state<AiCardId | null>(null);
+	let placed = $state<Record<AiRing, AiCardId[]>>({ out: [], ai: [], ml: [], dl: [], gen: [] });
+	let flash = $state<{ ring: AiRing; ok: boolean } | null>(null);
+	let flashTimer: ReturnType<typeof setTimeout> | undefined;
+	let done = false;
 
-	$effect(() => {
-		onshow?.(true);
-		oncomplete?.();
-		if (typeof matchMedia !== 'undefined') {
-			reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-		}
-	});
+	const placedIds = $derived(new Set(Object.values(placed).flat()));
+	const tray = $derived(tx.cards.filter((c) => !placedIds.has(c.id)));
+	const count = $derived(placedIds.size);
+	const allDone = $derived(count === tx.cards.length);
+	const nameOf = (id: AiCardId) => tx.cards.find((c) => c.id === id)?.name ?? '';
 
-	// A new beat always brings the picture back to the story.
-	$effect(() => {
-		void beat;
-		peek = null;
-		picked = null;
-	});
-
-	const scene = $derived(peek ?? Math.min(beat, LAST));
-	const pickedRing = $derived(picked ? (THINGS.find((t) => t.id === picked)?.ring ?? null) : null);
-	const focus = $derived(scene === LAST && picked ? (pickedRing ?? 'none') : FOCUS[scene]);
-
-	function ringState(r: Ring): 'hidden' | 'ghost' | 'on' | 'dim' | 'plain' {
-		// before AI has a name, the big circle is only a faint outline of "the picture"
-		if (r.id === 'ai' && scene === 0) return 'ghost';
-		if (scene < r.from) return 'hidden';
-		if (focus === 'all' || focus === null) return 'plain';
-		return focus === r.id ? 'on' : 'dim';
+	function pick(id: AiCardId) {
+		selected = selected === id ? null : id;
 	}
 
-	function pick(id: AiThingId) {
-		if (scene !== LAST) return;
-		picked = id;
-		onstate?.(id);
+	function blink(ring: AiRing, ok: boolean) {
+		clearTimeout(flashTimer);
+		flash = { ring, ok };
+		flashTimer = setTimeout(() => (flash = null), ok ? 650 : 520);
 	}
-	function key(e: KeyboardEvent, id: AiThingId) {
-		if (e.key === 'Enter' || e.key === ' ') {
-			e.preventDefault();
-			pick(id);
+
+	function drop(ring: AiRing) {
+		const id = selected;
+		if (!id) return;
+		if (home[id] === ring) {
+			placed[ring] = [...placed[ring], id];
+			selected = null;
+			blink(ring, true);
+			onstate?.(id);
+			if (!done && placedIds.size === tx.cards.length) {
+				done = true;
+				oncomplete?.();
+			}
+		} else {
+			blink(ring, false);
+			onstate?.(`${id}_wrong`);
 		}
+	}
+
+	function dragStart(e: DragEvent, id: AiCardId) {
+		selected = id;
+		e.dataTransfer?.setData('text/plain', id);
+		if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+	}
+	function dragOver(e: DragEvent) {
+		if (selected) e.preventDefault();
+	}
+	function dropOn(e: DragEvent, ring: AiRing) {
+		e.preventDefault();
+		drop(ring);
 	}
 </script>
 
-{#snippet icon(id: AiThingId)}
-	{#if id === 'calc'}
-		<rect x="-10" y="-13" width="20" height="26" rx="3" class="ic" />
-		<rect x="-6.5" y="-9.5" width="13" height="6" rx="1.5" class="ic-screen" />
-		{#each [0, 1, 2] as row (row)}
-			{#each [0, 1, 2] as col (col)}
-				<rect
-					x={-6.5 + col * 4.8}
-					y={-0.5 + row * 4.4}
-					width="3.4"
-					height="3"
-					rx="0.8"
-					class="ic-key"
-				/>
-			{/each}
-		{/each}
-	{:else if id === 'chess'}
-		<circle cx="0" cy="-7" r="4.5" class="ic" />
-		<path d="M-5 7 Q-4.5 -1 0 -2.5 Q4.5 -1 5 7 Z" class="ic" />
-		<rect x="-8.5" y="7" width="17" height="4.5" rx="1.5" class="ic" />
-	{:else if id === 'spam'}
-		<rect x="-12" y="-8" width="24" height="16" rx="2.5" class="ic" />
-		<path d="M-12 -7 L0 2 L12 -7" class="ic-line" />
-		<circle cx="11" cy="-8" r="5" class="ic-badge" />
-		<path d="M11 -10.5 V-7.5 M11 -5.6 V-5.4" class="ic-badge-mark" />
-	{:else if id === 'face'}
-		<circle cx="0" cy="0" r="8.5" class="ic" />
-		<circle cx="-3" cy="-2" r="1.1" class="ic-dot" />
-		<circle cx="3" cy="-2" r="1.1" class="ic-dot" />
-		<path d="M-3.5 3 Q0 6 3.5 3" class="ic-line" />
-		<path d="M-13 -7 V-13 H-7 M7 -13 H13 V-7 M13 7 V13 H7 M-7 13 H-13 V7" class="ic-line scan" />
-	{:else if id === 'chat'}
-		<path d="M-12 -9 H12 V6 H-3 L-8 11 V6 H-12 Z" class="ic" />
-		<circle cx="-5" cy="-1.5" r="1.3" class="ic-dot" />
-		<circle cx="0" cy="-1.5" r="1.3" class="ic-dot" />
-		<circle cx="5" cy="-1.5" r="1.3" class="ic-dot" />
-	{:else}
-		<rect x="-12" y="-9" width="24" height="18" rx="2.5" class="ic" />
-		<circle cx="5.5" cy="-3.5" r="2.5" class="ic-sun" />
-		<path d="M-12 9 L-4 -1 L2 5 L5 2 L12 9" class="ic-line" />
-	{/if}
-{/snippet}
-
-{#snippet token(id: AiThingId)}
-	<circle r="15" class="disc" />
-	{@render icon(id)}
-	<text y="27" class="thing-name">{tx.things[id]}</text>
-{/snippet}
-
-{#snippet circles()}
+{#snippet icon(id: AiCardId)}
 	<svg
-		viewBox="0 0 360 360"
-		class="rings"
-		role="group"
-		aria-label={RINGS.map((r) => tx.rings[r.id]).join(', ')}
+		width="16"
+		height="16"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		stroke-width="1.9"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+		aria-hidden="true"
 	>
-		{#each RINGS as r (r.id)}
-			{@const st = ringState(r)}
-			{#if st !== 'hidden'}
-				<g class="ring {st}" style="--c:{r.color}">
-					<circle cx="180" cy={r.cy} r={r.r} class="fill" />
-					<circle
-						cx="180"
-						cy={r.cy}
-						r={r.r}
-						pathLength="1"
-						class="edge"
-						class:draw={!reduced}
-						transform="rotate(90 180 {r.cy})"
-					/>
-					{#if st !== 'ghost'}
-						<text x="180" y={LABEL_Y[r.id]} class="ring-name" in:fade={{ duration: 400 }}
-							>{tx.rings[r.id]}</text
-						>
-					{/if}
-				</g>
-			{/if}
-		{/each}
-
-		{#each THINGS as t (t.id)}
-			{#if scene >= t.from && scene !== 1}
-				<g transform="translate({t.x} {t.y})">
-					{#if scene === LAST}
-						<g
-							class="thing live"
-							class:picked={picked === t.id}
-							role="button"
-							tabindex="0"
-							aria-label={tx.things[t.id]}
-							onclick={() => pick(t.id)}
-							onkeydown={(e) => key(e, t.id)}
-						>
-							{@render token(t.id)}
-						</g>
-					{:else}
-						<g class="thing" class:drop={!reduced}>{@render token(t.id)}</g>
-					{/if}
-				</g>
-			{/if}
-		{/each}
+		{#if id === 'calc'}
+			<rect x="5" y="3" width="14" height="18" rx="2.5" />
+			<path d="M8.5 7.5h7M8.5 12h.01M12 12h.01M15.5 12h.01M8.5 16h.01M12 16h.01M15.5 16h.01" />
+		{:else if id === 'chess'}
+			<circle cx="12" cy="6" r="2.6" />
+			<path d="M10 10h4l1.2 6H8.8zM7 20h10l-.8-4H7.8z" />
+		{:else if id === 'spam'}
+			<rect x="3" y="5" width="18" height="14" rx="2.5" />
+			<path d="m3.5 7 8.5 6 8.5-6" />
+		{:else if id === 'price'}
+			<path d="M4 11 12 4l8 7M6 9.5V20h12V9.5M10 20v-5h4v5" />
+		{:else if id === 'face'}
+			<path
+				d="M4 8V6a2 2 0 0 1 2-2h2M16 4h2a2 2 0 0 1 2 2v2M20 16v2a2 2 0 0 1-2 2h-2M8 20H6a2 2 0 0 1-2-2v-2"
+			/>
+			<path d="M9.5 9.5v1M14.5 9.5v1M9.5 15c1.4 1 3.6 1 5 0" />
+		{:else if id === 'chat'}
+			<path d="M4 5h16v11H10l-4.5 3.5V16H4z" />
+			<path d="M8 9h8M8 12.5h5" />
+		{:else}
+			<rect x="3" y="4" width="18" height="16" rx="2.5" />
+			<circle cx="9" cy="9.5" r="1.6" />
+			<path d="m4 18 5-5 4 4 3-3 4 4" />
+		{/if}
 	</svg>
 {/snippet}
 
-<div class="stage">
-	<Guide steps={tx.panels} active={scene} onselect={(i) => (peek = i)}>
-		{#snippet visual(i: number)}
-			<div class="visual">
-				{#if i === 1}
-					<div class="turing" in:fade={{ duration: reduced ? 0 : 300 }}>
-						<figure class="frame">
-							<img
-								src="/images/people/alan-turing.jpg"
-								alt={tx.photo.alt}
-								width="500"
-								height="681"
-								loading="lazy"
-								decoding="async"
-							/>
-							<figcaption>{tx.photo.caption}</figcaption>
-						</figure>
-						<div class="quote">
-							<p class="q">{tx.quote}</p>
-							<p class="by">{tx.quoteBy}</p>
-						</div>
-					</div>
-				{:else}
-					<div class="pic" in:fade={{ duration: reduced ? 0 : 300 }}>{@render circles()}</div>
-					{#if i === 4}
-						<p class="rule" in:fade={{ duration: 300 }}>{tx.rule}</p>
-					{:else if i === 7}
-						<p class="rule" in:fade={{ duration: 300 }}>{tx.nest}</p>
-					{:else if i === LAST}
-						<p class="hint" in:fade={{ duration: 300 }}>{tx.tapHint}</p>
-					{/if}
-				{/if}
-			</div>
-		{/snippet}
-	</Guide>
+{#snippet chips(ring: AiRing)}
+	<span class="chips">
+		{#each placed[ring] as id (id)}
+			<span class="chip" title={nameOf(id)}>{@render icon(id)}</span>
+		{/each}
+	</span>
+{/snippet}
+
+<div class="flex w-full flex-col items-center gap-3">
+	<!-- the tray of cards to sort, kept up top and clear of Nim -->
+	<div class="tray" role="group">
+		{#each tray as c (c.id)}
+			<button
+				type="button"
+				class="card"
+				class:sel={selected === c.id}
+				aria-pressed={selected === c.id}
+				draggable="true"
+				ondragstart={(e) => dragStart(e, c.id)}
+				onclick={() => pick(c.id)}
+			>
+				<i>{@render icon(c.id)}</i>
+				<span class="txt"><b>{c.name}</b><small>{c.sub}</small></span>
+			</button>
+		{/each}
+	</div>
+
+	<p class="hint" class:strong={allDone}>
+		{#if allDone}
+			{tx.doneNote}
+		{:else if selected}
+			{tx.ringHint.replace('{name}', nameOf(selected))}
+		{:else}
+			{tx.pickHint}
+		{/if}
+		<span class="count">{count}/{tx.cards.length}</span>
+	</p>
+
+	<!-- the nested rings, with the outside zone for things that are not AI -->
+	<div class="board" class:armed={selected !== null}>
+		<div class="field">
+			<button
+				type="button"
+				class="zone out"
+				class:ok={flash?.ring === 'out' && flash.ok}
+				class:bad={flash?.ring === 'out' && !flash.ok}
+				onclick={() => drop('out')}
+				ondragover={dragOver}
+				ondrop={(e) => dropOn(e, 'out')}
+			>
+				<span class="olabel">{tx.rings.out}</span>
+				{@render chips('out')}
+			</button>
+
+			{#each rings as r, i (r.id)}
+				<button
+					type="button"
+					class="zone ring"
+					class:ok={flash?.ring === r.id && flash.ok}
+					class:bad={flash?.ring === r.id && !flash.ok}
+					style="--d:{r.d}cqw; --top:{r.top}cqw; --tint:{8 + i * 7}%"
+					onclick={() => drop(r.id)}
+					ondragover={dragOver}
+					ondrop={(e) => dropOn(e, r.id)}
+				>
+					<span class="rlabel">{tx.rings[r.id]}</span>
+					{@render chips(r.id)}
+				</button>
+			{/each}
+		</div>
+	</div>
 </div>
 
 <style>
-	.stage {
+	.tray {
 		display: flex;
-		height: 100%;
-		width: 100%;
+		flex-wrap: wrap;
 		justify-content: center;
-		align-items: safe center;
-		overflow-y: auto;
-		overflow-x: hidden;
-		padding-bottom: 16px;
+		gap: 6px;
+		width: min(94vw, 440px);
+		min-height: 38px;
 	}
-	.visual {
+	.card {
 		display: flex;
-		width: 100%;
-		max-width: 400px;
-		flex-direction: column;
 		align-items: center;
-		gap: 8px;
-	}
-	.pic {
-		width: 100%;
-	}
-	.rings {
-		display: block;
-		width: 100%;
-		height: auto;
-		overflow: visible;
-	}
-
-	/* circles */
-	.ring .fill {
-		fill: color-mix(in srgb, var(--c) 7%, transparent);
-		transition: fill 0.5s;
-	}
-	.ring .edge {
-		fill: none;
-		stroke: var(--c);
-		stroke-width: 1.6;
-		opacity: 0.55;
+		gap: 7px;
+		border-radius: 12px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 6px 10px 6px 7px;
+		text-align: left;
+		color: var(--color-ink);
+		box-shadow: 0 4px 12px rgba(22, 40, 60, 0.06);
+		cursor: grab;
+		touch-action: manipulation;
 		transition:
-			opacity 0.5s,
-			stroke-width 0.5s;
+			transform 0.15s ease,
+			border-color 0.2s ease,
+			background 0.2s ease;
+		animation: cardin 0.35s ease backwards;
 	}
-	.ring.on .fill {
-		fill: color-mix(in srgb, var(--c) 14%, transparent);
+	.card:hover {
+		border-color: color-mix(in srgb, var(--color-brand) 40%, var(--color-line));
 	}
-	.ring.on .edge {
-		opacity: 1;
-		stroke-width: 2.4;
+	.card.sel {
+		border-color: var(--color-brand);
+		background: var(--color-brand-soft);
+		transform: translateY(-2px);
 	}
-	.ring.ghost .fill {
-		fill: none;
+	.card i {
+		display: flex;
+		flex: none;
+		align-items: center;
+		justify-content: center;
+		width: 26px;
+		height: 26px;
+		border-radius: 8px;
+		background: var(--color-paper);
+		color: var(--color-brand);
+		line-height: 0;
 	}
-	.ring.ghost .edge {
-		stroke: var(--color-line);
-		opacity: 1;
+	.card.sel i {
+		background: var(--color-card);
 	}
-	.ring.dim .edge {
-		opacity: 0.3;
+	.txt {
+		display: flex;
+		flex-direction: column;
+		line-height: 1.15;
 	}
-	.ring-name {
-		fill: var(--c);
-		font-size: 12px;
+	.txt b {
+		font-size: 11.5px;
 		font-weight: 700;
-		text-anchor: middle;
-		transition: opacity 0.5s;
 	}
-	.ring.dim .ring-name {
-		opacity: 0.5;
+	.txt small {
+		font-size: 9px;
+		color: var(--color-faint);
 	}
-	.draw {
-		stroke-dasharray: 1;
-		stroke-dashoffset: 1;
-		animation: draw 1.1s ease forwards;
-	}
-	@keyframes draw {
-		to {
-			stroke-dashoffset: 0;
-		}
-	}
-
-	/* examples */
-	.thing {
-		outline: none;
-	}
-	.thing.live {
-		cursor: pointer;
-	}
-	.drop {
-		animation: drop 0.7s cubic-bezier(0.3, 1.4, 0.5, 1) both 0.5s;
-	}
-	@keyframes drop {
+	@keyframes cardin {
 		from {
 			opacity: 0;
-			transform: translateY(-26px);
+			transform: translateY(6px);
 		}
-		to {
-			opacity: 1;
+	}
+
+	.hint {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		min-height: 1.4em;
+		max-width: 340px;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.hint.strong {
+		color: var(--color-grass);
+		font-weight: 700;
+	}
+	.count {
+		flex: none;
+		border-radius: 999px;
+		background: var(--color-card);
+		border: 1px solid var(--color-line);
+		padding: 1px 7px;
+		font-size: 10px;
+		font-weight: 700;
+		color: var(--color-faint);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.board {
+		container-type: inline-size;
+		width: min(92vw, 400px, 52dvh);
+	}
+	.field {
+		position: relative;
+		width: 100cqw;
+		height: 104cqw;
+	}
+	.zone {
+		position: absolute;
+		display: block;
+		padding: 0;
+		touch-action: manipulation;
+		transition:
+			box-shadow 0.25s ease,
+			border-color 0.25s ease,
+			background 0.25s ease;
+	}
+	.out {
+		inset: 0;
+		border-radius: 20px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		box-shadow: 0 12px 28px rgba(22, 40, 60, 0.06);
+	}
+	.olabel {
+		position: absolute;
+		top: 4cqw;
+		left: 4.5cqw;
+		font-size: clamp(9.5px, 3cqw, 13px);
+		font-weight: 700;
+		color: var(--color-faint);
+	}
+	.out .chips {
+		top: 3cqw;
+		left: auto;
+		right: 4cqw;
+		transform: none;
+	}
+	.ring {
+		top: var(--top);
+		left: calc((100cqw - var(--d)) / 2);
+		width: var(--d);
+		height: var(--d);
+		border-radius: 50%;
+		border: 1.5px solid color-mix(in srgb, var(--color-brand) 32%, var(--color-line));
+		background: color-mix(in srgb, var(--color-brand) var(--tint), var(--color-card));
+	}
+	.rlabel {
+		position: absolute;
+		top: 4.6cqw;
+		left: 50%;
+		transform: translateX(-50%);
+		white-space: nowrap;
+		font-size: clamp(9px, 2.9cqw, 12.5px);
+		font-weight: 700;
+		color: var(--color-ink);
+	}
+	.chips {
+		position: absolute;
+		top: 10.6cqw;
+		left: 50%;
+		transform: translateX(-50%);
+		display: flex;
+		gap: 4px;
+		pointer-events: none;
+	}
+	.chip {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: clamp(22px, 6.6cqw, 28px);
+		height: clamp(22px, 6.6cqw, 28px);
+		border-radius: 50%;
+		background: var(--color-card);
+		border: 1.5px solid var(--color-grass);
+		color: var(--color-grass);
+		line-height: 0;
+		box-shadow: 0 3px 8px rgba(22, 40, 60, 0.1);
+		animation: pop 0.4s cubic-bezier(0.3, 1.5, 0.5, 1) backwards;
+	}
+	.chip :global(svg) {
+		width: 62%;
+		height: 62%;
+	}
+	@keyframes pop {
+		from {
+			transform: scale(0.3);
+			opacity: 0;
+		}
+	}
+
+	/* a card is in hand, so every zone invites a tap */
+	.armed .zone {
+		cursor: pointer;
+	}
+	.armed .zone:hover {
+		border-color: var(--color-brand);
+	}
+	.zone.ok {
+		border-color: var(--color-grass) !important;
+		box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-grass) 25%, transparent);
+	}
+	.zone.bad {
+		border-color: var(--color-danger) !important;
+		box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-danger) 22%, transparent);
+		animation: nudge 0.42s ease;
+	}
+	.out.bad {
+		animation: none;
+	}
+	@keyframes nudge {
+		25% {
+			translate: -3px 0;
+		}
+		50% {
+			translate: 3px 0;
+		}
+		75% {
+			translate: -2px 0;
+		}
+	}
+
+	:global(.dark) .card,
+	:global(.dark) .out {
+		box-shadow: none;
+	}
+	:global(.dark) .chip {
+		box-shadow: none;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.card,
+		.chip,
+		.zone.bad {
+			animation: none;
+		}
+		.card.sel {
 			transform: none;
 		}
 	}
-	.disc {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.2;
-		transition:
-			stroke 0.2s,
-			stroke-width 0.2s;
-	}
-	.thing.live:hover .disc,
-	.thing.live:focus-visible .disc {
-		stroke: var(--color-brand);
-	}
-	.thing.picked .disc {
-		stroke: var(--color-brand);
-		stroke-width: 2.4;
-	}
-	.thing-name {
-		fill: var(--color-muted);
-		font-size: 10px;
-		font-weight: 600;
-		text-anchor: middle;
-	}
-	.ic {
-		fill: var(--color-card);
-		stroke: var(--color-ink);
-		stroke-width: 1.5;
-		stroke-linejoin: round;
-	}
-	.ic-line {
-		fill: none;
-		stroke: var(--color-ink);
-		stroke-width: 1.5;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-	.ic-line.scan {
-		stroke: var(--color-grass);
-	}
-	.ic-screen {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-brand);
-		stroke-width: 1;
-	}
-	.ic-key,
-	.ic-dot {
-		fill: var(--color-ink);
-	}
-	.ic-badge {
-		fill: var(--color-danger);
-	}
-	.ic-badge-mark {
-		stroke: var(--color-card);
-		stroke-width: 1.6;
-		stroke-linecap: round;
-	}
-	.ic-sun {
-		fill: var(--color-amber);
-	}
 
-	/* history beat */
-	.turing {
-		display: flex;
-		min-height: 300px;
-		align-items: center;
-		justify-content: center;
-		gap: 22px;
-	}
-	.frame {
-		margin: 0;
-		width: 132px;
-		flex: none;
-		transform: rotate(-2.5deg);
-		border: 1px solid var(--color-line);
-		border-radius: 6px;
-		background: var(--color-card);
-		padding: 6px 6px 7px;
-		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.12);
-	}
-	.frame img {
-		display: block;
-		width: 100%;
-		height: auto;
-		border-radius: 3px;
-		filter: grayscale(0.15);
-	}
-	figcaption {
-		margin-top: 5px;
-		font-size: 10px;
-		line-height: 1.3;
-		text-align: center;
-		color: var(--color-muted);
-	}
-	.quote .q {
-		margin: 0;
-		font-family: var(--font-display);
-		font-size: 26px;
-		font-weight: 600;
-		line-height: 1.2;
-		color: var(--color-ink);
-	}
-	.quote .by {
-		margin: 8px 0 0;
-		font-size: 13px;
-		color: var(--color-muted);
-	}
-
-	.rule {
-		margin: 0;
-		text-align: center;
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--color-grass);
-	}
-	.hint {
-		margin: 0;
-		font-size: 12.5px;
-		font-weight: 600;
-		color: var(--color-brand);
-	}
-
-	@media (max-width: 767px) {
-		.stage {
-			padding-bottom: 7rem;
+	@media (min-width: 768px) {
+		.tray {
+			gap: 8px;
 		}
-		.turing {
-			min-height: 220px;
-			gap: 16px;
+		.card {
+			padding: 7px 12px 7px 8px;
 		}
-		.frame {
-			width: 104px;
+		.txt b {
+			font-size: 13px;
 		}
-		.quote .q {
-			font-size: 21px;
+		.txt small {
+			font-size: 10px;
 		}
-	}
-	@media (prefers-reduced-motion: reduce) {
-		.ring .fill,
-		.ring .edge,
-		.ring-name,
-		.disc {
-			transition: none;
+		.hint {
+			font-size: 14px;
+			max-width: 460px;
 		}
 	}
 </style>

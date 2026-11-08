@@ -6,7 +6,8 @@ export const en: RemoteAccessText = {
 		'Your server now lives in a data center, far away, maybe a different city or country. Very different from an <b>on-premise</b> server in your own office, which you can walk up to, plug a screen and keyboard into, or reach over the local network.',
 		'Since you cannot touch the machine, you get in from afar, called <b>remote access</b>. From your computer at home you connect over the internet using the server address, either an <b>IP</b> or a <b>hostname</b> like nimbus.com.',
 		'There are two common doors. <b>SSH</b> for a Linux server, a terminal where you type commands. <b>RDP</b> for a Windows server, a desktop screen you can click around.',
-		'Your server is ready in the data center. Get in through SSH, then through RDP, and see the difference.'
+		'Your server is ready in the data center. Get in through SSH, then through RDP, and see the difference.',
+		'[ingat] SSH provides a remote terminal. RDP provides a remote desktop.'
 	],
 	reactions: {
 		ssh: 'Through <b>SSH</b> you get the server terminal. Type a command, the server runs it, and all the traffic is encrypted so it stays safe even over the open internet.',

@@ -1,26 +1,22 @@
 <script lang="ts">
-	// Guided ping and traceroute lesson. Above, the road from your laptop to nimbus.com, below, a
-	// terminal. While Nim tells the story the stage types ping and then traceroute by itself and
-	// the road lights up. On the last beat the terminal is the learner's, for one optional try.
-	import { onMount, untrack } from 'svelte';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { PingText } from '$lib/chapters/network/ping/types';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		beat = 0,
+		oncomplete,
+		onstate
+	}: {
+		text: LessonText;
+		beat?: number;
+		oncomplete?: () => void;
+		onstate?: (s: string) => void;
+	} = $props();
 	const tx = $derived(text as PingText);
+	const live = $derived(beat >= tx.intro.length - 1);
 
-	const STEP_OF_BEAT = [0, 1, 2, 3, 4, 5, 6, 6];
-	const last = $derived(beat >= tx.intro.length - 1);
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const beatStep = $derived(last ? 6 : STEP_OF_BEAT[Math.min(beat, STEP_OF_BEAT.length - 1)]);
-	const step = $derived(peek ?? beatStep);
-
-	// ---- The road (real looking addresses and times, not copy) ----
+	// ---- The road to nimbus.com (real looking addresses and times, not copy) ----
 	const SERVER_IP = '76.76.21.21';
 	const ROUTER_IP = '192.168.1.1';
 	const HOPS: { ip: string | null; ms: number }[] = [
@@ -31,149 +27,82 @@
 		{ ip: '203.208.171.117', ms: 22.6 },
 		{ ip: SERVER_IP, ms: 24.3 }
 	];
-	const NODE_X = (i: number) => 22 + i * 59.33; // 0 is your laptop, 1..6 the hops
+	const LAST = HOPS.length - 1;
 
-	let revealed = $state(0); // hops traceroute has reached
-	let pinging = $state(false);
+	let routerMs = $state<number | null>(null);
+	let serverMs = $state<number | null>(null);
+	let revealed = $state(0); // how many hops traceroute has shown so far
+	let tracing = $state(false);
+
+	// ---- Missions ----
+	type MissionId = 'ping' | 'trace';
+	const MISSIONS: { id: MissionId; cmd: string }[] = [
+		{ id: 'ping', cmd: 'ping nimbus.com' },
+		{ id: 'trace', cmd: 'traceroute nimbus.com' }
+	];
+	let done = $state<Record<MissionId, boolean>>({ ping: false, trace: false });
+	const doneCount = $derived(MISSIONS.filter((m) => done[m.id]).length);
+	let finished = false;
+	function complete(m: MissionId) {
+		if (done[m]) {
+			onstate?.(m);
+			return;
+		}
+		done[m] = true;
+		if (MISSIONS.every((x) => done[x.id])) {
+			if (!finished) {
+				finished = true;
+				onstate?.('done');
+				oncomplete?.();
+			}
+		} else onstate?.(m);
+	}
 
 	// ---- Terminal ----
-	type Ln = { tone: 'cmd' | 'out' | 'ok' | 'err' | 'muted'; text: string; mark?: 'time' | 'stars' };
-	let lines = $state<Ln[]>([]);
-	let typing = $state<string | null>(null); // the command being typed by the stage
+	type Ln = { tone: 'cmd' | 'out' | 'ok' | 'err' | 'muted'; text: string };
+	let history = $state<Ln[]>([]);
 	let input = $state('');
 	let busy = $state(false);
 	let inputEl = $state<HTMLInputElement | null>(null);
 	let bodyEl = $state<HTMLDivElement | null>(null);
+	let started = false;
 	const PROMPT = 'nim@laptop ~ %';
 
-	let reducedCache: boolean | null = null;
-	const isReduced = () =>
-		(reducedCache ??=
-			typeof window !== 'undefined' &&
-			(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false));
+	const reduced =
+		typeof window !== 'undefined' &&
+		window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 	let timers: ReturnType<typeof setTimeout>[] = [];
-	function stop() {
+	let typer: ReturnType<typeof setInterval> | undefined;
+	$effect(() => () => {
 		timers.forEach(clearTimeout);
-		timers = [];
-	}
-	const later = (ms: number, fn: () => void) => timers.push(setTimeout(fn, isReduced() ? 0 : ms));
+		clearInterval(typer);
+	});
 
-	type Out = Ln & { gap: number; then?: () => void };
-	function pingOut(ip: string, name: string, base: number, ttl: number, jitter: boolean): Out[] {
-		const fixed = [0.1, -0.3, 0.4, -0.1];
-		const times = fixed.map((d) =>
-			jitter ? Math.round((base + (Math.random() - 0.5) * 1.4) * 10) / 10 : base + d
-		);
-		const out: Out[] = [{ tone: 'out', text: `PING ${name} (${ip}): 56 data bytes`, gap: 200 }];
-		times.forEach((ms, i) =>
-			out.push({
-				tone: 'ok',
-				text: `64 bytes from ${ip}: icmp_seq=${i} ttl=${ttl} time=${ms.toFixed(1)} ms`,
-				gap: i === 0 ? 500 : 750,
-				mark: 'time'
-			})
-		);
-		const min = Math.min(...times).toFixed(1);
-		const max = Math.max(...times).toFixed(1);
-		const avg = (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1);
-		out.push({ tone: 'out', text: '4 packets transmitted, 4 received, 0% packet loss', gap: 300 });
-		out.push({ tone: 'out', text: `round trip min/avg/max = ${min}/${avg}/${max} ms`, gap: 80 });
-		return out;
-	}
-	function traceOut(): Out[] {
-		const out: Out[] = [
-			{ tone: 'out', text: `traceroute to nimbus.com (${SERVER_IP}), 30 hops max`, gap: 200 }
-		];
-		HOPS.forEach((h, i) =>
-			out.push({
-				tone: h.ip ? 'ok' : 'err',
-				text: h.ip ? ` ${i + 1}  ${h.ip}  ${h.ms.toFixed(1)} ms` : ` ${i + 1}  * * *`,
-				gap: h.ip ? 650 : 1200,
-				mark: h.ip ? undefined : 'stars',
-				then: () => (revealed = i + 1)
-			})
-		);
-		out.push({ tone: 'muted', text: tx.hintStars, gap: 150 });
-		return out;
-	}
+	const add = (tone: Ln['tone'], t: string) => (history = [...history, { tone, text: t }]);
 
-	// Print lines one by one, like a command waiting for each reply.
-	function stream(out: Out[], end?: () => void) {
+	// Print lines one after another, like a real command waiting for each reply.
+	type Step = { tone: Ln['tone']; text: string; gap: number; then?: () => void };
+	function stream(steps: Step[], end?: () => void) {
 		busy = true;
 		let at = 0;
-		for (const o of out) {
-			at += o.gap;
-			later(at, () => {
-				lines.push({ tone: o.tone, text: o.text, mark: o.mark });
-				o.then?.();
-			});
+		for (const s of steps) {
+			at += reduced ? 40 : s.gap;
+			timers.push(
+				setTimeout(() => {
+					add(s.tone, s.text);
+					s.then?.();
+				}, at)
+			);
 		}
-		later(at + 80, () => {
-			busy = false;
-			end?.();
-		});
+		timers.push(
+			setTimeout(() => {
+				busy = false;
+				end?.();
+				inputEl?.focus();
+			}, at + 60)
+		);
 	}
 
-	// The stage types a command by itself, then runs it.
-	function autoType(cmd: string, run: () => void) {
-		if (isReduced()) {
-			lines.push({ tone: 'cmd', text: cmd });
-			run();
-			return;
-		}
-		busy = true;
-		typing = '';
-		[...cmd].forEach((_, n) => later(400 + n * 55, () => (typing = cmd.slice(0, n + 1))));
-		later(400 + cmd.length * 55 + 350, () => {
-			typing = null;
-			lines.push({ tone: 'cmd', text: cmd });
-			run();
-		});
-	}
-
-	// ---- The guided demo follows the beats ----
-	type Block = 'none' | 'ping' | 'trace' | 'play';
-	const block = $derived<Block>(
-		last ? 'play' : beatStep === 0 ? 'none' : beatStep <= 3 ? 'ping' : 'trace'
-	);
-	let shownBlock: Block | null = null;
-	$effect(() => {
-		const b = block;
-		if (b === shownBlock) return;
-		shownBlock = b;
-		untrack(() => playBlock(b));
-	});
-	function playBlock(b: Block) {
-		stop();
-		busy = false;
-		typing = null;
-		pinging = false;
-		if (b === 'none') {
-			lines = [{ tone: 'muted', text: tx.demoHint }];
-			revealed = 0;
-		} else if (b === 'ping') {
-			lines = [];
-			revealed = 0;
-			autoType('ping -c 4 nimbus.com', () => {
-				pinging = true;
-				stream(pingOut(SERVER_IP, 'nimbus.com', 24, 52, false));
-			});
-		} else if (b === 'trace') {
-			lines = [];
-			revealed = 0;
-			autoType('traceroute nimbus.com', () => stream(traceOut()));
-		} else {
-			lines = [{ tone: 'muted', text: tx.termHint }];
-			revealed = HOPS.length;
-		}
-	}
-	$effect(() => {
-		void lines.length;
-		void typing;
-		if (bodyEl) bodyEl.scrollTop = bodyEl.scrollHeight;
-	});
-
-	// ---- The learner's optional try ----
 	function lev(a: string, b: string) {
 		const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
 		for (let j = 1; j <= b.length; j++) d[0][j] = j;
@@ -186,6 +115,7 @@
 				);
 		return d[a.length][b.length];
 	}
+
 	type Target = 'server' | 'router' | 'silent' | 'unknown';
 	function resolve(host: string): Target {
 		const h = host
@@ -197,13 +127,119 @@
 		if (/^\d{1,3}(\.\d{1,3}){3}$/.test(h)) return 'silent';
 		return 'unknown';
 	}
+	const jitter = (base: number) => Math.round((base + (Math.random() - 0.5) * 1.6) * 10) / 10;
+
+	function unknownHost(cmd: string, host: string) {
+		add('err', `${cmd}: cannot resolve ${host}: Unknown host`);
+		const h = host.toLowerCase();
+		if (lev(h, 'nimbus.com') <= 3) add('muted', tx.didYouMean.replace('{word}', 'nimbus.com'));
+		onstate?.('unknown');
+	}
+
+	function doPing(host: string) {
+		const t = resolve(host);
+		if (t === 'unknown') return unknownHost('ping', host);
+		const ip = t === 'server' ? SERVER_IP : t === 'router' ? ROUTER_IP : host;
+		const name = t === 'server' ? 'nimbus.com' : ip;
+		const steps: Step[] = [{ tone: 'out', text: `PING ${name} (${ip}): 56 data bytes`, gap: 120 }];
+		if (t === 'silent') {
+			for (let i = 0; i < 3; i++)
+				steps.push({ tone: 'err', text: `Request timeout for icmp_seq ${i}`, gap: 700 });
+			steps.push({
+				tone: 'out',
+				text: '3 packets transmitted, 0 packets received, 100.0% packet loss',
+				gap: 200
+			});
+			steps.push({ tone: 'muted', text: tx.hintTimeout, gap: 80 });
+			return stream(steps);
+		}
+		const base = t === 'server' ? 24 : 1.9;
+		const ttl = t === 'server' ? 52 : 64;
+		const times = Array.from({ length: 4 }, () => jitter(base));
+		times.forEach((ms, i) =>
+			steps.push({
+				tone: 'ok',
+				text: `64 bytes from ${ip}: icmp_seq=${i} ttl=${ttl} time=${ms.toFixed(1)} ms`,
+				gap: i === 0 ? 380 : 620
+			})
+		);
+		const min = Math.min(...times).toFixed(1);
+		const max = Math.max(...times).toFixed(1);
+		const avg = times.reduce((a, b) => a + b, 0) / times.length;
+		steps.push({
+			tone: 'out',
+			text: '4 packets transmitted, 4 packets received, 0.0% packet loss',
+			gap: 200
+		});
+		steps.push({
+			tone: 'out',
+			text: `round trip min/avg/max = ${min}/${avg.toFixed(1)}/${max} ms`,
+			gap: 60
+		});
+		stream(steps, () => {
+			if (t === 'server') {
+				serverMs = Math.round(avg);
+				complete('ping');
+			} else {
+				routerMs = Math.round(avg * 10) / 10;
+				onstate?.('pingRouter');
+			}
+		});
+	}
+
+	function doTrace(cmd: string, host: string) {
+		const t = resolve(host);
+		if (t === 'unknown') return unknownHost(cmd, host);
+		if (t !== 'server') {
+			// short roads, keep them honest without drawing them
+			const steps: Step[] = [
+				{ tone: 'out', text: `traceroute to ${host} (${host}), 30 hops max`, gap: 120 }
+			];
+			if (t === 'router')
+				steps.push({ tone: 'ok', text: ` 1  ${ROUTER_IP}  ${jitter(1.9)} ms`, gap: 500 });
+			else {
+				steps.push({ tone: 'ok', text: ` 1  ${ROUTER_IP}  ${jitter(1.9)} ms`, gap: 500 });
+				steps.push({ tone: 'err', text: ' 2  * * *', gap: 900 });
+				steps.push({ tone: 'muted', text: tx.hintTimeout, gap: 80 });
+			}
+			return stream(steps);
+		}
+		revealed = 0;
+		tracing = true;
+		const steps: Step[] = [
+			{
+				tone: 'out',
+				text: `traceroute to nimbus.com (${SERVER_IP}), 30 hops max, 60 byte packets`,
+				gap: 120
+			}
+		];
+		HOPS.forEach((h, i) =>
+			steps.push({
+				tone: h.ip ? 'ok' : 'err',
+				text: h.ip ? ` ${i + 1}  ${h.ip}  ${jitter(h.ms).toFixed(1)} ms` : ` ${i + 1}  * * *`,
+				gap: h.ip ? 520 : 1100,
+				then: () => (revealed = i + 1)
+			})
+		);
+		steps.push({ tone: 'muted', text: tx.hintStars, gap: 120 });
+		stream(steps, () => {
+			tracing = false;
+			if (routerMs === null) routerMs = HOPS[0].ms;
+			complete('trace');
+		});
+	}
 
 	function run(raw: string) {
 		const line = raw.trim();
 		if (!line) return;
-		lines.push({ tone: 'cmd', text: line });
+		if (!started) {
+			started = true;
+			history = [];
+		}
+		add('cmd', line);
 		const words = line.split(/\s+/);
 		const cmd = words[0].toLowerCase();
+		// skip flags like "-c 4" and keep the destination
 		const rest: string[] = [];
 		for (let i = 1; i < words.length; i++) {
 			if (words[i].startsWith('-')) {
@@ -214,296 +250,304 @@
 		}
 		const host = rest[rest.length - 1];
 		if (cmd === 'clear' || cmd === 'cls') {
-			lines = [];
+			history = [];
 			return;
 		}
-		if (cmd !== 'ping' && cmd !== 'traceroute' && cmd !== 'tracert') {
-			lines.push({ tone: 'err', text: `zsh: command not found: ${words[0]}` });
-			const near = ['ping', 'traceroute', 'tracert'].find((k) => lev(cmd, k) <= 2);
-			lines.push({
-				tone: 'muted',
-				text: near ? tx.didYouMean.replace('{word}', near) : tx.hintUnknownCmd
-			});
-			onstate?.('error');
+		if (cmd === 'help' || cmd === '?') {
+			add('out', 'ping <host>   traceroute <host>   tracert <host>   clear');
 			return;
 		}
-		if (!host) {
-			lines.push({ tone: 'err', text: `usage: ${cmd} <host>` });
-			lines.push({ tone: 'muted', text: tx.hintNeedHost });
-			onstate?.('error');
-			return;
-		}
-		const t = resolve(host);
-		if (t === 'unknown') {
-			lines.push({ tone: 'err', text: `${cmd}: cannot resolve ${host}: Unknown host` });
-			if (lev(host.toLowerCase(), 'nimbus.com') <= 3)
-				lines.push({ tone: 'muted', text: tx.didYouMean.replace('{word}', 'nimbus.com') });
-			onstate?.('unknown');
-			return;
-		}
-		if (cmd === 'ping') {
-			if (t === 'silent') {
-				const out: Out[] = [
-					{ tone: 'out', text: `PING ${host} (${host}): 56 data bytes`, gap: 150 }
-				];
-				for (let i = 0; i < 3; i++)
-					out.push({ tone: 'err', text: `Request timeout for icmp_seq ${i}`, gap: 800 });
-				out.push({ tone: 'muted', text: tx.hintTimeout, gap: 150 });
-				return stream(out);
+		if (cmd === 'ping' || cmd === 'traceroute' || cmd === 'tracert') {
+			if (!host) {
+				add('err', `usage: ${cmd} <host>`);
+				add('muted', tx.hintNeedHost);
+				onstate?.('error');
+				return;
 			}
-			const server = t === 'server';
-			pinging = server;
-			stream(
-				pingOut(
-					server ? SERVER_IP : ROUTER_IP,
-					server ? 'nimbus.com' : ROUTER_IP,
-					server ? 24 : 1.9,
-					server ? 52 : 64,
-					true
-				),
-				() => {
-					pinging = false;
-					onstate?.(server ? 'ping' : 'pingRouter');
-				}
-			);
+			if (cmd === 'ping') doPing(host);
+			else doTrace(cmd, host);
 			return;
 		}
-		if (t !== 'server') {
-			const out: Out[] = [
-				{ tone: 'out', text: `traceroute to ${host} (${host}), 30 hops max`, gap: 150 }
-			];
-			if (t === 'router') out.push({ tone: 'ok', text: ` 1  ${ROUTER_IP}  1.9 ms`, gap: 500 });
-			else {
-				out.push({ tone: 'ok', text: ` 1  ${ROUTER_IP}  1.9 ms`, gap: 500 });
-				out.push({ tone: 'err', text: ' 2  * * *', gap: 1000 });
-				out.push({ tone: 'muted', text: tx.hintTimeout, gap: 100 });
-			}
-			return stream(out);
-		}
-		revealed = 0;
-		stream(traceOut(), () => onstate?.('trace'));
+		add('err', `zsh: command not found: ${words[0]}`);
+		const near = ['ping', 'traceroute', 'tracert'].find((k) => lev(cmd, k) <= 2);
+		add('muted', near ? tx.didYouMean.replace('{word}', near) : tx.hintUnknownCmd);
+		onstate?.('error');
 	}
 
 	function submit(e: Event) {
 		e.preventDefault();
-		if (!last || busy) return;
+		if (!live || busy) return;
 		const v = input;
 		input = '';
 		run(v);
 	}
-	function suggest(cmd: string) {
-		if (!last || busy) return;
+
+	function typeFor(cmd: string) {
+		if (!live || busy) return;
+		if (reduced) {
+			input = '';
+			run(cmd);
+			return;
+		}
+		busy = true;
 		input = '';
-		run(cmd);
-		inputEl?.focus();
+		let n = 0;
+		typer = setInterval(() => {
+			n += 1;
+			input = cmd.slice(0, n);
+			if (n >= cmd.length) {
+				clearInterval(typer);
+				timers.push(
+					setTimeout(() => {
+						input = '';
+						busy = false;
+						run(cmd);
+					}, 220)
+				);
+			}
+		}, 28);
 	}
 
-	onMount(() => {
-		onshow?.(true);
-		oncomplete?.();
-		return stop;
+	// Seed a helper line (kept language synced until the first real command).
+	$effect(() => {
+		if (started) return;
+		const h = tx.termHint;
+		if (history.length === 0 || (history.length === 1 && history[0].text !== h))
+			history = [{ tone: 'muted', text: h }];
+	});
+	$effect(() => {
+		void history.length;
+		if (bodyEl) bodyEl.scrollTop = bodyEl.scrollHeight;
 	});
 
-	const showHops = $derived(step >= 3);
-	// node 0 is your laptop and always lit, the server lights while ping gets replies
-	const lit = (i: number) =>
-		i === 0 || i <= revealed || (i === HOPS.length && (block === 'ping' || pinging));
-	const marked = (l: Ln) => (l.mark === 'time' && step === 2) || (l.mark === 'stars' && step === 5);
+	// What each hop row shows: known once traceroute reached it (or ping did, for the ends).
+	function hopState(i: number): 'hidden' | 'shown' | 'quiet' | 'next' {
+		const known =
+			i < revealed ||
+			(i === LAST && serverMs !== null) ||
+			(i === 0 && routerMs !== null && !tracing);
+		if (known) return HOPS[i].ip ? 'shown' : 'quiet';
+		if (tracing && i === revealed) return 'next';
+		return i === LAST ? 'shown' : 'hidden';
+	}
+	function hopMs(i: number): string {
+		if (i === LAST && serverMs !== null && revealed <= LAST)
+			return tx.roundTrip.replace('{ms}', String(serverMs));
+		if (i < revealed && HOPS[i].ip) return `${HOPS[i].ms} ms`;
+		if (i === 0 && routerMs !== null) return `${routerMs} ms`;
+		return '';
+	}
 </script>
 
-{#snippet road()}
-	<svg viewBox="0 0 400 100" class="w-full" role="img" aria-label={tx.title}>
-		<line x1={NODE_X(0)} y1="50" x2={NODE_X(6)} y2="50" class="road" />
-		{#each [0, 1, 2, 3, 4, 5, 6] as i (i)}
-			{@const x = NODE_X(i)}
-			{@const hop = i > 0 ? HOPS[i - 1] : null}
-			{@const end = i === 0 || i === 6}
-			{@const on = lit(i)}
-			{@const quiet = hop !== null && hop.ip === null && i <= revealed}
-			<g class="node" class:hide={!end && !showHops} transform="translate({x} 50)">
-				{#if i === 0}
-					<rect x="-13" y="-12" width="26" height="17" rx="2.5" class="dev" class:on />
-					<path d="M-16 6 h32 l-2.5 4 h-27 z" class="dev" class:on />
-				{:else if i === 6}
-					<rect x="-10" y="-15" width="20" height="30" rx="3" class="rack" class:on />
-					<circle cx="5" cy="-7" r="1.6" class="ledr" class:on />
-					<circle cx="5" cy="1" r="1.6" class="ledr" class:on />
-					<circle cx="5" cy="9" r="1.6" class="ledr" class:on />
-				{:else}
-					<line x1="-6" y1="-6" x2="-8" y2="-14" class="ant" />
-					<line x1="6" y1="-6" x2="8" y2="-14" class="ant" />
-					<rect x="-12" y="-6" width="24" height="12" rx="3" class="rt" class:on class:quiet />
-				{/if}
-				{#if i % 2 === 0}
-					<text y="34" text-anchor="middle" class="nm"
-						>{i === 0 ? tx.youLabel : tx.hops[i - 1]}</text
+<div class="wrap">
+	<div class="missions">
+		<div class="mhead">
+			<span>{tx.missionsLabel}</span>
+			<span class="count">{doneCount}/{MISSIONS.length}</span>
+		</div>
+		{#each MISSIONS as ms, i (ms.id)}
+			<div class="mrow" class:ok={done[ms.id]}>
+				<span class="box" aria-hidden="true">
+					{#if done[ms.id]}<svg viewBox="0 0 16 16"
+							><path
+								d="M3.5 8.5l3 3 6-7"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/></svg
+						>{/if}
+				</span>
+				<span class="mlabel">{tx.missions[i]}</span>
+				{#if !done[ms.id]}
+					<button
+						type="button"
+						class="chip"
+						disabled={!live || busy}
+						onclick={() => typeFor(ms.cmd)}
 					>
-					{#if hop && i <= revealed}<text y="45" text-anchor="middle" class="ms" class:quiet
-							>{hop.ip ? `${hop.ms} ms` : '* * *'}</text
-						>{/if}
-				{:else}
-					<text y="-30" text-anchor="middle" class="nm">{tx.hops[i - 1]}</text>
-					{#if hop && i <= revealed}<text y="-19" text-anchor="middle" class="ms" class:quiet
-							>{hop.ip ? `${hop.ms} ms` : '* * *'}</text
-						>{/if}
+						<svg viewBox="0 0 12 12" aria-hidden="true"
+							><path d="M3 2l6 4-6 4z" fill="currentColor" /></svg
+						>{tx.hintBtn}
+					</button>
 				{/if}
-			</g>
+			</div>
 		{/each}
-		{#if pinging}
-			<g class="pkt"><circle r="5" class="pk" /></g>
-		{/if}
-	</svg>
-{/snippet}
+		{#if doneCount === MISSIONS.length}<p class="mdone">{tx.doneNote}</p>{/if}
+	</div>
 
-{#snippet scene(_: number)}
-	<div class="flex w-full max-w-[460px] flex-col gap-2">
-		{@render road()}
-		<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
-		<div class="term" onclick={() => inputEl?.focus()}>
-			<div class="tbar">
-				<span class="dots"><i></i><i></i><i></i></span>
-				<span class="thost">Terminal</span>
-			</div>
-			<div class="tbody" bind:this={bodyEl}>
-				{#each lines as l, i (i)}
-					<div class="ln {l.tone}">
-						{#if l.tone === 'cmd'}<span class="pr">{PROMPT}</span>{/if}<span class:mark={marked(l)}
-							>{l.text}</span
-						>
-					</div>
-				{/each}
-				{#if typing !== null}
-					<div class="ln cmd">
-						<span class="pr">{PROMPT}</span>{typing}<span class="cur"></span>
-					</div>
-				{:else if last}
-					<form class="ln cmd active" onsubmit={submit}>
-						<span class="pr">{PROMPT}</span>
-						<input
-							class="tin"
-							bind:this={inputEl}
-							bind:value={input}
-							readonly={busy}
-							spellcheck="false"
-							autocapitalize="off"
-							autocomplete="off"
-							aria-label={tx.inputLabel}
-						/>
-					</form>
-				{/if}
-			</div>
+	<!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+	<div class="term" onclick={() => inputEl?.focus()}>
+		<div class="tbar">
+			<span class="dots"><i></i><i></i><i></i></span>
+			<span class="thost">Terminal</span>
+		</div>
+		<div class="tbody" bind:this={bodyEl}>
+			{#each history as l, i (i)}
+				<div class="ln {l.tone}">
+					{#if l.tone === 'cmd'}<span class="pr">{PROMPT}</span>{/if}{l.text}
+				</div>
+			{/each}
+			<form class="ln cmd active" onsubmit={submit}>
+				<span class="pr">{PROMPT}</span>
+				<input
+					class="tin"
+					bind:this={inputEl}
+					bind:value={input}
+					readonly={busy}
+					disabled={!live}
+					spellcheck="false"
+					autocapitalize="off"
+					autocomplete="off"
+					aria-label={tx.inputLabel}
+				/>
+			</form>
 		</div>
 	</div>
-{/snippet}
 
-<div class="flex max-h-full w-full flex-col items-center gap-3 overflow-y-auto pb-28 md:pb-0">
-	{#if last}
-		<div class="flex flex-wrap justify-center gap-2" role="group" aria-label={tx.suggestLabel}>
-			{#each ['ping nimbus.com', 'traceroute nimbus.com', 'ping 192.168.1.1'] as c (c)}
-				<button type="button" class="chip" disabled={busy} onclick={() => suggest(c)}>{c}</button>
+	<div class="route">
+		<span class="rlabel">{tx.routeLabel}</span>
+		<ol>
+			<li class="hop shown you">
+				<span class="node"></span>
+				<span class="hname">{tx.youLabel}</span>
+			</li>
+			{#each tx.hops as hop, i (i)}
+				{@const st = hopState(i)}
+				<li class="hop {st}" class:server={i === LAST}>
+					<span class="node"></span>
+					{#if st === 'hidden' || st === 'next'}
+						<span class="hname faint">{tx.hiddenHop}</span>
+					{:else}
+						<span class="hname"
+							>{hop.name}
+							<small>{hop.place}</small></span
+						>
+						{#if st === 'quiet'}
+							<em class="quiet">{tx.quietTag}</em>
+						{:else}
+							<span class="hms">{hopMs(i)}</span>
+						{/if}
+					{/if}
+				</li>
 			{/each}
-		</div>
-	{/if}
-	<Guide steps={tx.steps} active={step} onselect={(i) => (peek = i)} visual={scene} />
+		</ol>
+	</div>
 </div>
 
 <style>
-	svg text {
-		font-family: var(--font-sans);
+	.wrap {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+		width: min(94vw, 400px);
+		max-height: 100%;
+		overflow-y: auto;
+		padding-bottom: 4px;
 	}
-	.road {
-		stroke: var(--color-line);
-		stroke-width: 3;
-		stroke-linecap: round;
+
+	/* ---- Missions (same look as the MikroTik lab) ---- */
+	.missions {
+		width: 100%;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		border-radius: 12px;
+		padding: 8px 10px 6px;
 	}
-	.node {
-		transition: opacity 0.5s;
+	.mhead {
+		display: flex;
+		justify-content: space-between;
+		font-size: 10.5px;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+		padding: 0 2px 4px;
 	}
-	.node.hide {
-		opacity: 0;
+	.count {
+		font-variant-numeric: tabular-nums;
 	}
-	.dev {
-		fill: var(--color-card);
-		stroke: var(--color-faint);
-		stroke-width: 1.5;
-		stroke-linejoin: round;
+	.mrow {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		min-height: 28px;
+		font-size: 12.5px;
+		font-weight: 650;
+		color: var(--color-ink);
 	}
-	.dev.on {
-		stroke: var(--color-ink);
+	.mrow.ok {
+		color: var(--color-grass);
 	}
-	.rack {
-		fill: var(--color-faint);
+	.box {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		flex: none;
+		width: 16px;
+		height: 16px;
+		border-radius: 5px;
+		border: 1.5px solid var(--color-line);
 	}
-	.rack.on {
-		fill: var(--color-ink);
+	.mrow.ok .box {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
 	}
-	.ledr {
-		fill: var(--color-card);
-		opacity: 0.4;
+	.box svg {
+		width: 12px;
+		height: 12px;
 	}
-	.ledr.on {
-		fill: var(--color-grass);
-		opacity: 1;
+	.mlabel {
+		flex: 1;
+		min-width: 0;
 	}
-	.ant {
-		stroke: var(--color-faint);
-		stroke-width: 1.6;
-		stroke-linecap: round;
-	}
-	.rt {
-		fill: var(--color-card);
-		stroke: var(--color-faint);
-		stroke-width: 1.5;
-		transition:
-			fill 0.3s,
-			stroke 0.3s;
-	}
-	.rt.on {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-	}
-	.rt.on.quiet {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-	}
-	.nm {
-		font-size: 9.5px;
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		flex: none;
+		border-radius: 999px;
+		border: 1px solid var(--color-line);
+		background: var(--color-paper);
+		color: var(--color-muted);
+		font-size: 11px;
 		font-weight: 700;
-		fill: var(--color-ink);
+		padding: 3px 10px 3px 8px;
+		transition:
+			border-color 0.2s ease,
+			background 0.2s ease;
 	}
-	.ms {
-		font-size: 9px;
-		fill: var(--color-grass);
-		font-weight: 600;
+	.chip svg {
+		width: 9px;
+		height: 9px;
+		color: var(--color-brand);
 	}
-	.ms.quiet {
-		fill: var(--color-amber);
+	.chip:hover:not(:disabled) {
+		border-color: var(--color-brand);
+		background: var(--color-brand-soft);
+		color: var(--color-ink);
 	}
-	.pk {
-		fill: var(--color-brand);
+	.chip:disabled {
+		opacity: 0.5;
 	}
-	/* the echo request flies to the server and the reply flies back */
-	.pkt {
-		animation: echo 1.6s ease-in-out infinite;
+	.mdone {
+		margin: 4px 0 2px;
+		font-size: 11.5px;
+		font-weight: 700;
+		color: var(--color-grass);
+		text-align: center;
 	}
-	@keyframes echo {
-		0% {
-			transform: translate(22px, 50px);
-		}
-		50% {
-			transform: translate(378px, 50px);
-		}
-		100% {
-			transform: translate(22px, 50px);
-		}
-	}
+
+	/* ---- Terminal ---- */
 	.term {
 		width: 100%;
 		border-radius: 13px;
 		overflow: hidden;
 		background: #0f2030;
 		border: 1px solid #1d3547;
-		box-shadow: 0 14px 32px rgba(15, 32, 48, 0.22);
+		box-shadow: 0 14px 32px rgba(15, 32, 48, 0.28);
 		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 		text-align: left;
 		cursor: text;
@@ -543,7 +587,7 @@
 		display: flex;
 		flex-direction: column;
 		gap: 2px;
-		height: 178px;
+		height: 170px;
 		overflow: auto;
 		padding: 10px 12px;
 		font-size: 11px;
@@ -570,29 +614,10 @@
 		color: #6b8496;
 		font-style: italic;
 	}
-	.mark {
-		border-radius: 3px;
-		background: rgba(224, 182, 91, 0.22);
-		box-shadow: 0 0 0 2px rgba(224, 182, 91, 0.22);
-	}
 	.pr {
 		color: #5bbd84;
 		font-weight: 600;
 		margin-right: 0.6ch;
-	}
-	.cur {
-		display: inline-block;
-		width: 7px;
-		height: 13px;
-		margin-left: 1px;
-		vertical-align: -2px;
-		background: #6fd39a;
-		animation: blink 1s steps(1) infinite;
-	}
-	@keyframes blink {
-		50% {
-			opacity: 0;
-		}
 	}
 	.active {
 		display: flex;
@@ -613,44 +638,135 @@
 	.tin:focus {
 		box-shadow: none;
 	}
-	.chip {
-		border-radius: 999px;
+
+	/* ---- The road, one row per hop ---- */
+	.route {
+		width: 100%;
+		border-radius: 12px;
 		border: 1px solid var(--color-line);
 		background: var(--color-card);
-		padding: 5px 12px;
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		padding: 8px 12px 6px;
+	}
+	.rlabel {
+		display: block;
+		font-size: 10.5px;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+		padding-bottom: 4px;
+	}
+	ol {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.hop {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 9px;
+		min-height: 25px;
+		padding-left: 2px;
 		font-size: 12px;
-		font-weight: 600;
-		color: var(--color-ink);
+	}
+	/* the solid rail joining one hop to the next */
+	.hop:not(:last-child)::after {
+		content: '';
+		position: absolute;
+		left: 6.5px;
+		top: 17px;
+		bottom: -8px;
+		width: 2px;
+		background: var(--color-line);
+	}
+	.node {
+		position: relative;
+		z-index: 1;
+		flex: none;
+		width: 11px;
+		height: 11px;
+		border-radius: 50%;
+		background: var(--color-card);
+		border: 2px solid var(--color-line);
 		transition:
-			border-color 0.2s,
-			background 0.2s;
+			background 0.3s ease,
+			border-color 0.3s ease;
 	}
-	.chip:hover:not(:disabled) {
+	.hop.shown .node {
+		border-color: var(--color-grass);
+		background: var(--color-grass);
+	}
+	.hop.you .node {
 		border-color: var(--color-brand);
-		background: var(--color-brand-soft);
+		background: var(--color-brand);
 	}
-	.chip:disabled {
-		opacity: 0.5;
+	.hop.quiet .node {
+		border-color: var(--color-amber);
 	}
-	@media (max-width: 767px) {
-		.tbody {
-			height: 150px;
-			font-size: 10.5px;
+	.hop.next .node {
+		border-color: var(--color-brand);
+		animation: ping 0.8s ease-in-out infinite;
+	}
+	@keyframes ping {
+		50% {
+			box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-brand) 25%, transparent);
 		}
 	}
+	.hname {
+		flex: 1;
+		min-width: 0;
+		font-weight: 650;
+		color: var(--color-ink);
+	}
+	.hname small {
+		margin-left: 4px;
+		font-size: 10.5px;
+		font-weight: 500;
+		color: var(--color-faint);
+	}
+	.hname.faint {
+		font-weight: 500;
+		font-style: italic;
+		color: var(--color-faint);
+	}
+	.hop.server .hname {
+		color: var(--color-brand);
+	}
+	.hms {
+		flex: none;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 11px;
+		font-weight: 700;
+		color: var(--color-grass);
+	}
+	.quiet {
+		flex: none;
+		font-size: 10.5px;
+		font-style: normal;
+		font-weight: 700;
+		color: var(--color-amber);
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.pkt {
-			animation: none;
-			transform: translate(200px, 50px);
-		}
-		.cur {
+		.hop.next .node {
 			animation: none;
 		}
-		.node,
-		.rt,
-		.chip {
-			transition: none;
+	}
+	@media (min-width: 768px) {
+		.wrap {
+			width: 460px;
+			gap: 12px;
+		}
+		.mrow {
+			font-size: 13px;
+		}
+		.tbody {
+			font-size: 12.5px;
+			height: 190px;
+		}
+		.hop {
+			font-size: 13px;
 		}
 	}
 </style>

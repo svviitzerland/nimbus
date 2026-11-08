@@ -3,75 +3,71 @@ import type { ProtocolsText } from './types';
 export const en: ProtocolsText = {
 	title: 'Network protocols',
 	intro: [
-		'Two computers can only work together if they agree on how to talk. Who speaks first, what a message looks like, how to say goodbye. That agreement is a <b>protocol</b>, a bit like how every phone call starts with "hello".',
-		'Look at the nimbus.com server. One address, but many doors, each with a number on it. That number is the [[port|foundations/port]]. Every protocol knocks on its own door.',
-		'Door 80 is <b>HTTP</b>, the protocol that fetches web pages. Your browser knocks, and a page comes back.',
-		'Door 443 is <b>HTTPS</b>, the same thing inside a locked envelope. Nobody along the way can read it. Today almost every website lives behind this door.',
-		'Door 22 is <b>SSH</b>. It lets you type commands into a computer that sits far away, safely, as if you were sitting in front of it.',
-		'Door 53 is <b>DNS</b>, the address book from [[DNS|networking/dns]]. Before your laptop can visit nimbus.com at all, it asks here which address that name belongs to.',
-		'[ingat] Four doors are enough to start. 80 web, 443 safe web, 22 SSH, 53 DNS. SSH has two S, its door has two 2s.',
-		'[fyi] There are many more. Email is sent with <b>SMTP</b> and read with <b>IMAP</b>, files move with <b>SFTP</b>. The S always means the conversation is encrypted. Underneath, all of them ride on the same TCP and IP from [[Layers and packets|networking/layers]].',
-		'That is a protocol, a door with a name and a number. Tap any door if you want to knock on it yourself.'
+		'Two computers can only work together if they agree on how to talk. Who speaks first, what a message looks like, how to say "I am done". That agreement is called a <b>protocol</b>, a bit like how every phone call starts with "hello".',
+		"Each job has its own protocol. <b>HTTP</b> and <b>HTTPS</b> fetch web pages, <b>SMTP</b> sends email, <b>IMAP</b> reads it, <b>FTP</b> and <b>SFTP</b> move files, and <b>SSH</b> lets you type into another computer's terminal from far away.",
+		'Each protocol waits behind its own numbered door on the server, the [[port|foundations/port]] you met before. HTTPS knocks on door 443, SSH on door 22. One address, many doors.',
+		'Application protocols use a transport layer underneath. Many use TCP. DNS often uses UDP, and HTTP/3 uses QUIC over UDP. Ports and transport rules go together.',
+		'[fyi] HTTPS is HTTP protected by TLS. SFTP transfers files over SSH; it is not simply FTP with an added S.',
+		'[ingat] Common default ports are 80 for HTTP, 443 for HTTPS, 22 for SSH, and 53 for DNS. Services can be configured to use other ports.',
+		'Your turn. There are five jobs to do on nimbus.com. Pick the right protocol for each one and watch which door it knocks on.'
 	],
 	reactions: {
-		http: 'Door 80, plain HTTP. The page arrives, but anyone on the path could read it. That is why browsers warn you about it now.',
 		https:
-			'Door 443, HTTPS. Same page, locked envelope. This is the door you knock on most days without noticing.',
-		ssh: 'Door 22, SSH. Behind it waits a terminal, so you can run commands on the server from your own laptop.',
-		dns: 'Door 53, DNS. You asked for nimbus.com and got back 203.0.113.10. Every visit starts with a knock like this.'
+			'HTTPS, door 443. Your browser and the server agree on a lock first, then talk about the page. The little padlock in the address bar is exactly this.',
+		http: 'That would load the page, but plain HTTP (door 80) lets anyone on the same WiFi read it. Browsers even label it "Not secure". Pick the locked version.',
+		smtp: 'SMTP, Simple Mail Transfer Protocol. Your mail app hands the letter to the mail server on door 587, then mail servers pass it to each other on door 25 until it reaches nim@nimbus.com.',
+		imap: 'IMAP keeps your mail on the server and shows you a copy, which is why your phone and laptop see the same inbox. Door 993 is its encrypted version.',
+		sftp: 'SFTP moves files through an SSH connection on door 22, everything encrypted. Your photo arrives and nobody on the way can peek.',
+		ftp: 'FTP (door 21) dates back to 1971 and still works, but it sends your password as plain text. Pick its safer sibling.',
+		ssh: "SSH, Secure Shell, on door 22. You are now typing into the server's terminal from your own laptop.",
+		wrong:
+			'That protocol speaks a different language for a different job, so the server would not understand it here. Read the hint and try another.',
+		done: "All five done! SSH opened the server's terminal through door 22, the very door SFTP used. Different jobs, different languages, all on one address. That is network protocols in a nutshell."
 	},
-	steps: [
-		{
-			title: 'Protocol',
-			body: 'An agreed way of talking. Who speaks first, what a message looks like, and how to say goodbye.'
-		},
-		{
-			title: 'One address, many doors',
-			body: 'Each numbered door is a <b>port</b>. Every protocol has its usual door, so the server knows what you want.'
-		},
-		{
-			tag: 'Port 80',
-			title: 'HTTP',
-			body: 'Fetches web pages. It is plain text, so anyone on the way could read it.'
-		},
-		{
-			tag: 'Port 443',
-			title: 'HTTPS',
-			body: 'The same web pages, but encrypted. The S stands for secure.'
-		},
-		{
-			tag: 'Port 22',
-			title: 'SSH',
-			body: 'Secure Shell. Type commands into a faraway computer as if you sat right in front of it.'
-		},
-		{
-			tag: 'Port 53',
-			title: 'DNS',
-			body: 'Turns a name like nimbus.com into an address like 203.0.113.10.'
-		},
-		{
-			tag: 'Rule of thumb',
-			title: 'Four doors to know',
-			body: '<b>80</b> web, <b>443</b> safe web, <b>22</b> SSH, <b>53</b> DNS.'
-		},
-		{
-			title: 'Many more',
-			body: '<b>SMTP</b> sends email, <b>IMAP</b> reads it, <b>SFTP</b> moves files. An S usually means encrypted.'
-		},
-		{
-			title: 'Knock on a door',
-			body: 'Tap a door and the packet walks over to knock on it.'
-		}
-	],
 	laptopLabel: 'Your laptop',
 	serverLabel: 'nimbus.com',
-	serverSub: '203.0.113.10',
-	doors: [
-		{ name: 'HTTP', use: 'web' },
-		{ name: 'HTTPS', use: 'safe web' },
-		{ name: 'SSH', use: 'remote terminal' },
-		{ name: 'DNS', use: 'address book' }
+	doorsLabel: 'Ports on the server',
+	taskLabel: 'Job {n} of {total}',
+	pickLabel: 'Which protocol does this job?',
+	protocols: [
+		{ id: 'http', name: 'HTTP', port: 80 },
+		{ id: 'https', name: 'HTTPS', port: 443 },
+		{ id: 'smtp', name: 'SMTP', port: 587 },
+		{ id: 'imap', name: 'IMAP', port: 993 },
+		{ id: 'ftp', name: 'FTP', port: 21 },
+		{ id: 'sftp', name: 'SFTP', port: 22 },
+		{ id: 'ssh', name: 'SSH', port: 22 }
 	],
-	knockHint: 'Tap a door',
-	doorAria: 'Knock on door {port}, {name}'
+	tasks: [
+		{
+			text: 'Open the nimbus.com homepage',
+			answer: 'https',
+			close: 'http',
+			hint: 'Web pages travel by a protocol whose name starts with HT, take the locked one'
+		},
+		{
+			text: 'Send an email to nim@nimbus.com',
+			answer: 'smtp',
+			hint: 'Sending mail has its own protocol, the Simple Mail Transfer one'
+		},
+		{
+			text: 'Read the reply in your inbox',
+			answer: 'imap',
+			hint: 'Reading mail that stays on the server is a different job from sending it'
+		},
+		{
+			text: 'Upload a photo to the server',
+			answer: 'sftp',
+			close: 'ftp',
+			hint: 'File Transfer Protocol, the secure one'
+		},
+		{
+			text: 'Log in to the server terminal',
+			answer: 'ssh',
+			hint: 'Secure Shell, a terminal on another computer'
+		}
+	],
+	wrongNote: '{name} is not the right fit for this job',
+	doneNote: 'Every job done, five protocols, one server',
+	againBtn: 'Play again'
 };

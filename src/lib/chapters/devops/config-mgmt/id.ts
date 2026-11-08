@@ -3,70 +3,37 @@ import type { ConfigMgmtText } from './types';
 export const id: ConfigMgmtText = {
 	title: 'Configuration management',
 	intro: [
-		'nimbus.com sekarang lagi rame. Dia jalan di enam server di belakang [[load balancer|traffic/load-balancer]], dan hari ini versi 2 aplikasinya udah siap. Keenam server itu semuanya butuh update.',
-		'Cara manualnya, masuk ke tiap server pakai [[SSH|cloud/remote-access]] (cara ngetik perintah di komputer lain), ngetik perintah yang sama, terus pindah ke server berikutnya. Satu satu, enam kali.',
-		'Kira kira di server keempat kamu mulai capek, dan ada salah ketik nyelip. Sekarang satu server rusak dan sisanya nggak sama semua. Bayangin kalau servernya ada seratus.',
-		'<b>Configuration management</b> ngeberesin ini. Kamu tulis sekali gimana seharusnya tiap server (versi aplikasi berapa, settingannya apa), terus ada alat yang bikin semuanya sama.',
-		'Alat yang populer namanya <b>Ansible</b>. Daftar langkahnya ada di file yang namanya <b>playbook</b>. Ansible masuk ke enam server itu buat kamu, jalanin langkahnya di semua server sekaligus, terus lapor balik.',
-		'Jalanin lagi pun nggak bakal ada yang rusak. Ansible ngecek tiap server dulu, kalau udah sesuai ya dibiarin. Laporannya cuma bilang nggak ada yang berubah.',
-		'[ingat] <b>Tulis sekali, beres semua.</b> Playbook itu satu daftar cek yang dibacain ke semua server barengan. Server yang udah sesuai cuma ngangguk dan nunggu.',
-		'[fyi] [[Terraform|devops/iac]] yang bikin servernya, Ansible yang ngatur isi di dalamnya, jadi tim sering pakai dua duanya. Tim jaringan juga suka Ansible, bisa ngatur ratusan router dan switch sekaligus.',
-		'Mau coba? Pencet satu server buat ngacak acak dia pakai tangan, terus lihat playbook ngerapiinnya lagi. Atau tonton aja terus.'
+		'nimbus.com sudah ramai, dan sekarang jalan di sepuluh server di belakang [[load balancer|traffic/load-balancer]]. Hari ini ada versi baru aplikasinya, dan kesepuluh server itu harus diperbarui semua.',
+		'Cara manualnya, masuk ke tiap server lewat [[SSH|cloud/remote-access]], ketik perintah yang sama, cek berhasil, lalu pindah ke server berikutnya. Sepuluh kali. Di tengah jalan kamu mulai capek, lalu ada typo yang lolos.',
+		'Alat <b>configuration management</b> mengerjakan ini untukmu. Kamu tulis sekali seperti apa seharusnya setiap server (versi aplikasi berapa, pengaturannya apa), lalu alatnya membuat semua server jadi sama.',
+		'Salah satu yang populer namanya <b>Ansible</b>. Daftar langkahnya disimpan di file bernama <b>playbook</b>. Ansible masuk ke semua server untukmu, menjalankan langkahnya di banyak server sekaligus, lalu melaporkan apa saja yang berubah.',
+		'[fyi] Asyiknya, playbook aman dijalankan berulang kali. Kalau servernya sudah sesuai, Ansible nggak akan mengutak atiknya. Dan ini bukan cuma untuk server cloud, tim jaringan juga pakai alat yang sama untuk mengatur ratusan router dan switch sekaligus.',
+		'[ingat] Playbook menjelaskan konfigurasi yang diinginkan. Jalankan pada server tujuan, periksa perubahan, dan pastikan tugasnya aman untuk diulang.',
+		'Sepuluh server menunggu update. Coba beberapa pakai tangan dulu, lalu ketik perintah playbook di terminal.'
 	],
 	reactions: {
-		drift:
-			'Server itu diubah pakai tangan, jadi dia melenceng dari playbook. Ansible jalan lagi, cuma benerin yang satu itu, dan nggak nyentuh yang lain.'
+		manual:
+			'Satu beres. Masuk, ketik, cek, keluar. Lima menit untuk satu server. Sekarang bayangkan ada seratus.',
+		typo: 'Waduh, typo. Server itu sekarang konfigurasinya rusak dan nggak ada yang sadar. Persis begini caranya server pelan pelan jadi beda beda satu sama lain.',
+		playbook:
+			'Ansible menyisir kesepuluh server, lima sekaligus, dan sekarang semuanya jalan di versi baru. Bahkan yang kena typo ikut beres, karena playbook menjelaskan persis seperti apa seharusnya.',
+		again:
+			'Dijalankan lagi, hasilnya changed=0. Semua server sudah sesuai playbook, jadi Ansible nggak menyentuh apa apa. Kamu bisa menjalankannya tiap hari tanpa takut.'
 	},
-	steps: [
-		{
-			tag: 'Tugasnya',
-			title: 'Enam server, satu update',
-			body: 'Semua server masih jalan di <b>v1</b>. Keenamnya harus pindah ke <b>v2</b>, dengan settingan yang sama persis.'
-		},
-		{
-			tag: 'Pakai tangan',
-			title: 'Satu per satu',
-			body: 'Masuk, ketik perintah, keluar, lanjut. Beberapa baris yang sama, diketik terus berulang ulang.'
-		},
-		{
-			tag: 'Masalahnya',
-			title: 'Salah ketik nyelip',
-			body: '<b>nimbus-ap</b>, bukan nimbus-app. Kurang satu huruf, server itu rusak sementara yang lain udah lanjut.'
-		},
-		{
-			tag: 'Idenya',
-			title: 'Tulis sekali',
-			body: 'Satu file yang bilang gimana tiap server seharusnya. Di sini isinya pasang versi 2, terus restart aplikasinya.'
-		},
-		{
-			tag: 'Alatnya',
-			title: 'ansible-playbook',
-			body: 'Satu perintah. Ansible nyampe ke enam server sekaligus dan jalanin langkah yang sama di tiap server, tanpa salah ketik.'
-		},
-		{
-			tag: 'Aman diulang',
-			title: 'changed=0',
-			body: 'Semuanya udah sesuai, jadi nggak ada yang disentuh. Playbook boleh dijalanin sesering yang kamu mau.'
-		},
-		{
-			tag: 'Cara gampang',
-			title: 'Tulis sekali, beres semua',
-			body: 'Satu daftar cek buat semua server. Yang udah sesuai cukup ngangguk.'
-		},
-		{
-			tag: 'Perlu tahu',
-			title: 'Terraform dan Ansible',
-			body: '<b>Terraform</b> bikin mesinnya, <b>Ansible</b> ngatur isi di dalamnya.'
-		},
-		{
-			tag: 'Opsional',
-			title: 'Rusakin satu',
-			body: 'Pencet satu server buat ngubahnya pakai tangan. Playbook jalan dan ngembaliin dia.'
-		}
-	],
-	terminalTab: 'Terminal',
-	serversLabel: 'Server',
-	brokenTag: 'rusak',
-	driftTag: 'diubah',
-	tapHint: 'Pencet satu server'
+	missionLabel: 'Misi',
+	mission: 'Update kesepuluh server ke nimbus app v2',
+	manualBtn: 'SSH ke server berikutnya',
+	manualDone: 'Semua server sudah didatangi',
+	minutesTag: '{n} menit pakai tangan',
+	typoTag: 'typo',
+	oldTag: 'v1',
+	newTag: 'v2',
+	hintLabel: 'Ketuk untuk mengisi',
+	placeholder: 'ketik perintah',
+	unknown: 'perintah tidak dikenal, {cmd}',
+	noteIdle: 'Sepuluh server, semuanya masih v1',
+	noteManual: 'Diupdate pakai tangan. Tinggal {n} lagi.',
+	noteTypo: 'Satu server kena typo dan sekarang rusak',
+	notePlaybook: 'Satu perintah, kesepuluh server sudah v2',
+	noteAgain: 'Sudah paling baru, nggak ada yang perlu diubah'
 };

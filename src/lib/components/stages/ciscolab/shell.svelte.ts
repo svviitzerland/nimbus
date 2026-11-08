@@ -1,3 +1,4 @@
+import { SvelteSet, SvelteMap } from 'svelte/reactivity';
 // A small but honest Cisco IOS command line shared by the Cisco Lab stages. It models the real
 // modes and prompts (nimbus>, nimbus#, nimbus(config)#, nimbus(config-if)# and friends),
 // abbreviations, "?" help, Tab completion, the classic "% Invalid input" caret, do and no,
@@ -211,7 +212,7 @@ export class IosShell {
 		if (had) return { ip: had.ip, gw: pool.gw, dns: pool.dns, mask: pool.mask! };
 		const base = ipToInt(networkOf(pool.network!, pool.mask!));
 		const size = 2 ** (32 - (maskBits(pool.mask!) ?? 24));
-		const taken = new Set([
+		const taken = new SvelteSet([
 			...this.bindings.map((b) => b.ip),
 			...this.cfg.ifaces.filter((i) => i.ip).map((i) => i.ip!)
 		]);
@@ -572,7 +573,7 @@ export class IosShell {
 		this.boot();
 	}
 	private boot() {
-		const cables = new Map(this.cfg.ifaces.map((i) => [i.name, i.cable]));
+		const cables = new SvelteMap(this.cfg.ifaces.map((i) => [i.name, i.cable]));
 		const fresh: Cfg = this.startup
 			? JSON.parse(this.startup)
 			: this.dev === 'router'

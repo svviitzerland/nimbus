@@ -6,7 +6,8 @@ export const id: RemoteAccessText = {
 		'Server-mu sekarang ada di data center, jauh, bisa beda kota atau beda negara. Beda banget sama server <b>on-premise</b> di kantor sendiri yang bisa kamu hampiri, colok layar dan keyboard, atau akses lewat jaringan lokal.',
 		'Karena mesinnya nggak bisa kamu pegang, caranya masuk dari jauh, namanya <b>remote access</b>. Dari komputer di rumah, kamu nyambung lewat internet pakai alamat server-nya, bisa berupa <b>IP</b> atau <b>hostname</b> seperti nimbus.com.',
 		'Ada dua pintu yang umum. <b>SSH</b> buat server Linux, isinya terminal buat ngetik perintah. <b>RDP</b> buat server Windows, isinya layar desktop yang bisa kamu klik klik.',
-		'Server-mu sudah siap di data center. Coba masuk lewat SSH, lalu lewat RDP, dan lihat bedanya.'
+		'Server-mu sudah siap di data center. Coba masuk lewat SSH, lalu lewat RDP, dan lihat bedanya.',
+		'[ingat] SSH membuka terminal dari jauh. RDP membawa tampilan desktopnya.'
 	],
 	reactions: {
 		ssh: 'Lewat <b>SSH</b> kamu dapat terminal server-nya. Ketik perintah, server langsung jalanin, dan semua lalu lintasnya terenkripsi jadi aman walau lewat internet umum.',

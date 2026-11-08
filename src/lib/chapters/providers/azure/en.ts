@@ -10,7 +10,7 @@ export const en: AzureText = {
 		'Then the computers that run nimbus.com. <b>Virtual Machines</b> are rented servers, no nickname at all. <b>Container Apps</b> runs containers, and <b>Functions</b> runs one small piece of code when it is called.',
 		'Every website needs a place for its data. <b>Blob Storage</b> holds files, <b>Azure SQL</b> is a SQL database Microsoft looks after, and <b>Cosmos DB</b> is a NoSQL database that copies itself to many regions.',
 		'Last, the tools that keep it safe and watched. <b>Entra ID</b> is the login that decides who may do what, <b>Key Vault</b> keeps keys and passwords, and <b>Azure Monitor</b> draws the graphs and rings the alarm.',
-		'[ingat] <b>Same idea, different name tag.</b> Azure keeps most names plain, and saves a few odd ones. Here is the sticky pair, <b>Blob Storage is file storage</b>. A blob is a lump of anything, so any file at all goes in it.',
+		'[ingat] Virtual Machines provides VMs, Blob Storage provides object storage, and Azure SQL Database provides a managed relational database.',
 		'[fyi] Same word, different world. The rented server is EC2 on [[AWS|providers/aws]] and Compute Engine on [[Google Cloud|providers/gcp]]. Azure also keeps every piece of one project in a <b>resource group</b>, like a folder you can delete in one go.',
 		'Watch a visitor walk through the whole board, from Azure DNS down to Azure Monitor. Want to try it yourself? Put the names back on the tiles, it is a small bonus.'
 	],
@@ -41,9 +41,9 @@ export const en: AzureText = {
 	},
 	steps: [
 		{
-			tag: 'The plain ideas',
+			tag: 'Website requirements',
 			title: 'A website in the cloud',
-			body: 'Five layers, from the front door down to the tools that watch it. Each tile is an idea you already know.'
+			body: 'This layout covers site access, networking, compute, data, and monitoring. Select a card to see the service’s function.'
 		},
 		{
 			tag: 'Since 2010',
@@ -52,7 +52,7 @@ export const en: AzureText = {
 		},
 		{
 			tag: 'Layer 1',
-			title: 'Front door',
+			title: 'DNS, CDN, and load balancer',
 			body: '<b>Azure DNS</b> is the DNS, <b>Front Door</b> the CDN, <b>Load Balancer</b> the load balancer.'
 		},
 		{
@@ -72,22 +72,22 @@ export const en: AzureText = {
 		},
 		{
 			tag: 'Layer 5',
-			title: 'Access and watch',
+			title: 'Access and monitoring',
 			body: '<b>Entra ID</b> for logins, <b>Key Vault</b> for keys, <b>Azure Monitor</b> for graphs and alarms.'
 		},
 		{
 			tag: 'Rule of thumb',
-			title: 'Same idea, new name tag',
-			body: 'Most Azure tags are plain. Sticky pair for an odd one, <b>a blob is any file</b>.'
+			title: 'Service names and functions',
+			body: 'Virtual Machines provides VMs, Blob Storage stores objects, and Azure SQL Database provides a relational database.'
 		},
 		{
-			tag: 'Elsewhere',
-			title: 'Three labels, one box',
-			body: 'File storage at AWS, Google Cloud, and Azure. Only the name tag changes.'
+			tag: 'Comparison',
+			title: 'Comparing providers',
+			body: 'All three providers offer virtual machines. Check each provider’s naming, configuration, service limits, and pricing.'
 		},
 		{
 			tag: 'Optional',
-			title: 'One visitor, every layer',
+			title: 'Visitor request flow',
 			body: 'The request lights up each piece on its way. Tap the button to match the names yourself.'
 		}
 	],

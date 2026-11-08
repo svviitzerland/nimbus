@@ -3,68 +3,44 @@ import type { GpuText } from './types';
 export const en: GpuText = {
 	title: 'GPUs for AI',
 	intro: [
-		'Remember how a [[neural network|ai/neural-net]] makes a guess? Under the hood it is a huge pile of tiny multiplications, like 3 × 4, again and again. A chatbot does billions of them for every single word. Something has to do all those sums.',
-		'The usual brain of a computer is the [[CPU|basics/hardware]]. Inside it are a handful of <b>cores</b>, and a core is one worker that does one job at a time. CPU cores are big, clever and very fast, great for tricky jobs.',
-		'A <b>GPU</b> (graphics processing unit) was first built for video games. A screen has millions of pixels and each one needs its own little sum many times a second, so a GPU packs in <b>thousands of tiny cores</b> that all work at the same moment.',
-		'Now let them race on a pile of small sums. The CPU cores are quick, but there are only four of them, so they chew through the pile a few at a time. The GPU hands one sum to every tiny core, and the whole pile is done in one go.',
-		'[ingat] A CPU is a few professors, a GPU is a stadium full of students. For one hard problem, ask a professor. For a million easy sums done together, the stadium wins every time.',
-		'That is exactly why AI loves GPUs. A neural network is mostly piles of small sums that do not wait for each other. Around 2012 researchers trained a famous picture model on GPUs, and AI suddenly took off.',
-		'[fyi] That is how NVIDIA, a company once known for gaming cards, became one of the most valuable companies on Earth. Most teams never buy GPUs at all, they rent them by the hour in the [[cloud|ai/ai-cloud]].',
-		'One more twist, if you are curious. Switch the job to a chain of steps where each step needs the answer before it, and see who wins then.'
+		'Remember the umbrella network? Even that tiny thing did dozens of multiplications for every guess. A chatbot does billions for every single word, and training repeats that over and over for weeks. Something has to crunch all those sums.',
+		'A [[CPU|basics/hardware]] has cores that execute program instructions. It handles many kinds of work, including dependent steps and program control flow.',
+		'A <b>GPU</b> (graphics processing unit) was first built for games. Your screen has millions of pixels and each one needs its own little sum many times a second, so a GPU packs in <b>thousands of simple cores</b> that all work at the same moment.',
+		'Then researchers noticed something. A neural network is also just giant piles of small multiplications that do not need to wait for each other. That is exactly the work a GPU loves, and around 2012 this discovery helped AI suddenly take off.',
+		'[fyi] That is why NVIDIA, a company once known for gaming cards, became one of the most valuable companies on Earth. Big AI labs buy tens of thousands of GPUs, and most teams simply rent them by the hour in the [[cloud|ai/ai-cloud]].',
+		'[ingat] A GPU can run many similar calculations in parallel. The benefit depends on the workload and how the program uses it.',
+		'Here are my CPU and my GPU at the starting line. Pick a job and start the race. Try both jobs, the winner might surprise you.'
 	],
 	reactions: {
-		chain:
-			'The CPU wins this time! Each step needs the one before, so only one worker can move at a time. The stadium just waits, and one tiny core is slower than a professor.',
-		pile: 'Back to the pile of easy sums, and the stadium wins again. Every AI computer keeps both, the CPU for the step by step work and the GPU for the big piles of sums.'
+		racing:
+			'And they are off! Watch the cores light up. The CPU has a few quick workers, the GPU has a whole crowd of slower ones.',
+		gpu: 'The GPU crushed it! Each of its cores is slower, but 256 of them working side by side clear the pile in a few big rounds. Training a real model is this job, times a billion.',
+		cpu: 'This time the CPU wins! Every step needs the answer from the step before, so only one core can ever work. The GPU crowd just stands around, and its single slow core falls behind.',
+		done: 'Now you have seen both sides. A GPU is not a better CPU, it is a different kind of worker. Every AI computer keeps a CPU for the clever step by step work and hands the huge piles of little sums to the GPU.'
 	},
-	panels: [
+	jobLabel: 'Pick a job',
+	jobs: [
 		{
-			tag: 'The work',
-			title: 'A pile of tiny sums',
-			body: 'Each square is one small multiplication. AI needs millions of them for every answer, and most of them do not depend on each other.'
+			name: 'Train a neural net',
+			sub: '1,024 little sums, none waits for another',
+			unit: 'sums'
 		},
 		{
-			tag: 'CPU',
-			title: 'A few big cores',
-			body: 'A <b>CPU</b> has a handful of strong, fast cores. Great at hard jobs that go step by step, and at running everything else on the computer.'
-		},
-		{
-			tag: 'GPU',
-			title: 'Thousands of tiny cores',
-			body: 'A <b>GPU</b> has thousands of small, simple cores. Each one is slower, but they all work at the very same moment.'
-		},
-		{
-			tag: 'The race',
-			title: 'Many small sums',
-			body: 'The CPU clears the pile four sums at a time. The GPU gives every core one sum, so the pile is gone in a single round.'
-		},
-		{
-			tag: 'Remember',
-			title: 'Professors and a stadium',
-			body: 'A few brilliant professors versus a stadium of students. Easy sums in bulk? Hand them to the stadium.'
-		},
-		{
-			tag: 'Try it',
-			title: 'A chain of steps',
-			body: 'When every step needs the answer before it, only one worker can move at a time, and the fast professor wins.'
+			name: 'Follow a recipe',
+			sub: '64 steps, each one needs the step before',
+			unit: 'steps'
 		}
 	],
+	raceBtn: 'Start the race',
+	racing: 'Racing',
+	again: 'Race again',
 	cpuName: 'CPU',
-	cpuSub: 'a few big cores',
+	cpuSub: '8 big, quick cores',
 	gpuName: 'GPU',
-	gpuSub: 'thousands of tiny cores',
-	cpuNick: 'a few professors',
-	gpuNick: 'a stadium of students',
-	jobs: {
-		pile: 'Many small sums, none waits for another',
-		chain: 'A chain of steps, each needs the one before'
-	},
-	ready: 'Ready',
-	working: 'Working',
-	doneIn: 'Done in {s} seconds',
-	rule: 'Hard and step by step goes to the CPU. Easy and in bulk goes to the GPU.',
-	switchJob: {
-		pile: 'Switch to a chain of steps',
-		chain: 'Back to the pile of sums'
-	}
+	gpuSub: '256 small, slower cores',
+	ready: 'Waiting at the start',
+	progress: '{n} of {t} {u}',
+	finished: 'Done in {s} seconds',
+	faster: '{k} times faster',
+	triedBoth: '{n} of 2 jobs raced'
 };

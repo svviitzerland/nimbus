@@ -3,71 +3,31 @@ import type { EmbeddingsText } from './types';
 export const id: EmbeddingsText = {
 	title: 'Embedding',
 	intro: [
-		'Komputer nggak bisa merasakan arti sebuah kata. Buat dia, "kucing" dan "anjing" cuma susunan huruf, nggak lebih dekat satu sama lain dibanding ke "server". Terus gimana AI bisa tahu kalau kucing dan anjing sama sama hewan peliharaan, sedangkan server itu hal yang beda banget?',
-		'Caranya, tiap kata diubah jadi deretan angka yang disebut <b>embedding</b>. Anggap saja angka angka itu alamat, satu titik di sebuah peta makna yang raksasa.',
-		'Model mempelajari alamat itu dengan membaca miliaran kalimat. Kata yang sering muncul di kalimat yang mirip dapat angka yang mirip, jadi letaknya <b>berdekatan</b>. Lihat mereka mencari tempatnya masing masing.',
-		'Sekarang jarak punya arti. Kucing duduk persis di sebelah anak kucing dan anjing, dan jauh dari server. Komputer cukup mengukur seberapa jauh dua titik, nggak perlu perasaan.',
-		'Begini cara AI mencari berdasarkan makna. Ketik "hewan berbulu", ubah juga jadi angka, lalu jatuhkan ke peta. Kata yang paling dekat menang, walaupun nggak ada satu pun yang mengandung huruf "hewan berbulu". Ide ini yang menggerakkan [[RAG|ai/rag]], materi berikutnya.',
-		'[ingat] Peta makna itu kayak supermarket. Barang yang sejenis ditaruh di lorong yang sama, jadi begitu ketemu satu, yang lain ada di dekatnya. Dekat di peta, dekat juga artinya.',
-		'[fyi] Embedding asli punya ratusan sampai ribuan angka, bukan cuma dua, jadi peta aslinya mustahil digambar. Petaku di sini sudah dipadatkan jadi dua angka biar muat di layarmu. Idenya tetap sama persis.',
-		'Mau menaruh beberapa kata baru? Jatuhkan satu dan lihat dia mendarat di lorong mana. Ini opsional kok.'
+		'Komputer nggak bisa merasakan arti sebuah kata. Buat dia, "kucing" dan "anak kucing" cuma susunan huruf yang beda. Terus gimana AI bisa tahu keduanya hampir sama?',
+		'Caranya, tiap kata diubah jadi deretan angka yang disebut <b>embedding</b> (atau vektor). Anggap saja angka angka itu koordinat, alamat di sebuah peta makna yang raksasa.',
+		'Model mempelajari alamat itu dari miliaran kalimat. Kata yang sering muncul di kalimat yang mirip dapat angka yang mirip, jadi letaknya <b>berdekatan</b>. "Kucing" tinggal di sebelah "anjing", jauh dari "server".',
+		'[fyi] Embedding asli punya ratusan sampai ribuan angka per kata, bukan cuma dua, jadi peta aslinya mustahil digambar. Petaku di sini sudah dipadatkan jadi dua angka biar muat di layarmu.',
+		'[fyi] Trik terkenalnya begini, ambil posisi "raja", kurangi "pria", tambah "wanita", dan kamu mendarat persis di dekat "ratu". Arah di peta ternyata juga punya makna.',
+		'[ingat] Embedding mewakili data dengan angka. Kedekatan antar vektor membantu mencari kemiripan menurut model, bukan menjamin maknanya sama.',
+		'Masih ada empat kata di rak. Seret masing masing ke tempatnya di peta (atau ketuk lalu pakai tombol panah). Garisnya menunjukkan tetangga terdekat, dan kalau kamu ketuk kata mana pun, angkanya muncul.'
 	],
 	reactions: {
+		select:
+			'Dua angka itu adalah embedding kata ini, alamatnya di peta. Garisnya menunjuk ke tetangga terdekat, yaitu kata yang menurut AI artinya mirip.',
+		wrong:
+			'Hmm, coba lihat tetangga terdekatnya di situ. Memangnya artinya mirip sama kata kata itu? Geser ke dekat kata yang terasa nyambung.',
 		puppy:
-			'Anak anjing mendarat di kelompok hewan, persis dekat anjing dan kucing. Kalimat soal anak anjing kedengarannya mirip banget sama kalimat soal anjing, jadi angkanya berdekatan.',
+			'Betul, anak anjing masuk ke kelompok hewan! Dia duduk dekat anjing dan kucing, karena kalimat soal anak anjing kedengarannya mirip banget sama kalimat soal anjing.',
 		queen:
-			'Langsung ke lorong kerajaan. Raja, ratu, dan pangeran muncul di kalimat yang mirip (mahkota, singgasana, istana), jadi angkanya berkumpul.',
+			'Pas di pojok kerajaan. Raja, ratu, dan pangeran muncul di kalimat yang mirip (mahkota, takhta, istana), jadi angkanya berdekatan.',
 		noodles:
-			'Mie gabung ke makanan, nempel dekat sup. Embedding bisa menangkap nuansa makna, dan dua duanya sama sama berkuah.',
+			'Mie ke kelompok makanan, jelas. Di peta asli dia bakal lebih dekat ke sup daripada ke roti (sama sama berkuah), karena embedding menangkap nuansa makna, bukan cuma kelompoknya.',
 		nimbus:
-			'nimbus.com mendarat bareng server, cloud, dan situs web. AI nya belum pernah dengar soal situsmu, tapi dari kata kata di sekitarnya, dia tetap bisa menebak ini benda jenis apa.'
+			'nimbus.com mendarat bareng server, cloud, dan situs web. AI nya belum pernah dengar situsmu, tapi dari kata kata di sekitarnya, dia tetap bisa menebak ini benda jenis apa.',
+		all: 'Semua kata sudah ketemu lingkungannya! Begini cara kerja pencarian AI. Ubah pertanyaanmu jadi angka, lalu ambil dokumen yang paling dekat. Ide ini yang menggerakkan [[RAG|ai/rag]], materi berikutnya.'
 	},
-	panels: [
-		{
-			tag: 'Masalahnya',
-			title: 'Cuma huruf',
-			body: 'Buat komputer, kata cuma deretan huruf. Nggak ada apa pun di hurufnya yang bilang kucing dan anjing sama sama hewan peliharaan.'
-		},
-		{
-			tag: 'Embedding',
-			title: 'Kata jadi angka',
-			body: 'Tiap kata dapat deretan angka, yaitu <b>embedding</b> nya. Di sini tiap kata punya dua angka, jadi bisa dipakai kayak alamat di peta.'
-		},
-		{
-			tag: 'Belajar',
-			title: 'Kata yang mirip berkumpul',
-			body: 'Kata yang dipakai di kalimat mirip dapat angka yang mirip. Hewan berkumpul di satu pojok, makanan di pojok lain, teknologi di pojok ketiga.'
-		},
-		{
-			tag: 'Jarak',
-			title: 'Dekat berarti mirip',
-			body: 'Garis pendek menghubungkan kucing ke tetangga terdekatnya. Garis yang panjang sampai ke server, yang artinya beda jauh.'
-		},
-		{
-			tag: 'Pencarian',
-			title: 'Cari lewat makna',
-			body: 'Pertanyaannya juga diubah jadi angka. Apa pun yang paling dekat dengannya adalah jawaban yang paling cocok, walau hurufnya beda semua.'
-		},
-		{
-			tag: 'Cara ingat',
-			title: 'Supermarket kata',
-			body: 'Yang sejenis satu lorong. Dekat di peta berarti dekat juga artinya.'
-		},
-		{
-			tag: 'Ukuran asli',
-			title: 'Angkanya jauh lebih banyak',
-			body: 'Embedding asli pakai ratusan sampai ribuan angka per kata. Makin banyak angka, makin banyak ruang buat nuansa makna.'
-		},
-		{
-			tag: 'Coba',
-			title: 'Jatuhkan kata baru',
-			body: 'Tiap kata baru mendarat di tempat yang cocok dengan artinya. Garisnya menunjukkan tetangga terdekatnya.'
-		}
-	],
-	mapLabel: 'Peta makna kata, kata yang mirip letaknya berdekatan',
 	words: {
 		cat: 'kucing',
-		kitten: 'anak kucing',
 		dog: 'anjing',
 		rabbit: 'kelinci',
 		puppy: 'anak anjing',
@@ -84,13 +44,11 @@ export const id: EmbeddingsText = {
 		website: 'situs web',
 		nimbus: 'nimbus.com'
 	},
-	regions: { animals: 'Hewan', royals: 'Kerajaan', food: 'Makanan', tech: 'Teknologi' },
-	far: 'jauh',
-	query: 'hewan berbulu',
-	searchLabel: 'cari',
-	manyLabel: '{word} dalam angka',
-	manyCount: 'dan seterusnya, total {n} angka',
-	rule: 'Dekat di peta, dekat juga artinya',
-	dropBtn: 'Jatuhkan kata baru',
-	againBtn: 'Ulang dari awal'
+	shelf: 'Seret kata ini ke peta',
+	pickHint: 'Ketuk kata mana saja buat lihat angkanya dan tetangga terdekatnya',
+	nearTitle: 'Paling dekat ke {word}',
+	vectorLabel: '{word} dalam angka',
+	closeness: '{n}% dekat',
+	placed: '{n} dari 4 sudah ditempatkan',
+	mapLabel: 'Peta makna kata'
 };

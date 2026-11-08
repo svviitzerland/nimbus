@@ -1,44 +1,33 @@
 import type { LessonText } from '../../types';
-import type { GuideStep } from '$lib/components/stages/secbasics/guided.svelte';
-
-export type MfaFactor = 'know' | 'have' | 'are';
-export type MfaStatus =
-	| 'idle'
-	| 'checking'
-	| 'taken'
-	| 'askCode'
-	| 'guessing'
-	| 'locked'
-	| 'push'
-	| 'yourTurn'
-	| 'wrong'
-	| 'welcome';
 
 export interface MfaText extends LessonText {
-	/** The side panel, one entry per beat. */
-	steps: GuideStep[];
-	attackerLabel: string;
-	youLabel: string;
-	phoneLabel: string;
-	stolenChip: string;
-	appName: string;
-	appAccount: string;
+	attackerLabel: string; // who sits at the laptop
+	attackerSub: string;
+	stolenChip: string; // the password he already holds
+	phoneLabel: string; // your phone
+	appName: string; // the authenticator app title
+	appAccount: string; // which account the code is for
+	secondsLeft: string; // template with {n}
 	mfaOffChip: string;
 	mfaOnChip: string;
-	loginTitle: string;
-	emailValue: string;
+	loginTitle: string; // header of the login card
+	emailField: string;
+	passwordField: string;
 	codeField: string;
-	loginBtn: string;
-	/** The three kinds of proof, a short name and an everyday example. */
-	factors: Record<MfaFactor, { name: string; ex: string }>;
-	/** The ATM version of know and have (beat 3). */
-	atm: { know: string; have: string };
-	keyLabel: string;
-	approvePrompt: string;
-	approveYes: string;
-	approveNo: string;
-	/** What the login screen says, {code} is filled with a guess. */
-	status: Record<MfaStatus, string>;
-	codeHint: string;
+	attackBtn: string; // the attacker logs in, MFA off
+	mfaOnBtn: string; // switch MFA on
+	attackAgainBtn: string; // the attacker tries again, MFA on
+	codePrompt: string; // asks the learner to type the code from the phone
 	submitBtn: string;
+	status: {
+		idle: string;
+		checking: string;
+		taken: string;
+		askCode: string;
+		guessing: string; // template with {code}
+		locked: string;
+		yourTurn: string;
+		wrong: string;
+		welcome: string;
+	};
 }

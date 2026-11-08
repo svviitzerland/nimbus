@@ -3,82 +3,82 @@ import type { HardwareText } from './types';
 export const id: HardwareText = {
 	title: 'Komponen komputer',
 	intro: [
-		'Ingat kan, komputer makin lama makin kecil? Sekarang satu komputer utuh muat di dalam laptop tipis ini. Dari luar cuma kelihatan <b>layar</b>, <b>keyboard</b>, dan touchpad. Terus, otaknya di mana ya?',
-		'Yuk kita buka. Sekrupnya dilepas, bagian keyboard diangkat, dan... taraa! Ternyata di dalamnya ramai. Semua bagian ini punya tugas sendiri, dan kita kenalan satu per satu.',
-		'Papan besar tempat semuanya menempel itu namanya <b>motherboard</b>. Anggap saja jalanan di sebuah kota kecil. Semua bagian tinggal di situ, dan jalur tembaga yang tipis mengantar pesan dari satu bagian ke bagian lain.',
-		'Di tengahnya ada <b>CPU</b> (central processing unit), si otak. Dia membaca instruksi satu per satu lalu menjalankannya, miliaran langkah kecil tiap detik. Jauh di dalam, dia cuma paham nyala dan mati ([[bit|basics/binary]]).',
-		'Tepat di sebelahnya ada keping <b>RAM</b> (random access memory). RAM itu meja kerja, tempat semua yang sedang kamu pakai ditaruh supaya gampang dijangkau. Cepat banget, tapi dia lupa semuanya begitu listrik mati.',
-		'Keping kecil itu <b>storage</b>, namanya SSD (komputer lama pakai hard disk yang berputar). Storage itu lemari. Foto, aplikasi, dan game kamu tetap aman di sana walaupun komputernya dimatikan.',
-		'Lihat apa yang terjadi waktu kamu membuka game. Gamenya diambil dari lemari, ditaruh di atas meja, lalu CPU mengerjakannya dari situ. Jeda sebentar waktu loading itu ya perjalanan ini.',
-		'[ingat] <b>RAM itu meja, storage itu lemari.</b> Listrik mati, meja jadi bersih, lemari tetap penuh. Makanya ada tombol simpan, menyimpan artinya mengembalikan kerjaanmu ke lemari.',
-		'Chip yang ini namanya <b>GPU</b> (graphics processing unit). Dia yang menggambar semua yang kamu lihat, jutaan titik kecil di layar, berkali kali tiap detik. Game dan video bikin dia sibuk banget.',
-		'Yang paling besar, di bawah tempat tangan bersandar, itu <b>baterai</b>. Dia mengalirkan listrik ke semua bagian lewat motherboard. Komputer meja pakai power supply yang dicolok ke dinding, tugasnya sama.',
-		'Kita pasang lagi keyboardnya. Nah, begini cara kamu dan komputer ngobrol. <b>Keyboard</b> itu <b>input</b>, dia mengirim tombol yang kamu tekan ke dalam. <b>Layar</b> itu <b>output</b>, dia menunjukkan hasilnya. Tekan tombol, CPU mendengarnya, lalu hurufnya muncul.',
-		'Itulah satu tim lengkap. Bahkan [[server|foundations/server]] yang besar juga dibangun dari bagian yang sama. Ketuk bagian mana saja kalau mau lihat lagi, lalu kita cari tahu gimana CPU berpikir cuma pakai 0 dan 1.'
+		'Laptop memiliki layar, keyboard, dan touchpad di bagian luar. Di dalamnya ada komponen yang memproses dan menyimpan data. Kita lihat bagian luarnya dahulu.',
+		'Buka tampilan laptop untuk melihat komponen di dalamnya. Ada motherboard, CPU, RAM, storage, kipas, dan baterai. Posisi komponen dapat berbeda pada tiap model laptop.',
+		'<b>Motherboard</b> adalah papan sirkuit yang menghubungkan komponen. Jalur tembaga pada papan membawa sinyal dan listrik antar bagian.',
+		'<b>CPU</b> (central processing unit) menjalankan instruksi program, misalnya menghitung angka atau membandingkan nilai. Instruksi dan data direpresentasikan dalam [[bit|basics/binary]].',
+		'<b>RAM</b> (random access memory) menyimpan sementara data dan instruksi yang sedang digunakan. CPU dapat mengaksesnya dengan cepat. Isi RAM hilang ketika listrik terputus.',
+		'<b>Storage</b> menyimpan aplikasi dan file yang sudah ditulis. Laptop ini memakai SSD. Berbeda dari RAM, SSD menyimpan data tanpa listrik, tetapi tetap bisa rusak sehingga file penting perlu backup.',
+		'Saat aplikasi dibuka, bagian program dan data yang diperlukan dimuat dari storage ke RAM. CPU menjalankan instruksinya. Ini salah satu proses yang terjadi selama loading.',
+		'[ingat] <b>RAM menyimpan data sementara. Storage menyimpan data yang sudah ditulis.</b> Simpan pekerjaanmu agar perubahan tidak hanya berada di memori.',
+		'<b>GPU</b> (graphics processing unit) memproses pekerjaan grafis, termasuk menghasilkan gambar untuk layar. Pada sebagian perangkat, GPU berada dalam chip yang sama dengan CPU.',
+		'<b>Baterai</b> menyediakan energi saat laptop tidak terhubung ke stopkontak. Adaptor menyuplai listrik dan mengisi baterai. Komputer desktop umumnya memakai power supply yang tersambung ke listrik.',
+		'<b>Keyboard</b> memasukkan data melalui tombol yang kamu tekan. <b>Layar</b> menampilkan hasil pemrosesan. Perangkat untuk memasukkan data disebut input, sedangkan perangkat yang menampilkan atau mengeluarkan hasil disebut output.',
+		'Ketuk komponen untuk melihat fungsi masing masing. [[Server|foundations/server]] juga memakai CPU, RAM, dan storage, dengan susunan sesuai kebutuhan layanannya.'
 	],
 	reactions: {
-		peek: 'Nah, muncul lagi. Lihat lihat sepuasnya, gambarnya nggak keberatan kok.'
+		peek: 'Komponen yang kamu pilih disorot. Lihat fungsi dan posisinya pada laptop.'
 	},
 	steps: [
 		{
 			tag: 'Laptop',
-			title: 'Laptop utuh',
-			body: 'Yang kamu lihat sehari hari cuma bagian luarnya, yaitu <b>layar</b>, <b>keyboard</b>, dan <b>touchpad</b>. Bagian yang benar benar bekerja tersembunyi di dalam bodinya.'
+			title: 'Bagian luar laptop',
+			body: '<b>Layar</b> menampilkan gambar dan teks. <b>Keyboard</b> memasukkan data. <b>Touchpad</b> menggerakkan penunjuk dan memilih objek di layar.'
 		},
 		{
-			tag: 'Dibuka',
-			title: 'Isi sebuah laptop',
-			body: 'Di bawah keyboard ada <b>motherboard</b> dengan chip chipnya, <b>kipas</b> pendingin, dan <b>baterai</b> besar di bawah tempat tanganmu bersandar. HP, komputer meja, dan server punya jenis bagian yang sama.'
+			tag: 'Bagian dalam',
+			title: 'Komponen di dalam laptop',
+			body: 'Tampilan ini menunjukkan <b>motherboard</b>, chip, RAM, SSD, kipas, dan baterai. Susunan sebenarnya berbeda antar model laptop.'
 		},
 		{
 			tag: 'Motherboard',
-			title: 'Jalanan kota',
-			body: 'Papan sirkuit besar yang penuh garis tembaga tipis bernama <b>jalur</b> (traces). Jalur ini membawa listrik dan data antar bagian, seperti jalan antar rumah.'
+			title: 'Menghubungkan komponen',
+			body: '<b>Motherboard</b> menghubungkan komponen lewat jalur sirkuit. Jalur tersebut membawa sinyal data dan menyebarkan daya listrik.'
 		},
 		{
 			tag: 'CPU',
-			title: 'Si otak',
-			body: 'Menjalankan instruksi satu per satu, cepat sekali. Kecepatannya ditulis dalam GHz, dan <b>3 GHz</b> artinya sekitar tiga miliar langkah kecil tiap detik.'
+			title: 'Menjalankan instruksi',
+			body: 'CPU menjalankan instruksi. <b>3 GHz</b> berarti sekitar tiga miliar siklus clock per detik. Siklus bukan jumlah instruksi, pekerjaan per siklus bisa berbeda.'
 		},
 		{
 			tag: 'RAM',
-			title: 'Si meja',
-			body: 'Menampung aplikasi dan file yang sedang dibuka, supaya CPU bisa langsung mengambilnya. Dia butuh listrik untuk ingat. <b>RAM 8 GB</b> di label toko itu ukuran mejanya.'
+			title: 'Memori sementara',
+			body: '<b>RAM</b> menyimpan sementara data dan instruksi yang sedang digunakan. Kapasitas 8 GB menunjukkan banyaknya data yang dapat ditampung. Isinya hilang saat listrik terputus.'
 		},
 		{
 			tag: 'Storage',
-			title: 'Si lemari',
-			body: 'Menyimpan file selamanya, walau tanpa listrik. Jauh lebih besar dari RAM, tapi lebih lambat dijangkau. <b>SSD 512 GB</b> di label itu ukuran lemarinya.'
+			title: 'Penyimpanan data',
+			body: 'Menyimpan file meskipun listrik mati. Umumnya lebih besar dan lebih lambat daripada RAM. Storage tetap bisa rusak, jadi file penting perlu backup.'
 		},
 		{
 			tag: 'Loading',
-			title: 'Storage, lalu RAM, lalu CPU',
-			body: 'File disalin dari storage ke RAM, lalu CPU membacanya dari RAM. CPU hampir nggak pernah merogoh storage langsung, kelamaan.'
+			title: 'Membuka aplikasi',
+			body: 'Program dan data yang dibutuhkan dimuat dari storage ke RAM. CPU lalu menjalankan instruksi program.'
 		},
 		{
 			tag: 'Cara ingat',
-			title: 'Meja dan lemari',
-			body: 'Listrik mati, meja (RAM) jadi bersih, lemari (storage) tetap menyimpan semuanya. Patokannya, kalau belum kamu simpan, berarti cuma ada di RAM.'
+			title: 'RAM dan storage saat listrik mati',
+			body: 'RAM kehilangan isi saat listrik mati. Storage menyimpan data yang sudah ditulis ke sana, termasuk lewat fitur simpan otomatis.'
 		},
 		{
 			tag: 'GPU',
-			title: 'Si pelukis',
-			body: 'Chip yang dibuat untuk mengerjakan ribuan tugas menggambar kecil sekaligus, mewarnai tiap titik (<b>piksel</b>) di layar. Di banyak laptop, GPU ada di dalam chip yang sama dengan CPU.'
+			title: 'Memproses gambar',
+			body: '<b>GPU</b> menjalankan banyak perhitungan grafis secara paralel untuk menghasilkan gambar. GPU dapat menjadi chip terpisah atau terintegrasi bersama CPU.'
 		},
 		{
 			tag: 'Listrik',
-			title: 'Baterai',
-			body: 'Menyimpan energi lalu mengirimnya lewat motherboard ke semua bagian. Tanpa listrik, nggak ada yang bekerja, dan RAM jadi kosong.'
+			title: 'Sumber listrik',
+			body: 'Baterai menyediakan energi saat laptop tidak terhubung ke listrik. Adaptor mengisi baterai dan menyuplai daya ke laptop.'
 		},
 		{
 			tag: 'Input dan output',
-			title: 'Keyboard masuk, layar keluar',
-			body: '<b>Input</b> membawa sesuatu masuk (keyboard, mouse, sentuhan, mikrofon). <b>Output</b> mengeluarkan hasil (layar, speaker). CPU ada di tengah tengahnya.'
+			title: 'Memasukkan data dan melihat hasil',
+			body: '<b>Input</b> memasukkan data, misalnya keyboard dan mikrofon. <b>Output</b> menampilkan atau mengeluarkan hasil, misalnya layar dan speaker.'
 		},
 		{
-			tag: 'Satu tim',
-			title: 'Semua bagian bersama',
-			body: 'Ketuk bagian mana saja di gambar untuk melihatnya lagi. Nggak ada yang wajib, ini cuma buat lihat sekali lagi.'
+			tag: 'Ringkasan',
+			title: 'Lihat kembali komponennya',
+			body: 'Ketuk CPU, RAM, storage, atau komponen lain untuk melihat fungsi dan posisinya.'
 		}
 	],
 	labels: {

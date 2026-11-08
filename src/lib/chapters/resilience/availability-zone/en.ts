@@ -8,17 +8,21 @@ export const en: AZText = {
 		'Hardware fails too, a single disk or server can die at any time, but that is usually handled by redundancy inside the data center.',
 		'The bigger danger is when a whole data center building falls. The question is, how does your site stay up when that happens?',
 		'The answer is, a <b>region</b> is not a single building. Inside it are several <b>Availability Zones</b> (AZ), separate data centers set far apart, each with its own power and network. So if one AZ runs into trouble, the others keep running.',
-		'The map is open with two regions on it. Step into one, spread your servers across several AZs, then trigger an outage yourself.'
+		'The map is open with two regions on it. Step into one, spread your servers across several AZs, then trigger an outage yourself.',
+		'[ingat] A region chooses an area; zones separate failure locations within it.'
 	],
 	reactions: {
-		virginia: 'This is the Virginia region. Those dots are its Availability Zones, each one a separate data center.',
+		virginia:
+			'This is the Virginia region. Those dots are its Availability Zones, each one a separate data center.',
 		'virginia-name':
 			'Look at the names, <b>us-east-1a</b>, <b>us-east-1b</b>, and so on. The trailing letter is shuffled per account and kept secret, so load spreads evenly instead of piling into "a". Now spread your servers across several AZs, then trigger an outage.',
-		singapore: 'This is the Singapore region. Those dots are its Availability Zones, each one a separate data center.',
+		singapore:
+			'This is the Singapore region. Those dots are its Availability Zones, each one a separate data center.',
 		'singapore-name':
 			'Look at the names, <b>ap-southeast-1a</b>, <b>ap-southeast-1b</b>, and so on. The trailing letter is shuffled per account and kept secret, so load spreads evenly instead of piling into "a". Now spread your servers across several AZs, then trigger an outage.',
 		down: 'There it is. Your server was in a single AZ, so when that AZ was hit your site went down with it. Spread to other AZs, then trigger it again.',
-		survived: 'Feel the difference. One AZ falls, but the others keep serving, so your site survives. That is what spreading across AZs is for.'
+		survived:
+			'Feel the difference. One AZ falls, but the others keep serving, so your site survives. That is what spreading across AZs is for.'
 	},
 	worldHint: 'Click a region to see its Availability Zones',
 	back: 'Back to the map',

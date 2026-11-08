@@ -1,618 +1,487 @@
 <script lang="ts">
-	// A guided DevOps lesson. Dev sits at a laptop, Ops looks after a server rack, and a brick wall
-	// stands between them. Following Nim, a giant release box is thrown over the wall and breaks
-	// things, then the wall comes down and small boxes roll along a belt instead. A strip at the
-	// bottom shows one year of releases (one huge box, or lots of tiny ones). On the last beat the
-	// learner may flip between the old way and the DevOps way.
-	import { untrack } from 'svelte';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import { onDestroy } from 'svelte';
+	import Server from '$lib/components/Server.svelte';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { WhatDevopsText } from '$lib/chapters/devops/what-devops/types';
-	import { prefersReducedMotion, runSeq } from './webguide/seq';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as WhatDevopsText);
 
-	$effect(() => {
-		untrack(() => {
-			onshow?.(true);
-			oncomplete?.();
-		});
-	});
+	// How many changes pile up in one release, per rhythm (year, quarter, month, week, day).
+	const CHANGES = [240, 60, 20, 5, 1];
+	const LAST = CHANGES.length - 1;
 
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const last = $derived(tx.steps.length - 1);
-	const step = $derived(Math.max(0, Math.min(peek ?? beat, last)));
+	let step = $state(0);
+	let phase = $state<'idle' | 'fly' | 'down' | 'fixed'>('idle');
+	let shippedAt = $state(-1);
+	let triedYear = false;
+	let triedDay = false;
+	let done = false;
+	let timers: ReturnType<typeof setTimeout>[] = [];
 
-	let reduce = $state(false);
-	$effect(() => {
-		reduce = prefersReducedMotion();
-	});
+	const changes = $derived(CHANGES[step]);
+	// the box shrinks with the release, from a crate down to a tiny parcel
+	const boxSize = $derived(30 + Math.round((Math.log(changes) / Math.log(240)) * 34));
+	// the wall fades as releases get smaller and the two teams merge
+	const wallLeft = $derived(1 - step / LAST);
+	const busy = $derived(phase === 'fly' || phase === 'down');
 
-	type Mode = 'old' | 'new';
-	type Scene = 'still' | 'throw' | 'blame' | 'drop' | 'stream' | 'bugfix';
-	let pick = $state<Mode | null>(null);
-	const mode = $derived<Mode>(step <= 2 || (step === last && pick === 'old') ? 'old' : 'new');
-	const scene = $derived<Scene>(
-		step === 0
-			? 'still'
-			: step === 1
-				? 'throw'
-				: step === 2
-					? 'blame'
-					: step === 3
-						? 'drop'
-						: step === 5
-							? 'bugfix'
-							: mode === 'old'
-								? 'blame'
-								: 'stream'
-	);
-
-	// the one parcel moved by the timers (the giant box, or the tiny box with a bug)
-	let px = $state(172);
-	let py = $state(150);
-	let ps = $state(0.6);
-	let pOn = $state(false);
-	let pBug = $state(false);
-	let snap = $state(true);
-	let led = $state<'ok' | 'warn' | 'bad'>('ok');
-	let blame = $state(false);
-	let note = $state('');
-
-	function reset() {
-		snap = true;
-		pOn = false;
-		pBug = false;
-		px = 172;
-		py = 150;
-		ps = 0.6;
-		led = 'ok';
-		blame = false;
-		note = '';
+	function changesText(n: number) {
+		return n === 1 ? tx.changesOne : tx.changesTag.replace('{n}', String(n));
 	}
 
-	function play(s: Scene, still: boolean): (() => void) | undefined {
-		reset();
-		if (s === 'still' || s === 'drop' || s === 'stream') return;
-		if (still) {
-			pOn = true;
-			if (s === 'bugfix') {
-				px = 300;
-				pBug = true;
-				led = 'warn';
-				note = tx.oneChange;
-			} else {
-				px = 300;
-				ps = 1.6;
-				if (s === 'blame') {
-					led = 'bad';
-					blame = true;
-				}
-			}
-			return;
-		}
-		if (s === 'bugfix') {
-			return runSeq(
-				[
-					[
-						60,
-						() => {
-							reset();
-							pOn = true;
-							pBug = true;
-						}
-					],
-					[300, () => (snap = false)],
-					[1700, () => (px = 300)],
-					[
-						2400,
-						() => {
-							led = 'warn';
-							note = tx.oneChange;
-						}
-					],
-					[1500, () => (px = 172)],
-					[
-						900,
-						() => {
-							pBug = false;
-							led = 'ok';
-							note = '';
-						}
-					],
-					[1700, () => (px = 300)],
-					[2600, () => (note = tx.fixed)],
-					[500, () => (pOn = false)]
-				],
-				true
-			);
-		}
-		return runSeq(
-			[
-				[
-					60,
-					() => {
-						reset();
-						pOn = true;
-					}
-				],
-				[300, () => (snap = false)],
-				[900, () => (ps = 0.95)],
-				[900, () => (ps = 1.3)],
-				[1000, () => (ps = 1.6)],
-				[
-					1100,
-					() => {
-						px = 230;
-						py = 34;
-					}
-				],
-				[
-					1300,
-					() => {
-						px = 300;
-						py = 150;
-					}
-				],
-				[
-					s === 'blame' ? 3600 : 2200,
-					() => {
-						if (s === 'blame') {
-							led = 'bad';
-							blame = true;
-						}
-					}
-				],
-				[500, () => (pOn = false)]
-			],
-			true
+	function ship() {
+		if (busy) return;
+		timers.forEach(clearTimeout);
+		timers = [];
+		const at = step;
+		shippedAt = -1;
+		phase = 'fly';
+		// a bigger release takes longer to dig through before it is fixed
+		const outage = 900 + Math.round((Math.log(CHANGES[at]) / Math.log(240)) * 1800);
+		timers.push(
+			setTimeout(() => {
+				phase = 'down';
+				shippedAt = at;
+			}, 900)
+		);
+		timers.push(
+			setTimeout(() => {
+				phase = 'fixed';
+				react(at);
+			}, 900 + outage)
 		);
 	}
 
-	$effect(() => {
-		const s = scene;
-		const still = reduce;
-		return untrack(() => play(s, still));
-	});
-
-	function choose(m: Mode) {
-		pick = m;
-		onstate?.(m);
+	function react(at: number) {
+		if (at === 0) triedYear = true;
+		if (at === LAST) triedDay = true;
+		if (triedYear && triedDay && (at === 0 || at === LAST)) {
+			onstate?.('both');
+			if (!done) {
+				done = true;
+				oncomplete?.();
+			}
+		} else onstate?.(at === 0 ? 'yearly' : at === LAST ? 'daily' : 'middle');
 	}
 
-	const wallUp = $derived(mode === 'old' && step !== 3);
-	const MONTHS = Array.from({ length: 12 }, (_, k) => k);
-	const TINY = Array.from({ length: 24 }, (_, k) => k);
-	const BELT = [0, 1, 2];
+	function slide(v: number) {
+		step = v;
+		if (!busy) phase = 'idle';
+	}
+
+	const note = $derived(
+		shippedAt < 0
+			? tx.noteIdle
+			: shippedAt === LAST
+				? tx.noteSmall
+				: tx.noteBig.replace('{n}', String(CHANGES[shippedAt])).replace('{t}', tx.finds[shippedAt])
+	);
+
+	onDestroy(() => timers.forEach(clearTimeout));
 </script>
 
-{#snippet box(bug: boolean)}
-	<rect x="-14" y="-24" width="28" height="24" rx="2.5" class="box" class:bug />
-	<line x1="-14" y1="-17" x2="14" y2="-17" class="tape" class:bug />
-	<line x1="0" y1="-24" x2="0" y2="-17" class="tape" class:bug />
-{/snippet}
-
-{#snippet visual(i: number)}
-	<div class="vis">
-		{#if i === last}
-			<div class="pick" role="group" aria-label={tx.modeLabel}>
-				<span class="cap">{tx.modeLabel}</span>
-				<div class="chips">
-					<button type="button" class="chip" class:on={mode === 'old'} onclick={() => choose('old')}
-						>{tx.oldBtn}</button
-					>
-					<button type="button" class="chip" class:on={mode === 'new'} onclick={() => choose('new')}
-						>{tx.newBtn}</button
-					>
-				</div>
-			</div>
-		{/if}
-
-		<svg viewBox="0 0 460 244" class="scene" role="img" aria-label="{tx.devLabel}, {tx.opsLabel}">
-			<line x1="10" y1="150" x2="450" y2="150" class="ground" />
-
-			<!-- the belt between the teams, once they work as one -->
-			<g class="belt" class:on={mode === 'new' && step >= 4}>
-				<rect x="158" y="150" width="176" height="7" rx="3.5" />
-				{#each [0, 1, 2, 3, 4, 5] as k (k)}
-					<circle cx={170 + k * 30} cy="153.5" r="2" />
-				{/each}
-			</g>
-
-			<!-- Dev, an opened laptop -->
-			<g class="team" class:lit={i === 0 || i === 1}>
-				<rect x="30" y="58" width="110" height="72" rx="8" class="shell" />
-				<rect x="37" y="65" width="96" height="58" rx="4" class="screen" />
-				<rect x="45" y="75" width="44" height="5" rx="2.5" class="code brand" />
-				<rect x="53" y="86" width="62" height="5" rx="2.5" class="code" />
-				<rect x="53" y="97" width="40" height="5" rx="2.5" class="code" />
-				<rect x="45" y="108" width="28" height="5" rx="2.5" class="code brand" />
-				<path d="M20 132H150L143 142H27Z" class="base" />
-			</g>
-
-			<!-- Ops, a server rack -->
-			<g class="team" class:lit={i === 0 || i === 2}>
-				<rect x="345" y="40" width="90" height="110" rx="9" class="shell" />
-				{#each [50, 82, 114] as y, n (y)}
-					<rect x="353" {y} width="74" height="26" rx="4" class="unit" />
-					<circle
-						cx="365"
-						cy={y + 13}
-						r="3.6"
-						class="led {led}"
-						class:blink={led !== 'ok' && !reduce}
-						style="animation-delay:{n * 0.12}s"
-					/>
-					<line x1="378" y1={y + 10} x2="415" y2={y + 10} class="vent" />
-					<line x1="378" y1={y + 17} x2="407" y2={y + 17} class="vent" />
-				{/each}
-			</g>
-
-			<!-- the wall -->
-			<g class="wall" class:down={!wallUp} class:snapwall={reduce}>
-				{#each [0, 1, 2, 3, 4, 5, 6, 7] as r (r)}
-					<rect
-						x={r % 2 ? 218 : 214}
-						y={36 + r * 14}
-						width={r % 2 ? 24 : 32}
-						height="14"
-						rx="1.5"
-						class="brick"
-					/>
-				{/each}
-			</g>
-
-			<!-- small boxes riding the belt -->
-			{#if scene === 'stream'}
-				{#each BELT as k (k)}
-					<g
-						class="ride"
-						class:still={reduce}
-						style="animation-delay:{-k * 1.3}s; transform: translate({185 +
-							k * 55}px, 150px) scale(0.6)"
-					>
-						{@render box(false)}
-					</g>
-				{/each}
-			{/if}
-
-			<!-- the parcel driven by the timers -->
-			<g
-				class="parcel"
-				class:snap
-				class:off={!pOn}
-				style="transform: translate({px}px, {py}px) scale({ps})"
-			>
-				{@render box(pBug)}
-				{#if ps > 1.2}
-					<text y="-28" text-anchor="middle" class="box-label">{tx.bigBox}</text>
-				{/if}
-			</g>
-			{#if note}
-				<text x="290" y="118" text-anchor="middle" class="note" class:good={!pBug}>{note}</text>
-			{/if}
-
-			<!-- the blame bubbles -->
-			{#if blame}
-				<g class="bubble">
-					<rect x="22" y="18" width="126" height="22" rx="11" />
-					<text x="85" y="32.5" text-anchor="middle">{tx.blameDev}</text>
-				</g>
-				<g class="bubble">
-					<rect x="326" y="6" width="112" height="22" rx="11" />
-					<text x="382" y="20.5" text-anchor="middle">{tx.blameOps}</text>
-				</g>
-			{/if}
-
-			<!-- the names, or one team once the wall is gone -->
-			{#if !wallUp}
-				<rect x="24" y="162" width="412" height="22" rx="11" class="band" />
-				<text x="230" y="177" text-anchor="middle" class="team-name">{tx.oneTeam}</text>
-			{/if}
-			<text x="85" y="177" text-anchor="middle" class="label">{tx.devLabel}</text>
-			<text x="390" y="177" text-anchor="middle" class="label">{tx.opsLabel}</text>
-
-			<!-- one year of releases -->
-			<g class="year" class:lit={i === 6}>
-				<text x="40" y="206" class="year-cap">{tx.yearLabel}</text>
-				<line x1="40" y1="232" x2="424" y2="232" class="axis" />
-				{#each MONTHS as m (m)}
-					<line x1={40 + m * 32} y1="229" x2={40 + m * 32} y2="235" class="tick" />
-				{/each}
-				{#if mode === 'old'}
-					<rect x="404" y="210" width="20" height="20" rx="2.5" class="box" />
-				{:else}
-					{#each TINY as t (t)}
-						<rect x={44 + t * 16} y="222" width="7" height="7" rx="1.5" class="box" />
-					{/each}
-				{/if}
-			</g>
-		</svg>
+<div class="wrap">
+	<!-- the rhythm slider and the ship button sit on top -->
+	<div class="ctrl">
+		<div class="every">
+			<span class="elabel">{tx.everyLabel}</span>
+			<b class="evalue">{tx.cadences[step]}</b>
+		</div>
+		<input
+			type="range"
+			min="0"
+			max={LAST}
+			step="1"
+			value={step}
+			disabled={busy}
+			aria-label={tx.everyLabel}
+			oninput={(e) => slide(+(e.currentTarget as HTMLInputElement).value)}
+		/>
+		<div class="ticks" aria-hidden="true">
+			{#each tx.cadences as c, i (i)}
+				<span class:on={i === step}>{c}</span>
+			{/each}
+		</div>
+		<button type="button" class="cta" disabled={busy} onclick={ship}>
+			{phase === 'fixed' ? tx.againBtn : tx.shipBtn}
+		</button>
 	</div>
-{/snippet}
 
-<div class="stage">
-	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
+	<!-- Dev on the left, the wall, Ops and production on the right -->
+	<div class="scene">
+		<div class="team" class:merged={step === LAST}>
+			{#if step === LAST}
+				<span class="tlabel one">{tx.oneTeam}</span>
+			{/if}
+		</div>
+
+		<div class="side dev">
+			<svg width="46" height="34" viewBox="0 0 46 34" aria-hidden="true">
+				<rect x="7" y="2" width="32" height="22" rx="3" class="lap" />
+				<rect x="10" y="5" width="26" height="16" rx="1.5" class="scr" />
+				<path d="M2 27h42l-3 5H5Z" class="lap" />
+			</svg>
+			<span class="slabel">{tx.devLabel}</span>
+		</div>
+
+		<div class="wall" style="opacity:{wallLeft}; transform: scaleY({0.25 + wallLeft * 0.75})">
+			<i></i><i></i><i></i><i></i>
+			<span class="wlabel">{tx.wallLabel}</span>
+		</div>
+
+		<div class="side ops">
+			<div class="srv" class:down={phase === 'down'}>
+				<Server active={phase !== 'down'} />
+				{#if phase === 'down'}
+					<span class="tag bad">{tx.downTag}</span>
+				{:else if phase === 'fixed'}
+					<span class="tag good">{tx.backTag}</span>
+				{/if}
+			</div>
+			<span class="slabel">{tx.opsLabel}</span>
+		</div>
+
+		<!-- the release box itself -->
+		{#key phase === 'fly' ? 'fly' : 'rest'}
+			<div
+				class="box"
+				class:fly={phase === 'fly'}
+				class:gone={phase === 'down' || phase === 'fixed'}
+				style="width:{boxSize}px; height:{boxSize}px"
+			></div>
+		{/key}
+		<span class="bcount">{changesText(changes)}</span>
+	</div>
+
+	<div class="stats">
+		<div class="stat">
+			<span>{tx.waitLabel}</span>
+			<b>{tx.waits[step]}</b>
+		</div>
+		<div class="stat">
+			<span>{tx.findLabel}</span>
+			<b class:hot={step < 2} class:cool={step === LAST}>{tx.finds[step]}</b>
+		</div>
+	</div>
+
+	<p class="note">{note}</p>
 </div>
 
 <style>
-	.stage {
+	.wrap {
 		display: flex;
-		width: 100%;
-		max-height: 100%;
-		justify-content: center;
-		overflow-x: hidden;
-		overflow-y: auto;
-		padding-bottom: 8px;
-	}
-	@media (max-width: 767px) {
-		.stage {
-			padding-bottom: 7rem;
-		}
-	}
-	.vis {
-		display: flex;
-		width: 100%;
+		width: min(94vw, 400px);
 		flex-direction: column;
 		align-items: center;
-		gap: 10px;
+		gap: 14px;
 	}
-	.scene {
-		width: 100%;
-		max-width: 460px;
-		height: auto;
-		overflow: visible;
-	}
-	.pick {
+	.ctrl {
 		display: flex;
+		width: 100%;
 		flex-direction: column;
 		align-items: center;
 		gap: 6px;
 	}
-	.cap {
-		font-size: 11px;
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
+	.every {
+		display: flex;
+		align-items: baseline;
+		gap: 6px;
+	}
+	.elabel {
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.evalue {
+		font-family: var(--font-display, inherit);
+		font-size: 20px;
+		font-weight: 600;
+		color: var(--color-ink);
+	}
+	input[type='range'] {
+		width: 100%;
+		accent-color: var(--color-brand);
+	}
+	.ticks {
+		display: flex;
+		width: 100%;
+		justify-content: space-between;
+		font-size: 9.5px;
+		font-weight: 600;
 		color: var(--color-faint);
 	}
-	.chips {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 6px;
+	.ticks span {
+		width: 20%;
+		text-align: center;
 	}
-	.chip {
-		border: 1px solid var(--color-line);
-		border-radius: 999px;
-		background: var(--color-card);
-		padding: 6px 14px;
-		font-size: 13px;
-		font-weight: 600;
+	.ticks span:first-child {
+		text-align: left;
+	}
+	.ticks span:last-child {
+		text-align: right;
+	}
+	.ticks .on {
 		color: var(--color-brand);
-		transition:
-			border-color 0.2s,
-			background 0.2s;
 	}
-	.chip:hover,
-	.chip.on {
-		border-color: var(--color-brand);
-		background: var(--color-brand-soft);
+	.cta {
+		margin-top: 4px;
+		border-radius: 12px;
+		background: var(--color-ink);
+		color: var(--color-paper);
+		padding: 10px 20px;
+		font-size: 13px;
+		font-weight: 700;
+		transition: opacity 0.2s ease;
+	}
+	.cta:disabled {
+		opacity: 0.5;
 	}
 
-	.ground {
-		stroke: var(--color-line);
-		stroke-width: 2;
+	.scene {
+		position: relative;
+		display: flex;
+		width: 100%;
+		height: 130px;
+		align-items: flex-end;
+		justify-content: space-between;
+		padding: 0 6px 18px;
 	}
-	.shell {
+	.team {
+		position: absolute;
+		inset: 0 0 10px;
+		border-radius: 16px;
+		border: 1.5px solid transparent;
+		transition:
+			border-color 0.4s ease,
+			background 0.4s ease;
+	}
+	.team.merged {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
+	}
+	.tlabel.one {
+		position: absolute;
+		top: 6px;
+		left: 50%;
+		transform: translateX(-50%);
+		font-size: 10.5px;
+		font-weight: 800;
+		color: var(--color-grass);
+		white-space: nowrap;
+	}
+	.side {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+	}
+	.lap {
 		fill: var(--color-card);
 		stroke: var(--color-line);
 		stroke-width: 1.5;
-		transition: stroke 0.3s;
 	}
-	.team.lit .shell {
-		stroke: var(--color-brand);
+	.scr {
+		fill: var(--color-brand-soft);
 	}
-	.screen {
-		fill: var(--color-paper);
+	.slabel {
+		font-size: 11px;
+		font-weight: 800;
+		color: var(--color-muted);
 	}
-	.code {
-		fill: var(--color-line);
+	.srv {
+		position: relative;
 	}
-	.code.brand {
-		fill: var(--color-brand);
-		opacity: 0.55;
+	.srv :global(.server) {
+		width: 54px;
+		gap: 5px;
+		padding: 6px;
+		border-radius: 9px;
+		transition: border-color 0.3s ease;
 	}
-	.base {
-		fill: var(--color-line);
+	.srv :global(.server .slot) {
+		height: 9px;
 	}
-	.unit {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
+	.srv.down :global(.server) {
+		border-color: var(--color-danger);
 	}
-	.vent {
-		stroke: var(--color-line);
-		stroke-width: 2;
-		stroke-linecap: round;
+	.srv.down :global(.server .dot) {
+		background: var(--color-danger);
 	}
-	.led {
-		fill: var(--color-grass);
-		transition: fill 0.3s;
+	.tag {
+		position: absolute;
+		top: -9px;
+		left: 50%;
+		transform: translateX(-50%);
+		border-radius: 999px;
+		padding: 2px 8px;
+		font-size: 9.5px;
+		font-weight: 800;
+		color: #fff;
+		white-space: nowrap;
 	}
-	.led.warn {
-		fill: var(--color-amber);
+	.tag.bad {
+		background: var(--color-danger);
+		animation: pulse 0.9s ease-in-out infinite;
 	}
-	.led.bad {
-		fill: var(--color-danger);
+	.tag.good {
+		background: var(--color-grass);
 	}
-	.led.blink {
-		animation: blink 0.5s ease-in-out infinite alternate;
-	}
-	@keyframes blink {
-		to {
-			opacity: 0.35;
+	@keyframes pulse {
+		50% {
+			opacity: 0.55;
 		}
 	}
 
-	.brick {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 1.2;
-	}
 	.wall {
-		transform-origin: 230px 150px;
+		position: absolute;
+		left: 50%;
+		bottom: 18px;
+		z-index: 1;
+		display: flex;
+		height: 96px;
+		width: 14px;
+		flex-direction: column;
+		gap: 2px;
+		margin-left: -7px;
+		transform-origin: bottom;
 		transition:
-			transform 1.3s cubic-bezier(0.6, 0, 0.4, 1),
-			opacity 1.3s ease;
+			opacity 0.4s ease,
+			transform 0.4s ease;
 	}
-	.wall.down {
-		transform: scaleY(0);
-		opacity: 0;
+	.wall i {
+		flex: 1;
+		border-radius: 3px;
+		background: var(--color-line);
+		border: 1px solid var(--color-faint);
 	}
-	.wall.snapwall {
-		transition: none;
-	}
-
-	.belt {
-		opacity: 0;
-		transition: opacity 0.6s;
-	}
-	.belt.on {
-		opacity: 1;
-	}
-	.belt rect {
-		fill: var(--color-line);
-	}
-	.belt circle {
-		fill: var(--color-card);
+	.wlabel {
+		position: absolute;
+		bottom: -16px;
+		left: 50%;
+		transform: translateX(-50%);
+		font-size: 9px;
+		font-weight: 700;
+		color: var(--color-faint);
+		white-space: nowrap;
 	}
 
 	.box {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 1.4;
-	}
-	.box.bug {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-	}
-	.tape {
-		stroke: var(--color-amber);
-		stroke-width: 1.4;
-	}
-	.tape.bug {
-		stroke: var(--color-danger);
-	}
-	.box-label {
-		font-size: 6.5px;
-		font-weight: 700;
-		fill: var(--color-ink);
-	}
-	.parcel {
+		position: absolute;
+		left: 18%;
+		bottom: 22px;
+		z-index: 2;
+		border-radius: 6px;
+		background: var(--color-amber-soft);
+		border: 1.5px solid var(--color-amber);
+		box-shadow: inset 0 0 0 3px var(--color-card);
 		transition:
-			transform 1.15s cubic-bezier(0.45, 0, 0.3, 1),
-			opacity 0.4s;
+			width 0.3s ease,
+			height 0.3s ease;
 	}
-	.parcel.snap {
-		transition: none;
+	.box.fly {
+		animation: throw 0.9s ease-in-out forwards;
 	}
-	.parcel.off {
-		opacity: 0;
+	.box.gone {
+		display: none;
 	}
-	.ride {
-		animation: ride 3.9s linear infinite;
-	}
-	.ride.still {
-		animation: none;
-	}
-	@keyframes ride {
+	@keyframes throw {
 		0% {
-			transform: translate(170px, 150px) scale(0.6);
-			opacity: 0;
+			left: 18%;
+			bottom: 22px;
 		}
-		10% {
-			opacity: 1;
-		}
-		88% {
-			opacity: 1;
+		50% {
+			left: 44%;
+			bottom: 108px;
 		}
 		100% {
-			transform: translate(325px, 150px) scale(0.6);
+			left: 70%;
+			bottom: 30px;
 			opacity: 0;
 		}
 	}
-	.note {
-		font-size: 9.5px;
-		font-weight: 700;
-		fill: var(--color-amber);
-	}
-	.note.good {
-		fill: var(--color-grass);
-	}
-
-	.bubble rect {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-		stroke-width: 1.2;
-	}
-	.bubble text {
-		font-size: 9px;
-		font-weight: 600;
-		fill: var(--color-danger);
-	}
-
-	.band {
-		fill: var(--color-brand-soft);
-	}
-	.team-name {
-		font-size: 11px;
-		font-weight: 800;
-		letter-spacing: 0.06em;
-		fill: var(--color-brand);
-	}
-	.label {
-		font-size: 11.5px;
-		font-weight: 700;
-		fill: var(--color-muted);
-	}
-
-	.year-cap {
+	.bcount {
+		position: absolute;
+		left: 18%;
+		bottom: 0;
 		font-size: 10px;
-		font-weight: 700;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		fill: var(--color-faint);
-		transition: fill 0.3s;
+		font-weight: 800;
+		color: var(--color-amber);
+		white-space: nowrap;
 	}
-	.year.lit .year-cap {
-		fill: var(--color-brand);
+
+	.stats {
+		display: grid;
+		width: 100%;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
 	}
-	.axis {
-		stroke: var(--color-line);
-		stroke-width: 2;
+	.stat {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		border-radius: 12px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 8px 10px;
 	}
-	.tick {
-		stroke: var(--color-line);
-		stroke-width: 1.5;
+	.stat span {
+		font-size: 10px;
+		font-weight: 600;
+		color: var(--color-faint);
+	}
+	.stat b {
+		font-size: 14px;
+		font-weight: 800;
+		color: var(--color-ink);
+	}
+	.stat b.hot {
+		color: var(--color-danger);
+	}
+	.stat b.cool {
+		color: var(--color-grass);
+	}
+	.note {
+		min-height: 2.8em;
+		max-width: 340px;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 600;
+		line-height: 1.4;
+		color: var(--color-muted);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.chip,
-		.shell,
-		.led,
-		.wall,
-		.belt,
-		.parcel {
-			transition: none;
+		.box.fly {
+			animation-duration: 0.01s;
 		}
-		.led.blink,
-		.ride {
+		.tag.bad {
 			animation: none;
+		}
+	}
+	@media (min-width: 768px) {
+		.wrap {
+			width: 480px;
+			gap: 18px;
+		}
+		.scene {
+			height: 150px;
+		}
+		.ticks {
+			font-size: 11px;
+		}
+		.stat b {
+			font-size: 16px;
+		}
+		.note {
+			font-size: 13.5px;
+			max-width: 420px;
 		}
 	}
 </style>

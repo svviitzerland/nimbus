@@ -10,7 +10,7 @@ export const en: AwsText = {
 		'Then the computers that actually run nimbus.com. <b>EC2</b> is a rented server, <b>ECS</b> runs containers, and <b>Lambda</b> runs one small function only when someone calls it.',
 		'Every website needs a place for its data. <b>S3</b> holds files like photos and backups, <b>RDS</b> is a SQL database that AWS looks after, and <b>DynamoDB</b> is the NoSQL one built for huge traffic.',
 		'Last, the tools that keep it safe and watched. <b>IAM</b> decides who may do what, <b>KMS</b> keeps the encryption keys, and <b>CloudWatch</b> draws the graphs and rings the alarm.',
-		'[ingat] <b>Same idea, different name tag.</b> You never learn a new idea at AWS, only a new name for an old one. Start with one pair and let it stick, <b>EC2 is a VM</b> (Elastic Compute Cloud, a computer in the cloud).',
+		'[ingat] EC2 provides virtual machines, S3 provides object storage, and RDS provides managed relational databases.',
 		'[fyi] Same word, different world. The rented server is called Compute Engine on [[Google Cloud|providers/gcp]] and Virtual Machines on [[Azure|providers/azure]]. Same box, three different labels.',
 		'Watch a visitor walk through the whole board, from Route 53 down to CloudWatch. Want to try it yourself? Put the names back on the tiles, it is a small bonus.'
 	],
@@ -41,9 +41,9 @@ export const en: AwsText = {
 	},
 	steps: [
 		{
-			tag: 'The plain ideas',
+			tag: 'Website requirements',
 			title: 'A website in the cloud',
-			body: 'Five layers, from the front door down to the tools that watch it. Each tile is an idea you already know.'
+			body: 'This layout covers site access, networking, compute, data, and monitoring. Select a card to see the service’s function.'
 		},
 		{
 			tag: 'Since 2006',
@@ -52,7 +52,7 @@ export const en: AwsText = {
 		},
 		{
 			tag: 'Layer 1',
-			title: 'Front door',
+			title: 'DNS, CDN, and load balancer',
 			body: '<b>Route 53</b> is the DNS, <b>CloudFront</b> the CDN, <b>Elastic Load Balancing</b> the load balancer.'
 		},
 		{
@@ -72,22 +72,22 @@ export const en: AwsText = {
 		},
 		{
 			tag: 'Layer 5',
-			title: 'Access and watch',
+			title: 'Access and monitoring',
 			body: '<b>IAM</b> for who may do what, <b>KMS</b> for keys, <b>CloudWatch</b> for graphs and alarms.'
 		},
 		{
 			tag: 'Rule of thumb',
-			title: 'Same idea, new name tag',
-			body: 'Flip any tile and the idea underneath is one you know. Sticky pair, <b>EC2 is a VM</b>.'
+			title: 'Service names and functions',
+			body: 'EC2 provides VMs, S3 stores objects, and RDS manages relational databases.'
 		},
 		{
-			tag: 'Elsewhere',
-			title: 'Three labels, one box',
-			body: 'A virtual machine at AWS, Google Cloud, and Azure. Only the name tag changes.'
+			tag: 'Comparison',
+			title: 'Comparing providers',
+			body: 'All three providers offer virtual machines. Check each provider’s naming, configuration, service limits, and pricing.'
 		},
 		{
 			tag: 'Optional',
-			title: 'One visitor, every layer',
+			title: 'Visitor request flow',
 			body: 'The request lights up each piece on its way. Tap the button to match the names yourself.'
 		}
 	],

@@ -5,7 +5,8 @@ export const en: VersionControlText = {
 	intro: [
 		'Picture writing an assignment and saving it as <i>final.doc</i>. Tomorrow you revise it, so <i>final_real.doc</i>. The day after, <i>final_fix2.doc</i>. It gets messy fast, and you are still nervous about overwriting the old one.',
 		'Git was made for exactly this. Every time you say save this version, Git takes a full <b>snapshot</b> of your file (its real name is a <b>commit</b>) with a short note. You still keep one file, yet every version is tucked away safely in the history.',
-		'Try it yourself. Press Commit to snapshot the version, do it a few times, then open an old snapshot and see, nothing is ever lost.'
+		'Try it yourself. Press Commit to snapshot the version, do it a few times, then open an old snapshot and see, nothing is ever lost.',
+		'[ingat] A commit records a project state. History lets you compare and recover changes.'
 	],
 	reactions: {
 		firstCommit:

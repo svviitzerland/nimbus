@@ -6,10 +6,15 @@ import { en } from './en';
 export const supervised: Lesson = {
 	id: 'supervised',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'worried', 'idea', 'surprised', 'wink', 'happy', 'excited'],
+	moods: ['calm', 'thinking', 'idea', 'happy', 'wink', 'excited'],
 	reactionMood: {
-		again: 'happy'
+		sup_guess: 'happy',
+		unsup_mode: 'thinking',
+		unsup_go: 'idea',
+		found3: 'excited',
+		foundk: 'wink'
 	},
+	playable: true,
 	stage: SupervisedStage,
 	text: { id, en }
 };

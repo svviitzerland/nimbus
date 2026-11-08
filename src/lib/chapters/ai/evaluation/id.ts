@@ -3,80 +3,38 @@ import type { EvaluationText } from './types';
 export const id: EvaluationText = {
 	title: 'Evaluasi model',
 	intro: [
-		'Sebuah klinik dapat asisten AI baru. Dia membaca hasil tes darah tiap pasien dan memberi <b>skor risiko</b> dari 0 sampai 100. Makin tinggi skornya, makin mungkin orang itu sakit. Ini dua puluh pasien, dijejer sesuai skornya.',
-		'Harus ada yang menarik garis, namanya <b>threshold</b> (ambang batas). Semua yang ada di kanan garis ditandai dan dipanggil lagi untuk diperiksa lebih teliti. Yang di kiri garis boleh pulang.',
-		'Sekarang kenyataannya, yang nggak diketahui AI. Dari semua pasien ini cuma tiga yang benar benar sakit (yang merah). Skornya petunjuk yang bagus, tapi nggak sempurna, ada juga orang sehat yang skornya tinggi.',
-		'Jadi AI bisa salah dengan dua cara. <b>Alarm palsu</b> menandai orang sehat, yang lalu dapat telepon menakutkan padahal nggak apa apa. <b>Kasus terlewat</b> memulangkan orang yang sebenarnya sakit. Lihat garisnya bergeser sendiri.',
-		'Geser ke kiri, semua yang sakit tertangkap, tapi alarm palsunya menumpuk. Geser ke kanan, alarm palsunya hilang, tapi ada orang sakit yang lolos. Dua duanya nggak bisa dihapus, jadi kamu memilih kesalahan mana yang lebih menyakitkan. Klinik biasanya menaruh garisnya rendah, karena tes kedua bisa membebaskan yang sehat.',
-		'Ada jebakan nih. Menilai model cuma dari <b>akurasi</b> (berapa jawaban yang benar) bisa menipu. AI malas yang memulangkan semua orang benar 17 dari 20 kali, itu 85%, padahal nggak ada satu pun yang sakit tertangkap.',
-		'[ingat] Bayangkan jaring ikan. Jaring lebar dapat semua ikan, tapi sandal jepit ikut nyangkut (alarm palsu). Jaring sempit bersih, tapi ada ikan yang lolos (kasus terlewat). Milih threshold itu sama dengan milih jaring.',
-		'[fyi] Filter spam juga menghadapi pilihan yang sama. Alarm palsu menyembunyikan email penting dari bosmu di folder spam, kasus terlewat membiarkan satu penipuan lagi masuk inbox. Aplikasi email memakai jaring yang lebih sempit daripada klinik.',
-		'Mau milih jaringmu sendiri? Geser garisnya dan lihat siapa yang tertangkap, siapa yang terlewat, dan siapa yang kaget gara gara alarm palsu. Ini opsional kok.'
+		'Sebuah klinik dapat AI baru yang membaca hasil tes darah dan memberi setiap pasien <b>skor risiko</b> dari 0 sampai 100. Makin tinggi skornya, makin mungkin orang itu sakit. Sekarang harus ada yang memutuskan di mana garisnya ditarik.',
+		'Garis itu namanya <b>threshold</b> (ambang batas). Semua yang skornya di atas garis ditandai sakit dan dipanggil lagi untuk diperiksa lebih teliti. Yang di bawah garis boleh pulang.',
+		'Cara paling gampang menilai model adalah <b>akurasi</b>, berapa persen jawabannya yang benar. Tapi ada jebakannya. Dari 20 pasien cuma 3 yang sakit, jadi model malas yang bilang semua orang sehat bakal benar 17 dari 20 kali (itu 85%) tanpa menemukan satu pun yang sakit.',
+		'Makanya dua jenis kesalahan dihitung terpisah. <b>Alarm palsu</b> (false positive) menandai orang sehat sebagai sakit. <b>Kasus terlewat</b> (false negative) memulangkan orang yang sebenarnya sakit. Tekan yang satu, biasanya yang lain naik.',
+		'[fyi] Filter spam juga menghadapi pilihan yang sama. Alarm palsu menyembunyikan email penting dari bosmu di folder spam, kasus terlewat membiarkan satu penipuan lagi masuk inbox. Aplikasi email lebih rela kelewatan sedikit spam, sedangkan klinik lebih rela ada sedikit alarm palsu.',
+		'[ingat] Threshold mengubah jumlah prediksi positif. Periksa false positive dan false negative untuk memilih batas yang sesuai kebutuhan.',
+		'Ini 20 pasien, diletakkan sesuai skornya, yang benar benar sakit berwarna merah. Coba model malasnya dulu, lalu geser thresholdnya dan lihat siapa yang tertangkap, siapa yang terlewat, dan siapa yang kaget gara gara alarm palsu.'
 	],
 	reactions: {
-		catch:
-			'Semua yang sakit tertangkap, alarm palsunya cuma sedikit. Untuk pemeriksaan awal di klinik, itu jaring yang bagus.',
-		noisy:
-			'Semua yang sakit tertangkap, tapi lihat alarm palsunya sebanyak itu. Separuh klinik dapat telepon yang bikin cemas padahal nggak apa apa.',
-		miss: 'Ada orang sakit yang lolos di bawah garis dan pulang. Alarm palsunya memang berkurang, tapi di klinik kasus yang terlewat bisa serius.'
+		lazy: 'Akurasinya 85% tapi sama sekali nggak berguna. Ketiga orang yang sakit disuruh pulang. Kalau satu kelompok jarang muncul, akurasi saja bisa menipu banget.',
+		low: 'Semua yang sakit tertangkap, tapi lihat alarm palsunya sebanyak itu. Separuh klinik dapat telepon yang bikin cemas padahal nggak apa apa.',
+		catch_all:
+			'Ketiga orang sakit tertangkap, dengan harga beberapa alarm palsu. Untuk pemeriksaan awal itu biasanya pilihan yang tepat, tes kedua nanti membebaskan yang sehat.',
+		miss: 'Ada orang sakit yang lolos di bawah garis dan pulang. Alarm palsunya memang berkurang, tapi di klinik kasus yang terlewat bisa serius.',
+		best_acc:
+			'Lihat, akurasinya baru saja mencapai 90%, angka terbaik sejauh ini, padahal dua dari tiga orang sakit terlewat. Skor tertinggi belum tentu model terbaik.',
+		done: 'Kamu sudah melihat gambaran utuhnya. Akurasi cuma satu angka, tapi kesalahan ada dua jenis, dan threshold dipilih dengan bertanya kesalahan mana yang lebih menyakitkan. Semua model serius dinilai begini, dari kedokteran sampai deteksi penipuan.'
 	},
-	panels: [
-		{
-			tag: 'Skor risiko',
-			title: 'Satu angka untuk tiap pasien',
-			body: 'AI itu nggak bilang ya atau tidak. Dia memberi tiap orang skor dari 0 sampai 100, lalu mereka diletakkan di garis sesuai skor itu.'
-		},
-		{
-			tag: 'Threshold',
-			title: 'Di mana garisnya ditarik',
-			body: 'Siapa pun yang ada di garis atau di kanannya <b>ditandai</b> dan dipanggil lagi. Model memberi skor, manusia yang memilih garisnya.'
-		},
-		{
-			tag: 'Kenyataannya',
-			title: 'Siapa yang benar benar sakit',
-			body: 'Merah artinya benar benar sakit. Kebanyakan yang sakit skornya tinggi, tapi ada orang sehat yang skornya 80 dan orang sakit yang cuma 52.'
-		},
-		{
-			tag: 'Dua kesalahan',
-			title: 'Alarm palsu dan kasus terlewat',
-			body: 'Cincin kuning itu <b>alarm palsu</b> (sehat, tapi ditandai). Cincin merah itu <b>kasus terlewat</b> (sakit, tapi dipulangkan). Cincin hijau itu orang sakit yang tertangkap dengan benar.'
-		},
-		{
-			tag: 'Pilihannya',
-			title: 'Kesalahan mana yang lebih sakit',
-			body: 'Untuk penyakit, melewatkan orang lebih parah daripada bikin kaget, jadi garisnya rendah. Garis yang tepat tergantung tugasnya, bukan angka ajaib.'
-		},
-		{
-			tag: 'Akurasi',
-			title: 'Jebakan 85%',
-			body: 'Kalau satu kelompok jarang, model bisa dapat nilai tinggi dengan mengabaikannya. Selalu tanya berapa kasus penting yang tertangkap.'
-		},
-		{
-			tag: 'Cara ingat',
-			title: 'Pilih jaringmu',
-			body: 'Jaring lebar (garis rendah) dapat semuanya, sampah pun ikut. Jaring sempit (garis tinggi) bersih, tapi ada yang lolos.'
-		},
-		{
-			tag: 'Coba',
-			title: 'Garismu sendiri',
-			body: 'Geser garisnya ke kiri dan kanan. Lihat tiga hitungannya berubah bareng, kesalahannya nggak pernah bisa nol semua.'
-		}
-	],
-	axis: 'Skor risiko dari tes',
-	flagged: 'dipanggil lagi',
-	home: 'dipulangkan',
+	modeReal: 'Tes sungguhan',
+	modeLazy: 'Bilang semua sehat',
+	threshold: 'Tandai sakit mulai skor {n}',
+	thresholdAria: 'Threshold',
+	lazyNote: 'Model ini mengabaikan skor dan memulangkan semua orang',
+	accuracy: 'akurasi',
 	caught: 'Tertangkap',
 	missed: 'Terlewat',
 	falseAlarm: 'Alarm palsu',
-	ofSick: '{n} dari {total}',
-	accuracy: '{n}% jawaban benar',
-	wide: 'Jaring lebar',
-	tight: 'Jaring sempit',
-	rule: 'Jaring lebar, dapat semua plus sampah. Jaring sempit, bersih tapi ada yang lolos',
-	thresholdAria: 'Threshold',
-	thresholdValue: 'Tandai mulai skor {n}',
-	patient: 'Pasien dengan skor {score}, {truth}',
+	cleared: 'Pulang dengan benar',
+	axis: 'Skor risiko dari tes',
+	flagged: 'ditandai sakit',
 	sick: 'benar benar sakit',
 	healthy: 'benar benar sehat',
+	patient: 'Pasien dengan skor {score}, {truth}',
 	chartLabel: 'Dua puluh pasien diletakkan sesuai skor risiko'
 };

@@ -8,17 +8,21 @@ export const id: AZText = {
 		'Hardware juga sering rusak, satu disk atau server bisa mati kapan saja, tapi itu biasanya sudah ditangani redundansi di dalam data center.',
 		'Yang lebih bahaya kalau satu gedung data center utuh tumbang. Pertanyaannya, gimana caranya website tetap jalan kalau itu terjadi?',
 		'Jawabannya, satu <b>region</b> itu bukan satu gedung. Di dalamnya ada beberapa <b>Availability Zone</b> (AZ), yaitu data center terpisah yang letaknya berjauhan dan punya listrik serta jaringan sendiri. Jadi kalau satu AZ kena masalah, yang lain tetap jalan.',
-		'Petanya sudah terbuka dengan dua region. Masuk ke salah satunya, sebar server-mu ke beberapa AZ, lalu picu gangguannya sendiri.'
+		'Petanya sudah terbuka dengan dua region. Masuk ke salah satunya, sebar server-mu ke beberapa AZ, lalu picu gangguannya sendiri.',
+		'[ingat] Region memilih kawasan, zone memisahkan lokasi kegagalan di dalam kawasan itu.'
 	],
 	reactions: {
-		virginia: 'Ini region Virginia. Titik-titik itu Availability Zone-nya, masing-masing satu data center yang terpisah.',
+		virginia:
+			'Ini region Virginia. Titik-titik itu Availability Zone-nya, masing-masing satu data center yang terpisah.',
 		'virginia-name':
 			'Lihat namanya, <b>us-east-1a</b>, <b>us-east-1b</b>, dan seterusnya. Huruf di belakangnya diacak beda untuk tiap akun dan dirahasiakan, biar beban tersebar rata, bukan numpuk di "a". Sekarang sebar server-mu ke beberapa AZ, lalu picu gangguan.',
-		singapore: 'Ini region Singapura. Titik-titik itu Availability Zone-nya, masing-masing satu data center yang terpisah.',
+		singapore:
+			'Ini region Singapura. Titik-titik itu Availability Zone-nya, masing-masing satu data center yang terpisah.',
 		'singapore-name':
 			'Lihat namanya, <b>ap-southeast-1a</b>, <b>ap-southeast-1b</b>, dan seterusnya. Huruf di belakangnya diacak beda untuk tiap akun dan dirahasiakan, biar beban tersebar rata, bukan numpuk di "a". Sekarang sebar server-mu ke beberapa AZ, lalu picu gangguan.',
 		down: 'Nah kan. Server-mu cuma ada di satu AZ, jadi pas AZ itu kena, website-mu langsung ikut mati. Sebar ke AZ lain, lalu picu lagi.',
-		survived: 'Lihat bedanya. Satu AZ tumbang, tapi AZ lain tetap melayani, jadi website-mu selamat. Itulah gunanya sebar ke beberapa AZ.'
+		survived:
+			'Lihat bedanya. Satu AZ tumbang, tapi AZ lain tetap melayani, jadi website-mu selamat. Itulah gunanya sebar ke beberapa AZ.'
 	},
 	worldHint: 'Klik sebuah region untuk melihat Availability Zone-nya',
 	back: 'Kembali ke peta',

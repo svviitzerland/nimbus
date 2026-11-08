@@ -12,7 +12,8 @@ export const id: LayersText = {
 		'Di tingkat paling bawah, paketnya cuma jadi sinyal, cahaya di kabel atau gelombang di udara. Di sinilah dia benar benar keluar dari HP-mu dan meluncur ke server.',
 		'Server menerimanya, lalu membuka semua bungkus tadi satu satu secara terbalik, sampai pesan aslimu kebaca. Habis itu dia mengirim halaman produknya balik ke kamu lewat jalan yang sama.',
 		'Jadi begini polanya. Tiap lapisan cuma menambah satu bungkus, lalu mengopernya ke bawah. Pas berangkat dibungkus dari atas ke bawah, pas sampai dibuka dari bawah ke atas, dan urutannya selalu begitu. Kadang ada langkah yang cepat atau dilewati, misalnya situs tanpa kunci, tapi susunannya tetap sama.',
-		'Paket tadi bisa dikirim dua gaya, yang hati hati atau yang ngebut. Coba kirim lewat TCP dan lewat UDP, lihat sendiri bedanya.'
+		'Paket tadi bisa dikirim dua gaya, yang hati hati atau yang ngebut. Coba kirim lewat TCP dan lewat UDP, lihat sendiri bedanya.',
+		'[ingat] Isi dibungkus saat berangkat, dibuka bertahap saat tiba. Setiap lapisan punya tugas.'
 	],
 	reactions: {
 		tcp: 'TCP salaman dulu, baru mengirim tiap paket dan menunggu satu satu. Keempatnya sampai urut, tidak ada yang hilang. Kehati hatian itu memang makan sedikit waktu.',

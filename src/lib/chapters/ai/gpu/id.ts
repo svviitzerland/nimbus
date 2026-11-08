@@ -3,68 +3,44 @@ import type { GpuText } from './types';
 export const id: GpuText = {
 	title: 'GPU untuk AI',
 	intro: [
-		'Masih ingat cara [[neural network|ai/neural-net]] menebak? Di balik layar, itu tumpukan raksasa perkalian kecil, kayak 3 × 4, diulang terus. Chatbot melakukan miliaran perkalian begitu untuk setiap kata. Pasti ada yang harus mengerjakan semua hitungan itu.',
-		'Otak utama komputer biasanya [[CPU|basics/hardware]]. Di dalamnya ada beberapa <b>core</b>, dan satu core itu satu pekerja yang mengerjakan satu tugas dalam satu waktu. Core CPU itu besar, pintar, dan cepat banget, cocok buat tugas yang rumit.',
-		'<b>GPU</b> (graphics processing unit) awalnya dibuat buat game. Layar punya jutaan piksel, dan tiap piksel butuh hitungan kecilnya sendiri berkali kali tiap detik, jadi GPU diisi <b>ribuan core mungil</b> yang kerja di saat yang sama.',
-		'Sekarang kita adu mereka di tumpukan hitungan kecil. Core CPU memang gesit, tapi cuma empat, jadi tumpukannya dikerjakan sedikit demi sedikit. GPU membagi satu hitungan ke tiap core mungilnya, dan seluruh tumpukan beres sekali jalan.',
-		'[ingat] CPU itu beberapa profesor, GPU itu satu stadion penuh anak sekolah. Satu soal sulit? Tanya profesor. Sejuta soal gampang sekaligus? Stadion yang menang. Sedikit tapi pintar itu CPU, banyak tapi sederhana itu GPU.',
-		'Itulah kenapa AI cinta GPU. Neural network sebagian besar isinya tumpukan hitungan kecil yang nggak saling menunggu. Sekitar tahun 2012 para peneliti melatih model pengenal gambar yang terkenal pakai GPU, dan sejak itu AI langsung melesat.',
-		'[fyi] Begitulah NVIDIA, perusahaan yang dulu dikenal karena kartu grafis buat game, jadi salah satu perusahaan paling bernilai di dunia. Kebanyakan tim nggak beli GPU sama sekali, mereka sewa per jam di [[cloud|ai/ai-cloud]].',
-		'Satu kejutan lagi, kalau penasaran. Ganti tugasnya jadi rantai langkah, di mana tiap langkah butuh jawaban langkah sebelumnya, terus lihat siapa yang menang.'
+		'Masih ingat jaringan payung tadi? Yang sekecil itu saja butuh puluhan perkalian tiap kali menebak. Chatbot butuh miliaran untuk tiap kata, dan pelatihannya mengulang itu terus menerus selama berminggu minggu. Pasti ada yang harus mengerjakan semua hitungan itu.',
+		'[[CPU|basics/hardware]] memiliki core yang menjalankan instruksi program. CPU cocok untuk banyak jenis pekerjaan, termasuk langkah yang saling bergantung dan pengaturan alur program.',
+		'<b>GPU</b> (graphics processing unit) awalnya dibuat untuk game. Layarmu punya jutaan piksel dan masing masing butuh hitungan kecil sendiri berkali kali tiap detik, jadi GPU diisi <b>ribuan core sederhana</b> yang bekerja bersamaan.',
+		'Lalu para peneliti sadar satu hal. Neural network juga cuma tumpukan raksasa perkalian kecil yang nggak perlu saling menunggu. Itu persis pekerjaan kesukaan GPU, dan sekitar tahun 2012 temuan ini bikin AI tiba tiba melesat.',
+		'[fyi] Makanya NVIDIA, perusahaan yang dulu terkenal dengan kartu grafis untuk game, jadi salah satu perusahaan paling bernilai di dunia. Lab AI besar membeli puluhan ribu GPU, dan kebanyakan tim cukup menyewanya per jam di [[cloud|ai/ai-cloud]].',
+		'[ingat] GPU dapat menjalankan banyak perhitungan serupa secara paralel. Keuntungannya bergantung pada jenis pekerjaan dan cara program memakainya.',
+		'Ini CPU dan GPU-ku di garis start. Pilih tugasnya lalu mulai balapan. Coba kedua tugas, pemenangnya mungkin bikin kamu kaget.'
 	],
 	reactions: {
-		chain:
-			'Kali ini CPU yang menang! Tiap langkah butuh langkah sebelumnya, jadi cuma satu pekerja yang bisa jalan. Stadionnya cuma bisa nunggu, dan satu core mungil kalah cepat dari profesor.',
-		pile: 'Balik ke tumpukan hitungan gampang, dan stadionnya menang lagi. Tiap komputer AI punya keduanya, CPU buat kerjaan langkah demi langkah dan GPU buat tumpukan hitungan raksasa.'
+		racing:
+			'Mereka berangkat! Lihat core-nya menyala. CPU punya sedikit pekerja gesit, GPU punya kerumunan pekerja yang lebih lambat.',
+		gpu: 'GPU menang telak! Tiap core-nya memang lebih lambat, tapi 256 core yang kerja berdampingan menghabiskan tumpukannya dalam beberapa ronde besar. Melatih model sungguhan itu tugas ini, dikali semiliar.',
+		cpu: 'Kali ini CPU yang menang! Tiap langkah butuh jawaban dari langkah sebelumnya, jadi cuma satu core yang bisa bekerja. Kerumunan GPU cuma berdiri menunggu, dan satu core-nya yang lambat ketinggalan.',
+		done: 'Sekarang kamu sudah lihat dua sisinya. GPU bukan CPU yang lebih hebat, dia jenis pekerja yang berbeda. Tiap komputer AI tetap punya CPU untuk kerja rumit selangkah demi selangkah, dan menyerahkan tumpukan hitungan kecil ke GPU.'
 	},
-	panels: [
+	jobLabel: 'Pilih tugas',
+	jobs: [
 		{
-			tag: 'Pekerjaannya',
-			title: 'Tumpukan hitungan kecil',
-			body: 'Tiap kotak adalah satu perkalian kecil. AI butuh jutaan perkalian begini untuk tiap jawaban, dan kebanyakan nggak saling bergantung.'
+			name: 'Melatih neural net',
+			sub: '1.024 hitungan kecil, nggak ada yang saling menunggu',
+			unit: 'hitungan'
 		},
 		{
-			tag: 'CPU',
-			title: 'Beberapa core besar',
-			body: '<b>CPU</b> punya sedikit core yang kuat dan cepat. Jago mengerjakan tugas sulit yang langkah demi langkah, sekaligus menjalankan semua hal lain di komputer.'
-		},
-		{
-			tag: 'GPU',
-			title: 'Ribuan core mungil',
-			body: '<b>GPU</b> punya ribuan core kecil yang sederhana. Masing masing lebih lambat, tapi semuanya kerja di saat yang persis sama.'
-		},
-		{
-			tag: 'Balapan',
-			title: 'Banyak hitungan kecil',
-			body: 'CPU membereskan tumpukannya empat hitungan sekali jalan. GPU memberi tiap core satu hitungan, jadi tumpukannya habis dalam satu putaran.'
-		},
-		{
-			tag: 'Cara ingat',
-			title: 'Profesor dan stadion',
-			body: 'Beberapa profesor jenius lawan satu stadion anak sekolah. Hitungan gampang dalam jumlah banyak? Serahkan ke stadion.'
-		},
-		{
-			tag: 'Coba',
-			title: 'Rantai langkah',
-			body: 'Kalau tiap langkah butuh jawaban sebelumnya, cuma satu pekerja yang bisa jalan, dan profesor yang gesit menang.'
+			name: 'Mengikuti resep',
+			sub: '64 langkah, tiap langkah butuh langkah sebelumnya',
+			unit: 'langkah'
 		}
 	],
+	raceBtn: 'Mulai balapan',
+	racing: 'Lagi balapan',
+	again: 'Balapan lagi',
 	cpuName: 'CPU',
-	cpuSub: 'beberapa core besar',
+	cpuSub: '8 core besar dan gesit',
 	gpuName: 'GPU',
-	gpuSub: 'ribuan core mungil',
-	cpuNick: 'beberapa profesor',
-	gpuNick: 'satu stadion anak sekolah',
-	jobs: {
-		pile: 'Banyak hitungan kecil, nggak ada yang saling menunggu',
-		chain: 'Rantai langkah, tiap langkah butuh langkah sebelumnya'
-	},
-	ready: 'Siap',
-	working: 'Bekerja',
-	doneIn: 'Beres dalam {s} detik',
-	rule: 'Sulit dan berurutan, kasih ke CPU. Gampang dan banyak, kasih ke GPU.',
-	switchJob: {
-		pile: 'Ganti ke rantai langkah',
-		chain: 'Balik ke tumpukan hitungan'
-	}
+	gpuSub: '256 core kecil dan lebih lambat',
+	ready: 'Menunggu di garis start',
+	progress: '{n} dari {t} {u}',
+	finished: 'Selesai dalam {s} detik',
+	faster: '{k} kali lebih cepat',
+	triedBoth: '{n} dari 2 tugas sudah dibalap'
 };

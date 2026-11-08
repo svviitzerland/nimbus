@@ -3,65 +3,27 @@ import type { NatText } from './types';
 export const id: NatText = {
 	title: 'Apa itu NAT',
 	intro: [
-		'Di rumahmu ada tiga HP yang online bersamaan. Padahal provider internet cuma kasih <b>satu</b> [[alamat IP|network/ip-address]] publik untuk serumah, yaitu alamat router. Gimana caranya mereka berbagi?',
-		'Di dalam rumah, tiap HP punya alamat <b>privat</b> seperti 192.168.1.10, dipinjamkan oleh [[DHCP|network/dhcp]]. Alamat privat cuma berlaku di dalam. Jutaan rumah memakai alamat yang persis sama, jadi internet nggak mau mengantar ke sana.',
-		'HP A membuka nimbus.com. Suratnya keluar dengan alamat pengirim yang privat. Di pintu, router mencoretnya dan menulis alamat publiknya sendiri, plus satu nomor miliknya. Trik ini namanya <b>NAT</b> (Network Address Translation).',
-		'Biar nggak lupa, router menulis satu baris di <b>tabel translasi</b>, "nomor 40001 punya HP A." Nomor itu namanya [[port|foundations/port]], semacam nomor kamar di alamat publik.',
-		'Balasan dari nimbus.com datang ke alamat publik, nomor 40001. Router mengecek tabelnya, menulis lagi HP A di suratnya, lalu menyerahkannya. HP A dapat halamannya.',
-		'Sekarang ketiga HP sekaligus. Tiap perjalanan dapat nomor sendiri, jadi tiap balasan cocok dengan tepat satu baris. Beginilah dunia bertahan waktu [[IPv4 mulai habis|network/ipv6]].',
-		'[ingat] NAT itu meja resepsionis kantor yang meneruskan surat. Dunia luar cuma tahu alamat kantornya. Resepsionis punya catatan siapa mengirim apa, jadi tiap balasan sampai ke meja yang benar di dalam.',
-		'[fyi] Efek sampingnya enak, orang asing nggak bisa memulai obrolan dengan HP di dalam, karena nggak ada baris di tabel yang menunjuk ke sana. Di cloud idenya sama, namanya <b>NAT gateway</b>, supaya server di [[subnet|networking/vpc]] privat bisa keluar tanpa bisa didatangi. Di lab MikroTik kamu menyalakannya lewat [[masquerade|netlab/router-nat]].',
-		'Satu alamat publik, satu rumah di belakangnya. Kalau penasaran, biarkan orang asing mengetuk dari luar dan lihat apa yang dilakukan resepsionisnya.'
+		'Di rumahmu ada tiga HP, satu laptop, dan TV, semuanya online bersamaan. Padahal provider internet cuma kasih <b>satu</b> [[alamat IP|network/ip-address]] publik untuk serumah. Gimana caranya mereka berbagi?',
+		'Di dalam rumah, tiap perangkat punya alamat <b>privat</b> seperti 192.168.1.10, dipinjamkan oleh [[DHCP|network/dhcp]]. Alamat privat cuma berlaku di dalam, internet nggak mau mengantar ke sana, dan jutaan rumah memakai alamat yang persis sama.',
+		'Router berdiri di pintu depan dan melakukan trik bernama <b>NAT</b> (Network Address Translation). Untuk tiap paket yang keluar, alamat pengirim yang privat dicoret dan diganti alamat publik milik router.',
+		'Lalu balasannya datang ke alamat publik itu. Buat HP yang mana? Router ingat. Tiap perjalanan keluar dicatat di <b>tabel translasi</b>, masing masing dengan nomor [[port|foundations/port]] sendiri, jadi tiap balasan cocok dengan tepat satu baris.',
+		'Beginilah dunia bertahan waktu [[IPv4 mulai habis|network/ipv6]]. Satu alamat publik bisa menyembunyikan satu rumah, bahkan satu kantor.',
+		'[fyi] Pada contoh NAT ini, paket masuk tanpa entri translasi dibuang. Itu bukan pengganti [[firewall|networking/firewall]]. Aturan penerusan port dapat mengizinkan koneksi masuk. Cloud juga menyediakan [[NAT gateway|networking/vpc]] untuk akses keluar dari subnet privat.',
+		'[ingat] NAT mengubah alamat paket. Pada contoh berbagi IP publik ini, router juga memakai nomor port dan tabel translasi untuk mengarahkan balasan.',
+		'Tiga HP membuka nimbus.com di saat yang sama. Kirim permintaannya, lihat router menulis ulang, dan perhatikan tiap balasan pulang ke HP yang benar.'
 	],
 	reactions: {
+		out: 'Lihat labelnya berubah di router. Pengirim privat dicoret, diganti alamat publik dengan nomor port baru. Router mencatat perjalanan itu di tabelnya.',
+		back: 'Balasannya datang ke alamat dan port publik. Router mencari barisnya, menulis lagi alamat privatnya, lalu mengirimnya ke HP yang benar.',
+		all: 'Ketiga HP dapat halamannya masing masing, padahal HP A dan HP B sama sama pakai port 51000 di dalam. Di luar jadinya 40001 dan 40002, jadi router nggak pernah ketukar.',
 		stranger:
-			'Dibuang. Nggak ada yang di dalam yang minta ini, jadi nggak ada barisnya di tabel, dan router nggak tahu ini untuk siapa. NAT diam diam menjaga orang asing tetap di luar.'
+			'Paket dibuang karena tidak ada entri translasi atau aturan penerusan port untuk tujuan ini. Kebijakan akses jaringan tetap perlu diatur dengan firewall.'
 	},
-	steps: [
-		{
-			title: 'Satu alamat publik',
-			body: 'Provider memberi router satu alamat yang bisa dijangkau seluruh internet. Di sini <b>203.0.113.5</b>.'
-		},
-		{
-			title: 'Alamat privat',
-			body: 'Alamat seperti <b>192.168.x.x</b> cuma berlaku di dalam rumah atau kantor. Alamat yang sama dipakai ulang di mana mana.'
-		},
-		{
-			title: 'Ditulis ulang saat keluar',
-			body: 'Router mengganti pengirim privat dengan alamat publiknya dan nomor port baru.'
-		},
-		{
-			title: 'Tabel translasi',
-			body: 'Satu baris tiap perjalanan, menghubungkan nomor port di luar dengan HP di dalam.'
-		},
-		{
-			title: 'Ditulis ulang saat pulang',
-			body: 'Balasan tiba di alamat dan port publik. Router mencarinya di tabel lalu meneruskannya ke HP yang benar.'
-		},
-		{
-			title: 'Banyak HP, satu alamat',
-			body: 'Nomor port yang berbeda menjaga tiap obrolan tetap terpisah.'
-		},
-		{
-			title: 'Meja resepsionis',
-			tag: 'cara ingat',
-			body: 'Dari luar cuma kelihatan satu alamat kantor. Resepsionis tahu siapa di dalam yang menunggu tiap balasan.'
-		},
-		{
-			title: 'Orang asing tetap di luar',
-			tag: 'info',
-			body: 'Nggak ada baris di tabel berarti nggak ada tujuan. NAT gateway di cloud bekerja dengan cara yang sama.'
-		},
-		{
-			title: 'Ketukan dari luar',
-			tag: 'giliranmu',
-			body: 'Opsional. Biarkan orang asing mencoba menghubungi HP di dalam.'
-		}
-	],
-	homeLabel: 'Rumah',
+	openLabel: 'Buka nimbus.com di',
+	allBtn: 'Ketiganya sekaligus',
 	phoneLabel: 'HP {n}',
-	routerLabel: 'Router',
-	frontDesk: 'resepsionis',
+	strangerBtn: 'Orang asing mengetuk dari luar',
+	routerLabel: 'Router rumah',
 	publicLabel: 'publik',
 	privateLabel: 'privat',
 	serverLabel: 'nimbus.com',
@@ -69,10 +31,18 @@ export const id: NatText = {
 	from: 'dari {ip}',
 	to: 'ke {ip}',
 	port: 'port {n}',
-	loaded: 'halaman tiba',
+	loaded: 'terbuka',
 	dropped: 'dibuang',
-	tableTitle: 'Tabel translasi',
-	insideHead: 'Di dalam',
-	outsideHead: 'Di luar',
-	strangerBtn: 'Biarkan orang asing mengetuk'
+	tableTitle: 'Tabel translasi router',
+	tableEmpty: 'Kosong, belum ada yang keluar',
+	insideHead: 'Dalam',
+	outsideHead: 'Luar',
+	notes: {
+		idle: 'Tiga HP, satu alamat publik',
+		rewriteOut: 'Router mengganti pengirim privat dengan alamat publiknya',
+		atServer: 'Server cuma pernah melihat alamat publik',
+		rewriteBack: 'Tabel memberi tahu balasan ini milik HP yang mana',
+		delivered: 'Tiap balasan menemukan HP nya sendiri',
+		stranger: 'Nggak ada barisnya di tabel, jadi nggak ke mana mana'
+	}
 };

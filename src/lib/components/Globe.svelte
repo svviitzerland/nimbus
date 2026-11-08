@@ -3,15 +3,17 @@
 	// wide flat map would shrink to nothing. The parent draws its own pins/arcs through the
 	// `overlay` snippet, which receives projection helpers tied to the current rotation.
 	import { untrack, type Snippet } from 'svelte';
-	import { geoOrthographic, geoPath, geoGraticule10, geoDistance } from 'd3-geo';
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	import {
+		geoOrthographic,
+		geoPath,
+		geoGraticule10,
+		geoDistance,
+		type GeoPermissibleObjects
+	} from 'd3-geo';
 	import landData from '$lib/data/land-110m.json';
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	export type GlobeView = {
 		project: (lon: number, lat: number) => [number, number] | null;
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		path: (geo: any) => string;
+		path: (geo: GeoPermissibleObjects) => string;
 		visible: (lon: number, lat: number) => boolean;
 		// wrap a click handler so a drag never counts as a tap on a pin
 		tap: (fn: () => void) => () => void;
@@ -25,9 +27,7 @@
 		rotate = [52, 18],
 		overlay
 	}: { size?: number; rotate?: [number, number]; overlay?: Snippet<[GlobeView]> } = $props();
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const land = landData as any;
+	const land = landData as unknown as GeoPermissibleObjects;
 	const graticule = geoGraticule10();
 
 	// initial orientation only; dragging takes over from here
@@ -52,8 +52,7 @@
 	function visible(lon: number, lat: number) {
 		return geoDistance([lon, lat], [-rotL, -rotP]) <= Math.PI / 2;
 	}
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	function path(geo: any) {
+	function path(geo: GeoPermissibleObjects) {
 		return pathGen(geo) ?? '';
 	}
 	function tap(fn: () => void) {
@@ -87,7 +86,15 @@
 	}
 
 	// Re-created whenever the rotation (or drag state) changes so the overlay reprojects as the globe spins.
-	const view = $derived<GlobeView>({ project, path, visible, tap, size, dragging, r: [rotL, rotP] } as GlobeView & {
+	const view = $derived<GlobeView>({
+		project,
+		path,
+		visible,
+		tap,
+		size,
+		dragging,
+		r: [rotL, rotP]
+	} as GlobeView & {
 		r: number[];
 	});
 </script>
@@ -104,7 +111,13 @@
 	onpointerup={up}
 	onpointerleave={up}
 >
-	<circle cx={size / 2} cy={size / 2} r={size / 2 - 8} fill="#bcd6ef" style="filter: drop-shadow(0 10px 24px rgba(22,40,60,0.14));" />
+	<circle
+		cx={size / 2}
+		cy={size / 2}
+		r={size / 2 - 8}
+		fill="#bcd6ef"
+		style="filter: drop-shadow(0 10px 24px rgba(22,40,60,0.14));"
+	/>
 	<path d={gratPath} fill="none" stroke="#a9c8e8" stroke-width="0.5" opacity="0.7" />
 	<path d={landPath} fill="#eaf2fc" stroke="#cdddf0" stroke-width="0.6" />
 	{@render overlay?.(view)}

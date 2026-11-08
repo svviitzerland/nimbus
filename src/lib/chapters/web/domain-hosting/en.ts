@@ -3,83 +3,80 @@ import type { DomainHostingText } from './types';
 export const en: DomainHostingText = {
 	title: 'Domains and hosting',
 	intro: [
-		'For the whole world to open <b>nimbus.com</b>, you need two things. A <b>name</b> people can type, and a <b>computer</b> that stays switched on day and night to hand out your pages. Let us get both, one at a time.',
-		'The name is called a <b>domain</b>. You get it from a <b>registrar</b>, a shop that rents out names. You never own it forever, you rent it by the year, and if you forget to renew, someone else can grab it.',
-		"The always on computer is your <b>host</b>. Renting a spot on someone else's server is called <b>hosting</b>. Your host gets its own <b>IP address</b>, a string of numbers like 203.0.113.10, which is how other computers find it.",
-		'Hosting comes in sizes, like places to live. <b>Shared hosting</b> is a boarding house, cheap but shared with many sites. A <b>VPS</b> is your own room, a [[virtual machine|foundations/virtual-machine]] only you control. <b>Cloud</b> hosting stretches to fit as you grow.',
-		'Now a friend types nimbus.com on their phone, and... nothing. Having a name and a host does not link them. The phone asks around, but nobody knows where that name lives.',
-		'The link lives in [[DNS|networking/dns]], the phone book of the internet. You add one line saying nimbus.com lives at 203.0.113.10. That line is called an <b>A record</b>.',
-		'Try again. The phone asks DNS, gets the IP address, knocks on the host, and the page comes back. nimbus.com is live! In real life a new record can take a few minutes to spread, so no panic if it is not instant.',
-		'[ingat] <b>The domain is the address, the host is the house, and DNS is the map</b> that connects them. An address with no house on the map leads nowhere.',
+		'For the whole world to open <b>nimbus.com</b>, you need two things. A <b>name</b> people can type, and a <b>computer</b> that stays switched on day and night to hand out your pages.',
+		'The name is called a <b>domain</b>. You get it from a <b>registrar</b>, a shop that rents out names. You never own a domain forever, you rent it by the year, and if you forget to renew, someone else can grab it.',
+		'<b>Hosting</b> provides a place to run or store a site so visitors can access it. Choose a service based on application and management needs.',
+		'<b>Shared hosting</b> shares a server with other sites. A <b>VPS</b> provides a virtual machine you manage. <b>Cloud</b> services offer resources and managed services with capacity determined by configuration.',
+		'After choosing a domain and host, configure [[DNS|networking/dns]]. The <b>A record</b> in this example maps the domain name to the host’s IPv4 address.',
 		'[fyi] Same word, different world. In an office, a <b>domain</b> (like a Windows domain) is a group of computers sharing one login system. It has nothing to do with web addresses, only the name is the same.',
-		'Want to see what a typo in DNS does? Point the A record at the wrong IP and watch the phone get lost. Then put it back.'
+		'[ingat] A domain names a site. Hosting runs or stores the site. DNS provides records that connect names to service destinations.',
+		'Your turn! Rent the name, pick a home for your site, then connect the two and open it on your phone.'
 	],
 	reactions: {
+		taken:
+			'Taken already. Names are first come, first served, and once someone rents one, nobody else can have it until they let it go. Try another name, or another ending.',
+		bought:
+			'It is yours! Well, rented. You pay the registrar every year, and as long as you keep paying, the name points wherever you say. Right now it points nowhere, though.',
+		shared:
+			'Shared hosting shares resources with other sites. Check its capacity limits and management features before choosing a service.',
+		vps: 'A <b>VPS</b>. You get your own virtual machine carved out of a big server, with a fixed slice of its power and full control. More freedom, but you look after it yourself.',
+		cloud:
+			'Cloud services provide configurable capacity and services. Automatic scaling requires service support and suitable configuration.',
+		unreachable:
+			'The simulated DNS has no record pointing to the host yet. Add the record so the browser can find the destination.',
 		wrongip:
-			'The phone did exactly what DNS told it and knocked on the wrong door. Nobody there serves nimbus.com, so the page never comes. DNS does not check your typing, it just obeys.',
-		fixed:
-			'Right IP back in place. The phone asks DNS, finds your host, and the page is home again.'
+			'Hmm, that address is not your host. DNS will happily send everyone to the wrong place, so copy the IP straight from your host card.',
+		connected: 'The A record is saved and points to the host. Try opening the site again.',
+		live: "Your site is live! The phone asked DNS, got your host's IP, and your host served the page. In real life a new record can take a few minutes (sometimes hours) to spread everywhere, so no panic if it is not instant."
 	},
-	steps: [
-		{
-			tag: 'The goal',
-			title: 'A name and a home',
-			body: 'People need something to type, and your pages need somewhere to live.'
+	acts: ['Rent a name', 'Pick a host', 'Connect them'],
+	registrarLabel: 'Registrar',
+	registrarSub: 'the shop that rents out names',
+	searchLabel: 'Find a name',
+	search: 'Search',
+	available: 'available',
+	taken: 'taken',
+	prices: { com: '$12', id: '$15', dev: '$14' },
+	perYear: '{price} a year',
+	buy: 'Rent',
+	owned: 'yours',
+	toHost: 'Choose where to host the site',
+	hosts: {
+		shared: {
+			name: 'Shared hosting',
+			sub: 'One server for many sites',
+			price: '$3 a month',
+			points: ['Cheapest way to start', 'One server shared with many sites']
 		},
-		{
-			tag: 'Part 1',
-			title: 'Domain',
-			body: 'Rented from a <b>registrar</b>, paid every year, first come first served. A .com costs roughly $12 a year.'
+		vps: {
+			name: 'VPS',
+			sub: 'A virtual machine for your site',
+			price: '$6 a month',
+			points: ['Your own virtual machine', 'You look after it yourself']
 		},
-		{
-			tag: 'Part 2',
-			title: 'Host',
-			body: 'A computer that never sleeps. Its <b>IP address</b> is the number other computers use to reach it.'
-		},
-		{
-			tag: 'Sizes',
-			title: 'Shared, VPS, cloud',
-			body: '<b>Shared</b> is the cheapest, <b>VPS</b> gives you your own slice, <b>cloud</b> stretches on busy days.'
-		},
-		{
-			tag: 'The gap',
-			title: 'Not linked yet',
-			body: 'The name and the host both exist, but nothing says one belongs to the other. The browser says <b>This site cannot be reached</b>.'
-		},
-		{
-			tag: 'Part 3',
-			title: 'A record',
-			body: 'One line in DNS. <b>nimbus.com</b> points to <b>203.0.113.10</b>.'
-		},
-		{
-			tag: 'Happy ending',
-			title: 'Live',
-			body: 'The phone asks DNS, DNS answers with the IP, the host sends the page.'
-		},
-		{
-			tag: 'Rule of thumb',
-			title: 'Address, house, map',
-			body: '<b>Domain</b> is the address, <b>host</b> is the house, <b>DNS</b> is the map between them.'
-		},
-		{
-			tag: 'Same word',
-			title: 'Windows domain',
-			body: 'In an office it means a group of computers sharing one login. Same word, unrelated idea.'
-		},
-		{
-			tag: 'Optional',
-			title: 'Break the record',
-			body: 'Point the A record at the wrong IP. DNS obeys, so every visitor ends up at the wrong door.'
+		cloud: {
+			name: 'Cloud',
+			sub: 'Adjustable capacity',
+			price: 'pay for what you use',
+			points: ['Capacity can be increased as needed', 'Managed services available']
 		}
-	],
-	shopLabel: 'Registrar',
-	price: '$12 a year',
-	hostLabel: 'Host',
-	hostKinds: { shared: 'Shared', vps: 'VPS', cloud: 'Cloud' },
-	dnsLabel: 'DNS',
-	recordLabel: 'A record',
-	noRecord: 'no record yet',
-	phone: { cannot: 'Site cannot be reached', welcome: 'Welcome to Nimbus' },
-	breakIt: 'Point it at the wrong IP',
-	fixIt: 'Put the right IP back'
+	},
+	pick: 'Pick',
+	picked: 'picked',
+	ipLabel: 'IP address',
+	toConnect: 'Connect the name',
+	dnsTitle: 'DNS records for {domain}',
+	recordType: 'Type',
+	recordName: 'Name',
+	recordValue: 'Points to',
+	valuePlaceholder: 'your host IP',
+	copyHint: 'Tap the IP to copy it in',
+	save: 'Save',
+	saved: 'Record saved',
+	wrong: 'That is not your host',
+	open: 'Open {domain}',
+	unreachable: 'This site cannot be reached',
+	siteTitle: 'Welcome to Nimbus',
+	siteSub: 'served from {ip}',
+	youLabel: 'Your phone'
 };

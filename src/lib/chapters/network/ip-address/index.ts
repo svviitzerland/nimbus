@@ -6,8 +6,15 @@ import { en } from './en';
 export const ipAddress: Lesson = {
 	id: 'ip-address',
 	mood: 'calm',
-	moods: ['calm', 'idea', 'happy', 'thinking', 'wink', 'happy', 'idea', 'excited'],
-	reactionMood: { lost: 'thinking', public: 'excited' },
+	moods: ['calm', 'happy', 'wink', 'idea', 'idea', 'excited'],
+	reactionMood: {
+		phone: 'happy',
+		laptop: 'happy',
+		router: 'idea',
+		lost: 'thinking',
+		public: 'surprised'
+	},
+	playable: true,
 	stage: IpAddressStage,
 	text: { id, en }
 };

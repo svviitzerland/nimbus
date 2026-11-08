@@ -1,92 +1,59 @@
 import type { SubnetText } from './types';
 
 export const id: SubnetText = {
-	title: 'Subnet',
+	title: 'Subnet dan CIDR',
 	intro: [
-		'Bayangkan sekumpulan [[alamat IP|network/ip-address]] itu sebuah gedung, dan tiap jendelanya satu alamat. Kantor nimbus.com punya gedung 192.168.1.0 dengan 256 jendela. Sekarang isinya masih satu aula besar, dan semua orang berbagi tempat.',
-		'Satu aula besar itu berisik, dan HP tamu jadi duduk persis di sebelah laptop bagian keuangan. Jadi kita pasang sekat dan bikin ruangan. Tiap ruangan namanya <b>subnet</b>. Untuk menyebut seberapa besar ruangannya, kita tulis garis miring dan angka, misalnya 192.168.1.0/24.',
-		'Angka di belakang garis miring bilang seberapa besar ruangan yang kamu dapat. Lihat apa yang terjadi kalau angkanya naik. <b>Angka makin besar, ruangan makin kecil.</b> /25 membelah gedung jadi dua ruangan isi 128, /26 jadi empat ruangan isi 64, dan terus dibelah dua.',
-		'Sekarang kebalikannya. Tiap angkanya turun satu, ruangannya jadi dua kali lipat, dan sekatnya hilang sendiri. Ruangan /28 isi 16 bergabung jadi 32, lalu 64, lalu 128, sampai /24 jadi satu gedung utuh lagi.',
-		'Naik terus sampai /32 dan ruangannya tinggal satu jendela, pas satu alamat. /30 itu ruangan mungil isi 4, pas untuk satu kabel yang menyambung dua router.',
-		'Turun di bawah /24 dan ruangannya jadi lebih besar dari gedung ini. /16 itu satu kompleks berisi 256 gedung seperti punya kita, 65.536 alamat. /8 itu satu kota, sekitar 16,7 juta.',
-		'[ingat] Cukup ingat satu aturan. Angka besar, ruangan kecil. /32 itu satu alamat, /24 itu 256 (satu rumah atau kantor), dan tiap turun satu angka ruangannya jadi dua kali lipat. Tabel kecil itu sudah cukup buat hari pertama.',
-		'[fyi] Di tiap ruangan ada dua jendela yang sudah dipesan. Yang pertama nama ruangannya (network address), yang terakhir untuk teriak ke semua orang di dalamnya (broadcast address). Jadi ruangan /24 muat 254 perangkat, bukan 256.',
-		'[fyi] Katanya sama, dunianya beda. Di cloud, ruangan publik dan privat di [[VPC|networking/vpc]] kamu juga subnet, ditulis dengan garis miring yang persis sama. Bedanya, cloud menyimpan beberapa jendela lagi untuk dirinya sendiri.',
-		'Itulah subnetting versi ramah. Kalau mau, geser sendiri angkanya dan lihat ruangannya terbelah dan bergabung.'
+		'Jaringan nimbus.com memakai blok <b>192.168.1.0/24</b>, yaitu 256 alamat total dari 192.168.1.0 sampai 192.168.1.255. Kita akan membagi blok ini menjadi subnet yang lebih kecil.',
+		'<b>Subnet</b> membagi ruang alamat IP menjadi beberapa bagian. Pemisahan broadcast di jaringan Ethernet juga memerlukan konfigurasi seperti [[VLAN|network/vlan]]. Mengganti alamat saja tidak membuat batas keamanan.',
+		'Untuk menyebut seberapa besar ruangannya, kita tambahkan garis miring dan angka di belakang alamat, misalnya 192.168.1.0/24. Cara menulis ini namanya <b>CIDR</b> (Classless Inter Domain Routing, nama panjang untuk ide yang sederhana).',
+		'IPv4 memiliki 32 bit. Angka setelah garis miring adalah panjang prefix jaringan. <b>/24</b> memakai 24 bit untuk prefix dan menyisakan 8 bit, sehingga terdapat 256 alamat total.',
+		'Menambah satu bit prefix membagi kapasitas alamat menjadi setengah. Dari /24, kita mendapat dua subnet /25 dengan 128 alamat atau empat subnet /26 dengan 64 alamat.',
+		'Pada subnet IPv4 biasa dalam latihan ini, alamat pertama adalah <b>network address</b> dan terakhir adalah <b>broadcast address</b>. Jadi /24 menyediakan 254 alamat host. Aturan ini memiliki pengecualian, misalnya sambungan /31.',
+		'[fyi] Subnet pada [[VPC|networking/vpc]] juga memakai prefix IP. Penyedia cloud dapat menyisihkan alamat tambahan. AWS menyisihkan lima alamat pada subnet IPv4 biasa, sehingga kapasitas host berbeda dari contoh ini.',
+		'[ingat] Pada IPv4, prefix lebih panjang berarti jumlah alamat lebih sedikit. /24 memiliki 256 alamat total. Tambah satu bit prefix, jumlah alamat menjadi setengah.',
+		'Geser panjang prefix dan perhatikan jumlah serta kapasitas subnet. Lalu pilih ukuran yang memenuhi kebutuhan perangkat nimbus.com.'
 	],
 	reactions: {
 		split:
-			'Naik satu angka, dan tiap ruangan dibelah dua. Jumlah ruangan jadi dua kali lipat, ukurannya jadi setengah.',
-		merge:
-			'Turun satu angka, dan ruangan yang bersebelahan bergabung jadi satu yang dua kali lebih besar.',
-		one: '/32 artinya tiap ruangan cuma satu jendela. Kalau kamu lihat /32 di pengaturan, artinya ya satu alamat itu saja.'
+			'Prefix bertambah satu bit. Tiap subnet memiliki setengah jumlah alamat, dan jumlah subnet menjadi dua kali lipat. Subnet mask di bawah slider menuliskan batas yang sama dalam bentuk lain.',
+		tiny: '/30 memiliki empat alamat total dan dua alamat host pada model ini. Ukuran ini bisa dipakai untuk sambungan dua router.',
+		small:
+			'Kapasitas host belum cukup. Kurangi panjang prefix agar tiap subnet memiliki lebih banyak alamat.',
+		waste:
+			'Muat sih, tapi ruangannya kebesaran. Naikkan angkanya, ruangannya jadi lebih banyak dan semua tetap kebagian tempat.',
+		m1: '/26 membagi /24 menjadi empat subnet, masing masing dengan 62 alamat host. Cukup untuk kelompok 50 perangkat.',
+		m2: 'Subnet /28 menyediakan 14 alamat host biasa. Membagi jaringan /24 menjadi /28 menghasilkan 16 subnet, cukup untuk tim pada contoh ini.',
+		done: '/24 menyediakan 254 alamat host pada contoh ini, cukup untuk 200 perangkat. Prefix lebih panjang berarti lebih sedikit alamat per subnet.'
 	},
-	steps: [
-		{
-			title: 'Blok itu gedung',
-			body: 'Sekumpulan alamat berderet seperti jendela di satu gedung. Di sini dari <b>192.168.1.0</b> sampai <b>192.168.1.255</b>.'
-		},
-		{
-			title: 'Ruangan itu subnet',
-			body: 'Sekat membagi gedung jadi ruangan. Garis miring dan angka di belakang alamat bilang seberapa besar tiap ruangan.'
-		},
-		{
-			title: 'Angka lebih besar',
-			body: 'Tiap naik satu, semua ruangan dibelah dua. Ruangan makin banyak, masing masing makin kecil.'
-		},
-		{
-			title: 'Angka lebih kecil',
-			body: 'Tiap turun satu, dua ruangan digabung. Ruangan makin sedikit, masing masing <b>dua kali</b> lebih besar.'
-		},
-		{
-			title: 'Yang mungil',
-			body: '<b>/32</b> itu satu alamat. <b>/30</b> itu 4, langganan untuk sambungan antar dua router.'
-		},
-		{
-			title: 'Yang raksasa',
-			body: '<b>/16</b> itu 65.536 alamat, satu kompleks. <b>/8</b> sekitar 16,7 juta, satu kota.'
-		},
-		{
-			title: 'Angka besar, ruangan kecil',
-			tag: 'cara ingat',
-			body: '/32 itu 1, /24 itu 256, dan tiap turun satu jadi dua kali lipat. Simpan tabel ini di saku.'
-		},
-		{
-			title: 'Dua jendela dipesan',
-			tag: 'info',
-			body: 'Alamat pertama jadi nama ruangan, alamat terakhir untuk menjangkau semua orang di dalamnya. Sisanya untuk perangkat.'
-		},
-		{
-			title: 'Subnet di cloud',
-			tag: 'info',
-			body: 'VPC itu gedungmu sendiri di cloud, dan kamu membaginya jadi subnet publik dan privat dengan cara yang sama.'
-		},
-		{
-			title: 'Geser angkanya',
-			tag: 'giliranmu',
-			body: 'Opsional. Pakai tombol minus dan plus di atas, lalu lihat sekatnya bergerak.'
-		}
+	missions: [
+		'Buat sebanyak mungkin subnet yang masing masing muat 50 perangkat',
+		'Tiap tim kecil punya 12 perangkat. Buat ruangannya sekecil mungkin tapi semua tetap muat',
+		'Sediakan satu subnet untuk 200 perangkat acara'
 	],
-	buildingLabel: 'Gedung alamat 192.168.1.0',
-	oneRoom: 'Satu ruangan, {size} alamat',
-	rooms: '{n} ruangan, masing masing {size} alamat',
-	roomsSingle: '{n} ruangan, masing masing satu alamat',
-	cheat: [
-		{ size: '1', note: 'satu alamat' },
-		{ size: '4', note: 'sambungan dua router' },
-		{ size: '256', note: 'satu rumah atau kantor' },
-		{ size: '65.536', note: 'satu kompleks' },
-		{ size: '16,7 juta', note: 'satu kota' }
-	],
-	cheatTitle: 'Contekan',
-	ruleLine: 'Angka besar, ruangan kecil',
-	campus16: '/16 itu 256 gedung seperti punya kita, 65.536 alamat',
-	campus8: '/8 itu 256 kompleks seperti ini, sekitar 16,7 juta',
-	nameLabel: 'nama',
-	shoutLabel: 'semua',
-	publicLabel: 'subnet publik',
-	privateLabel: 'subnet privat',
-	smaller: 'Angka lebih kecil, ruangan lebih besar',
-	bigger: 'Angka lebih besar, ruangan lebih kecil',
-	thousands: '.'
+	missionLabel: 'Rencana {n} dari {total}',
+	allDone: 'Semua kebutuhan subnet terpenuhi',
+	checkBtn: 'Pakai ukuran ini',
+	smaller: 'Prefix lebih pendek, lebih banyak alamat',
+	bigger: 'Prefix lebih panjang, lebih sedikit alamat',
+	status: {
+		ok: 'Pas banget',
+		small: 'Butuh {need} alamat host, kapasitas subnet ini {fit}',
+		waste: 'Cukup, tetapi subnet yang lebih kecil juga memenuhi kebutuhan'
+	},
+	roomsLabel: 'Subnet',
+	sizeLabel: 'Alamat per subnet',
+	usableLabel: 'Alamat host per subnet',
+	locked: '{n} bit untuk prefix jaringan',
+	free: '{n} bit bebas untuk perangkat',
+	maskLabel: 'Subnet mask',
+	hallLabel: 'Semua 256 alamat di 192.168.1.0',
+	tapHint: 'Ketuk subnet untuk melihat rentang alamatnya',
+	roomTitle: 'Subnet {n} dari {total}',
+	rangeLabel: 'Alamat',
+	range: '{a} sampai {b}',
+	nameLabel: 'Alamat jaringan',
+	shoutLabel: 'Broadcast',
+	devicesLabel: 'Untuk perangkat',
+	legendUse: 'kursi perangkat',
+	legendRes: 'dipesan'
 };

@@ -6,19 +6,15 @@ import { en } from './en';
 export const dom: Lesson = {
 	id: 'dom',
 	mood: 'calm',
-	moods: [
-		'calm',
-		'thinking',
-		'idea',
-		'surprised',
-		'calm',
-		'excited',
-		'idea',
-		'wink',
-		'idea',
-		'happy'
-	],
-	reactionMood: { bubble: 'excited' },
+	moods: ['calm', 'idea', 'surprised', 'thinking', 'idea', 'wink', 'excited'],
+	reactionMood: {
+		found: 'happy',
+		bubble: 'excited',
+		miss: 'thinking',
+		grow: 'excited',
+		anywhere: 'wink'
+	},
+	playable: true,
 	stage: DomStage,
 	text: { id, en }
 };

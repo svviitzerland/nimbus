@@ -5,7 +5,8 @@ export const id: VersionControlText = {
 	intro: [
 		'Bayangkan kamu ngerjain tugas lalu menyimpannya jadi <i>tugas_final.doc</i>. Besok kamu revisi, jadi <i>tugas_final_beneran.doc</i>. Lusa <i>tugas_final_fix2.doc</i>. Berantakan kan, dan kamu tetap deg degan takut menimpa yang lama.',
 		'Git lahir buat masalah ini. Tiap kali kamu bilang simpan versi ini, Git memotret seluruh isi filemu jadi satu <b>snapshot</b> (nama aslinya <b>commit</b>) lengkap dengan catatan singkat. Filemu tetap satu, tapi tiap versinya tersimpan rapi di riwayat.',
-		'Coba sendiri. Tekan Commit buat memotret versinya, ulangi beberapa kali, lalu buka snapshot lama dan lihat, tidak ada yang hilang.'
+		'Coba sendiri. Tekan Commit buat memotret versinya, ulangi beberapa kali, lalu buka snapshot lama dan lihat, tidak ada yang hilang.',
+		'[ingat] Commit menyimpan satu keadaan proyek. Riwayatnya membantu membandingkan dan memulihkan perubahan.'
 	],
 	reactions: {
 		firstCommit:

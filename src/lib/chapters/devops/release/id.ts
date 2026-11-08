@@ -3,75 +3,44 @@ import type { ReleaseText } from './types';
 export const id: ReleaseText = {
 	title: 'Strategi rilis',
 	intro: [
-		'Versi 2 nimbus.com udah lolos semua tes di [[pipeline CI/CD|compute/cicd]]. Tapi ada bug yang baru muncul kalau dipakai orang beneran, di HP beneran, dengan data beneran. Tes nggak bisa nangkep semuanya.',
-		'Cara paling polos, pindahin semua orang ke v2 sekaligus. Kalau v2 punya bug tersembunyi, <b>semua</b> user kena error di detik yang sama, dan ngebalikinnya butuh waktu.',
-		'<b>Canary release</b> lebih halus. [[Load balancer|traffic/load-balancer]] (pembagi trafik di tengah) ngirim v2 cuma ke sedikit user dulu, di sini satu dari sepuluh. Sisanya tetap di v1.',
-		'Terus kamu pantau. Satu user canary itu kena bugnya, dan error cuma naik di v2. Itu tanda bahayanya.',
-		'Jadi user itu langsung dibalikin ke v1. Sembilan dari sepuluh nggak sadar apa apa. Timnya benerin bug dan nyiapin versi 2.1.',
-		'Versi yang udah dibenerin mulai kecil lagi. Kalau tetap sehat, porsinya naik pelan pelan, satu dari sepuluh, terus nambah, terus setengah, terus semuanya.',
-		'[ingat] Namanya dari tambang batu bara. Penambang dulu bawa burung <b>kenari</b> (canary) ke bawah tanah, karena burung kecil itu ngerasain gas beracun duluan sebelum manusia. <b>Kirim burung kecil duluan</b>, sedikit user dulu, baru semuanya.',
-		'[fyi] Ada juga cara <b>blue green</b>. Kamu punya dua setup yang identik, blue jalanin versi lama dan green jalanin versi baru, terus load balancer mindahin semua orang sekaligus. Kalau ada yang aneh, tinggal dipindah balik.',
-		'Mau bandingin? Rilis v2 yang ada bugnya ke semua orang sekaligus, atau sebagai canary, terus hitung berapa user yang kena.'
+		'Versi 2 nimbus.com sudah lolos semua test di [[pipeline CI/CD|compute/cicd]]. Tapi ada bug yang baru muncul kalau dipakai orang sungguhan, di HP sungguhan, dengan data sungguhan. Test nggak bisa menangkap semuanya.',
+		'Cara paling polos, ganti semua server ke v2 sekaligus. Kalau v2 rusak, <b>semua</b> pengguna kena error, dan untuk mundur kamu harus deploy ulang versi lama sementara situsnya kebakaran.',
+		'<b>Blue green</b> menyiapkan dua lingkungan yang kembar. Blue menjalankan v1 dan melayani semua orang, green berisi v2 dan menunggu. [[Load balancer|traffic/load-balancer]] memindahkan semua lalu lintas ke green sekaligus, dan kalau ada yang salah, langsung dipindah balik ke blue. Membatalkannya cuma sedetik.',
+		'<b>Canary</b> mengirim v2 ke sebagian kecil pengguna dulu, misalnya 5 persen, lalu memantau errornya. Kalau sehat, porsinya dinaikkan pelan pelan. Kalau jelek, yang sedikit itu dikembalikan ke v1 dan hampir nggak ada yang sadar.',
+		'[fyi] Namanya dari tambang batu bara. Dulu penambang membawa burung kenari (canary) ke bawah tanah, karena burung kecil itu lebih dulu merasakan gas beracun dibanding manusia. 5 persen pengguna pertamamu itulah peringatan dininya.',
+		'[ingat] Canary mengirim versi baru ke sebagian trafik dahulu. Pantau hasilnya sebelum memperluas rilis atau melakukan rollback.',
+		'v2 di sini menyimpan bug tersembunyi. Coba ketiga cara merilisnya. Perhatikan berapa banyak pengguna yang kena, dan seberapa cepat kamu bisa membatalkannya.'
 	],
 	reactions: {
 		bigbang:
-			'Aduh, sepuluh user kena error barengan. Bugnya ketemu sih, tapi semua orang ikut kena, dan ngebalikinnya makan waktu.',
+			'Semua pengguna kena bug di detik yang sama. Itulah masalahnya rilis sekaligus, satu versi jelek langsung menghantam semua orang.',
+		slowBack:
+			'Kembali ke v1, tapi deploy ulangnya makan waktu, dan selama itu pengguna melototi error terus.',
+		flipped:
+			'Load balancer memindahkan semua orang ke green, dan green ada bugnya. Cepat, balikkan.',
+		flipBack:
+			'Balik dalam sedetik. Blue dari tadi masih menjalankan v1, jadi membatalkannya cukup dengan memindah lalu lintasnya.',
 		canary:
-			'Cuma satu dari sepuluh yang lihat error, dan dalam hitungan detik dia udah balik ke v1. Sembilan lainnya nggak tahu ada kejadian apa apa.'
+			'Cuma sebagian kecil pengguna yang dapat v2, dan error di kelompok itu sudah kelihatan. Sisanya aman aman saja.',
+		canaryBig:
+			'Makin besar porsinya, makin banyak yang kena bug. Tim sungguhan cuma menaikkan canary selama jumlah errornya tetap nol.',
+		canaryBack:
+			'Pengguna yang sedikit itu sudah kembali ke v1. Bugnya cuma melukai segelintir orang, bukan semuanya, dan timnya bisa membetulkan dengan tenang.',
+		both: 'Sekarang kamu kenal dua jagoannya. Blue green memberi tombol batal instan, canary menjaga kerusakannya tetap kecil. Banyak tim bahkan menggabungkan keduanya.'
 	},
-	steps: [
-		{
-			tag: 'Situasinya',
-			title: 'Versi baru',
-			body: 'Sepuluh user (HP di atas) lagi nyaman di <b>v1</b>. Versi 2 nunggu di kanan, dengan bug yang belum ketahuan.'
-		},
-		{
-			tag: 'Sekaligus',
-			title: 'Semua kena',
-			body: 'Sepuluh HP pindah ke v2 bareng, jadi sepuluh sepuluhnya lihat error. Terus semuanya harus dipindah balik.'
-		},
-		{
-			tag: 'Idenya',
-			title: 'Canary release',
-			body: 'Cuma <b>satu dari sepuluh HP</b> yang ke v2. Sembilan lainnya tetap pakai v1 kayak nggak ada apa apa.'
-		},
-		{
-			tag: 'Memantau',
-			title: 'Tanda bahaya',
-			body: 'Error cuma muncul di v2. Yang kena satu user, dan sekarang timnya tahu ada yang salah.'
-		},
-		{
-			tag: 'Batalin',
-			title: 'Balik aman',
-			body: 'User itu balik ke v1 dalam hitungan detik. Bugnya dibenerin, dan <b>v2.1</b> siap.'
-		},
-		{
-			tag: 'Membesar',
-			title: 'Pelan pelan',
-			body: '1 dari 10, lalu 3, lalu 5, lalu semua 10. Tiap langkah nunggu dulu, errornya harus tetap nol.'
-		},
-		{
-			tag: 'Cara gampang',
-			title: 'Burung kecil',
-			body: 'Sedikit user dulu, baru semuanya. Kenarinya ngasih tanda sebelum seisi tambang kena masalah.'
-		},
-		{
-			tag: 'Cara lain',
-			title: 'Blue green',
-			body: 'Dua setup identik, dan satu saklar yang mindahin semua orang sekaligus, dan bisa balik secepat itu juga.'
-		},
-		{
-			tag: 'Opsional',
-			title: 'Bandingin',
-			body: 'Rilis v2 yang ada bugnya dengan salah satu cara, terus hitung HP yang merah.'
-		}
-	],
+	modes: ['Sekaligus', 'Blue green', 'Canary'],
+	usersLabel: '{n} dari 20 pengguna kena error',
+	allOk: 'Semua 20 pengguna senang',
 	lbLabel: 'Load balancer',
-	usersLabel: 'Sepuluh user',
-	errors: '{n} dari 10 user kena error',
-	allOk: 'Nggak ada yang kena error',
-	rule: 'Sedikit dulu, baru semua',
-	pickLabel: 'Rilis v2 yang ada bugnya',
-	bigbangBtn: 'Ke semua sekaligus',
-	canaryBtn: 'Sebagai canary'
+	blueLabel: 'Blue, v1',
+	greenLabel: 'Green, v2',
+	liveTag: 'live',
+	deployAllBtn: 'Deploy v2 ke semua server',
+	rollbackBtn: 'Mundur ke v1',
+	rollingBack: 'Deploy ulang v1...',
+	switchToGreen: 'Pindahkan ke green',
+	switchToBlue: 'Balikkan ke blue',
+	canaryLabel: '{n}% pengguna di v2',
+	canaryBack: 'Kembalikan semua ke v1',
+	bugNote: 'v2 menyimpan bug yang lolos dari test'
 };

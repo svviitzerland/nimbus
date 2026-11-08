@@ -10,7 +10,7 @@ export const en: RouterHotspotText = {
 		'Logins come from <b>vouchers</b>, a username and password on a little slip, usually with a time limit. Buy a coffee, get one hour of WiFi. Here the terminal prints one with <b>limit-uptime=1h</b>.',
 		'A guest types the voucher into the login page, and the internet opens. The router starts counting down the hour by itself, and lists the guest as <b>active</b>.',
 		'An hour later (we sped it up for you), time is up. The router sends the phone back to the login page all on its own. No staff had to walk over and switch anything off.',
-		'[ingat] A voucher is a cinema ticket. No ticket, no seat, and when the film ends you walk out, no matter how comfy the chair is.',
+		'[ingat] A hotspot checks login and usage limits. Connecting to WiFi does not necessarily grant internet access.',
 		'[fyi] The hotspot quietly reuses what you built before. It runs its own [[DHCP server|netlab/router-ip]] for guest addresses and a [[masquerade|netlab/router-nat]] rule to take them online. The wizard just does it all in one go.',
 		'Your turn. See the vouchers and how much of their hour is used with <b>/ip hotspot user print</b>.'
 	],
@@ -24,12 +24,12 @@ export const en: RouterHotspotText = {
 	},
 	steps: [
 		{
-			title: 'WiFi for guests',
+			title: 'Guest WiFi',
 			body: 'Guests need internet, but not the office network, and not forever.'
 		},
 		{
 			tag: 'ether3',
-			title: 'A separate door',
+			title: 'Guest network interface',
 			body: 'The guest access point has its own port and its own network, <b>10.5.50.x</b>, apart from the office.'
 		},
 		{
@@ -39,34 +39,34 @@ export const en: RouterHotspotText = {
 		},
 		{
 			tag: 'hotspot setup',
-			title: 'One wizard',
+			title: 'Setting up a hotspot',
 			body: 'The wizard picks the port, the guest addresses, and a name for the login page, then builds it all.'
 		},
 		{
 			tag: 'user',
-			title: 'A voucher',
+			title: 'Voucher account',
 			body: 'A hotspot <b>user</b> is a voucher. <b>limit-uptime=1h</b> means it works for one hour of being online.'
 		},
 		{
 			tag: 'active',
-			title: 'Online',
+			title: 'Connected users',
 			body: 'Once logged in, the guest shows up in the <b>active</b> list with the time left on their voucher.'
 		},
 		{
-			title: 'Time is up',
+			title: 'Usage time limit',
 			body: 'When the hour runs out, the router logs the guest out and the login page comes back.'
 		},
 		{
 			tag: 'Remember it',
-			title: 'A cinema ticket',
+			title: 'Login and expiry',
 			body: 'No voucher, no WiFi. When the time ends, back to the login page.'
 		},
 		{
-			title: 'Built from old pieces',
+			title: 'DHCP, NAT, and hotspot',
 			body: 'A pool, a DHCP server, and a masquerade rule, the same parts you met in the earlier labs.'
 		},
 		{
-			title: 'Your turn',
+			title: 'Try hotspot login',
 			body: '<b>uptime</b> is how long a voucher has been used, <b>limit-uptime</b> is how long it may be used.'
 		}
 	],

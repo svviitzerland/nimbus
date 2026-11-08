@@ -2,6 +2,7 @@
 	import { fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { lang, t } from '$lib/i18n';
+	import { lessonUi } from '$lib/lesson-ui';
 	import { tracks, trackCounts, trackSequence, type Track, type TrackId } from '$lib/tracks';
 	import { progress } from '$lib/progress.svelte';
 	import { path } from '$lib/path.svelte';
@@ -120,8 +121,13 @@
 
 <div class="picker" class:compact>
 	{#if !topicsOnly}
+		{#if !compact}<h2 class="route-label">{lessonUi[$lang].foundation}</h2>{/if}
 		{@render card(general, !compact, 0)}
 	{/if}
+	{#if !compact && !topicsOnly}<div class="specialist-heading">
+			<h2 class="route-label">{lessonUi[$lang].specialist}</h2>
+			<p>{lessonUi[$lang].shared}</p>
+		</div>{/if}
 	<div class="grid">
 		{#each topics as tr, i (tr.id)}
 			{@render card(tr, false, i + 1)}
@@ -130,6 +136,21 @@
 </div>
 
 <style>
+	.route-label {
+		margin: 0;
+		font-size: 13px;
+		font-weight: 650;
+		color: var(--color-ink);
+	}
+	.specialist-heading {
+		margin-top: 14px;
+	}
+	.specialist-heading p {
+		margin: 4px 0 0;
+		font-size: 12px;
+		line-height: 1.5;
+		color: var(--color-muted);
+	}
 	.picker {
 		display: flex;
 		width: 100%;

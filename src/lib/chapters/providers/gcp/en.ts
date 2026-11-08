@@ -10,7 +10,7 @@ export const en: GcpText = {
 		'Then the computers that run nimbus.com. <b>Compute Engine</b> is a rented server, <b>Cloud Run</b> runs containers and shrinks to zero when nobody visits, and <b>Cloud Functions</b> runs one small function per request.',
 		'Every website needs a place for its data. <b>Cloud Storage</b> holds files, <b>Cloud SQL</b> is a SQL database Google looks after, and <b>Firestore</b> is a NoSQL database that can push changes straight to phones.',
 		'Last, the tools that keep it safe and watched. <b>IAM</b> hands out roles, <b>Cloud KMS</b> keeps the encryption keys, and <b>Cloud Monitoring</b> draws the graphs and rings the alarm.',
-		'[ingat] <b>Same idea, different name tag.</b> Google makes it easy, the name usually says the job. Cloud Storage stores, Cloud SQL is SQL. One sticky pair, <b>Compute Engine is a VM</b>, an engine that computes for you.',
+		'[ingat] Compute Engine provides virtual machines, Cloud Storage provides object storage, and Cloud SQL provides managed relational databases.',
 		'[fyi] Same word, different world. The rented server is EC2 on [[AWS|providers/aws]] and Virtual Machines on [[Azure|providers/azure]]. And a Google VPC spans every region, while on the other two each private network lives in one region.',
 		'Watch a visitor walk through the whole board, from Cloud DNS down to Cloud Monitoring. Want to try it yourself? Put the names back on the tiles, it is a small bonus.'
 	],
@@ -41,9 +41,9 @@ export const en: GcpText = {
 	},
 	steps: [
 		{
-			tag: 'The plain ideas',
+			tag: 'Website requirements',
 			title: 'A website in the cloud',
-			body: 'Five layers, from the front door down to the tools that watch it. Each tile is an idea you already know.'
+			body: 'This layout covers site access, networking, compute, data, and monitoring. Select a card to see the service’s function.'
 		},
 		{
 			tag: 'Since 2008',
@@ -52,7 +52,7 @@ export const en: GcpText = {
 		},
 		{
 			tag: 'Layer 1',
-			title: 'Front door',
+			title: 'DNS, CDN, and load balancer',
 			body: '<b>Cloud DNS</b>, <b>Cloud CDN</b>, and <b>Cloud Load Balancing</b>. The names already say the job.'
 		},
 		{
@@ -72,22 +72,22 @@ export const en: GcpText = {
 		},
 		{
 			tag: 'Layer 5',
-			title: 'Access and watch',
+			title: 'Access and monitoring',
 			body: '<b>IAM</b> for roles, <b>Cloud KMS</b> for keys, <b>Cloud Monitoring</b> for graphs and alarms.'
 		},
 		{
 			tag: 'Rule of thumb',
-			title: 'Same idea, new name tag',
-			body: 'At Google the name tag mostly reads like the idea. Sticky pair, <b>Compute Engine is a VM</b>.'
+			title: 'Service names and functions',
+			body: 'Compute Engine provides VMs, Cloud Storage stores objects, and Cloud SQL manages relational databases.'
 		},
 		{
-			tag: 'Elsewhere',
-			title: 'Three labels, one box',
-			body: 'A virtual machine at AWS, Google Cloud, and Azure. Only the name tag changes.'
+			tag: 'Comparison',
+			title: 'Comparing providers',
+			body: 'All three providers offer virtual machines. Check each provider’s naming, configuration, service limits, and pricing.'
 		},
 		{
 			tag: 'Optional',
-			title: 'One visitor, every layer',
+			title: 'Visitor request flow',
 			body: 'The request lights up each piece on its way. Tap the button to match the names yourself.'
 		}
 	],

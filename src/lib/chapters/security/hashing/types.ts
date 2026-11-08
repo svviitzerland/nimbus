@@ -1,29 +1,37 @@
 import type { LessonText } from '../../types';
-import type { GuideStep } from '$lib/components/stages/secbasics/guided.svelte';
 
 export interface HashingText extends LessonText {
-	/** The side panel, one entry per beat. */
-	steps: GuideStep[];
-	/** The example password and the same one with a single letter changed (beat 3). */
-	examples: [string, string];
-	/** The two people in the database and lookup scenes. */
-	users: [string, string];
-	dbTitle: string;
+	/** Short names for the two acts, shown in the step row at the top. */
+	acts: string[];
+	actLabel: string; // template with {n}
+	nextAct: string;
+	// act 1, two shops
+	pwLabel: string; // caption over the password box
+	pwPlaceholder: string;
+	hashLabel: string; // caption before the live fingerprint
+	tooShort: string; // template with {n}, characters still needed
+	registerBtn: string;
+	leakBtn: string;
+	carelessName: string; // the shop that keeps passwords as they are
+	carelessSub: string;
+	nimbusName: string; // always nimbus.com
+	nimbusSub: string;
 	colUser: string;
 	colPassword: string;
-	leakedTag: string;
-	hashLabel: string;
-	noWayBack: string;
-	savedLabel: string; // the hash stored at sign up
-	typedLabel: string; // the hash of what was typed at login
-	matchTag: string;
-	tableTitle: string; // the attacker's lookup table
-	leakedHashLabel: string;
-	crackedTag: string;
+	youUser: string; // the learner's username in the table
+	emptyRow: string; // shown in the table before signing up
+	leakedTag: string; // stamped on a database once it leaks
+	attackerReads: string; // the attacker reads the plain password
+	attackerStuck: string; // the attacker only has a fingerprint
+	attackerCracked: string; // the fingerprint was in a lookup table
+	// act 2, salt
+	lookupTitle: string;
+	lookupSub: string;
+	runLookup: string;
+	addSalt: string;
 	saltLabel: string;
-	sameTag: string; // two users, identical hashes
-	noMatchTag: string; // salted hashes, nothing in the table
-	slowTag: string;
-	tryLabel: string;
-	tryPlaceholder: string;
+	crackedTag: string;
+	safeTag: string;
+	usersTitle: string; // heading over the leaked user table
+	usersTitleSalted: string;
 }

@@ -3,94 +3,36 @@ import type { DbIndexText } from './types';
 export const id: DbIndexText = {
 	title: 'Index database',
 	intro: [
-		'Toko nimbus.com terus berkembang. Suatu hari tabel penggunanya berisi <b>sejuta</b> orang, dan tiap kali ada yang login, database harus mencari satu email di antara semuanya.',
-		'Kalau dibiarkan, database pakai cara lambat. Dia mulai dari baris pertama dan ngecek satu per satu sampai ketemu. Namanya <b>full table scan</b>, kayak nyari satu kata dengan baca buku dari halaman satu.',
-		'Buku sudah lama punya solusinya, <b>indeks</b> di halaman belakang. Kata katanya urut abjad, masing masing dengan nomor halamannya. Kamu loncat ke huruf yang pas, temukan katanya, terus langsung ke halamannya.',
-		'<b>Index database</b> pakai trik yang sama. Database menyimpan salinan satu kolom yang sudah diurutkan (di sini emailnya), dan tiap entri menunjuk ke barisnya. Karena urut, pencarian bisa langsung loncat ke tengah dan buang separuh daftar di tiap loncatan.',
-		'Sekarang adu mereka di sejuta baris. Scan merayap lewat ratusan ribu baris, sementara index cuma butuh sekitar 20 loncatan. Itu bedanya login yang terasa instan dan login yang bikin orang mencet tombolnya dua kali.',
-		'[ingat] Index database itu persis indeks di belakang buku. Langsung loncat ke katanya, jangan baca dari halaman satu. Bonusnya, tiap kali tabelnya jadi dua kali lipat, index cuma butuh <b>satu</b> loncatan tambahan.',
-		'[fyi] Index itu nggak gratis. Tiap pengguna baru juga harus diselipkan ke index, jadi menyimpan data sedikit lebih lambat, dan index makan ruang disk tambahan. Makanya yang dikasih index cuma kolom yang sering dicari, bukan semua kolom.',
-		'Kalau penasaran, coba ubah ukuran tabelnya dan tonton balapannya lagi. Ini opsional kok.'
+		'Toko nimbus.com terus berkembang. Suatu hari tabel pengguna isinya sejuta orang, dan tiap kali ada yang login, database harus nyari satu email di antara mereka semua.',
+		'Kalau dibiarkan, database nyarinya dengan cara yang lambat. Dia mulai dari baris pertama dan ngecek satu satu sampai ketemu yang cocok. Itu namanya <b>full table scan</b>, kayak nyari satu kata dengan membaca seluruh buku dari halaman pertama.',
+		'Buku sudah lama punya solusinya, yaitu <b>indeks</b> di halaman belakang. Kata kata disusun urut abjad, lengkap dengan nomor halamannya. Kamu loncat ke huruf yang pas, temukan katanya, terus langsung buka halamannya.',
+		'<b>Index database</b> pakai trik yang sama. Database menyimpan salinan urut dari satu kolom (di sini emailnya) dalam struktur berbentuk pohon, tiap entri nunjuk ke barisnya. Buat nyari satu email, dia terus membelah pencariannya jadi dua, jadi sejuta baris cuma butuh sekitar 20 langkah.',
+		'[fyi] Index itu nggak gratis. Tiap pengguna baru juga harus diselipkan ke indexnya, jadi nyimpan data jadi sedikit lebih lambat, dan indexnya makan ruang disk tambahan. Makanya yang dikasih index cuma kolom yang sering dipakai buat nyari, bukan semua kolom.',
+		'[ingat] Index membantu menemukan baris tanpa memeriksa seluruh tabel. Manfaatnya bergantung pada query, jenis index, dan data yang dicari.',
+		'Giliran kamu. Ini dua salinan tabel pengguna yang sama, satu tanpa index dan satu pakai index. Adu balap keduanya, terus geser tabelnya jadi lebih besar dan balapan lagi.'
 	],
 	reactions: {
 		small:
-			'Seribu baris, dua duanya selesai sekejap. Buat tabel kecil, index hampir nggak ada bedanya.',
-		mid: 'Seratus ribu baris. Scan mulai kelamaan, index cuma butuh 17 loncatan.',
-		big: 'Sejuta baris, scan membaca ratusan ribu baris, index sekitar 20 loncatan.',
-		huge: 'Seratus juta baris, dan index masih butuh kurang dari 30 loncatan. Begitulah aplikasi raksasa tetap cepat.'
+			'Dengan seribu baris, dua duanya selesai sekejap. Buat tabel sekecil ini index hampir nggak ngaruh, komputer bisa baca seribu baris lebih cepat dari kedipan mata. Coba besarkan tabelnya.',
+		mid: 'Nah, mulai kelihatan bedanya. Yang tanpa index ngecek puluhan ribu baris, sementara index cuma butuh sekitar 17 loncatan. Lanjut lagi.',
+		big: 'Sejuta baris. Yang tanpa index harus baca ratusan ribu baris, index cukup sekitar 20. Selisih inilah bedanya login yang terasa instan dengan login yang bikin orang mencet tombolnya lagi.',
+		huge: 'Seratus juta baris, dan index masih butuh kurang dari 30 langkah. Tiap kali tabelnya jadi dua kali lipat, index cuma nambah satu langkah. Begitulah aplikasi raksasa tetap kencang.'
 	},
-	panels: [
-		{
-			tag: 'Tabelnya',
-			title: 'Sejuta baris',
-			body: 'Tiap kotak mewakili segerombol baris di tabel <b>pengguna</b>. Di dalamnya ada satu email yang kita cari.'
-		},
-		{
-			tag: 'Full table scan',
-			title: 'Satu baris demi satu',
-			body: 'Tanpa bantuan, database membaca baris secara berurutan dan membandingkan satu per satu. Makin besar tabelnya, makin lama.'
-		},
-		{
-			tag: 'Indeks buku',
-			title: 'Kata urut, nomor halaman',
-			body: 'Karena katanya urut abjad, kamu bisa menemukannya dalam hitungan detik, dan nomor halamannya langsung mengantar kamu ke sana.'
-		},
-		{
-			tag: 'Index database',
-			title: 'Potong daftarnya jadi dua',
-			body: 'Lihat entri di tengah. Masih kecepetan di abjad? Buang separuh awal. Ulangi, dan daftarnya menyusut cepat banget.'
-		},
-		{
-			tag: 'Balapan',
-			title: 'Scan lawan index',
-			body: 'Dua duanya mencari email yang sama di tabel yang sama. Yang satu baca baris demi baris, yang lain langsung loncat ke sana.'
-		},
-		{
-			tag: 'Cara ingat',
-			title: 'Halaman belakang buku',
-			body: 'Loncat, jangan baca. Baris dua kali lipat cuma bikin index nambah satu loncatan, jadi tetap cepat walau tabelnya raksasa.'
-		},
-		{
-			tag: 'Coba',
-			title: 'Ubah ukurannya',
-			body: 'Tiap kali ditekan, jumlah baris di tabel berubah dan balapannya diulang.'
-		}
-	],
 	locale: 'id-ID',
 	tableName: 'pengguna',
+	emailCol: 'email',
 	target: 'sari@nimbus.com',
-	gridNote: 'tiap kotak itu banyak baris',
-	rowsChecked: '{n} baris dicek',
-	steps: '{n} loncatan',
-	found: 'ketemu',
-	bookTitle: 'Indeks',
-	bookEntries: [
-		{ word: 'browser', page: 12 },
-		{ word: 'cache', page: 27 },
-		{ word: 'database', page: 42 },
-		{ word: 'email', page: 58 },
-		{ word: 'server', page: 73 },
-		{ word: 'tabel', page: 91 }
-	],
-	bookWord: 'database',
-	pageLabel: 'halaman {n}',
-	sortedLabel: 'email yang sudah urut',
-	emails: [
-		'adi@nimbus.com',
-		'bima@nimbus.com',
-		'citra@nimbus.com',
-		'dewi@nimbus.com',
-		'eko@nimbus.com',
-		'gita@nimbus.com',
-		'rudi@nimbus.com',
-		'sari@nimbus.com'
-	],
-	hop: 'loncatan {n}',
-	pointsTo: 'menunjuk ke baris {n}',
+	sizeLabel: 'Jumlah baris di tabel',
+	sizes: ['1 ribu', '100 ribu', '1 juta', '100 juta'],
 	scanLane: 'Tanpa index',
+	scanSub: 'ngecek baris satu per satu',
 	indexLane: 'Pakai index',
-	sizes: ['seribu', 'seratus ribu', 'sejuta', 'seratus juta'],
-	sizeLine: '{size} baris',
-	rule: 'Baris dua kali lipat, cuma nambah satu loncatan.',
-	grow: 'Ubah ukuran tabel'
+	indexSub: 'membelah pencarian jadi dua tiap loncat',
+	checked: '{n} baris dicek',
+	foundTag: 'ketemu',
+	raceBtn: 'Mulai balapan',
+	againBtn: 'Balapan lagi',
+	fasterBy: 'Index ngecek {x} kali lebih sedikit baris',
+	tie: 'Di ukuran ini dua duanya selesai kurang dari satu milidetik',
+	idle: 'Dua jalur ini nyari email yang sama'
 };

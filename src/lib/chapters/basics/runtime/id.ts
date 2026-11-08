@@ -3,88 +3,66 @@ import type { RuntimeText } from './types';
 export const id: RuntimeText = {
 	title: 'Runtime dan library',
 	intro: [
-		'Kodenya sudah ditulis, dan kamu tahu kode itu harus diterjemahkan. Tapi ada kejutan. Banyak program nggak bisa jalan sendirian, mereka cuma melayang tanpa pijakan.',
-		'Program butuh <b>runtime</b>, program pembantu yang menjalankan programmu. Anggap aja panggung. Aktornya (kode kamu) baru bisa tampil kalau ada panggung di bawah kakinya.',
-		'Kode yang beda butuh panggung yang beda. JavaScript di server jalan di atas <b>Node.js</b>, JavaScript di halaman web jalan di dalam <b>browser</b> kamu, dan Java jalan di atas <b>JVM</b> (panggung khusus Java).',
-		'[fyi] Kata yang sama, dunia yang beda. "Runtime" juga berarti saat program sedang jalan. Crash waktu program jalan disebut runtime error, beda dengan salah ketik yang ditangkap [[compiler|basics/compiler]] sebelum apa pun jalan.',
-		'Berikutnya ada <b>library</b>, komponen siap pakai yang ditulis dan dibagikan orang lain, sering gratis. Daripada bikin fitur login atau pengolahan tanggal dari nol, kamu pinjam komponen yang sudah jalan.',
-		'Library didapat lewat <b>package manager</b>, alat yang mengunduhkannya buat kamu. JavaScript punya npm, Python punya pip. Satu perintah pendek, komponen baru langsung terpasang. Lebih lengkapnya di [[Memasang software|linux/packages]].',
-		'Sekarang lihat tumpukannya secara utuh. Bagian yang kamu tulis itu kecil dan ada di paling atas. Sebagian besar yang jalan itu pinjaman, runtime, library, dan sistem operasi di bawahnya.',
-		'[ingat] Runtime itu panggungnya, library itu properti siap pakai, kodemu aktornya. Nggak ada panggung, nggak ada pertunjukan.',
-		'[fyi] Minjam itu ada risikonya. Kalau library merilis versi baru, aplikasimu bisa rusak padahal kamu nggak mengubah satu baris pun. Tim beneran mengunci versi yang sudah jalan (di file kayak package-lock.json) lalu update dengan hati hati.',
-		'Mau lihat sepenting apa panggungnya? Cabut runtimenya dan lihat tokonya, lalu pasang lagi.'
+		'Kodenya sudah ditulis, dan kamu tahu kode itu diterjemahkan. Tapi kebanyakan program nggak pernah jalan sendirian. Mereka butuh program pembantu yang jalan di bawahnya sepanjang waktu, namanya <b>runtime</b>.',
+		'JavaScript di server butuh <b>Node.js</b>. Java butuh <b>JVM</b>. JavaScript di halaman web pakai runtime yang sudah tertanam di <b>browser</b> kamu. Tanpa runtime, komputer cuma bengong lihat file kamu.',
+		'Terus ada <b>library</b>, kode siap pakai yang ditulis dan dibagikan orang lain, sering gratis. Login, pembayaran, grafik, tanggal, semuanya sudah ada yang bikin dan sudah dites jutaan pengguna.',
+		'Kamu dapat library lewat [[package manager|linux/packages]], alat yang mengunduhkan library buat kamu. JavaScript punya npm, Python punya pip. Satu perintah pendek, ribuan baris kode jadi milikmu.',
+		'[fyi] Kata yang sama, dunia yang beda. Perpustakaan (library) meminjamkan buku supaya kamu nggak perlu nulis sendiri, library kode meminjamkan kode. Dan "runtime" juga berarti saat program sedang jalan, jadi crash waktu program jalan disebut runtime error, beda dengan salah ketik yang ditangkap [[compiler|basics/compiler]] sebelum apa pun jalan.',
+		'Tapi minjam itu ada risikonya. Kalau library berubah, aplikasimu ikut berubah, siap atau nggak.',
+		'[ingat] Runtime menyediakan lingkungan untuk menjalankan kode. Library menyediakan kode yang dapat dipakai oleh programmu.',
+		'Yuk bangun toko nimbus.com. Kasih runtime, tambahkan fiturnya, lalu lihat apa yang terjadi kalau semua library di update sekaligus.'
 	],
 	reactions: {
 		noRuntime:
-			'Tokonya berhenti. Kode dan library kamu masih ada, tapi nggak ada apa pun di server ini yang bisa menjalankan JavaScript tanpa Node.js.',
-		runtime: 'Panggungnya balik, tokonya jalan lagi. Kodenya sama, cuma butuh tempat berpijak.'
+			'Komputernya nggak tahu harus ngapain sama app.js. Itu JavaScript, dan belum ada apa pun di mesin ini yang bisa baca JavaScript. Pasang runtimenya dulu.',
+		runtime:
+			'Sekarang jalan! Node.js duduk di antara kode kamu dan [[sistem operasi|basics/os]], membaca JavaScript kamu lalu memintakan file, memori, dan jaringan ke sistem.',
+		scratch:
+			'Nulis sendiri memang bisa, tapi lihat hari dan barisnya numpuk. Dan tiap bug di baris baris itu jadi urusanmu, selamanya.',
+		library:
+			'Satu perintah dan langsung masuk. Ribuan baris itu ditulis dan dites orang lain, kamu tinggal pasang.',
+		built:
+			'Tokonya sudah punya semua fitur. Bandingkan berhari hari nulis sendiri dengan beberapa detik pakai library. Makanya hampir semua aplikasi beneran isinya kebanyakan library.',
+		broke:
+			'Aduh, tokonya crash. Versi terbaru library itu mengubah cara kerjanya, sementara kodemu masih memakainya dengan cara lama. Kamu nggak mengubah satu baris pun, tapi aplikasinya rusak.',
+		pinned:
+			'Balik ke versi lama, tokonya jalan lagi. Tim beneran mengunci versi persisnya di lock file (kayak package-lock.json), lalu update satu library per satu, hati hati, sambil dites.'
 	},
-	steps: [
-		{
-			title: 'Kode sendirian',
-			body: 'File kayak <b>app.js</b> itu cuma teks. Sistem operasi nggak tahu cara menjalankannya sendiri.'
-		},
-		{
-			title: 'Runtime',
-			body: 'Program yang <b>menjalankan programmu</b>. Dia membaca kodemu lalu memintakan memori, file, dan jaringan ke sistem operasi.'
-		},
-		{
-			title: 'Banyak runtime',
-			body: '<b>Node.js</b> untuk JavaScript di server, <b>browser</b> untuk JavaScript di halaman web, <b>JVM</b> untuk Java.'
-		},
-		{
-			title: 'Runtime error',
-			tag: 'Info',
-			body: 'Kata yang sama juga berarti <b>saat program sedang jalan</b>. Runtime error terjadi di saat itu, bukan sebelumnya.'
-		},
-		{
-			title: 'Library',
-			body: '<b>Komponen siap pakai</b> yang ditulis dan dites orang lain. Kamu tinggal pinjam, nggak perlu bikin semuanya dari nol.'
-		},
-		{
-			title: 'Package manager',
-			body: 'Alat yang mengunduhkan library buat kamu. <b>npm</b> untuk JavaScript, <b>pip</b> untuk Python.'
-		},
-		{
-			title: 'Kebanyakan pinjaman',
-			body: 'Kode buatanmu sering cuma beberapa ratus baris. Library dan runtime di bawahnya bisa sampai <b>jutaan</b>.'
-		},
-		{
-			title: 'Cara ingat',
-			tag: 'Cara ingat',
-			body: 'Runtime itu <b>panggung</b>, library itu <b>properti siap pakai</b>, kodemu <b>aktornya</b>.'
-		},
-		{
-			title: 'Kunci versinya',
-			body: 'Versi library yang baru bisa bikin aplikasimu rusak. Tim <b>mengunci</b> versi yang jalan dan update satu per satu.'
-		},
-		{
-			title: 'Tanpa panggung',
-			body: 'Tanpa runtime, kodenya masih ada tapi nggak ada yang bisa menjalankannya.'
-		}
-	],
+	steps: ['Runtime', 'Library', 'Update'],
 	layers: {
-		code: 'app.js',
+		code: 'Kode kamu',
+		libs: 'Library',
 		runtime: 'Runtime',
 		os: 'Sistem operasi',
 		hw: 'Hardware'
 	},
-	osNote: 'Linux, macOS, Windows',
-	hwNote: 'CPU, RAM, storage',
-	runtimes: [
-		{ name: 'Node.js', note: 'JavaScript di server' },
-		{ name: 'Browser', note: 'JavaScript di halaman web' },
-		{ name: 'JVM', note: 'Java' }
-	],
-	libs: ['Login', 'Tanggal', 'Grafik'],
-	installCmd: 'npm install chart.js',
-	installDone: 'added 2 packages',
+	osNote: 'Linux, macOS, atau Windows',
+	hwNote: 'CPU, RAM, dan storage',
 	appName: 'Toko nimbus.com',
 	appUp: 'jalan',
 	appDown: 'crash',
 	appOff: 'belum jalan',
-	newVersion: 'v3',
-	oldVersion: 'v2',
-	removeBtn: 'Cabut runtimenya',
-	returnBtn: 'Pasang lagi runtimenya'
+	notInstalled: 'belum terpasang',
+	noLibs: 'belum ada',
+	runBtn: 'Jalankan app.js',
+	installBtn: 'Pasang Node.js',
+	installing: 'Memasang Node.js',
+	installed: 'Node.js sudah terpasang',
+	features: {
+		login: { name: 'Login', days: 14, lines: 1800 },
+		payments: { name: 'Pembayaran', days: 30, lines: 4200 },
+		charts: { name: 'Grafik penjualan', days: 10, lines: 1500 }
+	},
+	scratchBtn: 'Tulis sendiri, {n} hari',
+	libBtn: 'npm install {lib}',
+	wroteChip: 'ditulis sendiri',
+	linesLabel: '{n} baris kamu tulis sendiri',
+	daysLabel: '{n} hari kerja',
+	secondsLabel: 'beberapa detik',
+	toUpdate: 'Lanjut, update library',
+	needLib: 'Pakai minimal satu library buat lanjut ke bagian berikutnya',
+	updateBtn: 'Update semua library ke versi terbaru',
+	pinBtn: 'Balik ke {lib} {v}',
+	runningAgain: 'Tokonya jalan lagi',
+	fixedNote: 'Dikunci ke versi yang jalan'
 };

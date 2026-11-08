@@ -6,23 +6,17 @@ import { en } from './en';
 export const subnet: Lesson = {
 	id: 'subnet',
 	mood: 'thinking',
-	moods: [
-		'calm',
-		'idea',
-		'thinking',
-		'happy',
-		'surprised',
-		'excited',
-		'wink',
-		'thinking',
-		'idea',
-		'happy'
-	],
+	moods: ['calm', 'worried', 'idea', 'thinking', 'idea', 'thinking', 'wink', 'excited'],
 	reactionMood: {
 		split: 'idea',
-		merge: 'happy',
-		one: 'surprised'
+		tiny: 'surprised',
+		small: 'worried',
+		waste: 'thinking',
+		m1: 'happy',
+		m2: 'happy',
+		done: 'excited'
 	},
+	playable: true,
 	stage: SubnetStage,
 	text: { id, en }
 };

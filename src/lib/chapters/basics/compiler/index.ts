@@ -6,20 +6,9 @@ import { en } from './en';
 export const compiler: Lesson = {
 	id: 'compiler',
 	mood: 'thinking',
-	moods: [
-		'thinking',
-		'idea',
-		'calm',
-		'calm',
-		'excited',
-		'surprised',
-		'happy',
-		'wink',
-		'thinking',
-		'idea',
-		'excited'
-	],
-	reactionMood: { typo: 'surprised', fixed: 'happy' },
+	moods: ['thinking', 'idea', 'calm', 'calm', 'surprised', 'wink', 'excited'],
+	reactionMood: { race: 'excited', rerun: 'happy', typo: 'surprised' },
+	playable: true,
 	stage: CompilerStage,
 	text: { id, en }
 };

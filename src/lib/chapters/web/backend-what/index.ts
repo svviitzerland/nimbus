@@ -6,8 +6,16 @@ import { en } from './en';
 export const backendWhat: Lesson = {
 	id: 'backend-what',
 	mood: 'calm',
-	moods: ['calm', 'thinking', 'idea', 'thinking', 'calm', 'happy', 'wink', 'idea', 'excited'],
-	reactionMood: { loggedOut: 'surprised', loggedIn: 'happy' },
+	moods: ['calm', 'thinking', 'idea', 'calm', 'wink', 'excited'],
+	reactionMood: {
+		login: 'thinking',
+		rejected: 'worried',
+		stock: 'thinking',
+		save: 'happy',
+		email: 'happy',
+		done: 'excited'
+	},
+	playable: true,
 	stage: BackendWhatStage,
 	text: { id, en }
 };

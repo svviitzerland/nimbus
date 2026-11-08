@@ -1,486 +1,531 @@
 <script lang="ts">
-	// A guided "watch" stage for SQL. The products table fills itself in, then a question in plain
-	// words appears, its query types itself, and the database checks the rows one by one so the
-	// matching ones light up by themselves. The last scene lets the learner ask another question,
-	// which is optional.
-	import { flip } from 'svelte/animate';
-	import { fade } from 'svelte/transition';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
-	import type { SqlColumn, SqlProduct, SqlQuestionId, SqlText } from '$lib/chapters/web/sql/types';
+	import { SvelteSet } from 'svelte/reactivity';
+	import DbTable from './database/DbTable.svelte';
+	import type { LessonText } from '$lib/chapters/types';
+	import type { SqlText, SqlMissionId, SqlColumn } from '$lib/chapters/web/sql/types';
 
-	let { text, oncomplete, onstate, onshow, beat = 0 }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: {
+		text: LessonText;
+		oncomplete?: () => void;
+		onstate?: (s: string) => void;
+	} = $props();
 	const tx = $derived(text as SqlText);
 
-	// Which scene each beat shows (nine beats, seven scenes).
-	const SCENE_OF_BEAT = [0, 0, 1, 2, 3, 4, 5, 5, 6];
-	const COLS: SqlColumn[] = ['name', 'price', 'stock'];
-	type Question = {
-		id: SqlQuestionId;
-		cols: SqlColumn[] | null;
-		test: ((p: SqlProduct) => boolean) | null;
-		sort: boolean;
-	};
-	const QUESTIONS: Question[] = [
-		{ id: 'all', cols: null, test: null, sort: false },
-		{ id: 'pick', cols: ['name', 'price'], test: null, sort: false },
-		{ id: 'out', cols: ['name', 'price'], test: (p) => p.stock === 0, sort: false },
-		{ id: 'cheap', cols: ['name', 'price'], test: (p) => p.price < 50000, sort: true }
-	];
-	const Q_OF_SCENE = [-1, 0, 1, 2, 3, 3];
+	// ---- The blocks the learner snaps together ----
+	type WhereId = 'none' | 'cheap' | 'out' | 'shirt';
+	type OrderId = 'none' | 'priceAsc' | 'priceDesc' | 'nameAsc';
+	const COLS: SqlColumn[] = ['name', 'category', 'price', 'stock'];
+	const WHERES: WhereId[] = ['none', 'cheap', 'out', 'shirt'];
+	const ORDERS: OrderId[] = ['none', 'priceAsc', 'priceDesc', 'nameAsc'];
 
-	let peek = $state<number | null>(null);
-	let reduced = $state(false);
-	let played = $state(0); // the question picked on the try it scene
+	// An empty pick means the star, every column.
+	const picked = new SvelteSet<SqlColumn>();
+	let where = $state<WhereId>('none');
+	let order = $state<OrderId>('none');
 
-	const scene = $derived(peek ?? SCENE_OF_BEAT[Math.min(beat, SCENE_OF_BEAT.length - 1)]);
-	const qi = $derived(scene === 6 ? played : Q_OF_SCENE[scene]);
-	const q = $derived(qi >= 0 ? QUESTIONS[qi] : null);
+	function toggleCol(c: SqlColumn | '*') {
+		if (c === '*') picked.clear();
+		else if (picked.has(c)) picked.delete(c);
+		else picked.add(c);
+		dirty = true;
+	}
+	function setWhere(w: WhereId) {
+		where = w;
+		dirty = true;
+	}
+	function setOrder(o: OrderId) {
+		order = o;
+		dirty = true;
+	}
 
-	$effect(() => {
-		onshow?.(true);
-		oncomplete?.();
-		if (typeof matchMedia !== 'undefined') {
-			reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-		}
-	});
-
-	// A new beat always brings the picture back to the story.
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-
-	type Line = { text: string; kw: string; tag: keyof SqlText['clauseTags'] };
-	const lines = $derived.by<Line[]>(() => {
-		if (!q) return [];
+	const LIMIT = 50000;
+	function whereCode(w: WhereId) {
 		const c = tx.columns;
-		const out: Line[] = [
-			{
-				text: q.cols ? q.cols.map((k) => c[k]).join(', ') : '*',
-				kw: 'SELECT',
-				tag: 'select'
-			},
-			{ text: tx.tableName, kw: 'FROM', tag: 'from' }
+		if (w === 'cheap') return `${c.price} < ${LIMIT}`;
+		if (w === 'out') return `${c.stock} = 0`;
+		if (w === 'shirt') return `${c.category} = '${tx.shirtCategory}'`;
+		return '';
+	}
+	function orderCode(o: OrderId) {
+		const c = tx.columns;
+		if (o === 'priceAsc') return `${c.price} ASC`;
+		if (o === 'priceDesc') return `${c.price} DESC`;
+		if (o === 'nameAsc') return `${c.name} ASC`;
+		return '';
+	}
+	function orderHint(o: OrderId) {
+		if (o === 'priceAsc') return tx.cheapFirst;
+		if (o === 'priceDesc') return tx.priceyFirst;
+		if (o === 'nameAsc') return tx.alphabetical;
+		return '';
+	}
+
+	const chosen = $derived(COLS.filter((c) => picked.has(c)));
+	// The query, one clause per line, the way people usually write it.
+	const lines = $derived.by(() => {
+		const sel = chosen.length ? chosen.map((c) => tx.columns[c]).join(', ') : '*';
+		const out: { kw: string; rest: string }[] = [
+			{ kw: 'SELECT', rest: sel },
+			{ kw: 'FROM', rest: tx.tableName }
 		];
-		if (q.id === 'out') out.push({ text: `${c.stock} = 0`, kw: 'WHERE', tag: 'where' });
-		if (q.id === 'cheap') {
-			out.push({ text: `${c.price} < 50000`, kw: 'WHERE', tag: 'where' });
-			out.push({ text: c.price, kw: 'ORDER BY', tag: 'order' });
-		}
-		out[out.length - 1] = { ...out[out.length - 1], text: out[out.length - 1].text + ';' };
+		if (where !== 'none') out.push({ kw: 'WHERE', rest: whereCode(where) });
+		if (order !== 'none') out.push({ kw: 'ORDER BY', rest: orderCode(order) });
 		return out;
 	});
-	const fullLength = $derived(lines.reduce((s, l) => s + l.kw.length + 1 + l.text.length, 0));
 
-	let typed = $state(0); // characters of the query written so far
-	let checked = $state(0); // rows the database has looked at
-	let sorted = $state(false);
-	let rowsShown = $state(6); // rows of the table drawn so far, on the first scene
+	// ---- A tiny query evaluator over the in memory table ----
+	type Row = { id: number; name: string; category: string; price: number; stock: number };
+	const table = $derived<Row[]>(tx.products.map((p, i) => ({ id: i + 1, ...p })));
 
-	// One little script per scene. The table fills in, or the query types itself and then the
-	// rows are checked one at a time, and finally sorted when the query asks for it.
-	$effect(() => {
-		const sc = scene;
-		const question = q;
-		const total = fullLength;
-		const n = tx.products.length;
-		if (reduced) {
-			rowsShown = n;
-			typed = total;
-			checked = n;
-			sorted = true;
-			return;
-		}
-		let t: ReturnType<typeof setTimeout>;
-		if (sc === 0 || !question) {
-			rowsShown = 0;
-			typed = 0;
-			checked = 0;
-			sorted = false;
-			const grow = () => {
-				rowsShown += 1;
-				if (rowsShown < n) t = setTimeout(grow, 420);
-			};
-			t = setTimeout(grow, 500);
-			return () => clearTimeout(t);
-		}
-		rowsShown = n;
-		typed = 0;
-		checked = 0;
-		sorted = false;
-		// The remember scene keeps the finished query on screen instead of typing it again.
-		if (sc === 5) {
-			typed = total;
-			checked = n;
-			sorted = true;
-			return;
-		}
-		const scan = () => {
-			checked += 1;
-			if (checked < n) t = setTimeout(scan, question.test ? 420 : 110);
-			else if (question.sort) t = setTimeout(() => (sorted = true), 700);
-		};
-		const type = () => {
-			typed += 1;
-			if (typed < total) t = setTimeout(type, 42);
-			else t = setTimeout(scan, 550);
-		};
-		t = setTimeout(type, 450);
-		return () => clearTimeout(t);
-	});
+	type Ran = { cols: ('id' | SqlColumn)[]; rows: Row[]; where: WhereId; order: OrderId };
+	let ran = $state<Ran | null>(null);
+	let dirty = $state(false);
 
-	/** How much of each query line is written so far. */
-	const shownLines = $derived.by(() => {
-		let left = typed;
-		return lines.map((l) => {
-			const full = l.kw.length + 1 + l.text.length;
-			const take = Math.max(0, Math.min(full, left));
-			left -= full;
-			const kw = l.kw.slice(0, take);
-			const rest = take > l.kw.length + 1 ? l.text.slice(0, take - l.kw.length - 1) : '';
-			return { kw, rest, gap: take > l.kw.length, started: take > 0, done: take === full };
+	function evaluate(): Ran {
+		let rows = table.filter((r) => {
+			if (where === 'cheap') return r.price < LIMIT;
+			if (where === 'out') return r.stock === 0;
+			if (where === 'shirt') return r.category === tx.shirtCategory;
+			return true;
 		});
-	});
-	const typing = $derived(q !== null && typed < fullLength);
-	const scanning = $derived(q !== null && !typing && checked < tx.products.length);
-
-	const passes = (p: SqlProduct) => !q || !q.test || q.test(p);
-	const rows = $derived.by(() => {
-		const all = tx.products.map((p, i) => ({ ...p, i }));
-		if (!q || !sorted || !q.sort) return all;
-		const keep = all.filter((r) => passes(r)).sort((a, b) => a.price - b.price);
-		return [...keep, ...all.filter((r) => !passes(r))];
-	});
-	const colOn = (c: SqlColumn) => !q || !q.cols || checked === 0 || q.cols.includes(c);
-	const answered = $derived(q !== null && checked >= tx.products.length);
-	const backCount = $derived(tx.products.filter((p) => passes(p)).length);
-
-	function another() {
-		played = (played + 1) % QUESTIONS.length;
-		onstate?.(QUESTIONS[played].id);
+		if (order !== 'none') {
+			rows = [...rows].sort((a, b) => {
+				if (order === 'priceAsc') return a.price - b.price;
+				if (order === 'priceDesc') return b.price - a.price;
+				return a.name.localeCompare(b.name);
+			});
+		}
+		const cols: Ran['cols'] = chosen.length ? [...chosen] : ['id', ...COLS];
+		return { cols, rows, where, order };
 	}
+
+	// ---- Missions, checked against what was actually run ----
+	const MISSIONS: SqlMissionId[] = ['all', 'pick', 'out', 'cheap'];
+	const solved = new SvelteSet<SqlMissionId>();
+	let finished = false;
+
+	function fits(m: SqlMissionId, r: Ran): boolean {
+		const star = r.cols.includes('id');
+		const hasName = star || r.cols.includes('name');
+		if (m === 'all') return star && r.where === 'none';
+		if (m === 'pick')
+			return (
+				r.where === 'none' &&
+				r.cols.length === 2 &&
+				r.cols.includes('name') &&
+				r.cols.includes('price')
+			);
+		if (m === 'out') return r.where === 'out' && hasName;
+		return r.where === 'cheap' && r.order === 'priceAsc' && hasName;
+	}
+
+	function run() {
+		const r = evaluate();
+		ran = r;
+		dirty = false;
+		const matched = MISSIONS.filter((m) => fits(m, r));
+		const fresh = matched.filter((m) => !solved.has(m));
+		fresh.forEach((m) => solved.add(m));
+		if (solved.size === MISSIONS.length && !finished) {
+			finished = true;
+			onstate?.('done');
+			oncomplete?.();
+			return;
+		}
+		if (fresh.length) onstate?.(fresh[fresh.length - 1]);
+		else if (!matched.length) onstate?.('miss');
+	}
+
+	const resultCols = $derived(ran ? ran.cols.map((c) => (c === 'id' ? 'id' : tx.columns[c])) : []);
+	const resultRows = $derived(
+		ran ? ran.rows.map((row) => ran!.cols.map((c) => (c === 'id' ? row.id : row[c]))) : []
+	);
+	const resultNum = $derived(
+		ran ? ran.cols.map((c) => c === 'price' || c === 'stock' || c === 'id') : []
+	);
+	const resultWidths = $derived(
+		ran
+			? ran.cols
+					.map((c) => (c === 'id' ? '0.45fr' : c === 'name' ? '1.5fr' : '1fr'))
+					.map((w) => `minmax(0, ${w})`)
+					.join(' ')
+			: ''
+	);
+	const allDone = $derived(solved.size === MISSIONS.length);
 </script>
 
-<div class="stage">
-	<Guide steps={tx.panels} active={scene} onselect={(i) => (peek = i)}>
-		{#snippet visual(s: number)}
-			<div class="visual">
-				{#if s === 6}
-					<button type="button" class="try" onclick={another}>{tx.another}</button>
-				{/if}
+<div class="wrap">
+	<div class="missions">
+		<p class="cap">{tx.missionsLabel}</p>
+		<ul>
+			{#each MISSIONS as m (m)}
+				<li class:ok={solved.has(m)}>
+					<span class="dot" aria-hidden="true">
+						{#if solved.has(m)}
+							<svg viewBox="0 0 16 16"
+								><path
+									d="M3.5 8.5l3 3 6-6.5"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								/></svg
+							>
+						{/if}
+					</span>
+					<span>{tx.missions[m]}</span>
+				</li>
+			{/each}
+		</ul>
+	</div>
 
-				{#if q}
-					<div class="ask" in:fade={{ duration: 250 }}>
-						<span class="ask-label">{tx.questionLabel}</span>
-						{#key q.id}
-							<span class="ask-text" in:fade={{ duration: 300 }}>{tx.questions[q.id]}</span>
-						{/key}
-					</div>
-					<div class="editor">
-						<div class="bar">
-							<i></i><i></i><i></i>
-							<span>{tx.fileName}</span>
-						</div>
-						<div class="code">
-							{#each shownLines as l, k (k)}
-								<div class="line" class:blank={!l.started}>
-									<span class="src"
-										><span class="kw">{l.kw}</span>{l.gap
-											? ' '
-											: ''}{l.rest}{#if typing && l.started && !l.done}<span class="caret"
-											></span>{/if}</span
-									>
-									{#if s === 5}
-										<span class="clause" in:fade={{ duration: 300, delay: k * 250 }}
-											>{tx.clauseTags[lines[k].tag]}</span
-										>
-									{/if}
-								</div>
-							{/each}
-						</div>
-					</div>
-				{/if}
-
-				<div class="table-card">
-					<p class="table-name">{tx.tableName}</p>
-					<table>
-						<thead>
-							<tr>
-								{#each COLS as c (c)}
-									<th class:dim={!colOn(c)} class:num={c !== 'name'}>{tx.columns[c]}</th>
-								{/each}
-							</tr>
-						</thead>
-						<tbody>
-							{#each rows as r (r.name)}
-								<tr
-									animate:flip={{ duration: reduced ? 0 : 500 }}
-									class:hidden={r.i >= rowsShown}
-									class:looking={scanning && r.i === checked}
-									class:lit={q !== null && r.i < checked && passes(r)}
-									class:out={q !== null && r.i < checked && !passes(r)}
-								>
-									<td class:dim={!colOn('name')}>{r.name}</td>
-									<td class="num" class:dim={!colOn('price')}>{r.price}</td>
-									<td class="num" class:dim={!colOn('stock')} class:zero={r.stock === 0}
-										>{r.stock}</td
-									>
-								</tr>
-							{/each}
-						</tbody>
-					</table>
-					<p class="back" class:show={answered}>
-						{tx.rowsBack.replace('{n}', String(backCount))}
-					</p>
-				</div>
-
-				{#if s === 5}
-					<p class="rule" in:fade={{ duration: 300 }}>{tx.rule}</p>
-				{/if}
+	<div class="blocks">
+		<div class="brow">
+			<p class="blabel"><b>SELECT</b> {tx.selectLabel}</p>
+			<div class="chips" role="group" aria-label={`SELECT ${tx.selectLabel}`}>
+				<button
+					type="button"
+					class="chip"
+					class:on={chosen.length === 0}
+					aria-pressed={chosen.length === 0}
+					onclick={() => toggleCol('*')}><code>*</code> {tx.allColumns}</button
+				>
+				{#each COLS as c (c)}
+					<button
+						type="button"
+						class="chip"
+						class:on={picked.has(c)}
+						aria-pressed={picked.has(c)}
+						onclick={() => toggleCol(c)}><code>{tx.columns[c]}</code></button
+					>
+				{/each}
 			</div>
-		{/snippet}
-	</Guide>
+		</div>
+		<div class="brow">
+			<p class="blabel"><b>WHERE</b> {tx.whereLabel}</p>
+			<div class="chips" role="group" aria-label={`WHERE ${tx.whereLabel}`}>
+				{#each WHERES as w (w)}
+					<button
+						type="button"
+						class="chip"
+						class:on={where === w}
+						aria-pressed={where === w}
+						onclick={() => setWhere(w)}
+						>{#if w === 'none'}{tx.noFilter}{:else}<code>{whereCode(w)}</code>{/if}</button
+					>
+				{/each}
+			</div>
+		</div>
+		<div class="brow">
+			<p class="blabel"><b>ORDER BY</b> {tx.orderLabel}</p>
+			<div class="chips" role="group" aria-label={`ORDER BY ${tx.orderLabel}`}>
+				{#each ORDERS as o (o)}
+					<button
+						type="button"
+						class="chip"
+						class:on={order === o}
+						aria-pressed={order === o}
+						onclick={() => setOrder(o)}
+						>{#if o === 'none'}{tx.noOrder}{:else}<code>{orderCode(o)}</code>
+							<small>{orderHint(o)}</small>{/if}</button
+					>
+				{/each}
+			</div>
+		</div>
+	</div>
+
+	<div class="query">
+		<div class="qbar">
+			<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+			<span class="fname">{tx.queryLabel}</span>
+		</div>
+		<pre class="code">{#each lines as l, i (i)}<span class="kw">{l.kw}</span> {l.rest}{i ===
+				lines.length - 1
+					? ';\n'
+					: '\n'}{/each}</pre>
+	</div>
+
+	<button type="button" class="run" class:pulse={!ran || dirty} onclick={run}>{tx.run}</button>
+
+	{#if ran}
+		<div class="result" class:stale={dirty}>
+			<p class="cap">
+				{tx.resultLabel}, {tx.rowsCount.replace('{n}', String(ran.rows.length))}
+			</p>
+			<DbTable
+				name={tx.tableName}
+				cols={resultCols}
+				rows={resultRows}
+				num={resultNum}
+				widths={resultWidths}
+				empty={tx.emptyResult}
+			/>
+		</div>
+	{/if}
+
+	{#if allDone}
+		<p class="win" role="status">{tx.allDone}</p>
+	{/if}
 </div>
 
 <style>
-	.stage {
-		display: flex;
-		height: 100%;
-		width: 100%;
-		justify-content: center;
-		align-items: safe center;
-		overflow-y: auto;
-		overflow-x: hidden;
-		padding-bottom: 16px;
-	}
-	.visual {
-		display: flex;
-		width: 100%;
-		max-width: 440px;
-		flex-direction: column;
-		align-items: stretch;
-		gap: 10px;
-	}
-	.try {
-		align-self: center;
-		border: 1.5px solid var(--color-brand);
-		border-radius: 999px;
-		background: var(--color-brand-soft);
-		padding: 7px 16px;
-		font-size: 13px;
-		font-weight: 700;
-		color: var(--color-brand);
-		transition: transform 0.15s;
-	}
-	.try:hover {
-		transform: translateY(-1px);
-	}
-
-	.ask {
+	.wrap {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 2px;
-		text-align: center;
+		gap: 10px;
+		width: min(94vw, 560px);
+		max-width: 100%;
+		max-height: 100%;
+		overflow-y: auto;
+		overflow-x: hidden;
+		padding-bottom: 8px;
 	}
-	.ask-label {
-		font-size: 10.5px;
-		font-weight: 800;
-		letter-spacing: 0.07em;
+	.cap {
+		margin: 0 0 6px;
+		text-align: center;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
 		text-transform: uppercase;
 		color: var(--color-faint);
 	}
-	.ask-text {
-		font-size: 15px;
-		font-weight: 600;
-		color: var(--color-ink);
-	}
 
-	.editor {
-		overflow: hidden;
-		border: 1px solid var(--color-line);
-		border-radius: 14px;
-		background: var(--color-card);
+	/* ---- Missions ---- */
+	.missions {
+		width: 100%;
 	}
-	.bar {
+	.missions ul {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 6px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.missions li {
 		display: flex;
 		align-items: center;
-		gap: 5px;
-		border-bottom: 1px solid var(--color-line);
-		background: var(--color-paper);
-		padding: 7px 12px;
+		gap: 7px;
+		min-width: 0;
+		padding: 6px 9px;
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-ink);
+		font-size: 12px;
+		line-height: 1.3;
+		transition:
+			background 0.25s ease,
+			color 0.25s ease;
 	}
-	.bar i {
-		height: 8px;
-		width: 8px;
-		border-radius: 999px;
-		background: var(--color-line);
+	.missions li.ok {
+		border-color: transparent;
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
 	}
-	.bar span {
-		margin-left: 6px;
+	.dot {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		border: 1.5px solid var(--color-line);
+	}
+	.ok .dot {
+		border-color: var(--color-grass);
+		background: var(--color-grass);
+		color: #fff;
+	}
+	.dot svg {
+		width: 11px;
+		height: 11px;
+	}
+
+	/* ---- Blocks ---- */
+	.blocks {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		width: 100%;
+		padding: 10px;
+		border-radius: 14px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+	}
+	.blabel {
+		margin: 0 0 5px;
 		font-size: 11px;
-		font-weight: 600;
 		color: var(--color-faint);
 	}
-	.code {
-		padding: 10px 14px;
-		font-family: var(--font-mono, ui-monospace, monospace);
-		font-size: 13px;
-		line-height: 1.7;
-		min-height: 3.4em;
+	.blabel b {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		color: var(--color-brand);
+		margin-right: 4px;
 	}
-	.line {
+	.chips {
 		display: flex;
-		align-items: baseline;
-		justify-content: space-between;
-		gap: 10px;
+		flex-wrap: wrap;
+		gap: 5px;
 	}
-	.line.blank {
-		display: none;
+	.chip {
+		display: inline-flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 5px 10px;
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
+		background: var(--color-paper);
+		color: var(--color-ink);
+		font-size: 12px;
+		font-weight: 600;
+		line-height: 1.25;
+		transition:
+			border-color 0.2s ease,
+			background 0.2s ease,
+			transform 0.15s ease;
 	}
-	.src {
+	.chip:hover {
+		border-color: var(--color-brand);
+	}
+	.chip:active {
+		transform: scale(0.96);
+	}
+	.chip.on {
+		border-color: var(--color-brand);
+		background: var(--color-brand-soft);
+		color: var(--color-brand);
+	}
+	.chip code {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 11.5px;
+	}
+	.chip small {
+		font-size: 10px;
+		font-weight: 500;
+		color: var(--color-faint);
+	}
+
+	/* ---- The query itself ---- */
+	.query {
+		width: 100%;
+		border-radius: 12px;
+		border: 1px solid var(--color-line);
+		background: var(--color-paper);
+		overflow: hidden;
+	}
+	.qbar {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 6px 10px;
+		border-bottom: 1px solid var(--color-line);
+		background: var(--color-card);
+		font-size: 11px;
+		color: var(--color-muted);
+	}
+	.dots {
+		display: inline-flex;
+		gap: 4px;
+	}
+	.dots i {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--color-line);
+	}
+	.fname {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-weight: 600;
+	}
+	.code {
+		margin: 0;
+		padding: 9px 12px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 12.5px;
+		line-height: 1.55;
 		white-space: pre-wrap;
-		word-break: break-word;
+		overflow-wrap: anywhere;
 		color: var(--color-ink);
 	}
 	.kw {
-		font-weight: 700;
 		color: var(--color-brand);
+		font-weight: 700;
 	}
-	.caret {
-		display: inline-block;
-		height: 1em;
-		width: 2px;
-		margin-left: 1px;
-		vertical-align: -2px;
-		background: var(--color-brand);
-		animation: blink 0.9s steps(1) infinite;
+
+	.run {
+		border-radius: 12px;
+		background: var(--color-ink);
+		color: var(--color-paper);
+		padding: 10px 20px;
+		font-size: 13px;
+		font-weight: 600;
+		transition: filter 0.2s ease;
 	}
-	@keyframes blink {
+	.run:hover {
+		filter: brightness(1.15);
+	}
+	.run.pulse {
+		animation: nudge 1.8s ease-in-out infinite;
+	}
+	@keyframes nudge {
+		0%,
+		100% {
+			box-shadow: 0 0 0 0 rgba(46, 111, 224, 0);
+		}
 		50% {
-			opacity: 0;
+			box-shadow: 0 0 0 5px rgba(46, 111, 224, 0.22);
 		}
 	}
-	.clause {
-		flex: none;
+
+	.result {
+		width: 100%;
+		transition: opacity 0.25s ease;
+	}
+	.result.stale {
+		opacity: 0.45;
+	}
+
+	.win {
+		margin: 0;
+		padding: 6px 14px;
 		border-radius: 999px;
 		background: var(--color-grass-soft);
-		padding: 1px 9px;
-		font-family: var(--font-sans, inherit);
-		font-size: 11px;
-		font-weight: 700;
 		color: var(--color-grass);
-	}
-
-	.table-card {
-		border: 1px solid var(--color-line);
-		border-radius: 16px;
-		background: var(--color-card);
-		padding: 10px 12px 8px;
-	}
-	.table-name {
-		margin: 0 0 6px 4px;
-		font-family: var(--font-mono, ui-monospace, monospace);
-		font-size: 12px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	table {
-		width: 100%;
-		border-collapse: collapse;
-		font-size: 13px;
-	}
-	th {
-		border-bottom: 1.5px solid var(--color-line);
-		padding: 4px 8px 6px;
-		text-align: left;
-		font-family: var(--font-mono, ui-monospace, monospace);
-		font-size: 11.5px;
-		font-weight: 700;
-		color: var(--color-faint);
-		transition: opacity 0.4s;
-	}
-	td {
-		border-bottom: 1px solid var(--color-line);
-		padding: 6px 8px;
-		color: var(--color-ink);
-		transition:
-			opacity 0.4s,
-			color 0.3s;
-	}
-	tr:last-child td {
-		border-bottom: none;
-	}
-	.num {
-		text-align: right;
-		font-variant-numeric: tabular-nums;
-	}
-	.zero {
-		color: var(--color-danger);
-		font-weight: 700;
-	}
-	.dim {
-		opacity: 0.18;
-	}
-	tbody tr {
-		transition:
-			background 0.35s,
-			opacity 0.4s,
-			transform 0.4s;
-	}
-	tbody tr.hidden {
-		opacity: 0;
-		transform: translateY(6px);
-	}
-	tbody tr.looking {
-		background: var(--color-amber-soft);
-	}
-	tbody tr.lit {
-		background: var(--color-brand-soft);
-	}
-	tbody tr.out {
-		opacity: 0.32;
-	}
-	.back {
-		margin: 6px 0 0;
-		text-align: center;
 		font-size: 12.5px;
-		font-weight: 600;
-		color: var(--color-grass);
-		opacity: 0;
-		transition: opacity 0.4s;
-	}
-	.back.show {
-		opacity: 1;
-	}
-	.rule {
-		margin: 0;
-		text-align: center;
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--color-grass);
+		font-weight: 700;
 	}
 
-	@media (max-width: 767px) {
-		.stage {
-			padding-bottom: 7rem;
+	@media (min-width: 768px) {
+		.missions li {
+			font-size: 13px;
+		}
+		.chip {
+			font-size: 13px;
+		}
+		.chip code {
+			font-size: 12.5px;
 		}
 		.code {
-			font-size: 12.5px;
+			font-size: 13.5px;
 		}
-		table {
-			font-size: 12.5px;
+		.run {
+			font-size: 14px;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		tbody tr,
-		td,
-		th,
-		.back {
+		.chip,
+		.missions li,
+		.result {
 			transition: none;
 		}
-		.caret {
+		.run.pulse {
 			animation: none;
 		}
 	}

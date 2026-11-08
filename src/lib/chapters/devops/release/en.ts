@@ -3,75 +3,44 @@ import type { ReleaseText } from './types';
 export const en: ReleaseText = {
 	title: 'Release strategies',
 	intro: [
-		'Version 2 of nimbus.com passed every test in the [[CI/CD pipeline|compute/cicd]]. Still, some bugs only show up with real people, on real phones, with real data. Tests cannot catch everything.',
-		'The plain way is to switch everyone to v2 at once. If v2 has a hidden bug, <b>every</b> user sees the error at the same moment, and undoing it takes a while.',
-		'A <b>canary release</b> is gentler. The [[load balancer|traffic/load-balancer]] (the traffic splitter in the middle) sends v2 to just a few users first, here one user in ten. Everyone else stays on v1.',
-		'Then you watch. The one canary user hits the bug, and the errors jump on v2 only. That is the warning sign.',
-		'So that user goes straight back to v1. Nine out of ten never noticed a thing. The team fixes the bug and gets version 2.1 ready.',
-		'The fixed version starts small again. If it stays healthy, the slice grows step by step, one in ten, then a few more, then half, then everyone.',
-		'[ingat] The name comes from coal mines. Miners carried a <b>canary</b> underground, because the little bird felt poison gas before people did. <b>Send the little bird in first</b>, a few users, then everyone.',
-		'[fyi] Another way is <b>blue green</b>. You keep two identical setups, blue runs the old version and green runs the new one, and the load balancer flips everyone across in one go. If something looks wrong, it flips straight back.',
-		'Want to compare? Release the buggy v2 to everyone at once, or as a canary, and count how many users get hurt.'
+		'Version 2 of nimbus.com passed every test in the [[CI/CD pipeline|compute/cicd]]. But some bugs only show up with real people, on real phones, with real data. Tests cannot catch everything.',
+		'The plain way is to swap every server to v2 at once. If v2 is broken, <b>every</b> user sees the error, and rolling back means redeploying the old version while the site burns.',
+		'<b>Blue green</b> keeps two identical environments. Blue runs v1 and serves everyone, green gets v2 and waits. The [[load balancer|traffic/load-balancer]] flips all traffic to green at once, and if something is wrong, flips straight back to blue. Undo takes a second.',
+		'<b>Canary</b> sends v2 to a small slice of users first, say 5 percent, and watches the errors. If it looks healthy, the slice grows step by step. If it looks bad, those few go back to v1 and almost nobody noticed.',
+		'[fyi] The name comes from coal mines. Miners used to bring a canary underground, because the little bird felt poison gas before the people did. Your first 5 percent of users are that early warning.',
+		'[ingat] A canary release sends a new version to a portion of traffic first. Monitor the result before expanding or rolling back.',
+		'v2 here has a hidden bug. Try all three ways of releasing it. Watch how many users get hurt, and how fast you can undo it.'
 	],
 	reactions: {
 		bigbang:
-			'Ouch, all ten users hit the error at the same moment. The bug was found, but everyone paid for it, and rolling back took a while.',
+			'Every user got the bug at the same moment. That is the problem with all at once, one bad version hits everyone.',
+		slowBack:
+			'Back on v1, but it took a while to redeploy, and users were staring at errors the whole time.',
+		flipped:
+			'The load balancer moved everyone to green, and green has the bug. Quick, flip it back.',
+		flipBack:
+			'Flipped back in a second. Blue was still running v1 the whole time, so undo is just moving the traffic.',
 		canary:
-			'Only one user in ten saw the error, and they were back on v1 within seconds. The other nine never knew anything happened.'
+			'Only a small slice of users got v2, and you can already see errors in that group. Everyone else is fine.',
+		canaryBig:
+			'The bigger the slice, the more people hit the bug. A real team grows the canary only while the error count stays at zero.',
+		canaryBack:
+			'Those few users are back on v1. The bug hurt a handful of people instead of everyone, and now the team can fix it calmly.',
+		both: 'Now you know the two favourites. Blue green gives you an instant undo, canary keeps the damage tiny. Many teams even combine them.'
 	},
-	steps: [
-		{
-			tag: 'The situation',
-			title: 'A new version',
-			body: 'Ten users (the phones) are happy on <b>v1</b>. Version 2 waits on the right, with a bug nobody has found yet.'
-		},
-		{
-			tag: 'All at once',
-			title: 'Everyone gets hurt',
-			body: 'All ten phones switch to v2 together, so all ten see the error. Then everyone has to be moved back.'
-		},
-		{
-			tag: 'The idea',
-			title: 'Canary release',
-			body: 'Only <b>one phone in ten</b> goes to v2. The other nine keep using v1 as if nothing happened.'
-		},
-		{
-			tag: 'Watching',
-			title: 'The warning sign',
-			body: 'Errors show up on v2 only. One user is affected, and now the team knows something is wrong.'
-		},
-		{
-			tag: 'Undo',
-			title: 'Back to safety',
-			body: 'That one user goes back to v1 in seconds. The bug gets fixed, and <b>v2.1</b> is ready.'
-		},
-		{
-			tag: 'Growing',
-			title: 'Step by step',
-			body: '1 in 10, then 3, then 5, then all 10. Each step waits to see that errors stay at zero.'
-		},
-		{
-			tag: 'Rule of thumb',
-			title: 'The little bird',
-			body: 'A few users first, then everyone. The canary warns you before the whole mine is in trouble.'
-		},
-		{
-			tag: 'Another way',
-			title: 'Blue green',
-			body: 'Two identical setups, and a switch that moves everyone between them at once, and back again just as fast.'
-		},
-		{
-			tag: 'Optional',
-			title: 'Compare both',
-			body: 'Release the buggy v2 one way or the other, and count the red phones.'
-		}
-	],
+	modes: ['All at once', 'Blue green', 'Canary'],
+	usersLabel: '{n} of 20 users see errors',
+	allOk: 'All 20 users are happy',
 	lbLabel: 'Load balancer',
-	usersLabel: 'Ten users',
-	errors: '{n} of 10 users see an error',
-	allOk: 'Nobody sees an error',
-	rule: 'A few users first, then everyone',
-	pickLabel: 'Release the buggy v2',
-	bigbangBtn: 'To everyone at once',
-	canaryBtn: 'As a canary'
+	blueLabel: 'Blue, v1',
+	greenLabel: 'Green, v2',
+	liveTag: 'live',
+	deployAllBtn: 'Deploy v2 to every server',
+	rollbackBtn: 'Roll back to v1',
+	rollingBack: 'Redeploying v1...',
+	switchToGreen: 'Switch traffic to green',
+	switchToBlue: 'Switch back to blue',
+	canaryLabel: '{n}% of users on v2',
+	canaryBack: 'Send everyone back to v1',
+	bugNote: 'v2 has a bug that no test caught'
 };

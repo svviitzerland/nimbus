@@ -1,22 +1,20 @@
 import type { LessonText } from '../../types';
-import type { GuideStep } from '$lib/components/stages/attacks2/types';
-
-/** The optional switch on the last beat, the shield in front of nimbus.com. */
-export type ShieldMode = 'off' | 'on';
 
 export interface DdosText extends LessonText {
-	/** The side panel, one entry per beat. */
-	steps: GuideStep[];
+	startBtn: string; // starts the pretend flood
+	stopBtn: string; // calms everything down again
+	sizeLabel: string; // caption above the botnet size slider
+	rateToggle: string; // the rate limit switch
+	cdnToggle: string; // the CDN shield switch
+	on: string;
+	off: string;
 	visitorsLabel: string; // the real people trying to visit
-	attackerLabel: string; // the single troublemaker of a plain DoS
-	botsLabel: string; // the botnet of hijacked devices
+	botsLabel: string; // template with {n}, the hijacked devices
+	cdnLabel: string; // the shield of edge servers
 	serverLabel: string; // the nimbus.com server
-	rateLabel: string; // the shield with only a rate limit
-	cdnLabel: string; // the full shield, a CDN with a rate limit
-	states: { up: string; slow: string; down: string };
+	rps: string; // template with {n}, requests per second arriving
 	served: string; // template with {n}, share of real visitors getting in
-	stamp: string; // October 2016, on the Mirai beat
-	rule: string; // the rule of thumb line
-	pickLabel: string;
-	modes: Record<ShieldMode, string>;
+	calm: string; // shown before the flood starts
+	states: { up: string; slow: string; down: string };
+	numberLocale: string; // how big numbers are written, e.g. 10,000 or 10.000
 }

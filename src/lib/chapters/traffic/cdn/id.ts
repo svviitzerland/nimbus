@@ -7,7 +7,8 @@ export const id: CdnText = {
 		'Padahal banyak isi situs itu itu saja, gambar, logo, video yang sama untuk semua orang. Daripada tiap orang ambil jauh jauh ke Amerika, simpan salinannya dekat pengunjung. Itu namanya <b>caching</b>. Pertama kali sebuah titik ditanya dia ambil dulu dari server asal, setelah itu salinannya nempel di situ.',
 		'<b>CDN</b> (Content Delivery Network) itu caching yang sama, cuma disebar ke seluruh dunia, jaringan titik penyimpan salinan di ratusan kota. Pengunjung otomatis dilayani titik terdekat, kamu nggak perlu milih kota satu satu.',
 		'Sebarannya tergantung penyedia. Cloudflare ada di 300 lebih kota, CloudFront punya AWS 600 lebih titik, penyedia lain beda lagi. Kota besar hampir pasti kebagian, daerah terpencil dilayani titik terdekat yang agak jauh. Dan ada harganya, CDN itu layanan berbayar, jadi tagihanmu nambah.',
-		'Di peta ini CDN-nya masih mati, semua pengunjung harus jauh jauh ke server asal. Klik beberapa orang dan rasakan lambatnya, lalu nyalakan CDN, klik lagi, dan lihat titik hijau terdekat yang mengirim salinannya.'
+		'Di peta ini CDN-nya masih mati, semua pengunjung harus jauh jauh ke server asal. Klik beberapa orang dan rasakan lambatnya, lalu nyalakan CDN, klik lagi, dan lihat titik hijau terdekat yang mengirim salinannya.',
+		'[ingat] CDN mendekatkan salinan konten. Cache yang dekat mengurangi perjalanan ke server asal.'
 	],
 	reactions: {
 		origin:
@@ -31,7 +32,11 @@ export const id: CdnText = {
 	verdictOk: 'Lumayan',
 	verdictSlow: 'Lemot',
 	readoutPrompt: 'Klik pengunjung di peta',
-	compare: { off: 'Tanpa CDN', on: 'Pakai CDN', hint: 'Coba pengunjung tanpa CDN dulu, lalu nyalakan CDN-nya' },
+	compare: {
+		off: 'Tanpa CDN',
+		on: 'Pakai CDN',
+		hint: 'Coba pengunjung tanpa CDN dulu, lalu nyalakan CDN-nya'
+	},
 	ms: 'ms',
 	cities: {
 		surabaya: 'Surabaya',

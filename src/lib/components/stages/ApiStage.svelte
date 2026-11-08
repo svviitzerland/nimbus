@@ -19,7 +19,6 @@
 	} = $props();
 	const tx = $derived(text as ApiText);
 
-	type Product = { id: number; name: string; price: number };
 	// The backend owns the data; the phone shows nothing until it asks the API for it.
 	const data = untrack(() => (text as ApiText).products.map((p) => ({ ...p })));
 

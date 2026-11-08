@@ -1,84 +1,61 @@
 import type { IncidentText } from './types';
 
 export const en: IncidentText = {
-	title: 'Incident Response',
+	title: 'Incident response',
 	intro: [
-		"June 2017. At Maersk, the shipping giant that moves about a fifth of the world's sea cargo, screens turned black one after another. A piece of [[malware|security/malware]] called NotPetya was tearing through its network. Maersk ended up rebuilding about 4,000 servers and 45,000 computers.",
-		'[fyi] Its rescue came down to luck. The only clean copy of one key server sat in an office in Ghana, offline thanks to a power cut. Staff carried that drive all the way to the UK and rebuilt from it.',
-		"When something like this hits, panic is the enemy. Teams follow a plan worked out in calm times, called <b>incident response</b>. Let's walk through it together. It is late at night, and an alarm goes off at nimbus.com.",
-		'One, <b>check</b>. Is it real, and how big is it? Look before you jump. Here it is real, one machine is infected.',
-		'Two, <b>contain</b>. Stop it spreading, before anything else. Pull that machine off the network so the malware cannot reach its neighbours, like shutting the door on a kitchen fire.',
-		'Three, <b>clean</b>. Remove the attacker completely. Often the safest way is to wipe the machine and start fresh, because you can never be sure you found every hiding spot.',
-		'Four, <b>recover</b>. Bring the machine back from a clean backup, and plug it in again only once you know it is healthy.',
-		'Five, <b>learn</b>. Write down what happened and fix the way they got in, without blaming people. This is the step that makes the next incident smaller.',
-		'[ingat] Treat it like a kitchen fire. Shut the door so it stops spreading, put it out, repair the kitchen, then learn why it started. Stop it spreading, clean, recover, learn.',
-		'Your turn, if you like. Skip the containing step, start cleaning straight away, and watch what the malware does in the meantime.'
+		"June 2017. At Maersk, the shipping giant that moves about a fifth of the world's sea cargo, screens suddenly turned black one after another. A piece of [[malware|security/malware]] called NotPetya was tearing through its network.",
+		'Within hours, its port terminals stopped working and trucks queued for miles. Maersk had to rebuild about 4,000 servers and 45,000 computers in roughly ten days.',
+		'[fyi] Its rescue came down to luck. The only surviving copy of one key server sat in Ghana, offline thanks to a power cut. Staff carried that drive all the way to the UK and rebuilt everything from it.',
+		'When something like this hits, panic is the enemy. Teams follow a plan called <b>incident response</b>. First <b>check</b> what is really going on, <b>contain</b> it so it stops spreading, <b>clean</b> out the attacker, <b>recover</b> from a clean backup, and finally <b>learn</b> so it never happens the same way again.',
+		'[fyi] In the cloud the steps stay the same, only the tools change. Containing a server can be one click that swaps its firewall rules. The provider handles incidents in its own buildings, yours are still yours, that is [[shared responsibility|networking/shared-responsibility]].',
+		'[ingat] Limit impact, preserve evidence, address the cause, and restore service. Use the review to improve prevention and response.',
+		'Order matters, and the clock is ticking. The alarm is ringing at nimbus.com right now. Answer it, then pick the steps in the right order.'
 	],
 	reactions: {
-		skip: 'See that? While you were busy cleaning, it jumped to two neighbours and then came back for the clean machine. That is why containing comes first.',
-		right:
-			'Contained first, so it had nowhere to go. One machine hurt, one machine fixed, everyone else fine.'
+		check:
+			'Good, you looked before you jumped. Now you can see exactly which servers are hit and which are still healthy, so you know what to cut off.',
+		contain:
+			'Contained. The infected servers are pulled off the network, so the malware has nowhere left to go. The damage meter finally stops climbing.',
+		clean:
+			'Cleaned. The malware is removed and the hole it came through is patched. The servers are safe now, but still offline.',
+		recover:
+			'Recovered. Data comes back from a clean backup made before the attack, and nimbus.com is serving visitors again. This is why backups are kept somewhere the malware cannot reach.',
+		doneGood:
+			'Incident closed, and only a few servers got hit. The last step is the one teams skip most, writing down what happened without blaming anyone, and fixing the cause. Maersk did exactly that and now talks openly about its lessons.',
+		doneSlow:
+			'Incident closed, but a lot of servers got hit along the way. The last step, learning, is where you write down what went wrong, including the slow start, and practice so next time is faster. Run the drill again and try to beat it.',
+		wrongContain:
+			'Cut off what, exactly? You do not know yet which servers are hit, so you might pull the plug on healthy ones and miss the sick one. A minute spent checking first saves hours.',
+		wrongClean:
+			'While you were busy cleaning, the malware kept spreading to the servers next door. Stop the spread first, then clean.',
+		wrongRecover:
+			'The backup came back, and got infected again right away, because the malware and its way in were still there. Recover only after cleaning.',
+		wrongLearn:
+			'Writing the report while servers are still burning? Learning comes last, once the fire is out.',
+		pay: 'Paying the ransom does not guarantee you get anything back, and it funds the next attack. Many victims who paid never got their data. Restoring from your own backup is the real way out.',
+		hide: 'Switching off the alarm does not switch off the attack. The malware kept spreading in silence. Hiding an incident usually makes it far worse, and in many countries it is even against the law.'
 	},
-	steps: [
-		{
-			title: 'NotPetya',
-			body: 'Malware that jumped by itself from machine to machine, locking each one for good. It looked like ransomware, but paying could not bring the files back.'
-		},
-		{
-			tag: 'By the way',
-			title: 'The copy in Ghana',
-			body: 'Malware cannot reach a copy that is <b>offline</b>. A power cut kept that one safe by accident.'
-		},
-		{
-			title: 'Incident response',
-			body: 'A plan written <b>before</b> trouble comes, so people follow steps instead of guessing.'
-		},
-		{
-			title: 'Check',
-			body: 'Confirm it is real and find out <b>how far</b> it has reached.'
-		},
-		{
-			title: 'Contain',
-			body: 'Cut the infected machine off so it <b>stops spreading</b>. Speed matters most right here.'
-		},
-		{
-			title: 'Clean',
-			body: 'Remove every trace, often by <b>wiping</b> the machine completely.'
-		},
-		{
-			title: 'Recover',
-			body: 'Restore from a <b>clean backup</b>, then reconnect only when it is healthy.'
-		},
-		{
-			title: 'Learn',
-			body: 'Write it up without blame, and fix the hole so it cannot happen the <b>same way</b> twice.'
-		},
-		{
-			tag: 'Remember it',
-			title: 'Kitchen fire',
-			body: '<b>Stop it spreading</b>, clean, recover, learn.'
-		},
-		{
-			tag: 'Your turn',
-			title: 'Skip a step',
-			body: 'Clean before containing, and watch the malware use that time.'
-		}
-	],
-	maersk: 'Maersk, June 2017',
-	nimbus: 'nimbus.com, late at night',
-	ghana: 'Ghana office',
-	offline: 'offline',
-	backup: 'Backup',
-	notes: 'Notes',
-	lessons: ['Patch the hole', 'Lock admin logins', 'Test the backups'],
-	checkTag: 'Real, one machine',
-	phases: {
-		check: 'Check',
-		contain: 'Contain',
-		clean: 'Clean',
-		recover: 'Recover',
-		learn: 'Learn'
+	alarmTitle: 'Alarm at nimbus.com',
+	alarmSub: 'Files on the servers are turning into scrambled junk',
+	answerBtn: 'Answer the alarm',
+	serversLabel: 'Servers',
+	damageLabel: 'Damage',
+	planLabel: 'Your plan',
+	pickHint: 'Tap the next step',
+	steps: {
+		check: { name: 'Check', sub: 'Find out which servers are hit' },
+		contain: { name: 'Contain', sub: 'Cut the sick servers off the network' },
+		clean: { name: 'Clean', sub: 'Remove the malware and patch the hole' },
+		recover: { name: 'Recover', sub: 'Restore data from a clean backup' },
+		learn: { name: 'Learn', sub: 'Write down what happened and fix the cause' },
+		pay: { name: 'Pay the ransom', sub: 'Hope the attacker keeps their word' },
+		hide: { name: 'Silence the alarm', sub: 'Keep quiet and hope nobody notices' }
 	},
-	skip: 'Skip containing',
-	right: 'Right order'
+	stateHit: 'hit',
+	stateCut: 'cut off',
+	stateClean: 'clean',
+	stateBack: 'back',
+	restartBtn: 'Run the drill again',
+	resultGood: '{n} of 6 servers hit, nicely handled',
+	resultSlow: '{n} of 6 servers hit, a slow start'
 };

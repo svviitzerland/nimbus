@@ -1,434 +1,529 @@
 <script lang="ts">
-	// Guided "watch" stage. A server rack on the left, your phone on the right, a wire between.
-	// Following Nim's beats the same nimbus.com page arrives three ways by itself. CSR sends an
-	// empty page and a box of JavaScript that the phone unpacks, SSR builds the page at the server
-	// and hydrates the buttons, SSG grabs a finished page off a shelf. The mix and remember parts
-	// let the three take turns. The only optional play is picking a way on the last beat.
-	import { fade } from 'svelte/transition';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import { onDestroy } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
+	import Browser from '$lib/components/Browser.svelte';
+	import Server from '$lib/components/Server.svelte';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { RenderingText, RenderMode } from '$lib/chapters/web/rendering/types';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: {
+		text: LessonText;
+		oncomplete?: () => void;
+		onstate?: (s: string) => void;
+	} = $props();
 	const tx = $derived(text as RenderingText);
 
-	$effect(() => {
-		onshow?.(true);
-		oncomplete?.();
-	});
-
-	const lastBeat = $derived(tx.intro.length - 1);
-	const isPlay = $derived(beat >= lastBeat);
-
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const step = $derived(peek ?? Math.min(beat, tx.steps.length - 1));
-	const live = $derived(isPlay && peek === null);
-
-	const MODES: RenderMode[] = ['csr', 'ssr', 'ssg'];
-	let userMode = $state<RenderMode>('ssr');
-	let replay = $state(0);
-	function pick(m: RenderMode) {
-		userMode = m;
-		replay += 1;
-		onstate?.(m);
-	}
-
-	// One clock, restarted on every step and on every pick.
-	let t = $state(0);
-	let reduced = $state(false);
-	const clockKey = $derived(`${step}|${live}|${replay}`);
-	$effect(() => {
-		void clockKey;
-		reduced =
-			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-		t = 0;
-		if (reduced) return;
-		const start = Date.now();
-		const id = setInterval(() => (t = Date.now() - start), 60);
-		return () => clearInterval(id);
-	});
-
-	type StatusKey = keyof RenderingText['status'];
-	type Scene = {
-		req: number | null;
-		resp: { kind: 'box' | 'page'; p: number } | null;
-		serverBlocks: number;
-		blocks: number;
-		hydrated: boolean;
-		status: StatusKey;
-		readyAt: number;
-		end: number;
+	type StepKey = keyof RenderingText['steps'];
+	type Phone = 'idle' | 'loading' | 'loaded';
+	type Packet = { dir: 'up' | 'down'; label: string; dur: number } | null;
+	type Ev = {
+		t: number;
+		step: StepKey;
+		phone: Phone;
+		busy?: boolean;
+		packet?: Packet;
+		paint?: boolean;
 	};
-	const REQ = 700;
-	const END: Record<RenderMode, number> = { csr: 3400, ssr: 2900, ssg: 1200 };
-	const READY: Record<RenderMode, number> = { csr: 3400, ssr: 2300, ssg: 1200 };
-	const REST = 2600;
 
-	function sceneAt(m: RenderMode, tt: number): Scene {
-		const base: Scene = {
-			req: null,
-			resp: null,
-			serverBlocks: 0,
-			blocks: 0,
-			hydrated: false,
-			status: 'ask',
-			readyAt: READY[m],
-			end: END[m]
-		};
-		if (tt < REQ) return { ...base, req: tt / REQ };
-		if (m === 'csr') {
-			if (tt < 1900)
-				return { ...base, resp: { kind: 'box', p: (tt - REQ) / 1200 }, status: 'emptyHtml' };
-			const b = Math.min(5, Math.floor((tt - 1900) / 300) + 1);
-			return { ...base, blocks: b, hydrated: true, status: tt >= 3400 ? 'ready' : 'jsBuilds' };
-		}
-		if (m === 'ssr') {
-			if (tt < 1700)
-				return {
-					...base,
-					serverBlocks: Math.min(5, Math.floor((tt - REQ) / 200) + 1),
-					status: 'serverBuilds'
-				};
-			if (tt < 2300)
-				return { ...base, resp: { kind: 'page', p: (tt - 1700) / 600 }, status: 'fullHtml' };
-			if (tt < 2900) return { ...base, blocks: 5, status: 'hydrate' };
-			return { ...base, blocks: 5, hydrated: true, status: 'ready' };
-		}
-		if (tt < 1200)
-			return { ...base, resp: { kind: 'page', p: (tt - REQ) / 500 }, status: 'prebuilt' };
-		return { ...base, blocks: 5, hydrated: true, status: 'ready' };
+	// Each timeline is in seconds on a slow phone. A fast phone runs the same steps quicker.
+	const PLANS: Record<RenderMode, Ev[]> = {
+		csr: [
+			{ t: 0, step: 'ask', phone: 'idle', packet: { dir: 'up', label: 'GET', dur: 0.4 } },
+			{
+				t: 0.4,
+				step: 'emptyHtml',
+				phone: 'idle',
+				packet: { dir: 'down', label: 'HTML', dur: 0.4 }
+			},
+			{
+				t: 0.8,
+				step: 'downloadJs',
+				phone: 'loading',
+				packet: { dir: 'down', label: 'JS', dur: 2 }
+			},
+			{ t: 2.8, step: 'jsBuilds', phone: 'loading' },
+			{ t: 3.6, step: 'ready', phone: 'loaded', paint: true }
+		],
+		ssr: [
+			{ t: 0, step: 'ask', phone: 'idle', packet: { dir: 'up', label: 'GET', dur: 0.4 } },
+			{ t: 0.4, step: 'serverBuilds', phone: 'idle', busy: true },
+			{ t: 1.1, step: 'fullHtml', phone: 'idle', packet: { dir: 'down', label: 'HTML', dur: 0.5 } },
+			{ t: 1.6, step: 'hydrate', phone: 'loaded', paint: true },
+			{ t: 2.4, step: 'ready', phone: 'loaded' }
+		],
+		ssg: [
+			{ t: 0, step: 'ask', phone: 'idle', packet: { dir: 'up', label: 'GET', dur: 0.25 } },
+			{
+				t: 0.25,
+				step: 'prebuilt',
+				phone: 'idle',
+				packet: { dir: 'down', label: 'HTML', dur: 0.3 }
+			},
+			{ t: 0.55, step: 'ready', phone: 'loaded', paint: true }
+		]
+	};
+	const ORDER: RenderMode[] = ['csr', 'ssr', 'ssg'];
+
+	let slow = $state(true);
+	let playing = $state<RenderMode | null>(null);
+	let shown = $state<RenderMode | null>(null);
+	let step = $state<StepKey | null>(null);
+	let phone = $state<Phone>('idle');
+	let busy = $state(false);
+	let packet = $state<Packet>(null);
+	let packetKey = $state(0);
+	let clock = $state(0);
+	let scores = $state<Record<RenderMode, number | null>>({ csr: null, ssr: null, ssg: null });
+	let lastSlow = $state<Record<RenderMode, boolean>>({ csr: true, ssr: true, ssg: true });
+
+	const tried = new SvelteSet<RenderMode>();
+	let saidAll = false;
+	let saidFast = false;
+	let finished = false;
+	let timers: ReturnType<typeof setTimeout>[] = [];
+	let ticker: ReturnType<typeof setInterval> | undefined;
+
+	function stop() {
+		timers.forEach(clearTimeout);
+		timers = [];
+		if (ticker) clearInterval(ticker);
+		ticker = undefined;
 	}
 
-	// Which way is playing, and where in its loop we are.
-	const playing = $derived.by((): { mode: RenderMode; tt: number } | null => {
-		if (step < 2) return null;
-		if (live) return { mode: userMode, tt: reduced ? 1e9 : Math.min(t, END[userMode] + 1) };
-		if (step <= 4) {
-			const m = MODES[step - 2];
-			return { mode: m, tt: reduced ? 1e9 : t % (END[m] + REST) };
+	function play(mode: RenderMode) {
+		stop();
+		const k = slow ? 1 : 0.35;
+		const plan = PLANS[mode];
+		const end = plan[plan.length - 1].t * k;
+		const wasSlow = slow;
+		playing = mode;
+		shown = mode;
+		clock = 0;
+		const started = Date.now();
+		ticker = setInterval(() => {
+			clock = Math.min(end, (Date.now() - started) / 1000);
+		}, 50);
+		for (const ev of plan) {
+			timers.push(
+				setTimeout(
+					() => {
+						step = ev.step;
+						phone = ev.phone;
+						busy = !!ev.busy;
+						if (ev.packet) {
+							packet = { ...ev.packet, dur: ev.packet.dur * k };
+							packetKey += 1;
+						} else packet = null;
+						if (ev.paint) {
+							scores[mode] = Math.round(ev.t * k * 10) / 10;
+							lastSlow[mode] = wasSlow;
+						}
+					},
+					ev.t * k * 1000
+				)
+			);
 		}
-		// Mix and remember, the three ways take turns.
-		if (reduced) return { mode: 'ssg', tt: 1e9 };
-		const total = MODES.reduce((a, m) => a + END[m] + REST, 0);
-		let r = t % total;
-		for (const m of MODES) {
-			if (r < END[m] + REST) return { mode: m, tt: r };
-			r -= END[m] + REST;
-		}
-		return { mode: 'ssg', tt: 1e9 };
-	});
-	const scene = $derived(playing ? sceneAt(playing.mode, playing.tt) : null);
+		timers.push(
+			setTimeout(
+				() => {
+					stop();
+					clock = end;
+					playing = null;
+					packet = null;
+					busy = false;
+					finishRun(mode, wasSlow);
+				},
+				end * 1000 + 250
+			)
+		);
+	}
 
-	// The opening part, the page assembles itself inside the phone.
-	const introBlocks = $derived(reduced ? 5 : Math.min(5, Math.floor((t % 4000) / 450)));
-	const phoneBlocks = $derived(step === 0 ? introBlocks : step === 1 ? 5 : (scene?.blocks ?? 0));
-	const phoneHydrated = $derived(step < 2 ? true : (scene?.hydrated ?? false));
-	const status = $derived(step === 0 ? 'build' : step === 1 ? 'where' : (scene?.status ?? 'ask'));
-	const readyShown = $derived(!!scene && !!playing && playing.tt >= scene.readyAt);
-	const secs = $derived(playing ? (READY[playing.mode] / 1000).toFixed(1) : '');
+	function finishRun(mode: RenderMode, wasSlow: boolean) {
+		const firstTry = !tried.has(mode);
+		tried.add(mode);
+		if (!wasSlow && !saidFast) {
+			saidFast = true;
+			onstate?.('fast');
+		} else onstate?.(mode);
+		if (firstTry && tried.size === ORDER.length && !finished) {
+			finished = true;
+			oncomplete?.();
+		}
+		// Once all three are on the board, Nim points at the scoreboard after a moment.
+		if (tried.size === ORDER.length && !saidAll) {
+			timers.push(
+				setTimeout(() => {
+					saidAll = true;
+					onstate?.('all');
+				}, 5000)
+			);
+		}
+	}
+
+	const fmt = (s: number) => tx.firstPaint.replace('{s}', s.toFixed(1));
+	const maxScore = 3.6;
+
+	onDestroy(stop);
 </script>
 
-{#snippet page(x: number, y: number, w: number, h: number, blocks: number, hydrated: boolean)}
-	{#if blocks >= 1}<rect
-			x={x + 4}
-			y={y + 4}
-			width={w - 8}
-			height={h * 0.1}
-			rx="2"
-			class="b1"
-		/>{/if}
-	{#if blocks >= 2}
-		<rect x={x + 4} y={y + h * 0.18} width={w - 8} height={h * 0.3} rx="3" class="b2" />
-		<path
-			d="M{x + 8} {y + h * 0.46}l{w * 0.2} {-h * 0.14} {w * 0.15} {h * 0.08} {w * 0.18} {-h *
-				0.12} {w * 0.3} {h * 0.18}Z"
-			class="hill"
-		/>
-	{/if}
-	{#if blocks >= 3}<rect
-			x={x + 4}
-			y={y + h * 0.54}
-			width={w * 0.8}
-			height={h * 0.05}
-			rx="1.5"
-			class="b3"
-		/>{/if}
-	{#if blocks >= 4}<rect
-			x={x + 4}
-			y={y + h * 0.63}
-			width={w * 0.6}
-			height={h * 0.05}
-			rx="1.5"
-			class="b3"
-		/>{/if}
-	{#if blocks >= 5}
-		<rect
-			x={x + 4}
-			y={y + h * 0.76}
-			width={w * 0.6}
-			height={h * 0.12}
-			rx={h * 0.06}
-			class="b5"
-			class:on={hydrated}
-		/>
-	{/if}
-{/snippet}
-
-{#snippet visual()}
-	<div class="w-full">
-		<svg
-			viewBox="0 0 400 330"
-			class="mx-auto block w-full max-w-[440px]"
-			role="img"
-			aria-label={tx.steps[step].title}
-		>
-			{#if playing}
-				<text x="200" y="40" text-anchor="middle" class="mode">{tx.modes[playing.mode]}</text>
-			{/if}
-
-			<!-- the server -->
-			<g class:dim={step === 0}>
-				<text x="70" y="80" text-anchor="middle" class="lbl">{tx.serverLabel}</text>
-				{#each [0, 1, 2] as u (u)}
-					<rect x="30" y={90 + u * 48} width="80" height="40" rx="6" class="unit" />
-					<circle
-						cx="44"
-						cy={110 + u * 48}
-						r="3.5"
-						class="led"
-						class:busy={scene?.status === 'serverBuilds'}
-					/>
-					<rect x="56" y={106 + u * 48} width="44" height="4" rx="2" class="slit" />
-					<rect x="56" y={114 + u * 48} width="30" height="4" rx="2" class="slit" />
-				{/each}
-				{#if playing?.mode === 'ssg'}
-					<g in:fade={{ duration: 250 }}>
-						{#each [0, 1, 2] as s (s)}
-							<rect x={36 + s * 8} y={250 - s * 4} width="40" height="50" rx="4" class="sheet" />
-						{/each}
-						<g>{@render page(52, 242, 40, 50, 5, true)}</g>
-						<text x="70" y="318" text-anchor="middle" class="lbl">{tx.shelfLabel}</text>
-					</g>
-				{/if}
-				{#if scene && scene.serverBlocks > 0}
-					<rect x="122" y="110" width="44" height="100" rx="5" class="sheet" />
-					{@render page(122, 110, 44, 100, scene.serverBlocks, false)}
-				{/if}
-			</g>
-
-			<!-- the wire -->
-			<line x1="112" y1="160" x2="284" y2="160" class="wire" />
-
-			{#if step === 1}
-				<g class="huh">
-					<circle cx="112" cy="70" r="13" style="fill:var(--color-amber)" />
-					<text x="112" y="76" text-anchor="middle" class="q">?</text>
-				</g>
-				<g class="huh">
-					<circle cx="372" cy="40" r="13" style="fill:var(--color-amber)" />
-					<text x="372" y="46" text-anchor="middle" class="q">?</text>
-				</g>
-			{/if}
-
-			<!-- what travels -->
-			{#if scene?.req != null}
-				<circle cx={284 - scene.req * 170} cy="160" r="6" class="ping" />
-			{/if}
-			{#if scene?.resp}
-				{@const px = 124 + scene.resp.p * 120}
-				<rect x={px} y="110" width="44" height="100" rx="5" class="sheet" />
-				{#if scene.resp.kind === 'page'}
-					{@render page(px, 110, 44, 100, 5, false)}
-				{:else}
-					<rect x={px + 10} y="170" width="44" height="34" rx="5" class="box" />
-					<text x={px + 32} y="192" text-anchor="middle" class="js">JS</text>
-				{/if}
-			{/if}
-
-			<!-- the phone -->
-			<text x="330" y="30" text-anchor="middle" class="lbl">{tx.youLabel}</text>
-			<rect x="282" y="40" width="96" height="240" rx="18" class="phone" />
-			<rect x="290" y="58" width="80" height="204" rx="6" class="screen" />
-			{@render page(290, 62, 80, 196, phoneBlocks, phoneHydrated)}
-			{#if scene?.status === 'jsBuilds' && phoneBlocks < 5}
-				<path d="M322 236a8 8 0 0 1 8 -8" class="spin" />
-			{/if}
-			{#if readyShown}
-				<text x="330" y="304" text-anchor="middle" class="ready" in:fade={{ duration: 200 }}>
-					{tx.readyAfter.replace('{s}', secs)}
-				</text>
-			{/if}
-		</svg>
-		<p class="status" aria-live="polite">{tx.status[status]}</p>
-		{#if live}
-			<div class="mt-3 flex justify-center gap-2">
-				{#each MODES as m (m)}
-					<button type="button" class="play" class:on={userMode === m} onclick={() => pick(m)}>
-						{tx.modes[m]}
-					</button>
-				{/each}
-			</div>
-		{/if}
+<div class="flex h-full w-full flex-col items-center justify-center gap-3">
+	<div class="modes">
+		{#each ORDER as m (m)}
+			<button
+				type="button"
+				class="mode"
+				class:on={shown === m}
+				disabled={playing !== null}
+				onclick={() => play(m)}
+			>
+				<b>{tx.modes[m].label}</b>
+				<span>{tx.modes[m].sub}</span>
+			</button>
+		{/each}
 	</div>
-{/snippet}
 
-<div class="flex w-full justify-center px-1 pb-28 md:pb-6">
-	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
+	<label class="switch">
+		<input type="checkbox" bind:checked={slow} disabled={playing !== null} />
+		<span class="track"><span class="knob"></span></span>
+		{tx.slow}
+	</label>
+
+	<div class="scene">
+		<div class="actor">
+			<div class="phonewrap"><Browser phase={phone} /></div>
+			<span class="alabel">{tx.youLabel}</span>
+			<span class="clock" class:run={playing !== null}>{fmt(clock)}</span>
+		</div>
+
+		<div class="wire">
+			<span class="line"></span>
+			{#if packet}
+				{#key packetKey}
+					<span
+						class="pkt"
+						class:down={packet.dir === 'down'}
+						class:js={packet.label === 'JS'}
+						style="animation-duration:{packet.dur}s">{packet.label}</span
+					>
+				{/key}
+			{/if}
+		</div>
+
+		<div class="actor">
+			<Server active={busy || (playing !== null && step === 'prebuilt')} />
+			<span class="alabel">{tx.serverLabel}</span>
+			{#if shown === 'ssg'}
+				<span class="shelf"><i></i><i></i><i></i>{tx.shelfLabel}</span>
+			{/if}
+		</div>
+	</div>
+
+	<p class="caption">{step ? tx.steps[step] : tx.idle}</p>
+
+	<div class="score">
+		<b>{tx.scoreLabel}</b>
+		{#each ORDER as m (m)}
+			<div class="srow">
+				<span class="sl">{tx.modes[m].label}</span>
+				<span class="sbar">
+					{#if scores[m] !== null}
+						<i class={m} style="width:{Math.max(4, ((scores[m] ?? 0) / maxScore) * 100)}%"></i>
+					{/if}
+				</span>
+				<span class="sv">
+					{#if scores[m] !== null}
+						{fmt(scores[m] ?? 0)}{#if !lastSlow[m]}<em>{tx.fastTag}</em>{/if}
+					{:else}
+						{tx.notYet}
+					{/if}
+				</span>
+			</div>
+		{/each}
+	</div>
 </div>
 
 <style>
-	.lbl {
-		font-size: 11px;
-		font-weight: 700;
-		fill: var(--color-faint);
+	.modes {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 6px;
+		width: min(94vw, 400px);
 	}
 	.mode {
-		font-family: var(--font-display);
-		font-size: 20px;
-		font-weight: 700;
-		fill: var(--color-brand);
-	}
-	.dim {
-		opacity: 0.35;
-	}
-	.unit {
-		fill: var(--color-card);
-		stroke: var(--color-ink);
-		stroke-width: 2;
-	}
-	.led {
-		fill: var(--color-grass);
-	}
-	.led.busy {
-		fill: var(--color-amber);
-		animation: blink 0.5s steps(2) infinite;
-	}
-	.slit {
-		fill: var(--color-line);
-	}
-	.wire {
-		stroke: var(--color-line);
-		stroke-width: 3;
-	}
-	.ping {
-		fill: var(--color-brand);
-	}
-	.sheet {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-	}
-	.box {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 2;
-	}
-	.js {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 12px;
-		font-weight: 800;
-		fill: var(--color-amber);
-	}
-	.phone {
-		fill: var(--color-ink);
-	}
-	.screen {
-		fill: var(--color-card);
-	}
-	.b1 {
-		fill: var(--color-brand-soft);
-	}
-	.b2 {
-		fill: var(--color-paper);
-	}
-	.hill {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		stroke-width: 1;
-	}
-	.b3 {
-		fill: var(--color-line);
-	}
-	.b5 {
-		fill: var(--color-line);
-		transition: fill 0.3s;
-	}
-	.b5.on {
-		fill: var(--color-brand);
-	}
-	.spin {
-		fill: none;
-		stroke: var(--color-brand);
-		stroke-width: 3;
-		stroke-linecap: round;
-		animation: spin 0.9s linear infinite;
-		transform-origin: 330px 236px;
-	}
-	.ready {
-		font-size: 12px;
-		font-weight: 700;
-		fill: var(--color-grass);
-	}
-	.q {
-		font-size: 16px;
-		font-weight: 800;
-		fill: var(--color-card);
-	}
-	.huh {
-		animation: pulse 2.4s ease-in-out infinite;
-	}
-	.status {
-		margin: 6px 0 0;
-		min-height: 2.8em;
-		text-align: center;
-		font-size: 13px;
-		line-height: 1.4;
-		color: var(--color-muted);
-	}
-	.play {
-		border-radius: 999px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+		padding: 8px 4px;
+		border-radius: 12px;
 		border: 1px solid var(--color-line);
 		background: var(--color-card);
-		padding: 8px 18px;
+		color: var(--color-ink);
+		transition:
+			border-color 0.2s ease,
+			background 0.2s ease;
+	}
+	.mode b {
 		font-size: 14px;
+	}
+	.mode span {
+		font-size: 10.5px;
+		line-height: 1.25;
+		color: var(--color-muted);
+		text-align: center;
+	}
+	.mode:enabled:hover {
+		border-color: var(--color-brand);
+	}
+	.mode.on {
+		border-color: var(--color-brand);
+		background: var(--color-brand-soft);
+	}
+	.mode:disabled {
+		opacity: 0.6;
+	}
+	.switch {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
+		cursor: pointer;
+	}
+	.switch input {
+		position: absolute;
+		opacity: 0;
+		width: 1px;
+		height: 1px;
+	}
+	.track {
+		position: relative;
+		width: 32px;
+		height: 18px;
+		border-radius: 999px;
+		background: var(--color-line);
+		transition: background 0.2s ease;
+	}
+	.knob {
+		position: absolute;
+		top: 2px;
+		left: 2px;
+		width: 14px;
+		height: 14px;
+		border-radius: 50%;
+		background: #fff;
+		box-shadow: 0 1px 3px rgba(22, 40, 60, 0.2);
+		transition: transform 0.2s ease;
+	}
+	.switch input:checked + .track {
+		background: var(--color-amber);
+	}
+	.switch input:checked + .track .knob {
+		transform: translateX(14px);
+	}
+	.switch input:focus-visible + .track {
+		outline: 2px solid var(--color-brand);
+		outline-offset: 2px;
+	}
+
+	.scene {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 4px;
+		width: min(94vw, 400px);
+	}
+	.actor {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 5px;
+		min-width: 0;
+	}
+	.phonewrap {
+		width: 140px;
+	}
+	.phonewrap :global(.phone) {
+		width: 140px;
+	}
+	.phonewrap :global(.screen) {
+		height: 190px;
+	}
+	.alabel {
+		font-size: 11.5px;
+		font-weight: 700;
+		color: var(--color-ink);
+	}
+	.clock {
+		font-size: 11px;
+		font-weight: 600;
+		color: var(--color-faint);
+		font-variant-numeric: tabular-nums;
+	}
+	.clock.run {
+		color: var(--color-amber);
+	}
+	.shelf {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		max-width: 110px;
+		font-size: 10px;
+		font-weight: 600;
+		color: var(--color-grass);
+		text-align: center;
+	}
+	.shelf i {
+		width: 7px;
+		height: 9px;
+		border-radius: 2px;
+		background: var(--color-grass-soft);
+		border: 1px solid var(--color-grass);
+	}
+	.wire {
+		position: relative;
+		flex: 1;
+		min-width: 50px;
+		max-width: 110px;
+		height: 30px;
+		align-self: center;
+		margin-bottom: 40px;
+	}
+	.line {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 50%;
+		height: 2px;
+		background: var(--color-line);
+		border-radius: 1px;
+	}
+	.pkt {
+		position: absolute;
+		top: 50%;
+		left: 0;
+		padding: 2px 6px;
+		border-radius: 6px;
+		background: var(--color-brand);
+		color: #fff;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 9.5px;
+		font-weight: 700;
+		transform: translate(0, -50%);
+		animation-name: up;
+		animation-timing-function: linear;
+		animation-fill-mode: forwards;
+	}
+	.pkt.down {
+		animation-name: down;
+	}
+	.pkt.js {
+		background: var(--color-amber);
+		padding: 4px 12px;
+	}
+	@keyframes up {
+		from {
+			left: 0;
+			transform: translate(0, -50%);
+		}
+		to {
+			left: 100%;
+			transform: translate(-100%, -50%);
+		}
+	}
+	@keyframes down {
+		from {
+			left: 100%;
+			transform: translate(-100%, -50%);
+		}
+		to {
+			left: 0;
+			transform: translate(0, -50%);
+		}
+	}
+	.caption {
+		margin: 0;
+		min-height: 1.4em;
+		max-width: min(94vw, 400px);
+		text-align: center;
+		font-size: 12.5px;
 		font-weight: 600;
 		color: var(--color-ink);
-		box-shadow: 0 4px 14px rgba(22, 40, 60, 0.07);
 	}
-	.play.on {
-		border-color: var(--color-brand);
-		color: var(--color-brand);
+	.score {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		width: min(94vw, 400px);
+		padding: 9px 12px;
+		border-radius: 14px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
 	}
-	@keyframes blink {
-		to {
-			opacity: 0.3;
-		}
+	.score b {
+		font-size: 11px;
+		color: var(--color-faint);
 	}
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
-		}
+	.srow {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		font-size: 11.5px;
 	}
-	@keyframes pulse {
-		0%,
-		100% {
-			opacity: 1;
-		}
-		50% {
-			opacity: 0.55;
-		}
+	.sl {
+		width: 32px;
+		font-weight: 700;
+		color: var(--color-ink);
+	}
+	.sbar {
+		flex: 1;
+		height: 8px;
+		border-radius: 4px;
+		background: var(--color-paper);
+		overflow: hidden;
+	}
+	.sbar i {
+		display: block;
+		height: 100%;
+		border-radius: 4px;
+		transition: width 0.4s ease;
+	}
+	.sbar i.csr {
+		background: var(--color-danger);
+	}
+	.sbar i.ssr {
+		background: var(--color-amber);
+	}
+	.sbar i.ssg {
+		background: var(--color-grass);
+	}
+	.sv {
+		min-width: 70px;
+		text-align: right;
+		color: var(--color-muted);
+		font-variant-numeric: tabular-nums;
+	}
+	.sv em {
+		display: block;
+		font-style: normal;
+		font-size: 9.5px;
+		color: var(--color-amber);
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.led.busy,
-		.spin,
-		.huh {
+		.pkt {
 			animation: none;
+			left: 50%;
+			transform: translate(-50%, -50%);
 		}
-		.b5 {
+		.mode,
+		.track,
+		.knob,
+		.sbar i {
 			transition: none;
 		}
 	}

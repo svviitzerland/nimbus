@@ -1,15 +1,6 @@
 import type { LessonText } from '../../types';
 
-export interface RelationsPanel {
-	tag?: string;
-	title: string;
-	/** May hold simple HTML like <b>. */
-	body: string;
-}
-
 export interface RelationsText extends LessonText {
-	/** One panel per scene of the guided visual (eight scenes). */
-	panels: RelationsPanel[];
 	/** Table names as they appear in SQL (identifiers, no spaces). */
 	customersTable: string;
 	ordersTable: string;
@@ -17,23 +8,23 @@ export interface RelationsText extends LessonText {
 	/** Column names as they appear in SQL. */
 	idCol: string;
 	nameCol: string;
-	/** The foreign keys in orders, pointing at customers and at products. */
-	customerKey: string;
-	productKey: string;
-	/** Headers of the messy version of orders, where names are copied in. */
-	copiedCustomer: string;
-	copiedProduct: string;
+	customerKey: string; // the foreign key in orders pointing at customers
+	productKey: string; // the foreign key in orders pointing at products
 	/** Row values, ids come from their position (1, 2, 3). */
-	customers: [string, string, string];
-	products: [string, string, string];
-	/** Heading over the joined answer. */
-	joinTitle: string;
-	/** Template with {who} and {what}, one line of the joined answer. */
-	bought: string;
-	rule: string;
-	/** The optional rename on the last scene, templates with {from} and {to}. */
-	rename: string;
-	renameBack: string;
-	/** The new name for the second customer. */
-	newName: string;
+	customers: string[];
+	products: string[];
+	/** Short how to lines shown above the tables, one per phase. */
+	hintPickKey: string;
+	hintPickTarget: string; // template with {key}
+	hintFollow: string;
+	hintJoined: string;
+	/** Shown when a target header is tapped before a key in orders. */
+	hintKeyFirst: string;
+	/** Shown in a link pill that is not made yet. */
+	notLinked: string;
+	joinBtn: string;
+	joinedTitle: string;
+	joinedCols: [string, string, string];
+	queryLabel: string;
+	headerHint: string; // accessible prefix for tappable column headers
 }

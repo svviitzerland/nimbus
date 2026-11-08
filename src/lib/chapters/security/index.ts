@@ -1,3 +1,14 @@
+import { risk } from './risk';
+import { mitm } from './mitm';
+import { cveCwe } from './cve-cwe';
+import { cvss } from './cvss';
+import { nist } from './nist';
+import { csrf } from './csrf';
+import { ssrf } from './ssrf';
+import { vulnerabilityManagement } from './vulnerability-management';
+import { owasp } from './owasp';
+import { accessControl } from './access-control';
+import { burpSuite } from './burp-suite';
 import type { Chapter } from '../types';
 import { cia } from './cia';
 import { threats } from './threats';
@@ -32,6 +43,7 @@ export const securityChapter: Chapter = {
 	title: { id: 'Keamanan', en: 'Security' },
 	lessons: [
 		cia,
+		risk,
 		threats,
 		hatColors,
 		hashing,
@@ -42,6 +54,7 @@ export const securityChapter: Chapter = {
 		signature,
 		blockchain,
 		sniffing,
+		mitm,
 		phishing,
 		bruteForce,
 		webAttacks,
@@ -51,7 +64,16 @@ export const securityChapter: Chapter = {
 		ids,
 		detection,
 		incident,
+		owasp,
+		nist,
+		cveCwe,
+		cvss,
+		vulnerabilityManagement,
 		pentest,
+		burpSuite,
+		accessControl,
+		csrf,
+		ssrf,
 		ctf
 	],
 	summary: {
@@ -61,6 +83,7 @@ export const securityChapter: Chapter = {
 			items: [
 				'<b>CIA triad</b>',
 				'<b>Threat modeling</b>',
+				'<b>OWASP, NIST, CVE, CWE, dan CVSS</b>',
 				'<b>Jenis jenis hacker</b>',
 				'<b>Password dan hashing</b>',
 				'<b>Apa itu MFA</b>',
@@ -91,6 +114,7 @@ export const securityChapter: Chapter = {
 			items: [
 				'<b>The CIA triad</b>',
 				'<b>Threat modeling</b>',
+				'<b>OWASP, NIST, CVE, CWE, and CVSS</b>',
 				'<b>Types of hackers</b>',
 				'<b>Passwords and hashing</b>',
 				'<b>What is MFA</b>',

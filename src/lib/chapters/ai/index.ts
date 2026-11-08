@@ -1,3 +1,4 @@
+import { dataLeakage } from './data-leakage';
 import type { Chapter } from '../types';
 import { whatIsAi } from './what-is-ai';
 import { data } from './data';
@@ -39,6 +40,7 @@ export const aiChapter: Chapter = {
 		supervised,
 		overfitting,
 		evaluation,
+		dataLeakage,
 		inference,
 		neuralNet,
 		learningLoop,

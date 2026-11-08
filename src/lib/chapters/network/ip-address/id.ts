@@ -3,68 +3,46 @@ import type { IpAddressText } from './types';
 export const id: IpAddressText = {
 	title: 'Alamat IP',
 	intro: [
-		'Setiap perangkat yang masuk ke jaringan dapat <b>alamat IP</b>. Bentuknya empat angka yang disambung titik, misalnya 192.168.1.5, dan gunanya memberi tahu data harus pergi ke mana.',
-		'Bayangkan surat. Kalau amplopnya nggak ada alamat, pak pos bingung mau mengantar ke mana. Data juga begitu. Data dikirim dalam potongan kecil yang disebut <b>paket</b>, dan tiap paket membawa alamat tujuannya.',
-		'Di dalam rumah, router membagikan alamat ke setiap HP dan laptop yang tersambung ke WiFi. Biasanya diawali 192.168, dan namanya <b>alamat privat</b>, karena cuma berlaku di dalam rumahmu.',
-		'Rumahmu sendiri punya satu alamat lagi, yaitu <b>alamat publik</b>. Penyedia internetmu memberikannya ke router, dan cuma alamat inilah yang bisa dilihat seluruh internet.',
-		'[ingat] Alamat IP itu alamat rumah. Alamat publik adalah nomor rumah di jalan, alamat privat adalah nomor kamar di dalamnya. Pak pos cuma tahu nomor rumah, yang hafal kamar kamarnya itu router.',
-		'Makanya tetanggamu boleh saja punya laptop dengan alamat 192.168.1.5 juga. Dua rumah bisa sama sama punya kamar nomor 5, dan orang di luar nggak pernah mencarimu pakai nomor kamar.',
-		'[fyi] Di cloud caranya sama. [[VPC|networking/vpc]] memberi server kamu alamat privat, dan cuma server yang menyambut pengunjung yang dapat alamat publik. Situs seperti nimbus.com juga punya alamat publik, dan [[DNS|networking/dns]] yang menerjemahkan namanya jadi angka itu.',
-		'Mau coba sendiri? Kirim surat dari internet, sekali ke nomor kamar dan sekali ke nomor rumah, lalu lihat masing masing sampai di mana.'
+		'Setiap perangkat yang masuk ke jaringan dapat <b>alamat IP</b>, empat angka yang disambung titik, misalnya 192.168.1.5. Anggap saja ini nomor rumah. Data butuh nomor ini supaya tahu harus ke mana.',
+		'Di rumah, router yang membagikan nomor ini ke setiap HP dan laptop yang tersambung ke WiFi. Biasanya diawali 192.168, dan namanya <b>alamat privat</b>, karena cuma berlaku di dalam rumahmu.',
+		'Tetanggamu mungkin juga punya laptop dengan alamat 192.168.1.5. Nggak masalah, sama seperti dua jalan berbeda yang sama sama punya rumah nomor 5. Orang di luar nggak pernah memakai nomor ini buat mencarimu.',
+		'Routernya sendiri punya dua wajah. Ke dalam, dia punya alamat privat. Ke luar, penyedia internetmu memberinya <b>alamat publik</b>, alamat yang bisa dilihat seluruh internet. Semua perangkat di rumahmu keluar lewat satu pintu itu.',
+		'[fyi] Di cloud idenya sama. [[VPC|networking/vpc]] memberi server kamu alamat privat, dan cuma server yang menyambut pengunjung yang dapat alamat publik. Situs seperti nimbus.com juga punya alamat publik, dan [[DNS|networking/dns]] yang menerjemahkan namanya jadi angka itu.',
+		'[ingat] IP mengidentifikasi interface dalam jaringan. Alamat privat digunakan dalam jaringan privat dan tidak dirutekan langsung di internet publik.',
+		'Ini sebuah rumah dengan HP, laptop, dan router. Ketuk satu satu buat melihat alamatnya, lalu biarkan orang asing di internet mencoba mengetuk mereka.'
 	],
 	reactions: {
-		lost: 'Nyasar di jalan. Jutaan rumah memakai nomor kamar 192.168 yang sama, jadi di internet alamat itu nggak menunjuk ke siapa pun. Alamat privat memang nggak bisa dijangkau dari luar.',
+		phone:
+			'HP kamu alamatnya 192.168.1.7. Router memberinya nomor itu begitu dia tersambung ke WiFi, dan besok bisa saja dapat nomor lain.',
+		laptop:
+			'Laptopnya 192.168.1.5, tetangga si HP. Keduanya diawali 192.168.1, tanda mereka tinggal di jaringan rumah yang sama.',
+		router:
+			'Router punya dua nomor. Ke dalam dia 192.168.1.1, pintu yang diketuk semua perangkat kalau mau keluar. Ke luar dia 36.85.120.14, pemberian penyedia internetmu, dan nomor inilah yang dilihat dunia.',
+		lost: 'Ketukannya nyasar entah ke mana. Jutaan rumah memakai nomor 192.168, jadi di internet alamat itu nggak menunjuk ke siapa pun. Alamat privat memang nggak bisa dijangkau dari luar.',
 		public:
-			'Sampai! Suratnya menemukan rumahmu lewat alamat publik, lalu router mengantarnya ke kamar yang benar. Apa saja yang boleh masuk itu urusan [[NAT|network/nat]] dan [[firewall|networking/firewall]].'
+			'Kali ini kena, tepat di routermu. Alamat publik itu satu satunya yang bisa ditemukan orang asing. Apa yang boleh masuk setelah itu jadi urusan [[NAT|network/nat]] dan [[firewall|networking/firewall]].'
 	},
-	steps: [
-		{
-			title: 'Alamat IP',
-			body: 'Empat angka yang disambung titik, masing masing dari 0 sampai 255. Setiap perangkat di jaringan punya satu, supaya data tahu harus ke mana.'
-		},
-		{
-			title: 'Paket',
-			body: 'Data dipotong jadi bagian kecil yang disebut <b>paket</b>. Tiap paket membawa alamat tujuannya, persis seperti amplop surat.'
-		},
-		{
-			title: 'Alamat privat',
-			body: 'Dibagikan oleh router, biasanya diawali <b>192.168</b>. Cuma berlaku di dalam rumahmu.'
-		},
-		{
-			title: 'Alamat publik',
-			body: 'Satu untuk satu rumah, diberikan ke router oleh penyedia internetmu. Nomor inilah yang dilihat internet.'
-		},
-		{
-			tag: 'Cara ingat',
-			title: 'Rumah dan kamar',
-			body: 'Alamat publik itu <b>nomor rumah</b> di jalan. Alamat privat itu <b>nomor kamar</b> di dalamnya.'
-		},
-		{
-			title: 'Dipakai di mana mana',
-			body: 'Hampir semua rumah memakai nomor 192.168 yang sama. Nggak apa apa, karena nomor itu nggak pernah keluar rumah.'
-		},
-		{
-			tag: 'FYI',
-			title: 'Di cloud juga sama',
-			body: 'Jaringan cloud juga memberi server alamat privat, dan cuma server yang melayani pengunjung yang dapat alamat publik.'
-		},
-		{
-			tag: 'Coba',
-			title: 'Kirim surat',
-			body: 'Pilih alamat di atas. Nomor kamar nyasar di luar, sedangkan nomor rumah sampai ke router, yang hafal semua kamarnya.'
-		}
-	],
 	internetLabel: 'Internet',
-	neighbourLabel: 'Tetangga',
+	strangerLabel: 'Orang asing',
+	houseLabel: 'Rumahmu',
+	phoneLabel: 'HP',
+	laptopLabel: 'Laptop',
+	routerLabel: 'Router',
 	ips: {
 		phone: '192.168.1.7',
 		laptop: '192.168.1.5',
 		routerIn: '192.168.1.1',
 		routerOut: '36.85.120.14'
 	},
-	streetTag: 'nomor rumah',
-	roomTag: 'nomor kamar',
-	sendLabel: 'Kirim surat ke',
+	insideTag: 'ke dalam',
+	outsideTag: 'ke luar',
+	privateTag: 'privat',
+	publicTag: 'publik',
+	tapHint: 'Ketuk HP, laptop, dan router',
+	knockPrompt: 'Pilih alamat yang mau diketuk orang asing',
+	knockLabel: 'Orang asing mengetuk',
+	lostNote: 'Nggak ada yang menjawab {ip} di internet',
+	hitNote: '{ip} langsung sampai ke routermu',
 	lostTag: 'nggak ada orang',
-	hitTag: 'sampai'
+	hitTag: 'tok tok'
 };

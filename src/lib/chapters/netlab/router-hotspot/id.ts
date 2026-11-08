@@ -10,7 +10,7 @@ export const id: RouterHotspotText = {
 		'Login pakai <b>voucher</b>, username dan password di secarik kertas, biasanya ada batas waktunya. Beli kopi, dapat WiFi satu jam. Di sini terminalnya nyetak satu voucher dengan <b>limit-uptime=1h</b>.',
 		'Tamu ngetik voucher di halaman login, dan internet kebuka. Router mulai ngitung mundur satu jam itu sendiri, dan nyatat tamunya sebagai <b>active</b>.',
 		'Sejam kemudian (udah kita percepat), waktunya habis. Router balikin HP ke halaman login dengan sendirinya. Nggak ada staf yang perlu jalan ke sana buat matiin apa apa.',
-		'[ingat] Voucher itu kayak tiket bioskop. Nggak punya tiket, nggak dapat kursi, dan begitu filmnya selesai kamu keluar, senyaman apa pun kursinya.',
+		'[ingat] Hotspot memeriksa login dan batas pemakaian pengguna. Terhubung ke WiFi belum tentu sudah mendapat izin mengakses internet.',
 		'[fyi] Hotspot diam diam make ulang yang udah kamu bangun sebelumnya. Dia jalanin [[DHCP server|netlab/router-ip]] sendiri buat alamat tamu dan aturan [[masquerade|netlab/router-nat]] biar tamu bisa online. Wizardnya cuma ngerjain semuanya sekaligus.',
 		'Giliran kamu. Lihat daftar voucher dan berapa jam yang udah kepakai pakai <b>/ip hotspot user print</b>.'
 	],
@@ -24,12 +24,12 @@ export const id: RouterHotspotText = {
 	},
 	steps: [
 		{
-			title: 'WiFi buat tamu',
+			title: 'WiFi untuk tamu',
 			body: 'Tamu butuh internet, tapi bukan jaringan kantor, dan bukan selamanya.'
 		},
 		{
 			tag: 'ether3',
-			title: 'Pintu terpisah',
+			title: 'Interface khusus tamu',
 			body: 'Access point tamu punya port sendiri dan jaringan sendiri, <b>10.5.50.x</b>, pisah dari kantor.'
 		},
 		{
@@ -39,34 +39,34 @@ export const id: RouterHotspotText = {
 		},
 		{
 			tag: 'hotspot setup',
-			title: 'Satu wizard',
+			title: 'Menyiapkan hotspot',
 			body: 'Wizardnya milih port, alamat buat tamu, dan nama halaman login, lalu bikin semuanya.'
 		},
 		{
 			tag: 'user',
-			title: 'Voucher',
+			title: 'Akun voucher',
 			body: '<b>User</b> hotspot itu voucher. <b>limit-uptime=1h</b> artinya berlaku buat satu jam online.'
 		},
 		{
 			tag: 'active',
-			title: 'Online',
+			title: 'Pengguna yang terhubung',
 			body: 'Setelah login, tamu muncul di daftar <b>active</b> lengkap dengan sisa waktu vouchernya.'
 		},
 		{
-			title: 'Waktu habis',
+			title: 'Batas waktu pemakaian',
 			body: 'Begitu jamnya habis, router ngeluarin tamu dan halaman login muncul lagi.'
 		},
 		{
 			tag: 'Cara ingat',
-			title: 'Tiket bioskop',
+			title: 'Login dan masa berlaku',
 			body: 'Nggak ada voucher, nggak ada WiFi. Waktu habis, balik ke halaman login.'
 		},
 		{
-			title: 'Dari kepingan lama',
+			title: 'DHCP, NAT, dan hotspot',
 			body: 'Pool, DHCP server, dan aturan masquerade, kepingan yang sama dengan lab sebelumnya.'
 		},
 		{
-			title: 'Giliran kamu',
+			title: 'Coba login hotspot',
 			body: '<b>uptime</b> itu berapa lama voucher udah dipakai, <b>limit-uptime</b> itu berapa lama boleh dipakai.'
 		}
 	],
