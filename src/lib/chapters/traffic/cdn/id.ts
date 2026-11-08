@@ -7,7 +7,8 @@ export const id: CdnText = {
 		'Padahal banyak isi situs sama persis untuk semua orang, misalnya gambar, logo, dan video. Daripada tiap orang ambil jauh jauh ke Amerika, simpan salinannya di titik dekat pengunjung. Itu namanya <b>caching</b>. Pertama kali ditanya, titik itu ambil dulu dari server asal, setelah itu salinannya disimpan di situ.',
 		'<b>CDN</b> (Content Delivery Network) itu caching yang sama, cuma disebar ke seluruh dunia, jaringan titik penyimpan salinan di ratusan kota. Pengunjung otomatis dilayani titik terdekat, kamu nggak perlu milih kota satu satu.',
 		'Sebarannya tergantung penyedia. Cloudflare ada di 300 lebih kota, CloudFront punya AWS 600 lebih titik, penyedia lain beda lagi. Kota besar hampir pasti kebagian, daerah terpencil dilayani titik terdekat yang agak jauh. Dan ada harganya, CDN itu layanan berbayar, jadi tagihanmu nambah.',
-		'Di peta ini CDNnya masih mati, semua pengunjung harus jauh jauh ke server asal. Klik beberapa orang dan rasakan lambatnya, lalu nyalakan CDN, klik lagi, dan lihat titik hijau terdekat yang mengirim salinannya.'
+		'Di peta ini CDNnya masih mati, semua pengunjung harus jauh jauh ke server asal. Klik beberapa orang dan rasakan lambatnya, lalu nyalakan CDN, klik lagi, dan lihat titik hijau terdekat yang mengirim salinannya.',
+		'[ingat] CDN mendekatkan salinan konten. Cache yang dekat mengurangi perjalanan ke server asal.'
 	],
 	reactions: {
 		origin:

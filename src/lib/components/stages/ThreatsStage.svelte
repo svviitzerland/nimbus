@@ -1,794 +1,454 @@
 <script lang="ts">
-	// Guided threat modeling. One house stands for nimbus.com (front door is the login, the window
-	// is old software, the back gate is a partner login, the key under the pot is the backup).
-	// A burglar skips the big lock and tries the other spots, the owner walks the same round with
-	// a magnifier, and the Target story of 2013 plays out through the back gate to the registers.
-	// On the last beat the learner may tap a spot to read its threat and fix.
-	import { untrack } from 'svelte';
-	import { fade } from 'svelte/transition';
-	import type { StageProps } from '$lib/chapters/types';
+	import { SvelteSet } from 'svelte/reactivity';
+	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { ThreatSpot, ThreatsText } from '$lib/chapters/security/threats/types';
-	import GuideWrap from './secbasics/GuideWrap.svelte';
-	import { startGuided } from './secbasics/guided.svelte';
-	import { prefersReducedMotion, runSeq, type SeqStep } from './webguide/seq';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as ThreatsText);
-	startGuided(() => {
-		onshow?.(true);
-		oncomplete?.();
-	});
 
-	const last = $derived(tx.steps.length - 1);
-	let peek = $state<number | null>(null);
-	let picked = $state<ThreatSpot | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-		picked = null;
-	});
-	const active = $derived(Math.max(0, Math.min(peek ?? beat, last)));
-
-	type Scene =
-		| 'burglar'
-		| 'model'
-		| 'questions'
-		| 'map'
-		| 'vocab'
-		| 'target1'
-		| 'target2'
-		| 'ingat'
-		| 'stride'
-		| 'try';
-	const SCENES: Scene[] = [
-		'burglar',
-		'model',
-		'questions',
-		'map',
-		'vocab',
-		'target1',
-		'target2',
-		'ingat',
-		'stride',
-		'try'
+	// Where each spot sits on the map, in percent of the map box.
+	const spots: { id: ThreatSpot; x: number; y: number }[] = [
+		{ id: 'phone', x: 14, y: 12 },
+		{ id: 'wifi', x: 50, y: 12 },
+		{ id: 'login', x: 86, y: 12 },
+		{ id: 'admin', x: 14, y: 45 },
+		{ id: 'server', x: 50, y: 45 },
+		{ id: 'db', x: 86, y: 45 },
+		{ id: 'vendor', x: 14, y: 76 },
+		{ id: 'backup', x: 86, y: 76 }
 	];
-	const scene = $derived(SCENES[active] ?? 'burglar');
+	const pos = Object.fromEntries(spots.map((s) => [s.id, s])) as unknown as Record<
+		ThreatSpot,
+		{ x: number; y: number }
+	>;
+	// The wires between the parts of the shop.
+	const links: [ThreatSpot, ThreatSpot][] = [
+		['phone', 'wifi'],
+		['wifi', 'login'],
+		['login', 'server'],
+		['admin', 'server'],
+		['server', 'db'],
+		['vendor', 'server'],
+		['db', 'backup']
+	];
+	const NEED = 3;
 
-	const SPOTS: ThreatSpot[] = ['door', 'window', 'gate', 'pot'];
-	const AT: Record<ThreatSpot, { x: number; y: number; stand: number }> = {
-		door: { x: 210, y: 200, stand: 252 },
-		window: { x: 156, y: 146, stand: 156 },
-		gate: { x: 378, y: 214, stand: 344 },
-		pot: { x: 70, y: 214, stand: 106 }
-	};
-	const LABEL_Y: Record<ThreatSpot, number> = { door: 160, window: 116, gate: 180, pot: 186 };
+	const marked = new SvelteSet<ThreatSpot>();
+	let selected = $state<ThreatSpot | null>(null);
+	let compared = $state(false);
+	let completed = false;
 
-	let who = $state<ThreatSpot>('door');
-	let seen = $state<ThreatSpot[]>([]);
-	let ticks = $state(0);
-	let reduce = $state(false);
-	$effect(() => {
-		reduce = prefersReducedMotion();
-	});
-
-	function round(list: ThreatSpot[], ms: number, mark: boolean): SeqStep[] {
-		return list.map(
-			(sp, k): SeqStep => [
-				ms,
-				() => {
-					who = sp;
-					if (mark) seen = k === 0 ? [sp] : [...seen, sp];
-				}
-			]
-		);
+	function tap(id: ThreatSpot) {
+		selected = id;
+		if (compared || marked.has(id)) return;
+		marked.add(id);
+		if (id === 'vendor') onstate?.('vendor');
+		else if (id === 'backup') onstate?.('backup');
+		else if (marked.size === 1) onstate?.('first');
 	}
 
-	function play(sc: Scene, still: boolean) {
-		seen = [];
-		ticks = 0;
-		who = 'door';
-		if (sc === 'burglar' || sc === 'model') {
-			if (still) {
-				who = 'gate';
-				seen = sc === 'model' ? [...SPOTS] : [];
-				return;
-			}
-			return runSeq(round(['door', 'window', 'gate', 'pot'], 1700, sc === 'model'), true);
+	function compare() {
+		compared = true;
+		const all = marked.size === spots.length;
+		onstate?.(all ? 'compareAll' : 'compareSome');
+		selected = all ? selected : (spots.find((s) => !marked.has(s.id))?.id ?? null);
+		if (!completed) {
+			completed = true;
+			oncomplete?.();
 		}
-		if (sc === 'questions') {
-			if (still) {
-				ticks = 4;
-				return;
-			}
-			return runSeq(
-				[0, 1, 2, 3, 4].map((n): SeqStep => [n === 4 ? 2600 : 1100, () => (ticks = n)]),
-				true
-			);
-		}
-		if (sc === 'target1') {
-			if (still) {
-				who = 'gate';
-				return;
-			}
-			return runSeq(
-				[
-					[1500, () => (who = 'door')],
-					[3600, () => (who = 'gate')]
-				],
-				true
-			);
-		}
-		if (sc === 'vocab') {
-			// crack, then the burglar pries at it, then the patch, then the CVE number
-			if (still) {
-				ticks = 4;
-				who = 'pot';
-				return;
-			}
-			return runSeq(
-				[
-					[700, () => ((ticks = 0), (who = 'door'))],
-					[1500, () => (ticks = 1)],
-					[1700, () => ((ticks = 2), (who = 'window'))],
-					[1700, () => ((ticks = 3), (who = 'pot'))],
-					[3200, () => (ticks = 4)]
-				],
-				true
-			);
-		}
-		if (sc === 'target2') who = 'gate';
 	}
 
-	$effect(() => {
-		const sc = scene;
-		const still = reduce;
-		return untrack(() => play(sc, still));
-	});
-
-	function pick(sp: ThreatSpot) {
-		peek = null;
-		picked = sp;
-		onstate?.(sp);
+	function reset() {
+		marked.clear();
+		selected = null;
+		compared = false;
 	}
 
-	type Ring = 'none' | 'look' | 'weak' | 'strong' | 'pick';
-	function ringOf(sp: ThreatSpot): Ring {
-		if (scene === 'burglar') return who === sp ? 'look' : 'none';
-		if (scene === 'model') return seen.includes(sp) ? 'look' : 'none';
-		if (scene === 'target1' || scene === 'target2') return sp === 'gate' ? 'weak' : 'none';
-		if (scene === 'vocab')
-			return sp !== 'window' || ticks < 1 ? 'none' : ticks >= 3 ? 'strong' : 'weak';
-		if (scene === 'ingat') return sp === 'door' ? 'strong' : sp === 'gate' ? 'weak' : 'look';
-		if (scene === 'try') return picked === sp ? 'pick' : 'look';
-		return 'none';
-	}
-	const figure = $derived(
-		scene === 'burglar' ||
-			scene === 'target1' ||
-			scene === 'target2' ||
-			(scene === 'vocab' && ticks >= 1)
-			? 'burglar'
-			: scene === 'model' || scene === 'questions'
-				? 'owner'
-				: null
-	);
-	const standX = $derived(AT[who].stand);
-	const STRIDE = ['S', 'T', 'R', 'I', 'D', 'E'];
-	const VOCAB = ['vuln', 'exploit', 'patch', 'cve'] as const;
+	const missed = $derived(spots.filter((s) => !marked.has(s.id)).map((s) => s.id));
 </script>
 
-{#snippet spotRing(sp: ThreatSpot)}
-	<circle cx={AT[sp].x} cy={AT[sp].y} r="27" class="ring {ringOf(sp)}" />
+{#snippet icon(id: ThreatSpot)}
+	<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		{#if id === 'phone'}
+			<rect x="7" y="3" width="10" height="18" rx="2.5" stroke="currentColor" stroke-width="1.8" />
+			<path d="M11 18h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+		{:else if id === 'wifi'}
+			<path
+				d="M3.5 9.5a12 12 0 0 1 17 0M6.5 12.8a8 8 0 0 1 11 0M9.5 16a4 4 0 0 1 5 0"
+				stroke="currentColor"
+				stroke-width="1.8"
+				stroke-linecap="round"
+			/>
+			<circle cx="12" cy="19" r="1.3" fill="currentColor" />
+		{:else if id === 'login'}
+			<rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" stroke-width="1.8" />
+			<path d="M7 10h10M7 14h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+		{:else if id === 'server'}
+			<rect x="4" y="3.5" width="16" height="7" rx="2" stroke="currentColor" stroke-width="1.8" />
+			<rect x="4" y="13.5" width="16" height="7" rx="2" stroke="currentColor" stroke-width="1.8" />
+			<circle cx="8" cy="7" r="1.1" fill="currentColor" />
+			<circle cx="8" cy="17" r="1.1" fill="currentColor" />
+		{:else if id === 'db'}
+			<ellipse cx="12" cy="6" rx="7" ry="2.8" stroke="currentColor" stroke-width="1.8" />
+			<path
+				d="M5 6v12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V6M5 12c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8"
+				stroke="currentColor"
+				stroke-width="1.8"
+			/>
+		{:else if id === 'admin'}
+			<rect x="5" y="5" width="14" height="10" rx="1.8" stroke="currentColor" stroke-width="1.8" />
+			<path d="M3 18.5h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+		{:else if id === 'vendor'}
+			<path
+				d="M14.5 5.5a4 4 0 0 0 4.9 4.9L20 11l-9 9a2.1 2.1 0 0 1-3-3l9-9 .6.6"
+				stroke="currentColor"
+				stroke-width="1.8"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			/>
+		{:else}
+			<rect x="4" y="6" width="16" height="12" rx="2.5" stroke="currentColor" stroke-width="1.8" />
+			<circle cx="12" cy="12" r="2.6" stroke="currentColor" stroke-width="1.8" />
+		{/if}
+	</svg>
 {/snippet}
 
-{#snippet visual(s: number)}
-	{@const sc = SCENES[s] ?? 'burglar'}
-	<div class="vis">
-		<div class="slot">
-			{#if sc === 'target1' || sc === 'target2'}
-				<p class="news" in:fade={{ duration: 240 }}>
-					<span class="news-tag">{tx.news.tag}</span>
-					<span class="news-head">{tx.news.head}</span>
-				</p>
-			{:else if sc === 'vocab'}
-				<div class="vocab">
-					<div class="words">
-						{#each VOCAB as w, k (w)}
-							<span class="word" class:on={ticks > k} class:fix={w === 'patch'}>{tx.vocab[w]}</span>
-						{/each}
-					</div>
-					<p class="cve" class:on={ticks >= 4}>{tx.cveExample}</p>
-				</div>
-			{:else if sc === 'try'}
-				{#if picked}
-					{#key picked}
-						<div class="info" in:fade={{ duration: 200 }}>
-							<b>{tx.spots[picked].name}</b>
-							<span><em>{tx.threatLabel}.</em> {tx.spots[picked].threat}</span>
-							<span><em>{tx.fixLabel}.</em> {tx.spots[picked].fix}</span>
-						</div>
-					{/key}
-				{:else}
-					<p class="hint">{tx.tapHint}</p>
-				{/if}
-			{/if}
-		</div>
-
-		<svg viewBox="0 0 420 272" class="scene" role="img" aria-label={tx.title}>
-			<line x1="8" y1="236" x2="412" y2="236" class="ground" />
-
-			<!-- the house -->
-			<polygon points="96,104 210,40 324,104" class="roof" />
-			<rect x="110" y="104" width="200" height="132" class="wall" />
-			<rect x="132" y="126" width="48" height="40" rx="3" class="win" />
-			<line x1="156" y1="126" x2="156" y2="166" class="frame" />
-			<line x1="132" y1="146" x2="180" y2="146" class="frame" />
-			<rect x="244" y="126" width="48" height="40" rx="3" class="win" />
-			<line x1="268" y1="126" x2="268" y2="166" class="frame" />
-			<line x1="244" y1="146" x2="292" y2="146" class="frame" />
-			{#if sc === 'vocab'}
-				{#if ticks >= 1}
-					<path d="M137 129 L146 136 L141 139 L152 145" class="crack" />
-				{/if}
-				{#if ticks >= 3}
-					<g class="patch" in:fade={{ duration: 300 }}>
-						<rect x="134" y="128" width="20" height="16" rx="2.5" />
-						<path d="M139 136 l3 3 l6 -6" />
-					</g>
-				{/if}
-			{/if}
-			<rect x="190" y="168" width="40" height="68" rx="3" class="door" />
-			<g class="padlock">
-				<path d="M204 194 v-5 a6 6 0 0 1 12 0 v5" />
-				<rect x="200" y="193" width="20" height="16" rx="3" />
-			</g>
-
-			<!-- the cash registers, inside, for the Target story -->
-			{#if sc === 'target2'}
-				<g class="register">
-					<rect x="248" y="190" width="44" height="30" rx="4" />
-					<rect x="254" y="195" width="32" height="9" rx="2" class="reg-screen" />
-					<text x="270" y="232" class="reg-label">{tx.registerLabel}</text>
-				</g>
-				<path d="M378 210 C 350 170, 310 170, 292 200" class="trail" />
-				{#each [0, 1, 2] as k (k)}
-					<g transform="translate(272 188)">
-						<g class="card" style="animation-delay:{k * 0.8}s">
-							<rect x="-9" y="-6" width="18" height="12" rx="2" />
-							<line x1="-9" y1="-2" x2="9" y2="-2" />
-						</g>
-					</g>
-				{/each}
-				<!-- inside the roof, where the copied cards fly to, clear of the roof line -->
-				<text x="232" y="94" class="cards-label">{tx.cardsLabel}</text>
-			{/if}
-
-			<!-- the fence and the back gate -->
-			{#each [330, 346, 400, 412] as x (x)}
-				<rect x={x - 3} y="196" width="6" height="40" rx="2" class="post" />
-			{/each}
-			<line x1="327" y1="208" x2="360" y2="208" class="rail" />
-			<line x1="396" y1="208" x2="414" y2="208" class="rail" />
-			<rect x="360" y="192" width="36" height="44" rx="3" class="gate" />
-			<line x1="360" y1="214" x2="396" y2="214" class="frame" />
-
-			<!-- the flower pot and the key under it -->
-			<path d="M80 172 q-6 -14 4 -22" class="stem" />
-			<circle cx="84" cy="146" r="7" class="petal" />
-			<circle cx="84" cy="146" r="3" class="petal-mid" />
-			<path d="M54 202 H90 L85 236 H59 Z" class="pot" />
-			<g class="key">
-				<circle cx="94" cy="232" r="3.2" />
-				<line x1="97" y1="232" x2="106" y2="232" />
-			</g>
-
-			<!-- the spots -->
-			{#each SPOTS as sp (sp)}
-				{#if sc === 'try'}
-					<g
-						class="tap"
-						role="button"
-						tabindex="0"
-						aria-label={tx.spots[sp].name}
-						onclick={() => pick(sp)}
-						onkeydown={(e) => {
-							if (e.key === 'Enter' || e.key === ' ') {
-								e.preventDefault();
-								pick(sp);
-							}
-						}}
-					>
-						{@render spotRing(sp)}
-					</g>
-				{:else}
-					{@render spotRing(sp)}
-				{/if}
-			{/each}
-
-			<!-- the nimbus.com meaning of each spot -->
-			{#if sc === 'map'}
-				{#each SPOTS as sp, k (sp)}
-					{@const w = tx.spots[sp].place.length * 6 + 16}
-					<g class="place" style="animation-delay:{k * 0.5}s">
-						<rect
-							x={Math.min(Math.max(AT[sp].x - w / 2, 4), 416 - w)}
-							y={LABEL_Y[sp] - 12}
-							width={w}
-							height="17"
-							rx="8.5"
-						/>
-						<text x={Math.min(Math.max(AT[sp].x, 4 + w / 2), 416 - w / 2)} y={LABEL_Y[sp]}
-							>{tx.spots[sp].place}</text
-						>
-					</g>
-				{/each}
-			{/if}
-
-			<!-- the clipboard with the four questions -->
-			{#if sc === 'questions'}
-				<g class="clip">
-					<rect x="340" y="20" width="66" height="84" rx="7" class="clip-board" />
-					<rect x="360" y="15" width="26" height="9" rx="3" class="clip-top" />
-					{#each [0, 1, 2, 3] as k (k)}
-						<rect x="348" y={34 + k * 17} width="10" height="10" rx="2.5" class="box" />
-						{#if ticks > k}
-							<path d="M350 {39 + k * 17} l2.5 2.5 l4.5 -5" class="tick" />
-						{/if}
-						<rect x="364" y={37 + k * 17} width="34" height="4" rx="2" class="line" />
-					{/each}
-				</g>
-			{/if}
-
-			<!-- the person walking around -->
-			{#if figure}
-				<g class="walker {figure}" style="transform: translate({standX}px, 236px)">
-					<circle cx="0" cy="-38" r="8" class="head" />
-					{#if figure === 'burglar'}
-						<rect x="-8" y="-41" width="16" height="4.5" rx="2" class="mask" />
-					{/if}
-					<path d="M-10 0 V-18 a10 10 0 0 1 20 0 V0 Z" class="body" />
-					{#if scene === 'vocab' && ticks === 2}
-						<line x1="9" y1="-24" x2="-2" y2="-66" class="bar" />
-					{/if}
-					{#if figure === 'owner'}
-						<circle cx="16" cy="-24" r="6" class="glass" />
-						<line x1="11" y1="-19" x2="6" y2="-13" class="glass-h" />
-					{/if}
-				</g>
-			{/if}
-
-			<!-- STRIDE -->
-			{#if sc === 'stride'}
-				{#each STRIDE as l, k (k)}
-					<g class="letter" style="animation-delay:{k * 0.25}s">
-						<rect x={104 + k * 36} y="244" width="28" height="24" rx="7" />
-						<text x={118 + k * 36} y="261">{l}</text>
-					</g>
-				{/each}
-			{/if}
-		</svg>
+<div class="wrap">
+	<div class="btns">
+		{#if !compared}
+			<CallToActionButton onclick={compare} disabled={marked.size < NEED}>
+				{tx.compareBtn}
+			</CallToActionButton>
+		{:else}
+			<button type="button" class="ghost" onclick={reset}>{tx.resetBtn}</button>
+		{/if}
 	</div>
-{/snippet}
+	<p class="hint">
+		{#if compared}
+			{tx.score.replace('{n}', String(marked.size)).replace('{total}', String(spots.length))}
+		{:else if marked.size < NEED}
+			{marked.size === 0 ? tx.tapHint : tx.compareNeed.replace('{n}', String(NEED - marked.size))}
+		{:else}
+			{tx.tapHint}
+		{/if}
+	</p>
 
-<GuideWrap steps={tx.steps} {active} onselect={(k) => (peek = k)} {visual} />
+	<!-- the shop map -->
+	<div class="map">
+		<svg class="wires" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+			{#each links as [a, b] (a + b)}
+				<line
+					x1={pos[a].x}
+					y1={pos[a].y}
+					x2={pos[b].x}
+					y2={pos[b].y}
+					stroke="var(--color-line)"
+					stroke-width="2"
+					vector-effect="non-scaling-stroke"
+				/>
+			{/each}
+		</svg>
+		<span class="shopzone"><span>nimbus.com</span></span>
+		{#each spots as s (s.id)}
+			<button
+				type="button"
+				class="spot"
+				class:marked={marked.has(s.id)}
+				class:missed={compared && !marked.has(s.id)}
+				class:sel={selected === s.id}
+				style="left:{s.x}%; top:{s.y}%"
+				onclick={() => tap(s.id)}
+			>
+				<span class="disc">
+					{@render icon(s.id)}
+					{#if marked.has(s.id)}<span class="badge pop">!</span>{/if}
+				</span>
+				<span class="sname">{tx.spots[s.id].name}</span>
+			</button>
+		{/each}
+	</div>
+
+	<!-- what the selected spot means -->
+	<div class="panel">
+		{#if selected}
+			{#key selected}
+				<div class="pin pop">
+					<p class="ptitle">
+						{tx.spots[selected].name}
+						{#if compared}
+							<span class="ptag" class:miss={!marked.has(selected)}
+								>{marked.has(selected) ? tx.foundTag : tx.missedTag}</span
+							>
+						{/if}
+					</p>
+					<p class="line"><b>{tx.threatLabel}</b>{tx.spots[selected].threat}</p>
+					{#if compared}
+						<p class="line fix"><b>{tx.fixLabel}</b>{tx.spots[selected].fix}</p>
+					{/if}
+				</div>
+			{/key}
+		{/if}
+		{#if compared && missed.length}
+			<div class="missed">
+				<span class="mlabel">{tx.missedLabel}</span>
+				{#each missed as m (m)}
+					<button type="button" class="mchip" onclick={() => (selected = m)}
+						>{tx.spots[m].name}</button
+					>
+				{/each}
+			</div>
+		{/if}
+	</div>
+</div>
 
 <style>
-	.vis {
+	.wrap {
 		display: flex;
-		width: 100%;
+		width: min(94vw, 380px);
+		max-height: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 4px;
+		gap: 8px;
+		overflow-y: auto;
 	}
-	.slot {
+	.btns {
 		display: flex;
-		min-height: 56px;
-		width: 100%;
+		min-height: 44px;
 		align-items: center;
 		justify-content: center;
 	}
-	.news,
-	.info {
-		margin: 0;
-		max-width: 360px;
-		border-left: 3px solid var(--color-danger);
-		border-radius: 6px;
+	.btns :global(.cta) {
+		padding: 10px 18px;
+		font-size: 13px;
+	}
+	.ghost {
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
 		background: var(--color-card);
-		padding: 6px 12px;
-		box-shadow: 0 6px 16px rgba(22, 40, 60, 0.08);
-		line-height: 1.35;
-	}
-	.info {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		border-left-color: var(--color-brand);
-		font-size: 12.5px;
 		color: var(--color-muted);
-	}
-	.info b {
-		font-family: var(--font-display);
-		font-size: 14px;
-		color: var(--color-ink);
-	}
-	.info em {
-		font-style: normal;
+		font-size: 12px;
 		font-weight: 700;
-		color: var(--color-ink);
+		padding: 7px 14px;
 	}
-	.news-tag {
-		display: block;
-		font-size: 10.5px;
-		font-weight: 800;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: var(--color-danger);
-	}
-	.news-head {
-		font-family: var(--font-display);
-		font-size: 14px;
-		font-weight: 600;
+	.ghost:hover {
+		border-color: var(--color-brand);
 		color: var(--color-ink);
 	}
 	.hint {
-		margin: 0;
-		font-size: 12.5px;
-		font-weight: 700;
+		min-height: 1.4em;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.map {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 10 / 8;
+		flex: none;
+		border-radius: 16px;
+		border: 1px solid var(--color-line);
+		background: var(--color-paper);
+	}
+	.wires {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+	}
+	.shopzone {
+		position: absolute;
+		left: 30%;
+		right: 3%;
+		top: 30%;
+		bottom: 30%;
+		border-radius: 14px;
+		background: var(--color-brand-soft);
+		opacity: 0.6;
+	}
+	.shopzone span {
+		position: absolute;
+		left: 8px;
+		bottom: 4px;
+		font-size: 9px;
+		font-weight: 800;
 		color: var(--color-brand);
 	}
-	.scene {
-		width: 100%;
-		max-width: 420px;
-		height: auto;
-		overflow: visible;
-	}
-
-	.ground {
-		stroke: var(--color-line);
-		stroke-width: 3;
-		stroke-linecap: round;
-	}
-	.roof {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-		stroke-width: 2;
-		stroke-linejoin: round;
-	}
-	.wall {
-		fill: var(--color-card);
-		stroke: var(--color-muted);
-		stroke-width: 2;
-	}
-	.win {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-muted);
-		stroke-width: 2;
-	}
-	.frame {
-		stroke: var(--color-muted);
-		stroke-width: 1.5;
-	}
-	.door {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 2;
-	}
-	.padlock path {
-		fill: none;
-		stroke: var(--color-ink);
-		stroke-width: 2.4;
-	}
-	.padlock rect {
-		fill: var(--color-amber);
-		stroke: var(--color-ink);
-		stroke-width: 1.5;
-	}
-	.post {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-	}
-	.rail {
-		stroke: var(--color-amber);
-		stroke-width: 3;
-	}
-	.gate {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 2;
-	}
-	.stem {
-		fill: none;
-		stroke: var(--color-grass);
-		stroke-width: 2.5;
-		stroke-linecap: round;
-	}
-	.petal {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-		stroke-width: 1.5;
-	}
-	.petal-mid {
-		fill: var(--color-amber);
-	}
-	.pot {
-		fill: var(--color-amber);
-		opacity: 0.85;
-	}
-	.key circle,
-	.key line {
-		fill: none;
-		stroke: var(--color-ink);
-		stroke-width: 1.8;
-		stroke-linecap: round;
-	}
-
-	.ring {
-		fill: transparent;
-		stroke: transparent;
-		stroke-width: 3;
-		transition:
-			stroke 0.35s,
-			fill 0.35s;
-	}
-	.ring.look {
-		stroke: var(--color-amber);
-		fill: color-mix(in srgb, var(--color-amber) 10%, transparent);
-	}
-	.ring.weak {
-		stroke: var(--color-danger);
-		fill: color-mix(in srgb, var(--color-danger) 10%, transparent);
-	}
-	.ring.strong {
-		stroke: var(--color-grass);
-	}
-	.ring.pick {
-		stroke: var(--color-brand);
-		fill: color-mix(in srgb, var(--color-brand) 12%, transparent);
-	}
-	.tap {
-		cursor: pointer;
-		outline: none;
-	}
-	.tap:hover .ring,
-	.tap:focus-visible .ring {
-		stroke: var(--color-brand);
-	}
-
-	.place rect {
-		fill: var(--color-brand);
-	}
-	.place text {
-		font-size: 9.5px;
-		font-weight: 700;
-		text-anchor: middle;
-		fill: #fff;
-	}
-	.clip-board {
-		fill: var(--color-card);
-		stroke: var(--color-muted);
-		stroke-width: 1.8;
-	}
-	.clip-top {
-		fill: var(--color-muted);
-	}
-	.box {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-		stroke-width: 1.4;
-	}
-	.line {
-		fill: var(--color-line);
-	}
-	.tick {
-		fill: none;
-		stroke: var(--color-grass);
-		stroke-width: 2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-	.register rect {
-		fill: var(--color-card);
-		stroke: var(--color-ink);
-		stroke-width: 1.8;
-	}
-	.register .reg-screen {
-		fill: var(--color-grass-soft);
-		stroke-width: 1;
-	}
-	.reg-label {
-		font-size: 9px;
-		font-weight: 700;
-		text-anchor: middle;
-		fill: var(--color-ink);
-	}
-	.trail {
-		fill: none;
-		stroke: var(--color-danger);
-		stroke-width: 2.5;
-		stroke-linecap: round;
-	}
-	.card rect {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-		stroke-width: 1.4;
-	}
-	.card line {
-		stroke: var(--color-danger);
-		stroke-width: 2;
-	}
-	.card {
-		opacity: 0;
-	}
-	.cards-label {
-		font-size: 11px;
-		font-weight: 800;
-		text-anchor: middle;
-		fill: var(--color-danger);
-	}
-
-	.walker {
-		transition: transform 1.1s cubic-bezier(0.45, 0, 0.3, 1);
-	}
-	.walker .head {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-ink);
-		stroke-width: 1.8;
-	}
-	.walker .body {
-		fill: var(--color-ink);
-	}
-	.walker .mask {
-		fill: var(--color-ink);
-	}
-	.walker.owner .body {
-		fill: var(--color-brand);
-	}
-	.glass {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-ink);
-		stroke-width: 2;
-	}
-	.glass-h {
-		stroke: var(--color-ink);
-		stroke-width: 2.5;
-		stroke-linecap: round;
-	}
-	.vocab {
+	.spot {
+		position: absolute;
+		z-index: 1;
 		display: flex;
+		width: 76px;
 		flex-direction: column;
 		align-items: center;
-		gap: 5px;
+		gap: 3px;
+		transform: translate(-50%, -20px);
 	}
-	.words {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 6px;
-	}
-	.word {
+	.disc {
+		position: relative;
+		display: grid;
+		place-items: center;
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
 		border: 1.5px solid var(--color-line);
-		border-radius: 999px;
 		background: var(--color-card);
-		padding: 3px 10px;
-		font-size: 12px;
-		font-weight: 700;
-		color: var(--color-faint);
+		color: var(--color-muted);
 		transition:
-			color 0.3s,
-			border-color 0.3s,
-			background 0.3s;
+			border-color 0.2s,
+			background 0.2s,
+			color 0.2s,
+			transform 0.15s;
 	}
-	.word.on {
+	.spot:hover .disc {
+		border-color: var(--color-brand);
+	}
+	.spot.sel .disc {
+		transform: scale(1.08);
+	}
+	.spot.marked .disc {
 		border-color: var(--color-danger);
 		background: var(--color-danger-soft);
 		color: var(--color-danger);
 	}
-	.word.fix.on {
-		border-color: var(--color-grass);
-		background: var(--color-grass-soft);
+	.spot.missed .disc {
+		border-color: var(--color-amber);
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
+	}
+	.badge {
+		position: absolute;
+		top: -4px;
+		right: -4px;
+		display: grid;
+		place-items: center;
+		width: 15px;
+		height: 15px;
+		border-radius: 50%;
+		background: var(--color-danger);
+		color: #fff;
+		font-size: 10px;
+		font-weight: 900;
+	}
+	.sname {
+		text-align: center;
+		font-size: 9.5px;
+		font-weight: 700;
+		line-height: 1.15;
+		color: var(--color-ink);
+	}
+	.panel {
+		display: flex;
+		width: 100%;
+		min-height: 92px;
+		flex-direction: column;
+		gap: 6px;
+	}
+	.pin {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		border-radius: 14px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 9px 12px;
+	}
+	.ptitle {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 12.5px;
+		font-weight: 800;
+		color: var(--color-ink);
+	}
+	.ptag {
+		border-radius: 999px;
+		background: var(--color-danger-soft);
+		color: var(--color-danger);
+		font-size: 9px;
+		font-weight: 800;
+		padding: 1px 7px;
+	}
+	.ptag.miss {
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
+	}
+	.line {
+		font-size: 11.5px;
+		line-height: 1.4;
+		color: var(--color-muted);
+	}
+	.line b {
+		display: block;
+		font-size: 9.5px;
+		font-weight: 800;
+		color: var(--color-faint);
+	}
+	.line.fix b {
 		color: var(--color-grass);
 	}
-	.cve {
-		margin: 0;
-		font-family: ui-monospace, monospace;
-		font-size: 12px;
+	.missed {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 4px;
+	}
+	.mlabel {
+		font-size: 10px;
+		font-weight: 800;
+		color: var(--color-faint);
+	}
+	.mchip {
+		border-radius: 999px;
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
+		font-size: 10px;
 		font-weight: 700;
-		color: var(--color-ink);
-		opacity: 0;
-		transition: opacity 0.4s;
+		padding: 2px 8px;
 	}
-	.cve.on {
-		opacity: 1;
+	.pop {
+		animation: popin 0.25s ease;
 	}
-	.crack {
-		fill: none;
-		stroke: var(--color-danger);
-		stroke-width: 2.2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-	.patch rect {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		stroke-width: 1.8;
-	}
-	.patch path {
-		fill: none;
-		stroke: var(--color-grass);
-		stroke-width: 2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-	.walker .bar {
-		stroke: var(--color-muted);
-		stroke-width: 3;
-		stroke-linecap: round;
-	}
-	.letter rect {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-brand);
-		stroke-width: 1.5;
-	}
-	.letter text {
-		font-family: var(--font-display);
-		font-size: 14px;
-		font-weight: 700;
-		text-anchor: middle;
-		fill: var(--color-brand);
-	}
-
-	@media (prefers-reduced-motion: no-preference) {
-		.place,
-		.letter {
-			animation: rise 0.5s ease both;
-		}
-		.card {
-			animation: fly 2.4s ease-in infinite;
-		}
-		.trail {
-			stroke-dasharray: 160;
-			animation: draw 3s ease-in-out infinite;
+	@keyframes popin {
+		from {
+			transform: scale(0.9);
+			opacity: 0;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.card {
-			opacity: 0.8;
-		}
-		.walker,
-		.ring {
-			transition: none;
+		.pop {
+			animation-duration: 0.01s;
 		}
 	}
-	@keyframes rise {
-		from {
-			opacity: 0;
-			transform: translateY(6px);
+	@media (min-width: 768px) {
+		.wrap {
+			width: 460px;
+			gap: 12px;
 		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
+		.btns :global(.cta) {
+			padding: 12px 22px;
+			font-size: 14px;
 		}
-	}
-	@keyframes fly {
-		0% {
-			transform: translate(0, 0);
-			opacity: 0;
+		.hint {
+			font-size: 14px;
 		}
-		20% {
-			opacity: 1;
+		.disc {
+			width: 48px;
+			height: 48px;
 		}
-		100% {
-			transform: translate(-40px, -110px);
-			opacity: 0;
+		.spot {
+			transform: translate(-50%, -24px);
 		}
-	}
-	@keyframes draw {
-		0% {
-			stroke-dashoffset: 160;
+		.sname {
+			font-size: 11px;
 		}
-		50%,
-		100% {
-			stroke-dashoffset: 0;
+		.line {
+			font-size: 12.5px;
 		}
 	}
 </style>

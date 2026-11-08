@@ -5,11 +5,11 @@ export const en: CiscoIntroText = {
 	intro: [
 		'Walk into the server room of a bank, a campus, or a big office, and the routers and switches there very often carry one name, <b>Cisco</b>. Every Cisco box runs a system called <b>IOS</b> (nothing to do with the iPhone).',
 		'Look at the front of this router. The holes are <b>physical ports</b>, where real cables plug in. Cisco calls them <b>GigabitEthernet0/0</b>, <b>GigabitEthernet0/1</b>, and so on. Here 0/0 goes to the ISP and 0/1 goes to the office.',
-		'[fyi] Do not mix them up with a numbered [[port|foundations/port]] like 443. That one is a <b>logical port</b>, a door inside a program. GigabitEthernet0/1 is a hole you can touch, 443 is just a number a web server listens on.',
+		'[fyi] A physical port is a cable connector, such as GigabitEthernet0/1. A [[network port|foundations/port]] such as 443 is a number used to distinguish services in network communication.',
 		'You talk to IOS by typing. The first prompt is <b>Router&gt;</b>, and that little arrow means you may only look around. Watch it list its ports.',
 		'To do more, you climb one step with <b>enable</b>. The prompt turns into <b>Router#</b>, and the hash means you are the boss now.',
 		'Changing things needs one more step, <b>configure terminal</b>. The prompt says <b>(config)#</b>, so we give the router its name, nimbus. Watch the prompt change right away.',
-		'[ingat] Read the end of the prompt. <b>&gt;</b> means you can only look. <b>#</b> means you are the boss. <b>(config)#</b> means you are changing things. And <b>end</b> always walks you back to #.',
+		'[ingat] The &gt; prompt indicates user EXEC, # indicates privileged EXEC, and (config)# indicates global configuration. The end command returns to privileged EXEC.',
 		'One catch. Changes live in the <b>running config</b>, in memory, and a power cut wipes them. <b>copy running-config startup-config</b> keeps them for the next boot. Admins usually type the short version, <b>wr</b>.',
 		'[fyi] Same idea, different words. On [[MikroTik|netlab/router-intro]] the ports are ether1 and ether2, and the name is set with /system identity. Cisco says GigabitEthernet0/0 and hostname. Learn one and the other feels familiar. Cisco is also what the famous <b>CCNA</b> certificate is all about.',
 		'Your turn. Type <b>show running-config</b> (or just <b>sh run</b>) and find the name you gave the router.'
@@ -18,7 +18,7 @@ export const en: CiscoIntroText = {
 		task: 'There it is, the whole configuration, line by line. <b>hostname nimbus</b> sits near the top, and every command you type in config mode ends up in this list.',
 		reloaded:
 			'The router rebooted! Because you saved, it still says nimbus. Without saving it would be called Router again, that is what saving is for.',
-		needEnable: 'That command needs the boss prompt. Type <b>enable</b> first, then try again.',
+		needEnable: 'This command requires privileged EXEC mode. Run <b>enable</b>, then try again.',
 		needConfig:
 			'That one changes the router, so it only works in config mode. Type <b>conf t</b> first.',
 		needDo:
@@ -36,8 +36,8 @@ export const en: CiscoIntroText = {
 			body: '<b>G0/0</b> is short for GigabitEthernet0/0. The first 0 is the slot, the second is the port number. The light blue hole on the right is the console, for a setup cable.'
 		},
 		{
-			title: 'Logical is not physical',
-			body: 'A physical port carries a cable. A logical port like 443 is a number inside software. Same word, two different worlds.'
+			title: 'Network ports and physical ports',
+			body: 'GigabitEthernet0/1 is a physical interface. TCP port 443 is a number commonly used by HTTPS services.'
 		},
 		{
 			title: 'User mode, Router&gt;',
@@ -52,25 +52,25 @@ export const en: CiscoIntroText = {
 			body: '<code>configure terminal</code> means configure from this keyboard. <code>hostname nimbus</code> renames the router, and the prompt follows instantly.'
 		},
 		{
-			title: 'Three prompts',
-			tag: 'Make it stick',
-			body: '<b>&gt;</b> look, <b>#</b> boss, <b>(config)#</b> change. Every line you type starts from one of these.'
+			title: 'Identifying the mode from its prompt',
+			tag: 'Remember it',
+			body: '<b>&gt;</b> is user EXEC, <b>#</b> is privileged EXEC, and <b>(config)#</b> is global configuration. Available commands differ by mode.'
 		},
 		{
-			title: 'Running versus startup',
-			body: 'The <b>running config</b> sits in RAM, like papers on a desk. The <b>startup config</b> sits in NVRAM, a drawer that survives a power cut. Saving copies the desk into the drawer.'
+			title: 'Active and saved configuration',
+			body: '<b>Running config</b> is the active configuration in RAM. Save it to <b>startup config</b> to use it again after the device restarts.'
 		},
 		{
-			title: 'Shortcuts',
+			title: 'Command abbreviations',
 			body: 'IOS accepts a shortened word as long as no other command starts the same way, so <code>conf t</code>, <code>sh ip int br</code>, and <code>wr</code> all work. Type <code>?</code> anytime to see what fits.'
 		},
 		{
-			title: 'Your turn',
+			title: 'Try IOS commands',
 			tag: 'Try it',
 			body: 'Tap the console, type <code>sh run</code>, and press Enter. Look for the line <code>hostname nimbus</code> near the top.'
 		}
 	],
-	modes: { look: 'look', boss: 'boss', change: 'change', port: 'one port' },
+	modes: { look: 'look', boss: 'privileged EXEC', change: 'change', port: 'one port' },
 	portsCaption: 'Gi0/0 to the ISP, Gi0/1 to the office, real holes for real cables',
 	logicalCaption: 'Port 443 is not on this box, it is a number inside software',
 	ramTitle: 'running config',
@@ -88,10 +88,10 @@ export const en: CiscoIntroText = {
 	hintAmbiguous: '! too short, more than one command starts like that, add a letter or two',
 	hintUnknown: '! that is not a command here, type ? to see the list',
 	didYouMean: '! maybe you meant {word}',
-	hintNeedEnable: '! that needs the boss prompt, type enable first',
+	hintNeedEnable: '! use enable to enter privileged EXEC',
 	hintNeedConfig: '! that changes the router, type conf t first',
 	hintDo: '! you are in config mode, put do in front, like do sh run',
 	hintSub: '! that one goes inside an interface, pool, or line, enter it first',
-	hintMask: '! Cisco wants the mask spelled out, like 255.255.255.0',
+	hintMask: '! write the full subnet mask, for example 255.255.255.0',
 	hintWild: '! careful, a wildcard is the mask flipped, 255.255.255.0 becomes 0.0.0.255'
 };

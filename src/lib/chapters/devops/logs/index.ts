@@ -6,12 +6,14 @@ import { en } from './en';
 export const logs: Lesson = {
 	id: 'logs',
 	mood: 'thinking',
-	moods: ['calm', 'worried', 'idea', 'surprised', 'thinking', 'excited', 'wink', 'idea', 'happy'],
+	moods: ['calm', 'worried', 'idea', 'wink', 'thinking'],
 	reactionMood: {
-		error: 'excited',
-		checkout: 'thinking',
-		slow: 'idea'
+		peek: 'worried',
+		handFound: 'thinking',
+		search: 'idea',
+		found: 'excited'
 	},
+	playable: true,
 	stage: LogsStage,
 	text: { id, en }
 };

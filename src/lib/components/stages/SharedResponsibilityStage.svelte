@@ -167,7 +167,7 @@
 
 	{#if !revealed}
 		<CallToActionButton onclick={reveal}>
-			{#snippet children()}{tx.reveal}{/snippet}
+			{tx.reveal}
 		</CallToActionButton>
 	{/if}
 </div>
@@ -260,7 +260,7 @@
 	.ghost {
 		height: 31px;
 		border-radius: 10px;
-		border: 1.5px dashed #e8e2d8;
+		border: 1.5px solid #e8e2d8;
 		background: #faf9f6;
 	}
 	@keyframes itemin {

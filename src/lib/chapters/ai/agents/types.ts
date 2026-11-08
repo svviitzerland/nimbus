@@ -1,49 +1,40 @@
 import type { LessonText } from '../../types';
 
-export interface AgentsPanel {
-	tag?: string;
-	title: string;
-	/** May hold simple HTML like <b>. */
-	body: string;
-}
-
 export interface AgentsText extends LessonText {
-	/** One panel per scene of the guided picture (nine scenes). */
-	panels: AgentsPanel[];
-	/** Spoken description of the whole picture. */
-	picture: string;
-	/** What the learner asked the agent. */
-	goal: string;
-	youLabel: string;
-	/** What a plain chatbot answers, words only. */
-	chatOnly: string;
-	chatbotLabel: string;
-	agentLabel: string;
-	/** The three steps of the loop, short words drawn around the agent. */
-	loop: { think: string; act: string; check: string };
-	/** The calendar tool. */
+	youLabel: string; // caption on the request card
+	goal: string; // what the learner asked the agent
+	modelLabel: string; // caption on the model card
 	calendarLabel: string;
-	day: string;
-	free: string;
-	teamSync: string;
-	withRaka: string;
-	/** What the agent thinks at each step. */
-	think1: string;
-	think2: string;
-	think3: string;
-	/** The tool call and the answer it gets back (shown as code, colons allowed there). */
-	call: string;
-	result: string;
-	/** The permission question and its buttons. */
-	approvalQ: string;
+	emailLabel: string;
+	day: string; // the day shown on the calendar tool
+	free: string; // an empty calendar slot
+	teamSync: string; // the meeting already at 10:00
+	withRaka: string; // the meeting the agent books
+	emailIdle: string;
+	emailSent: string;
+	/** Labels for each kind of line in the step log. */
+	kinds: { think: string; call: string; result: string; answer: string };
+	think1: string; // the agent plans to read the calendar
+	think2: string; // the agent sees 10:00 is taken and picks 11:00
+	finalAllow: string; // the agent's last message when booking was allowed
+	finalDeny: string; // the agent's last message when booking was denied
+	/** What the model card says it is doing right now. {tool} is a tool name. */
+	status: {
+		idle: string;
+		thinking: string;
+		calling: string;
+		reading: string;
+		waiting: string;
+		done: string;
+	};
+	stepBtn: string;
+	autoBtn: string;
+	running: string;
+	reset: string;
+	approvalQ: string; // the agent asks before changing the calendar
 	allow: string;
 	deny: string;
-	/** The agent's last message. */
-	finalAllow: string;
-	finalDeny: string;
-	/** Memory trick tag and rule of thumb line. */
-	memo: string;
-	rule: string;
-	/** Optional replay on the last beat. */
-	again: string;
+	logLabel: string;
+	logEmpty: string;
+	stepCount: string; // template with {n}
 }

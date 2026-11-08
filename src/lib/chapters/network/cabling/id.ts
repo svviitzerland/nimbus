@@ -3,63 +3,43 @@ import type { CablingText } from './types';
 export const id: CablingText = {
 	title: 'Kabel jaringan',
 	intro: [
-		'Data berpindah antar perangkat sebagai angka satu dan nol. Di dalam kabel, angka angka itu berubah jadi denyut cepat, entah denyut <b>listrik</b> atau denyut <b>cahaya</b>, tergantung bahan kabelnya.',
-		'Kabel yang kamu colokkan ke laptop atau router namanya <b>kabel LAN</b>. Isinya delapan kawat tembaga tipis yang dipilin berpasangan. Tembaga membawa listrik, dan dia murah, kuat, serta gampang dicolok.',
-		'Tapi listrik punya kelemahan. Makin jauh jalannya, makin lemah dia, dan dia ketularan gangguan dari kabel lain di sekitarnya. Makanya kabel LAN mentok di sekitar 100 meter.',
-		'Kabel <b>fiber optik</b> itu helai kaca setipis rambut. Yang dibawanya cahaya, berkedip nyala dan mati. Cahaya hampir nggak melemah dan kebal gangguan listrik, jadi satu helai fiber bisa membentang puluhan kilometer.',
-		'[ingat] Tembaga di ruangan, fiber di jalanan. Kabel LAN cuma sepanjang kira kira satu lapangan bola, dan yang lebih jauh dari itu, seperti kabel yang masuk ke rumahmu, biasanya fiber.',
-		'[fyi] Pilinan di kabel LAN bukan buat gaya. Dengan dipilin, gangguan dari luar mengenai kedua kawat sama rata, jadi saling meniadakan. Tulisan Cat5e, Cat6, dan Cat6a di kabel menunjukkan seberapa rapat pilinannya dan seberapa cepat kabelnya.',
-		'Mau coba menariknya? Geser jaraknya dan lihat di mana tembaga menyerah sementara fiber terus jalan.'
+		'Data berpindah antar perangkat sebagai deretan angka satu dan nol. Di dalam kabel, satu dan nol itu berubah jadi denyut <b>listrik</b> atau denyut <b>cahaya</b>, tergantung kabelnya terbuat dari apa.',
+		'Kabel yang kamu colokkan ke laptop atau router namanya <b>kabel LAN</b>. Isinya delapan kawat tembaga tipis yang dipilin berpasangan, dengan colokan plastik bening di kedua ujungnya. Tembaga mengalirkan listrik, murah, kuat, dan gampang dipasang.',
+		'Tapi listrik punya kelemahan. Makin jauh jalannya, makin lemah sinyalnya, dan dia gampang kena gangguan dari kabel lain di sekitarnya. Makanya kabel LAN resminya cuma sampai sekitar 100 meter.',
+		'<b>Fiber optik</b> membawa data dengan cahaya melalui serat kaca. Sinyalnya tetap melemah sepanjang jarak, tetapi tidak terkena gangguan elektromagnetik seperti kabel tembaga. Jangkauan ditentukan jenis fiber dan perangkat optiknya.',
+		'[fyi] Pilinan di kabel LAN bukan buat gaya. Kawat yang dipilin berpasangan membuat gangguan dari luar mengenai keduanya sama rata, jadi saling meniadakan. Pilinan yang lebih rapat dan pelindung yang lebih baik bikin kabel lebih cepat, itulah arti tulisan Cat5e, Cat6, dan Cat6a di kabelnya.',
+		'[ingat] <b>Periksa media, kecepatan, dan jarak.</b> Ethernet tembaga umum dirancang untuk kanal hingga 100 meter. Fiber digunakan untuk banyak sambungan jarak jauh, dengan batas sesuai standar serta perangkatnya.',
+		'Kirim file yang sama lewat tembaga dan lewat fiber, lalu terus tambah jaraknya. Cari di mana tembaga menyerah, lalu lihat seberapa jauh fiber sanggup.'
 	],
 	reactions: {
 		copperOk:
-			'Pendek lagi, tembaga senang. Untuk jarak dekat, kabel LAN itu murah, gampang, dan cukup cepat, makanya hampir di belakang setiap meja ada satu.',
+			'Sampai dengan utuh. Untuk jarak pendek, kabel LAN tembaga itu murah, gampang, dan cukup kencang, makanya hampir di belakang setiap meja ada satu.',
 		copperFail:
-			'Tembaganya menyerah. Listriknya memudar dan tenggelam dalam gangguan, jadi ujung sana nggak bisa membedakan satu dan nol lagi. Lewat dari sekitar 100 meter, kamu butuh switch di tengah buat menguatkan sinyal, atau pakai fiber.',
+			'Filenya rusak di jalan. Listriknya melemah dan tenggelam dalam gangguan, sampai ujung sana nggak bisa membedakan mana satu mana nol. Lewat dari sekitar 100 meter, tembaga butuh switch di tengah buat menguatkan sinyal, atau ganti kabel.',
+		fibreOk:
+			'Fiber juga santai buat jarak pendek, malah sepuluh kali lebih cepat di sini. Tapi harganya lebih mahal dan kacanya harus diperlakukan lebih hati hati, jadi sambungan pendek di dalam ruangan biasanya tetap tembaga.',
 		fibreFar:
-			'Berkilo kilometer jauhnya dan fiber masih jernih. Cahaya di dalam kaca hampir nggak melemah, makanya [[kabel bawah laut|cloud/cable]] yang menyambungkan benua juga fiber.'
+			'Fiber pada simulasi ini masih mengirim data pada jarak tersebut. Di jaringan nyata, kekuatan sinyal dan kemampuan transceiver menentukan batasnya. Fiber juga dipakai pada [[kabel bawah laut|cloud/cable]].'
 	},
-	steps: [
-		{
-			title: 'Denyut di dalam kabel',
-			body: 'Kabel membawa data sebagai denyut cepat. Nyala, mati, nyala, mati, miliaran kali setiap detik.'
-		},
-		{
-			title: 'Kabel LAN',
-			body: 'Delapan kawat <b>tembaga</b> tipis yang dipilin berpasangan, dengan colokan plastik bening di tiap ujung. Yang dibawanya listrik.'
-		},
-		{
-			title: 'Batas 100 meter',
-			body: 'Listrik memudar dan ketularan gangguan selama perjalanan. Lewat sekitar <b>100 meter</b>, ujung sana nggak bisa membacanya lagi.'
-		},
-		{
-			title: 'Fiber optik',
-			body: 'Helai <b>kaca</b> setipis rambut yang membawa kedipan cahaya. Hampir nggak memudar, jadi bisa sampai berkilo kilometer.'
-		},
-		{
-			tag: 'Biar nempel',
-			title: 'Tembaga di ruangan, fiber di jalanan',
-			body: 'Kabel LAN cuma sepanjang satu lapangan bola (100 meter). Yang lebih jauh, seperti kabel ke rumahmu, biasanya fiber.'
-		},
-		{
-			tag: 'FYI',
-			title: 'Kenapa dipilin',
-			body: 'Dengan dipilin, gangguan dari luar mengenai kedua kawat sama rata, jadi saling meniadakan. Makin rapat pilinannya, makin cepat kabelnya.'
-		},
-		{
-			tag: 'Coba',
-			title: 'Tarik kabelnya',
-			body: 'Geser jarak di atas. Tembaga memudar lalu putus, fiber tetap terang.'
-		}
+	copper: { name: 'Tembaga', sub: 'kabel LAN, listrik' },
+	fibre: { name: 'Fiber optik', sub: 'kaca, cahaya' },
+	distLabel: 'Seberapa jauh',
+	places: [
+		'satu ruangan',
+		'satu lantai kantor',
+		'ujung lorong panjang',
+		'gedung sebelah',
+		'ujung kota',
+		'kota sebelah'
 	],
-	copper: 'Kabel LAN tembaga',
-	fibre: 'Fiber optik',
-	pairLabel: 'kawat dipilin',
-	glassLabel: 'cahaya di kaca',
+	sendBtn: 'Kirim filenya',
+	fileLabel: 'nimbus.zip (1 GB)',
 	youLabel: 'Laptopmu',
 	farLabel: 'Server',
-	distLabel: 'Jarak',
-	okTag: 'sampai',
-	brokenTag: 'nggak terbaca',
-	limitTag: '100 m'
+	signalLabel: 'Sinyal yang tersisa di ujung sana',
+	limitLabel: 'terbaca',
+	okNote: 'Sampai dengan selamat dalam {t}',
+	failNote: 'Sinyalnya terlalu lemah, filenya sampai dalam keadaan rusak',
+	times: { copper: 'sekitar 8 detik', fibre: 'kurang dari sedetik' },
+	idleNote: 'Pilih kabel dan jaraknya, lalu kirim'
 };

@@ -1,29 +1,24 @@
 import type { LessonText } from '../../types';
 
-/** One part of the side panel (title, one or two short sentences, an optional tag). */
-export type GuideStep = { title: string; body: string; tag?: string };
-
-export type ChoreId = 'route' | 'read' | 'check' | 'guard' | 'db' | 'reply';
+export type ChoreId = 'route' | 'read' | 'validate' | 'security' | 'db' | 'respond';
+export type FrameworkId = 'laravel' | 'express' | 'django' | 'spring';
 
 export interface BackendFrameworksText extends LessonText {
-	/** Side panel parts, one per beat. */
-	steps: GuideStep[];
-	/** The editor window. */
-	fileName: string;
-	requestTag: string;
-	emptyHint: string;
+	/** Tab for writing everything yourself. */
+	byHand: string;
+	/** Caption over the chore list. */
+	choresLabel: string;
+	/** Hint under the chores while writing by hand. */
+	writeHint: string;
+	/** One line per chore an order endpoint needs. */
+	chores: Record<ChoreId, string>;
 	/** Line counter, template with {n}. */
 	lines: string;
-	/** The chores one order endpoint needs, with how many lines each takes by hand. */
-	chores: Record<ChoreId, { label: string; lines: number }>;
-	/** Badge on a chore the framework does for you. */
-	ready: string;
-	/** The small block you still write yourself. */
-	yourCode: string;
-	yourLines: number;
-	/** The frameworks shown in turn on the frame. */
-	frameworks: { name: string; lang: string }[];
-	/** The optional toggle on the last beat. */
-	byHandBtn: string;
-	frameworkBtn: string;
+	/** Badges on each chore when a framework is picked. */
+	built: string;
+	addon: string;
+	/** What a chore shows by hand before it is written. */
+	todo: string;
+	/** Language and a one line description per framework. */
+	frameworks: Record<FrameworkId, { lang: string; blurb: string }>;
 }

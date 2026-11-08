@@ -306,7 +306,7 @@
 		bottom: 3px;
 		left: 50%;
 		width: 0;
-		border-left: 2px dashed #dcb988;
+		border-left: 2px solid #dcb988;
 		transform: translateX(-50%);
 		animation: vflow 0.9s linear infinite;
 	}

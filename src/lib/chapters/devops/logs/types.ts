@@ -1,19 +1,22 @@
 import type { LessonText } from '../../types';
 
-/** The words the optional search on the last beat can look for. */
-export type LogQuery = 'error' | 'checkout' | 'slow';
-
 export interface LogsText extends LessonText {
-	/** The side panel, one entry per beat (tag, title, a short plain explanation). */
-	steps: { tag: string; title: string; body: string }[];
+	ticketLabel: string; // small heading on the support ticket
+	ticket: string; // what the buyer reported
+	/** The two ways to look, shown as tabs. */
+	modes: string[];
 	fleetLabel: string; // heading over the twenty servers
-	centralLabel: string; // the one place every line flows into
-	serverLog: string; // template with {s}, the log of one server
-	allLog: string; // the merged log of every server
-	loginTag: string; // template with {n}, logins so far while hopping
-	goneTag: string; // on a server that was switched off
+	loginsTag: string; // template with {n} logins and {m} minutes
+	pickServer: string; // nudge to tap a server
+	searchLabel: string; // label for the search box
 	searchPlaceholder: string;
+	quickLabel: string; // heading over the quick search chips
+	resultsTag: string; // template with {n} shown and {t} total
 	noResults: string;
-	foundTag: string; // on web-14 once the bad line is found
-	pickLabel: string; // caption over the optional search words
+	tapHint: string; // tap the line that looks wrong
+	foundTag: string; // shown on the server once the bad line is found
+	noteHand: string;
+	noteHandFound: string;
+	noteCentral: string;
+	noteFound: string;
 }

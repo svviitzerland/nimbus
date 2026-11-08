@@ -1,35 +1,27 @@
 import type { LessonText } from '../../types';
 
-export interface AiCloudPanel {
-	tag?: string;
-	title: string;
-	/** May hold simple HTML like <b>. */
-	body: string;
-}
+/** How the chatbot picks a model. `route` sends easy questions to the small model. */
+export type AiCloudMode = 'big' | 'small' | 'route';
 
 export interface AiCloudText extends LessonText {
-	/** One panel per scene of the guided picture (eight scenes). */
-	panels: AiCloudPanel[];
-	/** Spoken description of the whole picture. */
-	picture: string;
-	/** Locale for money, like 'id-ID' or 'en-US'. */
+	/** Locale for number formatting, like 'id-ID' or 'en-US'. */
 	locale: string;
-	/** Template with {n}, under the crowd. */
-	crowd: string;
-	/** Template with {n}, over the GPU servers. */
-	gpus: string;
-	/** Template with {cost}, the hourly price tag on one GPU server. */
-	hourly: string;
-	bigLabel: string;
-	smallLabel: string;
+	usersLabel: string; // caption over the crowd slider
+	usersValue: string; // template with {n}, people a day
+	msgsValue: string; // template with {n}, messages a day (five per person)
+	cachedValue: string; // template with {n}, messages answered from the cache
 	cacheLabel: string;
-	billTitle: string;
-	budgetLabel: string;
-	/** Memory trick tag over the small model. */
-	memo: string;
-	/** The rule of thumb line under the picture. */
-	rule: string;
-	/** The optional switch on the last beat. */
-	offBtn: string;
-	onBtn: string;
+	cacheSub: string;
+	modeLabel: string; // caption over the model picker
+	modes: Record<AiCloudMode, { name: string; sub: string }>;
+	gpuTitle: string; // template with {n}, how many GPU servers are rented
+	legendBig: string; // the big model's racks
+	legendSmall: string; // the small model's racks
+	billLabel: string; // caption over the bill meter
+	budgetMark: string; // template with {cost}, the budget line
+	overBy: string; // template with {cost}
+	underBy: string; // template with {cost}
+	qualityLabel: string;
+	qualityBad: string; // shown when answers are too often wrong
+	rentNote: string; // template with {hour} and {month}, the price of one GPU server
 }

@@ -51,7 +51,7 @@ export const en: SqlCommandsText = {
 			body: 'Changes between <b>BEGIN</b> and <b>COMMIT</b> are saved together. Until COMMIT, the change is not final, and ROLLBACK would throw it away.'
 		},
 		{
-			tag: 'Make it stick',
+			tag: 'Remember it',
 			title: 'Shape, rows, keys, save',
 			body: 'DDL is the cupboard, DML is what is inside, DCL is the keys, and TCL is the done button.'
 		},

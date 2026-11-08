@@ -1,4 +1,4 @@
-import TestingStage from '$lib/components/stages/TestingStage.svelte';
+import AutomatedTestingStage from '$lib/components/stages/AutomatedTestingStage.svelte';
 import type { Lesson } from '../../types';
 import { id } from './id';
 import { en } from './en';
@@ -19,6 +19,6 @@ export const testing: Lesson = {
 		'excited'
 	],
 	reactionMood: { broke: 'surprised', fixed: 'happy' },
-	stage: TestingStage,
+	stage: AutomatedTestingStage,
 	text: { id, en }
 };

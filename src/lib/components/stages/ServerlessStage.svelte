@@ -210,7 +210,7 @@
 
 	{#if lastBeat}
 		<CallToActionButton onclick={call} disabled={fnState !== 'sleep'}>
-			{#snippet children()}{tx.send}{/snippet}
+			{tx.send}
 		</CallToActionButton>
 	{/if}
 </div>

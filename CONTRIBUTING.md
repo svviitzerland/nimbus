@@ -35,7 +35,9 @@ Content is plain data per chapter under `src/lib/chapters/`, with language separ
 per lesson (`index.ts` for config, `id.ts` and `en.ts` for text). Shared UI lives in
 `src/lib/components/`. Adding a lesson, chapter, or language never touches the engine. The full
 architecture, the design rules (for example, how Nim talks), and step-by-step recipes are in
-[AGENTS.md](./AGENTS.md). Please read it before adding content.
+[AGENTS.md](./AGENTS.md). Read it together with [NIMBUS_EDITING_GUIDE.md](./NIMBUS_EDITING_GUIDE.md)
+before adding content. Write repository documentation in English, preserving Indonesian only as
+quoted UI labels or copy examples.
 
 Every lesson is backed by an authoritative source, mapped in [REFERENCES.md](./REFERENCES.md). Keep
 that mapping accurate when you add or change a lesson, so the material stays accountable.

@@ -5,7 +5,8 @@ export const id: IngressEgressText = {
 	intro: [
 		'Server kamu kerjanya dua arah, ada data yang masuk dan ada yang keluar.',
 		'Yang masuk ke server, kayak permintaan dan unggahan foto, namanya <b>ingress</b>. Yang keluar dari server, kayak foto dan video yang dikirim balik ke pengunjung, namanya <b>egress</b>.',
-		'Coba dua duanya, orang upload foto (masuk) lalu orang unduh foto (keluar), dan perhatiin tagihannya.'
+		'Coba dua duanya, orang upload foto (masuk) lalu orang unduh foto (keluar), dan perhatiin tagihannya.',
+		'[ingat] Ingress masuk, egress keluar. Selalu tentukan dulu sisi yang sedang kamu ukur.'
 	],
 	reactions: {
 		in: 'Itu <b>ingress</b>, data masuk ke server kamu. Di cloud, ingress biasanya <b>gratis</b>, jadi tagihannya nggak gerak.',

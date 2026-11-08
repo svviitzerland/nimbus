@@ -1,424 +1,530 @@
 <script lang="ts">
-	// Guided WiFi security lesson. A house with a router whose radio waves spill through the
-	// walls to a stranger outside. Each beat changes the lock on the router (none, WPA2, WPA3)
-	// and the stranger's screen shows what he gets. On the last beat an optional picker lets the
-	// learner switch the lock themselves.
-	import { onMount } from 'svelte';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import { SvelteSet } from 'svelte/reactivity';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { WifiSecurityText } from '$lib/chapters/network/wifi-security/types';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as WifiSecurityText);
 
 	type Mode = 'open' | 'wpa2' | 'wpa3';
 	const MODES: Mode[] = ['open', 'wpa2', 'wpa3'];
-	const STEP_OF_MODE: Record<Mode, number> = { open: 2, wpa2: 3, wpa3: 4 };
-	const STEP_OF_BEAT = [0, 1, 2, 3, 4, 5, 6, 6, 6];
-	const last = $derived(beat >= tx.intro.length - 1);
+	const SSID = 'NimbusHome';
+	const GUEST_SSID = 'NimbusGuest';
+	// The kind of list a snooper really guesses from, plus anything short.
+	const COMMON = ['12345678', '123456789', 'password', 'qwerty123', '11111111', 'nimbus123'];
 
-	let picked = $state<Mode | null>(null);
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
+	let mode = $state<Mode>('wpa2');
+	let password = $state('12345678');
+	let guest = $state(false);
+	let lines = $state<{ text: string; tone: 'bad' | 'ok' | 'muted' }[]>([]);
+	let running = $state(false);
 
-	const step = $derived(
-		peek ??
-			(last && picked
-				? STEP_OF_MODE[picked]
-				: STEP_OF_BEAT[Math.min(beat, STEP_OF_BEAT.length - 1)])
+	const weak = $derived(
+		password.trim().length < 12 || COMMON.includes(password.trim().toLowerCase())
 	);
-	const mode = $derived<Mode | null>(
-		step === 2 ? 'open' : step === 3 ? 'wpa2' : step >= 4 ? 'wpa3' : null
-	);
-	const lines = $derived(
-		step === 0 ? tx.snoop.idle : step === 1 ? tx.snoop.listen : tx.snoop[mode ?? 'wpa3']
-	);
-	const tone = $derived(mode === 'open' ? 'bad' : mode === 'wpa2' ? 'mid' : mode ? 'good' : '');
+
+	const tried = new SvelteSet<string>();
+	let done = false;
+	let timers: ReturnType<typeof setTimeout>[] = [];
+	function clear() {
+		timers.forEach(clearTimeout);
+		timers = [];
+	}
+	$effect(() => () => clear());
 
 	function pick(m: Mode) {
-		picked = m;
-		peek = null;
-		onstate?.(m);
+		if (running) return;
+		mode = m;
+		lines = [];
 	}
 
-	onMount(() => {
-		onshow?.(true);
-		oncomplete?.();
-	});
+	function toggleGuest() {
+		guest = !guest;
+		if (guest) onstate?.('guest');
+	}
+
+	function apply() {
+		if (running) return;
+		clear();
+		lines = [];
+		const s = tx.snoop;
+		let script: { text: string; tone: 'bad' | 'ok' | 'muted' }[];
+		let token: string;
+		if (mode === 'open') {
+			script = [
+				{ text: s.joinOpen, tone: 'bad' },
+				{ text: s.readPlain, tone: 'bad' }
+			];
+			token = 'open';
+		} else if (mode === 'wpa2') {
+			script = [
+				{ text: s.captured, tone: 'muted' },
+				{ text: s.guessing, tone: 'muted' },
+				weak
+					? { text: s.cracked.replace('{pw}', password.trim() || '?'), tone: 'bad' }
+					: { text: s.noLuck, tone: 'ok' },
+				weak ? { text: s.readPlain, tone: 'bad' } : { text: s.noise, tone: 'ok' }
+			];
+			token = weak ? 'wpa2weak' : 'wpa2';
+		} else {
+			script = [
+				{ text: s.wpa3Live, tone: 'muted' },
+				{ text: s.wpa3Slow, tone: 'ok' },
+				{ text: s.noise, tone: 'ok' }
+			];
+			token = 'wpa3';
+		}
+		running = true;
+		script.forEach((l, i) => timers.push(setTimeout(() => (lines = [...lines, l]), 350 + i * 650)));
+		timers.push(
+			setTimeout(
+				() => {
+					running = false;
+					tried.add(mode);
+					onstate?.(token);
+					if (!done && tried.has('open') && tried.has('wpa3')) {
+						done = true;
+						oncomplete?.();
+					}
+				},
+				350 + script.length * 650
+			)
+		);
+	}
 </script>
 
-{#snippet scene(_: number)}
-	<svg viewBox="0 0 360 252" class="w-full max-w-[460px]" role="img" aria-label={tx.title}>
-		<!-- radio waves from the router, passing through the walls -->
-		<g class="waves {tone}">
-			{#each [0, 1, 2] as k (k)}
-				<circle cx="78" cy="170" r="250" style="animation-delay:{k * 1.3}s" />
-			{/each}
-		</g>
-
-		<!-- the house -->
-		<path d="M6 80 L112 22 L218 80" class="roof" />
-		<rect x="18" y="78" width="188" height="140" rx="4" class="wall" />
-		<text x="112" y="66" text-anchor="middle" class="lbl">{tx.homeLabel}</text>
-
-		<!-- guest room -->
-		<g class="guest" class:show={step === 5}>
-			<!-- a low room with the phone beside its name, so the lock badge below never covers it -->
-			<rect x="26" y="84" width="80" height="38" rx="8" />
-			<text x="52" y="106" text-anchor="middle" class="sm g">{tx.guestLabel}</text>
-			<rect x="85" y="91" width="12" height="24" rx="3" class="dev" />
-		</g>
-
-		<!-- TV on the wall -->
-		<g transform="translate(130 92)">
-			<rect width="56" height="34" rx="3" class="dev" />
-			<rect x="4" y="4" width="48" height="26" rx="1.5" class="scr" />
-			<text x="28" y="48" text-anchor="middle" class="sm">{tx.tvLabel}</text>
-		</g>
-		<!-- laptop on a table -->
-		<g transform="translate(136 160)">
-			<rect x="3" y="0" width="38" height="24" rx="3" class="dev" />
-			<rect x="6" y="3" width="32" height="18" rx="1.5" class="scr" />
-			<path d="M0 26 h44 l-3 4 h-38 z" class="dev" />
-			<rect x="-6" y="31" width="56" height="4" rx="2" class="table" />
-			<text x="22" y="49" text-anchor="middle" class="sm">{tx.laptopLabel}</text>
-		</g>
-		{#if step === 5}
-			<line x1="110" y1="92" x2="110" y2="146" class="divider" />
-		{/if}
-
-		<!-- router -->
-		<g transform="translate(56 160)">
-			<line x1="8" y1="2" x2="4" y2="-14" class="ant" />
-			<line x1="36" y1="2" x2="40" y2="-14" class="ant" />
-			<rect x="0" y="2" width="44" height="16" rx="4" class="router" />
-			<circle cx="10" cy="10" r="2" class="led" />
-			<circle cx="18" cy="10" r="2" class="led" />
-			<text x="22" y="34" text-anchor="middle" class="sm">{tx.routerLabel}</text>
-		</g>
-		<!-- the lock badge on the router -->
-		{#if mode}
-			<g transform="translate(78 136)">
-				<rect x="-28" y="-11" width="56" height="20" rx="10" class="badge {tone}" />
-				{#if mode !== 'open'}
-					<rect x="-20" y="-3" width="9" height="7" rx="1.5" class="lockb {tone}" />
-					<path d="M-18.5 -3 v-2.5 a3 3 0 0 1 6 0 v2.5" class="locks {tone}" />
-				{/if}
-				<text x={mode === 'open' ? 0 : 5} y="3.5" text-anchor="middle" class="bt {tone}"
-					>{tx.modes[mode]}</text
-				>
-			</g>
-		{/if}
-
-		<!-- the stranger outside -->
-		<g transform="translate(276 168)" class="snooper" class:on={step >= 1}>
-			<circle cx="14" cy="8" r="8" class="person" />
-			<path d="M0 40 q0 -19 14 -19 q14 0 14 19 z" class="person" />
-			<rect x="30" y="22" width="30" height="18" rx="2" class="dev" />
-			<line x1="56" y1="22" x2="62" y2="8" class="ant" />
-		</g>
-		<text x="306" y="228" text-anchor="middle" class="sm">{tx.snooperLabel}</text>
-		<g transform="translate(212 80)">
-			<rect width="144" height="54" rx="10" class="screen {tone}" />
-			<path d="M78 54 l8 10 l8 -10" class="screen {tone}" />
-			<text x="10" y="22" class="mono {tone}">{lines[0]}</text>
-			<text x="10" y="40" class="mono sub">{lines[1]}</text>
-		</g>
-
-		<!-- the safer scale -->
-		{#if step >= 2}
-			<g transform="translate(24 232)">
-				{#each MODES as m, k (m)}
-					<g transform="translate({k * 62} 0)" class="pill" class:cur={mode === m || step === 6}>
-						<rect width="54" height="16" rx="8" class="pr {m}" />
-						<text x="27" y="11.5" text-anchor="middle" class="pt {m}">{tx.modes[m]}</text>
-					</g>
-				{/each}
-				<path d="M0 -6 h170 l-5 -3 m5 3 l-5 3" class="arrow" />
-				<!-- after the arrow's tip, clear of the laptop's name inside the house -->
-				<text x="176" y="-3" class="sm">{tx.saferLabel}</text>
-			</g>
+{#snippet device(kind: 'laptop' | 'tv' | 'phone')}
+	<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		{#if kind === 'laptop'}
+			<rect x="4" y="5" width="16" height="11" rx="1.5" stroke="currentColor" stroke-width="1.8" />
+			<path d="M2 19h20" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+		{:else if kind === 'tv'}
+			<rect x="3" y="4" width="18" height="12" rx="1.5" stroke="currentColor" stroke-width="1.8" />
+			<path d="M8 20h8M12 16v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+		{:else}
+			<rect x="7" y="2.5" width="10" height="19" rx="2" stroke="currentColor" stroke-width="1.8" />
+			<path d="M11 18.5h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
 		{/if}
 	</svg>
 {/snippet}
 
-<div class="flex w-full flex-col items-center gap-3 pb-28 md:pb-0">
-	{#if last}
-		<div class="picker" role="group" aria-label={tx.pickLabel}>
-			{#each MODES as m (m)}
-				<button
-					type="button"
-					class:on={picked === m}
-					aria-pressed={picked === m}
-					onclick={() => pick(m)}>{tx.modes[m]}</button
-				>
-			{/each}
+<div class="wrap">
+	<div class="router">
+		<div class="rhead">
+			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+				<rect x="3" y="13" width="18" height="7" rx="2" stroke="currentColor" stroke-width="1.8" />
+				<path
+					d="M8 13V9M16 13V9M6.5 16.5h.01M10 16.5h.01"
+					stroke="currentColor"
+					stroke-width="1.8"
+					stroke-linecap="round"
+				/>
+			</svg>
+			<b>{tx.routerTitle}</b>
+			<code>{SSID}</code>
 		</div>
-	{/if}
-	<Guide steps={tx.steps} active={step} onselect={(i) => (peek = i)} visual={scene} />
+
+		<div class="field">
+			<span class="flabel">{tx.securityLabel}</span>
+			<div class="seg" role="radiogroup" aria-label={tx.securityLabel}>
+				{#each MODES as m (m)}
+					<button
+						type="button"
+						role="radio"
+						aria-checked={mode === m}
+						class:sel={mode === m}
+						class:danger={m === 'open'}
+						disabled={running}
+						onclick={() => pick(m)}>{tx.modes[m]}</button
+					>
+				{/each}
+			</div>
+			<span class="hint" class:warn={mode === 'open'}>{tx.modeHints[mode]}</span>
+		</div>
+
+		<label class="field" class:off={mode === 'open'}>
+			<span class="flabel">{tx.passwordLabel}</span>
+			<span class="pwrow">
+				<input
+					class="pw"
+					type="text"
+					bind:value={password}
+					oninput={() => (lines = [])}
+					disabled={mode === 'open' || running}
+					maxlength="40"
+					spellcheck="false"
+					autocomplete="off"
+					autocapitalize="off"
+				/>
+				{#if mode !== 'open'}
+					<em class="strength" class:weak>{weak ? tx.weakTag : tx.strongTag}</em>
+				{/if}
+			</span>
+		</label>
+
+		<button
+			type="button"
+			class="guestsw"
+			class:on={guest}
+			role="switch"
+			aria-checked={guest}
+			onclick={toggleGuest}
+		>
+			<span class="track"><span class="knob"></span></span>
+			<span>{tx.guestLabel}</span>
+		</button>
+
+		<button type="button" class="cta" disabled={running} onclick={apply}>{tx.applyBtn}</button>
+	</div>
+
+	<div class="snoop">
+		<div class="sbar">
+			<span class="dot"></span>
+			{tx.snooperLabel}
+		</div>
+		<div class="sbody">
+			{#if lines.length}
+				{#each lines as l, i (i)}<div class="ln {l.tone}">{l.text}</div>{/each}
+			{:else}
+				<div class="ln idle">{running ? '' : tx.snooperIdle}</div>
+			{/if}
+		</div>
+	</div>
+
+	<div class="nets">
+		<div class="net">
+			<span class="nlabel">{tx.homeNet} <code>{SSID}</code></span>
+			<div class="devs">
+				<span class="dev">{@render device('laptop')}{tx.devices.laptop}</span>
+				<span class="dev">{@render device('tv')}{tx.devices.tv}</span>
+				{#if !guest}<span class="dev friend">{@render device('phone')}{tx.devices.friend}</span
+					>{/if}
+			</div>
+		</div>
+		{#if guest}
+			<div class="net guestnet">
+				<span class="nlabel">{tx.guestNet} <code>{GUEST_SSID}</code></span>
+				<div class="devs">
+					<span class="dev friend">{@render device('phone')}{tx.devices.friend}</span>
+				</div>
+			</div>
+		{/if}
+	</div>
+	<p class="note">{guest ? tx.noteGuestOn : tx.noteGuestOff}</p>
 </div>
 
 <style>
-	svg text {
-		font-family: var(--font-sans);
-	}
-	.lbl {
-		font-size: 12px;
-		font-weight: 700;
-		fill: var(--color-ink);
-	}
-	.sm {
-		font-size: 9.5px;
-		fill: var(--color-muted);
-	}
-	.sm.g {
-		fill: var(--color-grass);
-		font-weight: 700;
-	}
-	.mono {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace !important;
-		font-size: 9.5px;
-		font-weight: 700;
-		fill: var(--color-muted);
-	}
-	.mono.bad {
-		fill: var(--color-danger);
-	}
-	.mono.mid {
-		fill: var(--color-amber);
-	}
-	.mono.good {
-		fill: var(--color-grass);
-	}
-	.mono.sub {
-		font-weight: 400;
-		fill: var(--color-muted);
-	}
-	.waves circle {
-		fill: none;
-		stroke: var(--color-brand);
-		stroke-width: 2;
-		vector-effect: non-scaling-stroke;
-		transform-box: fill-box;
-		transform-origin: center;
-		opacity: 0;
-		animation: wave 3.9s ease-out infinite;
-	}
-	.waves.bad circle {
-		stroke: var(--color-danger);
-	}
-	.waves.mid circle {
-		stroke: var(--color-amber);
-	}
-	.waves.good circle {
-		stroke: var(--color-grass);
-	}
-	@keyframes wave {
-		0% {
-			transform: scale(0.04);
-			opacity: 0.55;
-		}
-		100% {
-			transform: scale(1);
-			opacity: 0;
-		}
-	}
-	.roof {
-		fill: none;
-		stroke: var(--color-ink);
-		stroke-width: 2.5;
-		stroke-linejoin: round;
-		stroke-linecap: round;
-	}
-	.wall {
-		fill: var(--color-card);
-		fill-opacity: 0.82;
-		stroke: var(--color-ink);
-		stroke-width: 2;
-	}
-	.guest {
-		opacity: 0;
-		transition: opacity 0.5s;
-	}
-	.guest.show {
-		opacity: 1;
-	}
-	.guest > rect:first-child {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		stroke-width: 1.4;
-	}
-	.divider {
-		stroke: var(--color-grass);
-		stroke-width: 3;
-		stroke-linecap: round;
-	}
-	.dev {
-		fill: var(--color-card);
-		stroke: var(--color-ink);
-		stroke-width: 1.5;
-		stroke-linejoin: round;
-	}
-	.scr {
-		fill: var(--color-brand-soft);
-	}
-	.table {
-		fill: var(--color-amber);
-		opacity: 0.55;
+	.wrap {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 12px;
+		width: min(94vw, 380px);
+		max-height: 100%;
+		overflow-y: auto;
+		padding-bottom: 4px;
 	}
 	.router {
-		fill: var(--color-ink);
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		border-radius: 14px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 12px 14px;
 	}
-	.ant {
-		stroke: var(--color-ink);
-		stroke-width: 2;
-		stroke-linecap: round;
+	.rhead {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		color: var(--color-brand);
 	}
-	.led {
-		fill: var(--color-grass);
+	.rhead b {
+		flex: 1;
+		font-size: 13px;
+		font-weight: 800;
+		color: var(--color-ink);
 	}
-	.badge {
-		fill: var(--color-card);
-		stroke: var(--color-line);
+	code {
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 11px;
+		color: var(--color-muted);
 	}
-	.badge.bad {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
+	.field {
+		display: flex;
+		flex-direction: column;
+		gap: 5px;
 	}
-	.badge.mid {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
+	.field.off {
+		opacity: 0.45;
 	}
-	.badge.good {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
+	.flabel {
+		font-size: 10.5px;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--color-faint);
 	}
-	.bt {
+	.seg {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 4px;
+		border-radius: 11px;
+		background: var(--color-paper);
+		border: 1px solid var(--color-line);
+		padding: 3px;
+	}
+	.seg button {
+		border-radius: 8px;
+		padding: 7px 0;
+		font-size: 12.5px;
+		font-weight: 700;
+		color: var(--color-muted);
+		transition:
+			background 0.2s ease,
+			color 0.2s ease;
+	}
+	.seg button.sel {
+		background: var(--color-brand);
+		color: #fff;
+	}
+	.seg button.sel.danger {
+		background: var(--color-danger);
+	}
+	.hint {
+		font-size: 11.5px;
+		color: var(--color-muted);
+	}
+	.hint.warn {
+		color: var(--color-danger);
+	}
+	.pwrow {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.pw {
+		flex: 1;
+		min-width: 0;
+		border-radius: 9px;
+		border: 1px solid var(--color-line);
+		background: var(--color-paper);
+		color: var(--color-ink);
+		padding: 6px 10px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: 13px;
+	}
+	.pw:focus {
+		border-color: var(--color-brand);
+		box-shadow: none;
+	}
+	.strength {
+		flex: none;
+		border-radius: 999px;
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+		font-size: 10.5px;
+		font-style: normal;
+		font-weight: 800;
+		padding: 3px 9px;
+	}
+	.strength.weak {
+		background: var(--color-danger-soft);
+		color: var(--color-danger);
+	}
+	.guestsw {
+		display: flex;
+		align-items: center;
+		gap: 9px;
+		font-size: 12.5px;
+		font-weight: 650;
+		color: var(--color-ink);
+		text-align: left;
+	}
+	.track {
+		position: relative;
+		flex: none;
+		width: 34px;
+		height: 20px;
+		border-radius: 999px;
+		background: var(--color-line);
+		transition: background 0.2s ease;
+	}
+	.guestsw.on .track {
+		background: var(--color-grass);
+	}
+	.knob {
+		position: absolute;
+		top: 2px;
+		left: 2px;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		background: var(--color-card);
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+		transition: transform 0.2s ease;
+	}
+	.guestsw.on .knob {
+		transform: translateX(14px);
+	}
+	.cta {
+		border-radius: 12px;
+		background: var(--btn-primary);
+		color: #fff;
+		padding: 10px 16px;
+		font-size: 13px;
+		font-weight: 600;
+		transition: filter 0.2s ease;
+	}
+	.cta:enabled:hover {
+		filter: brightness(1.18);
+	}
+	.cta:disabled,
+	.seg button:disabled {
+		opacity: 0.6;
+	}
+
+	.snoop {
+		width: 100%;
+		border-radius: 12px;
+		overflow: hidden;
+		background: #10212f;
+		border: 1px solid #1d3547;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	}
+	.sbar {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		padding: 6px 11px;
+		background: #16293a;
+		border-bottom: 1px solid #1d3547;
+		font-family: var(--font-sans);
+		font-size: 11px;
+		font-weight: 700;
+		color: #ff9d92;
+	}
+	.dot {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: #e06a5b;
+	}
+	.sbody {
+		min-height: 92px;
+		padding: 9px 11px;
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		font-size: 11.5px;
+		line-height: 1.45;
+	}
+	.ln {
+		word-break: break-word;
+		animation: fade 0.25s ease;
+	}
+	.ln.muted {
+		color: #93a7b6;
+	}
+	.ln.bad {
+		color: #ff9d92;
+	}
+	.ln.ok {
+		color: #6fd39a;
+	}
+	.ln.idle {
+		color: #6b8496;
+		font-family: var(--font-sans);
+		font-style: italic;
+	}
+	@keyframes fade {
+		from {
+			opacity: 0;
+			transform: translateY(2px);
+		}
+	}
+
+	.nets {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 8px;
+		width: 100%;
+	}
+	.net {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		border-radius: 12px;
+		border: 1.5px solid var(--color-brand);
+		background: var(--color-brand-soft);
+		padding: 8px 10px;
+	}
+	.net.guestnet {
+		border-color: var(--color-amber);
+		background: var(--color-amber-soft);
+		animation: fade 0.3s ease;
+	}
+	.nlabel {
 		font-size: 10px;
 		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-muted);
 	}
-	.bt.bad,
-	.lockb.bad {
-		fill: var(--color-danger);
+	.devs {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
 	}
-	.bt.mid,
-	.lockb.mid {
-		fill: var(--color-amber);
-	}
-	.bt.good,
-	.lockb.good {
-		fill: var(--color-grass);
-	}
-	.locks {
-		fill: none;
-		stroke-width: 1.5;
-	}
-	.locks.mid {
-		stroke: var(--color-amber);
-	}
-	.locks.good {
-		stroke: var(--color-grass);
-	}
-	.person {
-		fill: var(--color-faint);
-	}
-	.snooper {
-		opacity: 0.55;
-		transition: opacity 0.4s;
-	}
-	.snooper.on {
-		opacity: 1;
-	}
-	.screen {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.4;
-		transition: stroke 0.3s;
-	}
-	.screen.bad {
-		stroke: var(--color-danger);
-	}
-	.screen.mid {
-		stroke: var(--color-amber);
-	}
-	.screen.good {
-		stroke: var(--color-grass);
-	}
-	.pill {
-		opacity: 0.45;
-		transition: opacity 0.3s;
-	}
-	.pill.cur {
-		opacity: 1;
-	}
-	.pr.open {
-		fill: var(--color-danger-soft);
-	}
-	.pr.wpa2 {
-		fill: var(--color-amber-soft);
-	}
-	.pr.wpa3 {
-		fill: var(--color-grass-soft);
-	}
-	.pt {
-		font-size: 9px;
-		font-weight: 800;
-	}
-	.pt.open {
-		fill: var(--color-danger);
-	}
-	.pt.wpa2 {
-		fill: var(--color-amber);
-	}
-	.pt.wpa3 {
-		fill: var(--color-grass);
-	}
-	.arrow {
-		fill: none;
-		stroke: var(--color-faint);
-		stroke-width: 1.2;
-		stroke-linecap: round;
-	}
-	.picker {
+	.dev {
 		display: inline-flex;
-		gap: 4px;
-		border: 1px solid var(--color-line);
-		border-radius: 999px;
+		align-items: center;
+		gap: 5px;
+		border-radius: 8px;
 		background: var(--color-card);
-		padding: 4px;
+		border: 1px solid var(--color-line);
+		padding: 4px 8px;
+		font-size: 11.5px;
+		font-weight: 650;
+		color: var(--color-ink);
 	}
-	.picker button {
-		border-radius: 999px;
-		padding: 6px 16px;
-		font-size: 14px;
+	.dev.friend {
+		color: var(--color-amber);
+	}
+	.note {
+		margin: 0;
+		text-align: center;
+		font-size: 12px;
 		font-weight: 600;
 		color: var(--color-muted);
 	}
-	.picker button.on {
-		background: var(--btn-primary);
-		color: #fff;
-	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.waves circle {
-			animation: none;
-			opacity: 0.25;
+		.ln,
+		.net.guestnet {
+			animation-duration: 0.01s;
 		}
-		.waves circle:nth-child(1) {
-			transform: scale(0.3);
-		}
-		.waves circle:nth-child(2) {
-			transform: scale(0.6);
-		}
-		.waves circle:nth-child(3) {
-			transform: scale(0.9);
-		}
-		.guest,
-		.snooper,
-		.pill {
+		.knob,
+		.track {
 			transition: none;
+		}
+	}
+	@media (min-width: 768px) {
+		.wrap {
+			width: 460px;
+			gap: 14px;
+		}
+		.sbody {
+			font-size: 12.5px;
+		}
+		.note {
+			font-size: 13.5px;
 		}
 	}
 </style>

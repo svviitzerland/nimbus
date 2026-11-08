@@ -64,7 +64,7 @@ export const id: ProcessesText = {
 			body: 'Kerjaan di <b>foreground</b> nahan terminal. Tambah <b>&</b> buat ngirim dia ke <b>background</b>, cek pakai <b>jobs</b>, panggil balik pakai <b>fg</b>.'
 		},
 		{
-			tag: 'Biar nempel',
+			tag: 'Cara ingat',
 			title: 'Dapur yang sibuk',
 			body: 'Masakan, proses. Nomor pesanan, PID. Papan pesanan, ps. Wajan ngebul, top. Angkat dari api, kill.'
 		},

@@ -1,103 +1,75 @@
 import type { HatColorsText } from './types';
 
 export const id: HatColorsText = {
-	title: 'Jenis jenis hacker',
+	title: 'Jenis hacker',
 	intro: [
-		'Di film koboi zaman dulu, jagoannya gampang dikenali dari topi putihnya dan penjahatnya dari topi hitamnya. Dunia komputer meminjam ide itu buat mengelompokkan hacker.',
-		'<b>Hacker</b> itu sebenarnya orang yang paham sebuah sistem saking dalamnya sampai bisa bikin sistem itu melakukan hal yang nggak pernah direncanakan. Keahliannya sendiri netral, mirip tukang kunci yang bisa membuka pintu apa saja.',
-		'<b>White hat</b> (topi putih) bekerja dengan izin. Sebuah perusahaan memintanya, biasanya dengan kontrak yang ditandatangani, buat membobol lalu melaporkan semua celah biar bisa ditambal.',
-		'<b>Black hat</b> (topi hitam) membobol tanpa izin, buat mencuri, memata matai, atau memeras. Keahliannya sama, tapi dipakai melawan pemiliknya.',
-		'<b>Gray hat</b> (topi abu abu) ada di tengah. Nggak punya izin, tapi juga nggak berniat jahat, misalnya orang yang menyusup lalu memperingatkan pemiliknya. Mungkin niatnya baik, tapi di mata hukum tetap dianggap membobol.',
-		'Cerita nyata. Di tahun 80an dan 90an Kevin Mitnick jadi hacker paling dicari di Amerika. Dia tertangkap tahun 1995 dan dipenjara sekitar lima tahun. Belakangan dia menjalankan perusahaan keamanan dan dibayar buat membobol, kali ini dengan izin. Keahlian yang sama, sisi garis yang berbeda.',
-		'Garis itu punya nama, <b>izin</b>. Kebanyakan negara menuliskannya di undang undang. Di Indonesia ada UU ITE, di Amerika ada Computer Fraud and Abuse Act. Masuk ke sistem tanpa izin pemiliknya itu kejahatan, walau kamu nggak mengambil apa apa.',
-		'[ingat] <b>Izin yang mewarnai topinya.</b> Ada izin, putih. Nggak ada izin, hitam, dan niat baik cuma bikin jadi abu abu.',
-		'[fyi] Kabar baiknya, sekarang perusahaan malah mengundang hacker. Tahun 1995 Netscape sudah membayar orang yang menemukan bug di browsernya, dan sekarang program <b>bug bounty</b> seperti itu membayar uang beneran untuk laporan yang rapi. Lebih lanjut di [[pentesting dan bug bounty|security/pentest]].',
-		'Mau dengar satu cerita pendek untuk tiap topi? Pencet salah satunya.'
+		'Istilah <b>white hat</b>, <b>black hat</b>, dan <b>gray hat</b> sering dipakai untuk membahas kegiatan hacker. Untuk menilai contoh di sini, periksa izin dan tujuan tindakannya.',
+		'<b>Hacker</b> sebenarnya cuma orang yang paham sebuah sistem begitu dalam sampai bisa membuatnya melakukan hal yang nggak pernah direncanakan. Keahliannya sendiri netral, mirip tukang kunci yang bisa membuka pintu apa saja.',
+		'<b>White hat</b> menguji sistem dengan izin untuk memperbaiki keamanan. <b>Black hat</b> menyalahgunakan sistem, misalnya untuk mencuri atau memeras. <b>Gray hat</b> biasanya merujuk pada pengujian tanpa izin walau pelakunya mengaku ingin membantu.',
+		'Dua orang dapat memakai alat yang sama dengan batas akses berbeda. Satu diberi akun tes dan scope tertulis, sedangkan yang lain masuk tanpa persetujuan pemilik.',
+		'Izin perlu menjelaskan sistem yang boleh diuji dan tindakan yang diperbolehkan. Menguasai teknik pengujian tidak memberikan izin untuk mencobanya pada sistem orang lain.',
+		'[fyi] Kabar baiknya, sekarang perusahaan malah mengundang hacker. Tahun 1995 Netscape sudah membayar orang yang menemukan bug di browsernya, dan sekarang program <b>bug bounty</b> seperti ini membayar uang sungguhan untuk laporan yang rapi. Lebih lengkapnya di [[pentest dan bug bounty|security/pentest]].',
+		'[ingat] <b>Periksa izinnya sebelum tekniknya.</b> Niat membantu tidak menggantikan persetujuan pemilik dan batas pengujian.',
+		'Baca enam kasus ini dan tentukan apakah tindakannya mendapat izin. Setelah itu, lihat kategori yang sesuai dengan kasus tersebut.'
 	],
 	reactions: {
-		white:
-			'Topi putih. Kontrak yang ditandatangani itu pembedanya. Di situ tertulis apa yang boleh dites Sari, kapan, dan caranya. Pekerjaan ini namanya <b>pentest</b> (penetration test).',
-		gray: 'Topi abu abu. Niat Tono baik, tapi dia tetap masuk tanpa minta izin duluan, jadi nggak legal. Cara yang aman, laporkan yang kamu lihat tanpa membobol.',
-		black:
-			'Topi hitam, jelas. Masuknya aja udah tanpa diundang, dan minta uang mengubahnya jadi pemerasan.'
+		lab: 'Dina memakai perangkat dan lingkungan latihannya sendiri. Pengujian tidak menyentuh sistem pihak lain.',
+		wifi: 'Tidak ada izin dari pemilik WiFi. Rasa ingin tahu tidak mengubah batas akses yang diberikan.',
+		pentest:
+			'Sari memiliki izin pengujian yang menetapkan ruang lingkup, waktu, dan metode. Pengujian tetap harus mengikuti batas tersebut.',
+		extort:
+			'Akses dilakukan tanpa izin dan diikuti ancaman penyebaran data. Ini contoh penyalahgunaan sistem.',
+		warn: 'Tono tidak memiliki izin untuk mengakses sistem tersebut. Menyampaikan temuan sesudahnya tidak menggantikan izin sebelum pengujian.',
+		bounty:
+			'Bima mengikuti izin dan aturan program bug bounty. Temuan disampaikan melalui saluran yang ditentukan.'
 	},
-	steps: [
-		{
-			tag: 'Film koboi',
-			title: 'Topi menunjukkan pihak',
-			body: 'Putih buat jagoan, hitam buat penjahat. Hacker dikelompokkan dengan <b>cara yang sama</b>.'
+	askLabel: 'Ada izin untuk tindakan ini?',
+	legalBtn: 'Ada izin',
+	illegalBtn: 'Tidak ada izin',
+	scenarios: {
+		lab: {
+			who: 'Dina, 16 tahun',
+			story:
+				'Dina mencoba membobol laptop lama miliknya sendiri di rumah, buat belajar cara kerjanya.',
+			why: 'Perangkatnya sendiri, jadi nggak perlu izin orang lain.'
 		},
-		{
-			tag: 'Istilahnya',
-			title: 'Hacker',
-			body: 'Orang yang paham sistem <b>sampai dalam</b>. Keahliannya netral, kayak tukang kunci.'
+		wifi: {
+			who: 'Raka',
+			story: 'Raka menebak nebak password WiFi tetangganya, cuma buat lihat bisa atau nggak.',
+			why: 'Nggak ada izin dari pemiliknya, walau tanpa niat jahat.'
 		},
-		{
-			tag: 'Topi putih',
-			title: 'Dengan izin',
-			body: 'Membobol <b>karena diminta pemiliknya</b>, lalu melaporkan celahnya biar ditambal.'
-		},
-		{
-			tag: 'Topi hitam',
-			title: 'Tanpa izin',
-			body: 'Membobol buat <b>mencuri, memata matai, atau memeras</b>. Keahlian sama, diarahkan ke pemiliknya.'
-		},
-		{
-			tag: 'Topi abu abu',
-			title: 'Di tengah',
-			body: 'Tanpa izin, tanpa niat jahat. Tetap dianggap <b>membobol</b> di mata hukum.'
-		},
-		{
-			tag: 'Kevin Mitnick',
-			title: 'Hitam, lalu putih',
-			body: 'Tertangkap <b>1995</b>, sekitar lima tahun dipenjara, lalu dibayar buat menguji perusahaan <b>dengan izin</b>.'
-		},
-		{
-			tag: 'Garisnya',
-			title: 'Izin',
-			body: 'Di Indonesia <b>UU ITE</b> yang menariknya. Masuk tanpa persetujuan pemilik itu kejahatan, walau nggak ada yang diambil.'
-		},
-		{
-			tag: 'Biar nempel',
-			title: 'Izin mewarnai topi',
-			body: 'Ada izin pemilik, <b>putih</b>. Nggak ada izin, <b>hitam</b>. Niat baik tanpa izin, <b>abu abu</b>.'
-		},
-		{
-			tag: 'Info',
-			title: 'Bug bounty',
-			body: 'Aturan tertulis yang <b>mengundang</b> hacker masuk, plus hadiah untuk laporan yang rapi dan rahasia.'
-		},
-		{
-			tag: 'Opsional',
-			title: 'Tiga cerita',
-			body: 'Pencet satu topi buat dengar ceritanya.'
-		}
-	],
-	hats: { white: 'Topi putih', gray: 'Topi abu abu', black: 'Topi hitam' },
-	permission: 'ada izin',
-	noPermission: 'tanpa izin',
-	news: { tag: 'Kevin Mitnick, 1995', head: 'Hacker paling dicari di Amerika akhirnya tertangkap' },
-	timeline: [
-		{ year: '1995', label: 'tertangkap' },
-		{ year: '2000', label: 'bebas' },
-		{ year: 'kemudian', label: 'dibayar menguji' }
-	],
-	bountyLabel: 'aturan bug bounty',
-	stories: {
-		white: {
+		pentest: {
 			who: 'Sari, konsultan keamanan',
 			story:
-				'Sebuah bank menandatangani kontrak dengan Sari dan memintanya mencoba membobol aplikasinya.'
+				'Sebuah bank menandatangani kontrak dengan Sari dan memintanya mencoba membobol aplikasi mereka.',
+			why: 'Ada izin tertulis dari pemilik, dengan batasan yang jelas.'
 		},
-		gray: {
+		extort: {
+			who: 'Email tanpa nama',
+			story: 'Seseorang membobol sebuah toko, lalu minta uang atau data pelanggannya akan disebar.',
+			why: 'Tanpa izin, dan berubah jadi pemerasan.'
+		},
+		warn: {
 			who: 'Tono',
 			story:
-				'Tono menyusup ke website sekolahnya tanpa izin, lalu mengirim email ke admin buat memperingatkan soal celahnya.'
+				'Tono menyelinap ke situs sekolahnya tanpa izin, lalu mengirim email ke admin untuk memberi tahu celahnya.',
+			why: 'Niatnya baik, tapi tetap nggak ada izin sebelum dia masuk.'
 		},
-		black: {
-			who: 'Email tanpa nama',
-			story: 'Seseorang membobol sebuah toko, lalu minta uang atau data pelanggannya akan disebar.'
+		bounty: {
+			who: 'Bima',
+			story:
+				'Bima membaca aturan bug bounty nimbus.com, menemukan bug sesuai aturan itu, lalu melaporkannya diam diam.',
+			why: 'Program bug bounty itu izin tertulis, dan dia mengikuti aturannya.'
 		}
 	},
-	tapHint: 'Pencet satu topi buat dengar ceritanya'
+	hats: { white: 'White hat', gray: 'Gray hat', black: 'Black hat' },
+	legalTag: 'berizin',
+	illegalTag: 'tanpa izin',
+	rightTag: 'tebakanmu benar',
+	wrongTag: 'belum tepat',
+	nextBtn: 'Cerita berikutnya',
+	progress: 'Cerita {n} dari {total}',
+	scoreLine: 'Kamu menebak benar {n} dari {total}',
+	doneLine: 'Periksa izin, tujuan, dan batas pengujian pada setiap kasus.',
+	again: 'Dengar ceritanya lagi'
 };

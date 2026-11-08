@@ -37,6 +37,17 @@ export interface LessonText {
 	reactions: Record<string, string>;
 }
 
+/** Text shared by the small, self contained experiment workbenches. */
+export interface ExperimentText extends LessonText {
+	labLabel: string;
+	goal: string;
+	tasks: string[];
+	hintLabel: string;
+	hint: string;
+	scope: string;
+	labels: Record<string, string>;
+}
+
 export interface ServerText extends LessonText {
 	you: string;
 	server: string;
@@ -329,6 +340,8 @@ export interface GitHostsText extends LessonText {
 }
 
 export type Lesson = {
+	/** A hands on simulation, available alongside Nim from the first beat. */
+	playable?: boolean;
 	id: string;
 	mood: Mood;
 	/** Optional mood per narrative beat (visual, language independent). Falls back to `mood`. */
@@ -359,3 +372,26 @@ export type Chapter = {
 	lessons: Lesson[];
 	summary: { id: ChapterSummary; en: ChapterSummary };
 };
+
+export interface SecurityCatalogText extends ExperimentText {
+	cases: {
+		id: string;
+		title: string;
+		scene: string;
+		request: string;
+		control: string;
+		before: string;
+		after: string;
+		explanation: string;
+	}[];
+}
+
+export interface CvssText extends LessonText {
+	labels: Record<string, string>;
+	cases: Record<
+		'invoice' | 'admin' | 'public',
+		{ name: string; title: string; brief: string; result: string }
+	>;
+	versions: Record<'2.0' | '3.0' | '3.1' | '4.0', string>;
+	metrics: Record<string, string>;
+}

@@ -7,7 +7,7 @@ export const en: RemoteAccessText = {
 		'Since you cannot touch the machine, you get in from afar, called <b>remote access</b>. From your computer at home you connect over the internet using the server address, either an <b>IP</b> or a <b>hostname</b> (its name) like nimbus.com.',
 		'There are two common doors. <b>SSH</b> for a Linux server, a terminal where you type commands. <b>RDP</b> for a Windows server, a desktop screen you can click around.',
 		'Typing a password every time works, but a password can be guessed or stolen. The safer way is an <b>SSH key</b>, a matching pair of two files made on your laptop. The <b>public key</b> goes on the server, and the <b>private key</b> never leaves your laptop. When you connect, the server checks that your laptop holds the partner key, so no password ever travels over the internet.',
-		'[ingat] Think of a padlock and its only key. The public key is the padlock, you can fix a copy on every server you own and anyone may look at it. The private key is the one key that opens them all, so it stays in your pocket and you never lend it out.',
+		'[ingat] SSH provides a remote terminal. RDP provides a remote desktop.',
 		'Your server is ready in the data center. Get in through SSH, then through RDP, and see the difference.'
 	],
 	reactions: {

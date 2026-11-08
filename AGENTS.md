@@ -8,6 +8,13 @@ Every game metaphor is tied to reality through Nim's reactions.
 Live at <https://nimbus.farhanaulianda.my.id>. For what Nimbus is, see **README.md**; for the
 lesson roadmap, see **CURRICULUM.md**. This file is the architecture and contributor guide.
 
+Before editing lessons, copy, navigation labels, or UI, read
+[NIMBUS_EDITING_GUIDE.md](./NIMBUS_EDITING_GUIDE.md). It defines the module design and authoring standards
+for learning interactions, wording, curriculum structure, and Nim's bubble.
+Follow the maintainer's latest task instructions when they update these preferences.
+Write all repository documentation in English. Preserve Indonesian UI text only as quoted product
+labels or examples, with explanations in English.
+
 ## Commands (use **bun**)
 
 ```bash
@@ -19,6 +26,7 @@ bun run format    # prettier --write
 ```
 
 After editing, run `bun run check`. It must report **0 errors, 0 warnings**.
+Run `bun run check:curriculum` for content and track changes and `bun run test:lessons` for lab models.
 
 ## Stack
 
@@ -87,8 +95,8 @@ Inside a lesson, Nim's text has two parts in `lesson.text[lang]`:
   - `ServerStage` -> `served`; `CloudStage` -> `home`/`cloud` (first click) then `both`;
     `RegionStage` -> `near`/`mid`/`far` (by latency).
 
-Next is disabled only on the last beat until the stage's interaction is complete
-(`oncomplete`). Teaching is woven into the beats/reactions; there is intentionally **no
+Legacy lessons can require `oncomplete` on the final beat. Playable lessons let learners
+continue reading while tracking experiment completion separately. Teaching is woven into the beats/reactions; there is intentionally **no
 "Di dunia nyata" toggle**. Tone: detailed but compact, storytelling.
 
 Any beat or reaction string may start with the marker **`[fyi]`** to render as a "by the way"
@@ -116,10 +124,15 @@ text>')`. Soon ids are unique across all modules. `basecamp` modules are shared 
   the order must read like a story from zero (nothing used before it is taught), and a lesson
   that refers back to another stays after it. A track with `soon: true` shows in the picker but
   cannot be started yet.
-- **Guided lessons.** Lessons are watch first, play optional. The stage follows Nim's `beat`, is
-  shown from the first beat (`onshow(true)`), never locks Next (`oncomplete()` on mount), and uses
-  `src/lib/components/Guide.svelte` (a visual that moves by itself plus a side panel). At most one
-  simple optional interaction; typed labs keep their terminal but demo the commands first.
+- **Playable lessons.** A simulation must show an observable consequence of the learner's action.
+  Set `playable: true` to make it available from the first beat, keep narrative navigation optional,
+  and keep any necessary recovery controls inside the stage. Do not add the removed generic
+  experiment status and restart bar. `oncomplete` marks the experiment complete only after its
+  actual task succeeds, not on mount. Use concrete controls and explain what to try and observe.
+  Use `Guide.svelte` for anatomy and guided demonstrations; typed labs also expose their terminal.
+  Use `labs/LabBench.svelte` for small experiments with a goal, checklist, hint, and local simulation.
+  Put all lesson copy in `id.ts` and `en.ts`. Keep original stage mechanics instead of replacing
+  controls with passive slides. The cloud lessons establish the visual and interaction vocabulary.
 - **Memory tricks.** Every lesson has at least one beat starting with `[ingat]`, an easy way to
   remember the idea, shown with a green "Cara ingat" tag (`SpeechBubble.svelte`).
 - **Real photos.** Public domain photos live in `static/images/people/` with `CREDITS.md`.
@@ -213,3 +226,16 @@ outline (`outline: none`).
 - Palette and fonts are tokens in `src/routes/layout.css` (`@theme`): accent `brand`, plus
   `grass` / `amber` / `danger`. Fonts: Fraunces (display) and Inter (sans).
 - Start every topic from absolute zero; assume the learner knows nothing.
+
+## Lesson wording
+
+Use the concept name as the title. Explain what it does, show the input and result, and connect
+feedback to the learner's action. Avoid dramatic labels, vague slogans, repeated praise, and
+anecdotes that do not teach the objective. A memory cue should recall a mechanism or distinction.
+Keep Indonesian and English aligned. Distinguish simulated values, example outcomes, and actual
+technical guarantees. Recheck versioned references such as OWASP Top 10 and CVSS when changing them.
+
+Use direct functional headings and labels throughout the lessons, including guide panels and memory cues.
+Name the component or operation, such as temporary memory, DHCP address range, or running a command
+with sudo. Do not substitute unrelated metaphors such as city streets, desks, receptionists, or bosses
+for the concept being taught. Keep practice feedback specific to what the learner changed or observed.

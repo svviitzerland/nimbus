@@ -1,547 +1,474 @@
 <script lang="ts">
-	// Guided "watch" stage. A phone and the nimbus.com server trade little envelopes by
-	// themselves. First the server forgets every visitor, then a login earns a cookie, the
-	// cookie rides along on every request, and the server looks it up on its session list.
-	// Then the cookie turns into a stamped wristband (a token) and the list is not needed.
-	// The only optional play, on the last beat, is deleting the cookie.
-	import Guide from '$lib/components/Guide.svelte';
-	import SvgPhone from '$lib/components/stages/backend-guided/SvgPhone.svelte';
-	import SvgRack from '$lib/components/stages/backend-guided/SvgRack.svelte';
-	import { sceneClock } from '$lib/components/stages/backend-guided/clock.svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import Server from '$lib/components/Server.svelte';
+	import MiniPhone from './backend/MiniPhone.svelte';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { AuthText } from '$lib/chapters/web/auth/types';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as AuthText);
 
-	$effect(() => {
-		onshow?.(true);
-		oncomplete?.();
-	});
+	type Mode = 'session' | 'token';
+	type Page = 'login' | 'orders' | 'kicked';
 
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const lastBeat = $derived(tx.intro.length - 1);
-	const step = $derived(peek ?? Math.min(beat, tx.steps.length - 1));
-	const live = $derived(beat >= lastBeat && peek === null);
+	let mode = $state<Mode>('session');
+	let cookie = $state<string | null>(null);
+	let sessions = $state<string[]>([]);
+	let page = $state<Page>('login');
+	let req = $state<{ line: string; cookie: string | null; status: number } | null>(null);
+	let flash = $state(0);
+	let loggedOnce = false;
+	let completed = false;
 
-	let deleted = $state(false);
-	function toggleCookie() {
-		deleted = !deleted;
-		onstate?.(deleted ? 'deleted' : 'login');
+	function rand(n: number) {
+		const abc = '0123456789abcdef';
+		let s = '';
+		for (let i = 0; i < n; i++) s += abc[Math.floor(Math.random() * abc.length)];
+		return s;
 	}
 
-	const clock = sceneClock(() => [step, deleted]);
-	const PERIOD = 4200;
-
-	/** One round trip. 0 waiting, 1 request flying, 2 server thinks, 3 answer flying, 4 settled. */
-	function trip(t: number, loop: boolean) {
-		if (clock.reduced) return 4;
-		const m = loop ? t % PERIOD : t;
-		return m < 400 ? 0 : m < 1400 ? 1 : m < 2000 ? 2 : m < 3000 ? 3 : 4;
+	function setMode(m: Mode) {
+		if (m === mode) return;
+		mode = m;
+		cookie = null;
+		sessions = [];
+		page = 'login';
+		req = null;
 	}
 
-	type Scene = {
-		sub: number;
-		attach: 'none' | 'cookie' | 'band' | 'key';
-		answer: 'none' | 'page' | 'cookie';
-		screen: 'who' | 'login' | 'hello';
-		holder: 'hidden' | 'empty' | 'cookie' | 'band';
-		board: 'none' | 'session' | 'token' | 'hash';
-		bubble: 'none' | 'who' | 'ok';
-		lookup: boolean;
-	};
-
-	const scene = $derived.by((): Scene => {
-		const t = clock.t;
-		const base: Scene = {
-			sub: 4,
-			attach: 'none',
-			answer: 'page',
-			screen: 'hello',
-			holder: 'cookie',
-			board: 'session',
-			bubble: 'none',
-			lookup: false
-		};
-		const thinking = (sub: number) => sub === 2 || sub === 3;
-		if (step === 9 && live && deleted) {
-			const sub = trip(t, true);
-			const first = clock.reduced || t >= PERIOD || sub >= 4;
-			return {
-				...base,
-				sub,
-				holder: 'empty',
-				screen: first ? 'who' : 'hello',
-				bubble: thinking(sub) ? 'who' : 'none'
-			};
+	function login() {
+		if (mode === 'session') {
+			const sid = rand(6);
+			sessions = [...sessions, sid];
+			cookie = `session=${sid}`;
+		} else {
+			cookie = `token=eyJ1c2VyIjoibmltIn0.${rand(5)}`;
 		}
-		switch (step) {
-			case 0: {
-				const sub = trip(t, true);
-				return {
-					...base,
-					sub,
-					screen: 'who',
-					holder: 'hidden',
-					board: 'none',
-					bubble: thinking(sub) ? 'who' : 'none'
-				};
-			}
-			case 1: {
-				const sub = trip(t, false);
-				return {
-					...base,
-					sub,
-					attach: 'key',
-					answer: 'none',
-					screen: 'login',
-					holder: 'hidden',
-					board: 'none',
-					bubble: sub >= 2 ? 'ok' : 'none'
-				};
-			}
-			case 2: {
-				const sub = clock.reduced ? 4 : t < 600 ? 2 : t < 1600 ? 3 : 4;
-				return {
-					...base,
-					sub,
-					answer: 'cookie',
-					screen: sub >= 4 ? 'hello' : 'login',
-					holder: sub >= 4 ? 'cookie' : 'hidden',
-					board: 'none',
-					bubble: 'ok'
-				};
-			}
-			case 3:
-				return { ...base, lookup: true };
-			case 5: {
-				const sub = trip(t, true);
-				return {
-					...base,
-					sub,
-					attach: 'band',
-					holder: 'band',
-					board: 'token',
-					bubble: thinking(sub) ? 'ok' : 'none',
-					lookup: sub === 2
-				};
-			}
-			case 6: {
-				const token = !clock.reduced && Math.floor(t / 3000) % 2 === 1;
-				return { ...base, holder: token ? 'band' : 'cookie', board: token ? 'token' : 'session' };
-			}
-			case 7:
-				return { ...base, screen: 'login', holder: 'hidden', board: 'hash', answer: 'none' };
-			case 8:
-				return { ...base, holder: 'band', board: 'token' };
-			default: {
-				const sub = trip(t, true);
-				return {
-					...base,
-					sub,
-					attach: 'cookie',
-					bubble: thinking(sub) ? 'ok' : 'none',
-					lookup: sub === 2
-				};
+		req = { line: 'POST /login', cookie: null, status: 200 };
+		flash++;
+		page = 'orders';
+		loggedOnce = true;
+		onstate?.(mode === 'session' ? 'login' : 'token');
+	}
+
+	function valid(c: string | null) {
+		if (!c) return false;
+		if (c.startsWith('session=')) return sessions.includes(c.slice(8));
+		return c.startsWith('token=');
+	}
+
+	function browse() {
+		const ok = valid(cookie);
+		req = { line: 'GET /orders', cookie, status: ok ? 200 : 401 };
+		flash++;
+		if (ok) {
+			page = 'orders';
+			onstate?.(mode === 'session' ? 'browse' : 'tokenBrowse');
+		} else {
+			page = loggedOnce ? 'kicked' : 'login';
+			if (!loggedOnce) {
+				onstate?.('stranger');
+			} else {
+				onstate?.(mode === 'session' ? 'kicked' : 'tokenKicked');
+				if (!completed) {
+					completed = true;
+					oncomplete?.();
+				}
 			}
 		}
-	});
+	}
 
-	const reqOn = $derived(scene.sub === 1 || scene.sub === 2);
-	const ansOn = $derived(scene.answer !== 'none' && scene.sub === 3);
-	const LANE_REQ = 98;
-	const LANE_ANS = 130;
+	function del() {
+		cookie = null;
+		onstate?.('deleted');
+	}
+
+	const led = $derived(
+		page === 'orders' ? 'ok' : page === 'kicked' ? 'bad' : ('idle' as 'idle' | 'ok' | 'bad')
+	);
 </script>
 
-{#snippet envelope(attach: string)}
-	<rect x="-12" y="-8" width="24" height="16" rx="2.5" class="env" />
-	<path d="M-11 -7l11 8 11 -8" class="flap" />
-	{#if attach === 'cookie'}
-		<circle cx="12" cy="-8" r="6.5" class="cookie" />
-		<circle cx="10" cy="-10" r="1.2" class="chip" />
-		<circle cx="14" cy="-6.5" r="1.2" class="chip" />
-	{:else if attach === 'band'}
-		<rect x="3" y="-15" width="22" height="9" rx="4.5" class="band" />
-		<circle cx="20" cy="-10.5" r="2.5" class="stampDot" />
-	{:else if attach === 'key'}
-		<circle cx="10" cy="-9" r="4" class="keyC" />
-		<path d="M14 -9h7m-3 0v3" class="keyL" />
-	{/if}
-{/snippet}
-
-{#snippet visual()}
-	<div class="w-full">
-		<svg
-			viewBox="0 0 360 290"
-			class="mx-auto block w-full max-w-[420px]"
-			role="img"
-			aria-label={tx.steps[step].title}
+<div class="wrap">
+	<div class="seg" role="group">
+		<button type="button" class:on={mode === 'session'} onclick={() => setMode('session')}
+			>{tx.modeSession}</button
 		>
-			<!-- the two lanes -->
-			<line x1="128" y1={LANE_REQ} x2="232" y2={LANE_REQ} class="lane" />
-			<line x1="128" y1={LANE_ANS} x2="232" y2={LANE_ANS} class="lane" />
-
-			<!-- you, the phone -->
-			<SvgPhone x={18} y={40} w={104} h={200}>
-				{#key scene.screen}
-					<g class="fade">
-						{#if scene.screen === 'login'}
-							<text x="45" y="26" text-anchor="middle" class="pTitle">{tx.page.loginTitle}</text>
-							<rect x="5" y="40" width="80" height="22" rx="5" class="field" />
-							<text x="10" y="55" class="fieldT">{tx.page.email}</text>
-							<rect x="5" y="68" width="80" height="22" rx="5" class="field" />
-							<text x="10" y="84" class="fieldT dots">••••••••</text>
-							<rect x="8" y="102" width="74" height="24" rx="12" class="btn" />
-							<text x="45" y="118" text-anchor="middle" class="btnT">{tx.page.loginBtn}</text>
-						{:else if scene.screen === 'hello'}
-							<text x="45" y="28" text-anchor="middle" class="pTitle">{tx.page.hello}</text>
-							<text x="45" y="46" text-anchor="middle" class="pSub">{tx.page.ordersLabel}</text>
-							{#each tx.page.orders as o, i (i)}
-								<rect x="8" y={58 + i * 32} width="74" height="24" rx="6" class="field" />
-								<rect x="13" y={64 + i * 32} width="12" height="12" rx="3" class="thumb" />
-								<text x="30" y={74 + i * 32} class="fieldT">{o}</text>
-							{/each}
-						{:else}
-							<circle cx="45" cy="56" r="22" class="who" />
-							<text x="45" y="65" text-anchor="middle" class="whoQ">?</text>
-							<text x="45" y="104" text-anchor="middle" class="pTitle sm">{tx.page.whoTitle}</text>
-							<text x="45" y="120" text-anchor="middle" class="pSub">{tx.page.whoHint}</text>
-						{/if}
-					</g>
-				{/key}
-			</SvgPhone>
-
-			<!-- what the browser holds -->
-			{#if scene.holder !== 'hidden'}
-				{#key scene.holder}
-					<g class="fade">
-						{#if scene.holder === 'cookie'}
-							<circle cx="44" cy="264" r="11" class="cookie" />
-							<circle cx="40" cy="260" r="1.8" class="chip" />
-							<circle cx="48" cy="262" r="1.8" class="chip" />
-							<circle cx="43" cy="269" r="1.8" class="chip" />
-							<text x="62" y="268" class="holdT">{tx.sessionNumber}</text>
-						{:else if scene.holder === 'band'}
-							<rect x="22" y="254" width="96" height="20" rx="10" class="band" />
-							<text x="34" y="268" class="holdT sm">{tx.wristband}</text>
-							<circle cx="106" cy="264" r="6" class="stampDot" />
-						{:else}
-							<text x="70" y="268" text-anchor="middle" class="holdT none">{tx.noCookie}</text>
-						{/if}
-					</g>
-				{/key}
-			{/if}
-
-			<!-- the server -->
-			<text x="290" y="26" text-anchor="middle" class="label">{tx.serverLabel}</text>
-			<SvgRack x={236} y={40} w={108} units={3} busy={scene.sub === 2} />
-			{#if scene.bubble !== 'none'}
-				<g class="fade">
-					<circle cx="232" cy="44" r="12" class="bubble {scene.bubble}" />
-					{#if scene.bubble === 'who'}
-						<text x="232" y="49.5" text-anchor="middle" class="bubbleQ">?</text>
-					{:else}
-						<path d="M226 44l4 4 8 -8" class="tick" />
-					{/if}
-				</g>
-			{/if}
-
-			<!-- the board behind the counter -->
-			{#if scene.board !== 'none'}
-				{#key scene.board}
-					<g class="fade">
-						<rect x="226" y="156" width="124" height="110" rx="10" class="board" />
-						{#if scene.board === 'session'}
-							<text x="288" y="176" text-anchor="middle" class="boardT">{tx.listLabel}</text>
-							{#each tx.listRows as r, i (i)}
-								{@const mine = i === 1}
-								<rect
-									x="234"
-									y={186 + i * 24}
-									width="108"
-									height="20"
-									rx="5"
-									class="row"
-									class:mine
-									class:look={mine && scene.lookup}
-								/>
-								<text x="242" y={200 + i * 24} class="rowT mono">{r.number}</text>
-								<text x="300" y={200 + i * 24} class="rowT">{r.name}</text>
-							{/each}
-						{:else if scene.board === 'token'}
-							<text x="288" y="176" text-anchor="middle" class="boardT">{tx.tokenLabel}</text>
-							<circle cx="256" cy="216" r="9" class="keyC big" />
-							<path d="M265 216h16m-6 0v6" class="keyL big" />
-							<circle cx="318" cy="216" r="16" class="stamp" class:look={scene.lookup} />
-							<path d="M310 216l6 6 10 -11" class="tick dark" />
-							<text x="288" y="254" text-anchor="middle" class="rowT faint">{tx.tokenNote}</text>
-						{:else}
-							<text x="288" y="176" text-anchor="middle" class="boardT">{tx.hashLabel}</text>
-							<rect x="234" y="190" width="108" height="22" rx="5" class="row" />
-							<text x="242" y="205" class="rowT">{tx.hashUser}</text>
-							<text x="276" y="205" class="rowT mono">{tx.hashValue}</text>
-						{/if}
-					</g>
-				{/key}
-			{/if}
-
-			<!-- the travelling envelopes -->
-			<g
-				class="move"
-				style="transform:translate({scene.sub >= 1 ? 214 : 140}px, {LANE_REQ}px);opacity:{reqOn
-					? 1
-					: 0}"
-			>
-				{@render envelope(scene.attach)}
-			</g>
-			<g
-				class="move"
-				style="transform:translate({scene.sub >= 3 ? 140 : 214}px, {LANE_ANS}px);opacity:{ansOn
-					? 1
-					: 0}"
-			>
-				{@render envelope(scene.answer === 'cookie' ? 'cookie' : 'none')}
-			</g>
-		</svg>
-		{#if live}
-			<div class="mt-3 flex justify-center">
-				<button type="button" class="play" class:on={deleted} onclick={toggleCookie}>
-					{deleted ? tx.againBtn : tx.deleteBtn}
-				</button>
-			</div>
-		{/if}
+		<button type="button" class:on={mode === 'token'} onclick={() => setMode('token')}
+			>{tx.modeToken}</button
+		>
 	</div>
-{/snippet}
 
-<div class="flex w-full justify-center px-1 pb-28 md:pb-6">
-	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
+	<div class="acts">
+		<button type="button" class="cta" onclick={login} disabled={cookie !== null}>{tx.login}</button>
+		<button type="button" class="line" onclick={browse}>{tx.browse}</button>
+		<button type="button" class="line warn" onclick={del} disabled={cookie === null}
+			>{tx.deleteCookie}</button
+		>
+	</div>
+
+	<div class="row">
+		<div class="col">
+			<MiniPhone
+				{led}
+				width={168}
+				url={page === 'orders' ? 'nimbus.com/orders' : 'nimbus.com/login'}
+			>
+				{#if page === 'orders'}
+					<b class="ptitle">{tx.page.hello}</b>
+					{#each tx.page.orders as o (o)}
+						<span class="orow">{o}<i>✓</i></span>
+					{/each}
+				{:else if page === 'kicked'}
+					<b class="ptitle bad">{tx.page.kickedTitle}</b>
+					<span class="hint">{tx.page.kickedHint}</span>
+					<span class="field">{tx.page.email}</span>
+					<span class="field">••••••••</span>
+				{:else}
+					<b class="ptitle">{tx.page.loginTitle}</b>
+					<span class="field">{tx.page.email}</span>
+					<span class="field">••••••••</span>
+					<span class="hint">{tx.page.loginHint}</span>
+				{/if}
+			</MiniPhone>
+
+			<div class="jar" class:full={cookie !== null}>
+				<span class="jl">{tx.jarLabel}</span>
+				{#if cookie}
+					{#key cookie}
+						<code class="ck">{cookie}</code>
+					{/key}
+					{#if mode === 'token'}
+						<span class="inside">{tx.tokenInside}</span>
+					{/if}
+				{:else}
+					<span class="empty">{tx.jarEmpty}</span>
+				{/if}
+			</div>
+		</div>
+
+		<div class="col">
+			<div class="log">
+				<span class="jl">{tx.logLabel}</span>
+				{#if req}
+					{#key flash}
+						<div class="req">
+							<code>{req.line}</code>
+							<code class="cc" class:none={!req.cookie}>{req.cookie ?? tx.noCookie}</code>
+							<span class="st" class:ok={req.status === 200}
+								>{req.status === 200 ? '200 OK' : '401 Unauthorized'}</span
+							>
+						</div>
+					{/key}
+				{:else}
+					<span class="empty">{tx.logIdle}</span>
+				{/if}
+			</div>
+
+			<div class="srv">
+				<div class="shead">
+					<Server active={page === 'orders'} slots={2} />
+					<b>{tx.serverLabel}</b>
+				</div>
+				{#if mode === 'session'}
+					<span class="jl">{tx.sessionsLabel}</span>
+					{#if sessions.length === 0}
+						<span class="empty">{tx.sessionsEmpty}</span>
+					{:else}
+						{#each sessions as s (s)}
+							<span class="sess"><code>{s}</code><span>{tx.sessionOwner}</span></span>
+						{/each}
+					{/if}
+				{:else}
+					<span class="tsrv">
+						<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"
+							><circle
+								cx="8"
+								cy="12"
+								r="4"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+							/><path
+								d="M12 12h9M18 12v3M21 12v2"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+							/></svg
+						>
+						{tx.tokenServer}
+					</span>
+				{/if}
+			</div>
+		</div>
+	</div>
 </div>
 
 <style>
-	.move {
-		transition:
-			transform 0.9s cubic-bezier(0.45, 0, 0.2, 1),
-			opacity 0.3s;
+	.wrap {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+		width: min(94vw, 480px);
+		max-width: 100%;
+		max-height: 100%;
+		overflow-y: auto;
+		overflow-x: hidden;
+		padding-bottom: 6px;
 	}
-	.fade {
-		animation: fadeIn 0.45s ease-out;
-	}
-	@keyframes fadeIn {
-		from {
-			opacity: 0;
-		}
-	}
-	.lane {
-		stroke: var(--color-line);
-		stroke-width: 2;
-		stroke-linecap: round;
-	}
-	.label {
-		font-size: 11px;
-		font-weight: 700;
-		fill: var(--color-faint);
-	}
-	.env {
-		fill: var(--color-card);
-		stroke: var(--color-brand);
-		stroke-width: 1.8;
-	}
-	.flap {
-		fill: none;
-		stroke: var(--color-brand);
-		stroke-width: 1.4;
-		stroke-linejoin: round;
-	}
-	.cookie {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 2;
-	}
-	.chip {
-		fill: var(--color-amber);
-	}
-	.band {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-brand);
-		stroke-width: 1.8;
-	}
-	.stampDot {
-		fill: var(--color-grass);
-	}
-	.keyC {
-		fill: none;
-		stroke: var(--color-amber);
-		stroke-width: 2;
-	}
-	.keyL {
-		fill: none;
-		stroke: var(--color-amber);
-		stroke-width: 2;
-		stroke-linecap: round;
-	}
-	.keyC.big,
-	.keyL.big {
-		stroke-width: 3;
-	}
-	.pTitle {
-		font-family: var(--font-display);
-		font-size: 13px;
-		font-weight: 600;
-		fill: var(--color-ink);
-	}
-	.pTitle.sm {
-		font-size: 11.5px;
-	}
-	.pSub {
-		font-size: 9.5px;
-		fill: var(--color-faint);
-	}
-	.field {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.3;
-	}
-	.fieldT {
-		font-size: 8.5px;
-		fill: var(--color-muted);
-	}
-	.fieldT.dots {
-		letter-spacing: 0.08em;
-	}
-	.thumb {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-brand);
-		stroke-width: 1;
-	}
-	.btn {
-		fill: var(--color-brand);
-	}
-	.btnT {
-		font-size: 10.5px;
-		font-weight: 700;
-		fill: var(--color-card);
-	}
-	.who {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-		stroke-width: 2;
-	}
-	.whoQ {
-		font-size: 24px;
-		font-weight: 800;
-		fill: var(--color-danger);
-	}
-	.holdT {
-		font-size: 12px;
-		font-weight: 700;
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		fill: var(--color-ink);
-	}
-	.holdT.sm {
-		font-family: inherit;
-		font-size: 10.5px;
-		fill: var(--color-brand);
-	}
-	.holdT.none {
-		font-family: inherit;
-		font-weight: 600;
-		fill: var(--color-danger);
-	}
-	.bubble.who {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-		stroke-width: 2;
-	}
-	.bubble.ok {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		stroke-width: 2;
-	}
-	.bubbleQ {
-		font-size: 15px;
-		font-weight: 800;
-		fill: var(--color-danger);
-	}
-	.tick {
-		fill: none;
-		stroke: var(--color-grass);
-		stroke-width: 2.5;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-	.board {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 2;
-	}
-	.boardT {
-		font-size: 9px;
-		font-weight: 800;
-		letter-spacing: 0.04em;
-		text-transform: uppercase;
-		fill: var(--color-faint);
-	}
-	.row {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-		stroke-width: 1.2;
-		transition:
-			fill 0.3s,
-			stroke 0.3s;
-	}
-	.row.mine {
-		stroke: var(--color-amber);
-	}
-	.row.look {
-		fill: var(--color-amber-soft);
-		stroke-width: 2;
-	}
-	.rowT {
-		font-size: 10.5px;
-		font-weight: 600;
-		fill: var(--color-ink);
-	}
-	.rowT.mono {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-	}
-	.rowT.faint {
-		fill: var(--color-faint);
-	}
-	.stamp {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		stroke-width: 2;
-		transition: stroke-width 0.3s;
-	}
-	.stamp.look {
-		stroke-width: 4;
-	}
-	.play {
-		border-radius: 999px;
+	.seg {
+		display: flex;
+		border-radius: 12px;
 		border: 1px solid var(--color-line);
 		background: var(--color-card);
-		padding: 9px 18px;
-		font-size: 14px;
-		font-weight: 600;
-		color: var(--color-ink);
-		box-shadow: 0 4px 14px rgba(22, 40, 60, 0.07);
+		padding: 3px;
 	}
-	.play.on {
-		border-color: var(--color-brand);
+	.seg button {
+		border-radius: 9px;
+		padding: 6px 14px;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
+		transition:
+			background 0.2s ease,
+			color 0.2s ease;
+	}
+	.seg button.on {
+		background: var(--toggle-active);
+		color: #fff;
+	}
+	.acts {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 6px;
+	}
+	.cta,
+	.line {
+		border-radius: 12px;
+		padding: 9px 14px;
+		font-size: 12.5px;
+		font-weight: 600;
+		transition:
+			filter 0.2s ease,
+			border-color 0.2s ease,
+			opacity 0.2s ease;
+	}
+	.cta {
+		background: var(--btn-primary);
+		color: #fff;
+		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.16);
+	}
+	.cta:enabled:hover {
+		filter: brightness(1.18);
+	}
+	.line {
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-ink);
+	}
+	.line:enabled:hover {
+		border-color: var(--color-ink);
+	}
+	.line.warn {
+		color: var(--color-danger);
+	}
+	.line.warn:enabled:hover {
+		border-color: var(--color-danger);
+	}
+	.cta:disabled,
+	.line:disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
+	}
+
+	.row {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 10px;
+		width: 100%;
+	}
+	.col {
+		display: flex;
+		flex: 1 1 190px;
+		max-width: 240px;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+	}
+	.ptitle {
+		font-size: 11.5px;
+	}
+	.ptitle.bad {
+		color: var(--color-danger);
+	}
+	.field {
+		border-radius: 7px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 4px 7px;
+		font-size: 10px;
+		color: var(--color-muted);
+	}
+	.hint {
+		font-size: 10px;
+		color: var(--color-faint);
+	}
+	.orow {
+		display: flex;
+		justify-content: space-between;
+		border-radius: 7px;
+		background: var(--color-card);
+		border: 1px solid var(--color-line);
+		padding: 5px 7px;
+		font-size: 10.5px;
+		font-weight: 600;
+		animation: rise 0.3s ease;
+	}
+	.orow i {
+		font-style: normal;
+		color: var(--color-grass);
+	}
+
+	.jar,
+	.log,
+	.srv {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		gap: 4px;
+		border-radius: 13px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 8px 10px;
+	}
+	.jar.full {
+		border-color: var(--color-amber);
+		background: var(--color-amber-soft);
+	}
+	.jl {
+		font-size: 9.5px;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+	}
+	.empty {
+		font-size: 11px;
+		color: var(--color-faint);
+	}
+	code {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 10.5px;
+		word-break: break-all;
+	}
+	.ck {
+		font-weight: 700;
+		color: var(--color-ink);
+		animation: rise 0.3s ease;
+	}
+	.inside {
+		font-size: 10px;
+		line-height: 1.35;
+		color: var(--color-muted);
+	}
+	.req {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		animation: rise 0.3s ease;
+	}
+	.cc {
+		color: var(--color-amber);
+	}
+	.cc.none {
+		color: var(--color-faint);
+	}
+	.st {
+		align-self: flex-start;
+		border-radius: 999px;
+		background: var(--color-danger);
+		color: #fff;
+		padding: 2px 8px;
+		font-size: 10px;
+		font-weight: 800;
+	}
+	.st.ok {
+		background: var(--color-grass);
+	}
+	.shead {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 2px;
+	}
+	.shead b {
+		font-size: 12px;
+	}
+	.shead :global(.server) {
+		width: 40px;
+		padding: 5px;
+		gap: 4px;
+		border-radius: 8px;
+		box-shadow: none;
+	}
+	.shead :global(.server .slot) {
+		height: 8px;
+	}
+	.sess {
+		display: flex;
+		justify-content: space-between;
+		gap: 8px;
+		border-radius: 7px;
+		background: var(--color-paper);
+		padding: 3px 7px;
+		font-size: 10.5px;
+		font-weight: 600;
+		animation: rise 0.3s ease;
+	}
+	.tsrv {
+		display: flex;
+		align-items: flex-start;
+		gap: 6px;
+		font-size: 10.5px;
+		line-height: 1.35;
+		color: var(--color-muted);
+	}
+	.tsrv svg {
+		flex: none;
 		color: var(--color-brand);
 	}
-	@media (prefers-reduced-motion: reduce) {
-		.move,
-		.row,
-		.stamp {
-			transition: none;
+	@keyframes rise {
+		from {
+			opacity: 0;
+			transform: translateY(4px);
 		}
-		.fade {
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.orow,
+		.ck,
+		.req,
+		.sess {
 			animation: none;
+		}
+	}
+	@media (min-width: 768px) {
+		.wrap {
+			width: 520px;
+		}
+		.cta,
+		.line,
+		.seg button {
+			font-size: 13.5px;
 		}
 	}
 </style>

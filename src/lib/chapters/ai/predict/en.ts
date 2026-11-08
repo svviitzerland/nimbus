@@ -3,64 +3,46 @@ import type { PredictText } from './types';
 export const en: PredictText = {
 	title: 'Regression and classification',
 	intro: [
-		'Last time the model sorted fruit into baskets. That is one of the two big jobs a machine learning model can do. Let us meet both, starting with houses. Here come some houses that were sold, placed by their size and their price.',
-		'The first job is <b>regression</b>, predicting a <b>number</b>. Watch the line tilt back and forth until it passes as close as it can to every house. The little gaps between the houses and the line shrink as it settles. That line is the model.',
-		'Now a new house goes up for sale. Go up from its size to the line, then across to the price scale, and there is the prediction. The answer can be any number on the scale.',
-		'The second job is <b>classification</b>, picking a <b>group</b> (also called a class). Is this email spam or not? The model splits the picture into two zones, and every new email simply lands in one of them.',
+		'Last time the model sorted fruit into baskets. That is one of the two big jobs a machine learning model can do. Today we meet both of them.',
+		'<b>Regression</b> predicts a <b>number</b>. How much will this house sell for, how many minutes until the food arrives, how hot will it be tomorrow. The answer can land anywhere on a scale.',
+		'<b>Classification</b> picks a <b>group</b> (also called a class). Is this email spam or not, is this photo a cat, is this payment a fraud. The answer is always one of a few fixed choices.',
+		'[fyi] In software development, a regression means previously working behavior breaks after a change. [[Application tests|web/testing]] help detect it. This differs from regression in statistics.',
+		'A quick way to tell them apart is to picture the answer. If you would answer with a slider, it is regression. If you would answer by tapping one of a few buttons, it is classification.',
 		'[ingat] Listen to the question. "How much" or "how many" means regression. "Which one" means classification. The price of a house is how much, spam or not is which one.',
-		'[fyi] Same word, different world. Programmers also say <i>regression</i> when an old bug sneaks back in after an update. That has nothing to do with this one, it is just an unlucky shared name.',
-		'If you like, slide the house size and watch the price follow the line. Totally optional.'
+		'Here are two mini models. The house one draws the straight line that fits its points best, the email one asks the three closest emails it knows. Add your own points, then ask both of them something.'
 	],
 	reactions: {
-		ask: 'See it? Any size gives a price straight from the line, a number and never a group. Both models in this lesson learned from examples with the answers attached, which is called [[supervised learning|ai/supervised]].'
+		reg_add:
+			'New house added, and the line shifted to fit it. That line is the whole model, it tries to pass as close as it can to every point.',
+		reg_ask:
+			'To answer, it goes up from the size you picked to the line, then across to the price. Any number can come out, which is what makes it regression.',
+		cls_add:
+			'Your email joined the examples. See the shaded zones redraw? Each zone shows the group a new email dropped there would get.',
+		cls_ask:
+			'The new email checks the three known emails closest to it and goes with the majority. Only two answers exist, spam or not spam.',
+		cls_flip:
+			'It crossed the border and switched groups! A classification answer jumps from one group to the other, never somewhere in between.',
+		both: 'You asked both! One handed back a number, the other a group, and that single difference tells you which kind of model you need. Both learned from labelled examples, which is called [[supervised learning|ai/supervised]].'
 	},
-	panels: [
-		{
-			tag: 'Examples',
-			title: 'Houses that were sold',
-			body: 'Each dot is one house. Left to right is its size, bottom to top is the price it sold for. Bigger houses tend to cost more.'
-		},
-		{
-			tag: 'Regression',
-			title: 'A line that fits',
-			body: 'The model looks for the straight line with the smallest gaps to all the houses. That line is everything it learned.'
-		},
-		{
-			tag: 'Prediction',
-			title: 'Reading the line',
-			body: 'For a new size, go up to the line and across. The answer is a <b>number</b>, and it can land anywhere on the scale.'
-		},
-		{
-			tag: 'Classification',
-			title: 'Two zones',
-			body: 'Each email is placed by its links and its exclamation marks. The model draws a border, and the side decides the <b>group</b>.'
-		},
-		{
-			tag: 'Make it stick',
-			title: 'How much or which one',
-			body: 'How much is regression, which one is classification.'
-		},
-		{
-			tag: 'By the way',
-			title: 'Regression, the other one',
-			body: 'In software testing, a <b>regression</b> is an old bug that came back. Same word, completely different meaning.'
-		},
-		{
-			tag: 'Try it',
-			title: 'Slide the size',
-			body: 'Move the slider and the new house moves with it. The price is read straight from the line.'
-		}
-	],
-	regX: 'size',
-	regY: 'price',
-	clsX: 'links',
-	clsY: 'exclamation marks',
-	price: '${p}k',
-	size: '{n} m²',
+	tabReg: 'House price',
+	tabCls: 'Spam or not',
+	regTitle: 'Regression, house prices',
+	clsTitle: 'Classification, spam or not',
+	regKind: 'answers a number',
+	clsKind: 'answers a group',
+	regX: 'Size (m²)',
+	regY: 'Price',
+	clsX: 'Links in the email',
+	clsY: 'Exclamation marks',
+	regHint: 'Tap the chart to add a house you know the price of',
+	askSize: 'House size to ask about',
+	regAnswer: 'A {size} m² house goes for about ${price}k',
+	regNeed: 'Add a house so it can draw a line',
 	spam: 'spam',
 	ham: 'not spam',
-	answerNumber: 'answers a number',
-	answerGroup: 'answers a group',
-	rule: 'How much is regression, which one is classification.',
-	slider: 'House size'
+	addAs: 'Tap to add',
+	clsHint: 'Drag the new email (?) around',
+	clsAnswer: 'The new email looks like {label}',
+	newEmail: 'New email, use the arrow keys to move it',
+	clear: 'Clear'
 };

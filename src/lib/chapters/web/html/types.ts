@@ -1,29 +1,26 @@
 import type { LessonText } from '../../types';
 
+export type HtmlMissionId = 'heading' | 'paragraph' | 'button' | 'image';
+
 export interface HtmlText extends LessonText {
-	/** The side panel, one entry per beat (a small tag, a title, a short plain explanation). */
-	steps: { tag: string; title: string; body: string }[];
+	/** Heading over the mission list. */
+	missionsLabel: string;
+	/** One line per mission, in order. */
+	missions: Record<HtmlMissionId, string>;
+	/** Label over the tag chips. */
+	chipsLabel: string;
 	/** Caption over the code editor. */
 	editorLabel: string;
 	/** Caption over the live preview. */
 	previewLabel: string;
-	/** The words on the page, wrapped in tags one by one as the beats go. */
-	lines: {
-		heading: string;
-		paragraph: string;
-		button: string;
-		alt: string;
-		/** The link text, and the form parts (the input placeholder and the form button). */
-		link: string;
-		email: string;
-		join: string;
-	};
-	/** Where the link and the form send their request, shown on the little trip under the preview. */
-	serverLabel: string;
-	/** Small hint shown over the editor once it becomes editable. */
-	editHint: string;
+	/** What the editor holds at the start, plain text with no tags yet. */
+	starter: string;
+	/** Text dropped inside each snippet when a chip is tapped. */
+	snippets: { heading: string; paragraph: string; button: string; link: string; alt: string };
 	/** Inline hint for a tag that was opened and never closed, template with {open} and {close}. */
 	unclosedHint: string;
-	/** Puts the finished page back. */
+	/** Shown once every mission is done. */
+	allDone: string;
+	/** Puts the starter text back. */
 	reset: string;
 }

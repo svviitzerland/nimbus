@@ -3,86 +3,53 @@ import type { BinaryText } from './types';
 export const en: BinaryText = {
 	title: 'Bits and bytes',
 	intro: [
-		'Deep inside every computer sit billions of tiny switches. Each one can only be <b>on</b> or <b>off</b>, just like the light switch in your room. On is written as 1, off as 0.',
-		'One switch on its own is called a <b>bit</b>. A bit can only answer yes or no, which is not much. So computers line bits up in a row of eight, and that row is called a <b>byte</b>.',
-		'[ingat] 8 bits make 1 byte, like 8 friends making one team. Whenever you hear byte, picture eight little switches standing side by side.',
-		'So how does a letter fit in? People agreed on a list where every letter gets a number. Small n is number 110, and 110 has its own pattern of switches. Press n on the keyboard and the computer stores exactly that pattern.',
-		'A word is just bytes in a row, one byte for each letter. The word nimbus has six letters, so it takes six bytes, 48 little switches in total.',
-		'[fyi] The first popular list was called ASCII, from the 1960s. Today we use <b>Unicode</b>, a much longer list that also covers Japanese, Arabic, Javanese script, and even emoji.',
-		'Photos use the same trick. A photo is a grid of tiny colored dots, and each dot is three bytes saying how much red, green, and blue it has. Songs too, the sound is measured tens of thousands of times every second and each measurement becomes a few bytes.',
-		'Rows of 0 and 1 are hard for people to read, so programmers often write bytes in <b>hexadecimal</b> (hex for short), which has 16 digits, 0 to 9 and then A to F. One hex digit is exactly 4 bits, so a byte is just two hex digits, and 11111111 becomes FF. That is why colors like #FF0000 (pure red) and network addresses like MAC and IPv6 are written in hex.',
-		'Bytes pile up fast, so we count them in bigger boxes. A <b>KB</b> (kilobyte) is about a thousand bytes, an <b>MB</b> (megabyte) about a million, and a <b>GB</b> (gigabyte) about a billion. A photo is a few MB, a movie a few GB.',
-		'[ingat] Kilo, mega, giga. Every step up is a thousand times bigger, just like counting money in thousands, millions, and billions.',
-		'Everything on a computer is bytes in the end, even apps (more on that in [[What is a program|basics/program]]). If you like, flip a few switches yourself and see which letter comes out.'
+		'Deep inside, a computer only knows one thing, whether a tiny switch is <b>on</b> or <b>off</b>. On is written as 1, off as 0. One single switch like that is called a <b>bit</b>.',
+		'One switch can only say yes or no. But line up eight of them and you get 256 different patterns. A group of eight bits gets its own name, a <b>byte</b>.',
+		'Each switch in the row is worth a number, starting at 1 on the right and doubling as you go left, 2, 4, 8, all the way to 128. Add up the switches that are on and you get the number the byte holds, anywhere from 0 to 255.',
+		'And letters? People simply agreed on a list where every letter gets its own number. Small n is 110, small i is 105. So when you type n, the computer really stores the switches that make 110.',
+		'A byte can also be written in <b>hexadecimal</b> (hex), using 0 through 9 and A through F. One hex digit represents four bits. The eight bits 11111111 mean FF, or 255 in decimal. Flip the switches and compare the two numbers below them.',
+		'[fyi] The first popular list was called ASCII, from the 1960s. Today we use <b>Unicode</b>, a far longer list that also covers Japanese, Arabic, Javanese script, and even emoji. The plain English letters still sit at their old numbers.',
+		'Photos, songs, and videos use the same trick, just with much longer rows of switches. A photo is millions of tiny colored dots, and each dot is a few bytes saying how much red, green, and blue it has. Even apps are bytes, instructions for the CPU, more on that in [[What is a program|basics/program]].',
+		'[ingat] One bit has a value of 0 or 1. Eight bits make one byte.',
+		'Here are eight switches, one byte. Flip them until they spell the first letter of nimbus.'
 	],
 	reactions: {
-		flip: 'One switch flipped, and the number changed with it. Change a single bit and you can get a different letter, that is how tiny the difference is.',
 		letter:
-			'A brand new letter! Same eight switches, just a different pattern. Every letter you have ever typed was a pattern like this one.'
+			'You did it! 64 plus 32 plus 8 plus 4 plus 2 makes 110, and 110 means n. You just wrote a letter exactly the way a computer does, eight switches, one byte.',
+		word: 'Six letters, six bytes, 48 switches. That is every single bit it takes to store the word nimbus. Every message you have ever sent is made of rows like these.',
+		char: 'One letter, one byte, eight switches. You built one yourself a moment ago.',
+		chat: 'A whole chat message is only around a hundred bytes. Tiny, a single photo could hold thousands of them.',
+		photo:
+			'A phone photo is about 3 MB, that is 3 million bytes, or roughly 24 million switches. Every colored dot needs its own few bytes, and a photo has millions of dots.',
+		song: 'A song is about 4 MB. Sound is measured thousands of times every second, and every measurement becomes a couple of bytes.',
+		movie:
+			'A movie is around 4 GB, billions of bytes, more than 30 billion switches. It is really thousands of photos in a row, plus sound. That is why movies fill up your phone so fast.'
 	},
-	steps: [
-		{
-			title: 'A switch',
-			body: 'The smallest thing a computer knows. <b>On</b> is 1, <b>off</b> is 0, nothing in between.'
-		},
-		{
-			title: 'Bit and byte',
-			body: '<b>1 bit</b> is one switch. <b>1 byte</b> is a row of 8 bits, and those eight can make 256 different patterns.'
-		},
-		{
-			title: 'A letter',
-			body: 'Every letter has a number on a shared list. The switches store the number, and the number stands for the letter.'
-		},
-		{
-			title: 'A word',
-			body: 'One byte for every letter. Six letters, six bytes, 48 switches.'
-		},
-		{
-			title: 'A photo',
-			body: 'Millions of colored dots. Each dot is <b>3 bytes</b>, one for red, one for green, one for blue. A song is sound turned into bytes the same way.'
-		},
-		{
-			title: 'Hexadecimal',
-			body: 'Sixteen digits, <b>0 to 9</b> and <b>A to F</b>. One hex digit is 4 bits, so one byte is two hex digits, and 11111111 is <b>FF</b>.'
-		},
-		{
-			title: 'Bigger boxes',
-			body: '<b>KB</b> is about a thousand bytes, <b>MB</b> about a million, <b>GB</b> about a billion. Each box holds roughly a thousand of the one before.'
-		},
-		{
-			title: 'Try it, if you like',
-			body: 'Tap any switch. The number changes, and so does the letter.'
-		}
-	],
-	on: 'on',
-	off: 'off',
-	bitLabel: '8 bits',
-	byteLabel: '1 byte',
-	byteTrick: '8 friends, one team',
-	keyLabel: 'you press',
-	numberLabel: 'number {n}',
-	letterLabel: 'letter {c}',
+	locale: 'en-US',
+	acts: ['One byte', 'How big'],
+	goal: 'Make the letter {c}',
+	sumLabel: 'Your switches add up to {n}',
+	letterIs: 'which means',
+	noLetter: 'which is not a small letter yet',
+	hintHigh: 'A bit too big, turn a switch off',
+	hintLow: 'Not there yet, turn another switch on',
+	hintTap: 'Tap a switch to flip it between 0 and 1',
+	matched: 'That is {c}, spot on',
+	helpBtn: 'Let Nim flip the rest of nimbus',
+	wordLabel: 'nimbus, byte by byte',
 	wordNote: '{b} bytes, {n} switches',
-	dotNote: 'one dot',
-	colors: ['red', 'green', 'blue'],
-	oneByte: '1 byte',
-	hexDigits: '16 digits',
-	nibble: '4 bits',
-	hexByte: '1 byte, 2 hex digits',
-	hexUses: [
-		{ label: 'color', value: '#FF0000' },
-		{ label: 'MAC address', value: '3C:22:FB:0A:11:9E' },
-		{ label: 'IPv6', value: '2001:db8::ff' }
+	sizesBtn: 'Now see bigger things',
+	sizePrompt: 'Tap each thing to see how many switches it needs',
+	units: 'KB is about a thousand bytes, MB about a million, GB about a billion',
+	switches: 'about {n} switches',
+	sizes: [
+		{ id: 'char', name: 'One letter', size: '1 byte' },
+		{ id: 'chat', name: 'A chat message', size: '100 bytes' },
+		{ id: 'photo', name: 'A phone photo', size: '3 MB' },
+		{ id: 'song', name: 'A song', size: '4 MB' },
+		{ id: 'movie', name: 'A movie', size: '4 GB' }
 	],
-	boxes: [
-		{ unit: 'byte', what: 'one letter' },
-		{ unit: 'KB', what: 'a page of text' },
-		{ unit: 'MB', what: 'a photo or a song' },
-		{ unit: 'GB', what: 'a movie' }
-	],
-	boxNote: 'Each box holds about a thousand of the one before',
-	sizeTrick: 'thousand, million, billion',
-	playHint: 'Tap a switch',
-	notLetter: 'not a small letter',
-	flipLabel: 'Switch {i}'
+	doneNote: 'Everything on a computer is switches, just a different number of them',
+	hexLabel: 'Hexadecimal',
+	hexNote: 'Four bits per hex digit'
 };

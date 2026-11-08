@@ -5,13 +5,15 @@ import { en } from './en';
 
 export const cabling: Lesson = {
 	id: 'cabling',
-	mood: 'calm',
-	moods: ['calm', 'happy', 'worried', 'excited', 'wink', 'idea', 'excited'],
+	mood: 'thinking',
+	moods: ['calm', 'happy', 'worried', 'excited', 'wink', 'idea'],
 	reactionMood: {
 		copperOk: 'happy',
 		copperFail: 'sad',
+		fibreOk: 'thinking',
 		fibreFar: 'excited'
 	},
+	playable: true,
 	stage: CablingStage,
 	text: { id, en }
 };

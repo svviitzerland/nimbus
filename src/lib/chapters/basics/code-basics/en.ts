@@ -31,7 +31,7 @@ export const en: CodeBasicsText = {
 			body: 'Put a new value in and the old one is gone. The name stays the same, so the rest of the program still finds it.'
 		},
 		{
-			tag: 'Make it stick',
+			tag: 'Remember it',
 			title: 'Jars with stickers',
 			body: 'Sticker is the <b>name</b>, the stuff inside is the <b>value</b>. Ask by sticker, get what is inside.'
 		},
@@ -61,7 +61,7 @@ export const en: CodeBasicsText = {
 			body: 'Write the name, put the input in brackets, and the whole recipe runs. A different input gives a different output.'
 		},
 		{
-			tag: 'Make it stick',
+			tag: 'Remember it',
 			title: 'A rice cooker',
 			body: 'In go rice and water, one button press, out comes rice. Inputs, a call, an output.'
 		},

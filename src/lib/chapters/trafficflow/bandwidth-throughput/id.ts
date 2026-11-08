@@ -5,7 +5,8 @@ export const id: BandwidthThroughputText = {
 	intro: [
 		'Bayangin kamu naruh video di server, terus videonya viral. Banyak orang nonton bareng. Di sinilah dua istilah, bandwidth dan throughput, mulai kerasa.',
 		'<b>Bandwidth</b> itu kapasitas jalan dari server kamu ke internet, batas atasnya. <b>Throughput</b> itu data yang beneran terkirim tiap detik.',
-		'Tambah penonton satu satu sampai ada yang buffering, lalu upgrade bandwidthnya.'
+		'Tambah penonton satu satu sampai ada yang buffering, lalu upgrade bandwidthnya.',
+		'[ingat] Bandwidth adalah kapasitas sambungan. Throughput adalah jumlah data yang berhasil dikirim per detik.'
 	],
 	reactions: {
 		full: 'Nah, penontonnya kebanyakan buat kapasitas bandwidth kamu. Throughput mentok di batas atas, jadi sebagian video mulai <b>buffering</b>. Persis yang terjadi waktu sebuah video tiba tiba rame ditonton.',

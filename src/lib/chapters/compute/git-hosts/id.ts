@@ -1,11 +1,12 @@
 import type { GitHostsText } from '../../types';
 
 export const id: GitHostsText = {
-	title: 'Bukan cuma GitHub',
+	title: 'Layanan hosting Git',
 	intro: [
 		'GitHub memang paling terkenal, tapi dia bukan satu satunya. Git itu alatnya, dan tempat menaruh kodenya online bisa macam macam. Ada <b>GitLab</b>, <b>Bitbucket</b>, sampai <b>Gitea</b> yang bisa kamu pasang di servermu sendiri.',
 		'Yang penting, semuanya ngomong Git yang sama. Repo yang sama bisa kamu pindah dari satu ke lainnya tanpa mengubah caramu commit atau push. Ketuk tiap layanan buat lihat gayanya masing masing.',
-		'Lalu satu pertanyaan, kalau semua bisa dipakai, kenapa kebanyakan orang tetap milih GitHub? Buka jawabannya.'
+		'Lalu satu pertanyaan, kalau semua bisa dipakai, kenapa kebanyakan orang tetap milih GitHub? Buka jawabannya.',
+		'[ingat] Git tetap Git meskipun tempat hosting repository berganti.'
 	],
 	reactions: {
 		github:

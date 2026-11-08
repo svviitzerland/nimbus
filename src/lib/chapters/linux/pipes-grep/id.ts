@@ -57,7 +57,7 @@ export const id: PipesGrepText = {
 			body: '<b>cat access.log | grep 404 | wc -l</b> nampilin satu angka, berapa baris yang lolos.'
 		},
 		{
-			tag: 'Biar nempel',
+			tag: 'Cara ingat',
 			title: 'Ban berjalan',
 			body: 'cat ngisi ban, grep milih stiker merah, wc ngitung kotaknya. Pipe itu ban berjalannya.'
 		},

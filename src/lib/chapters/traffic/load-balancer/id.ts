@@ -8,7 +8,7 @@ export const id: LoadBalancerText = {
 		'Solusinya, taruh <b>load balancer</b> di depan beberapa server yang identik. Tugasnya membagi permintaan ke semua server, biasanya bergiliran satu per satu (namanya round robin, ada juga cara lain seperti memilih server yang paling sepi), jadi tidak ada satu pun yang kebanjiran sendirian.',
 		'Bonusnya, kalau satu server mati, balancer langsung berhenti mengirim ke server itu dan mengalihkan trafik ke yang masih hidup. Pengunjung tidak sadar apa apa.',
 		'Ada satu jebakan. Kalau server mengingat siapa kamu di memorinya sendiri, klik berikutnya bisa mendarat di server lain yang belum pernah kenal kamu, dan tiba tiba kamu ter logout. Jadi server tidak menyimpan ingatan sendiri (namanya <b>stateless</b>), dan sesimu disimpan di tempat bersama seperti <b>Redis</b>, atau di token yang dibawa browsermu.',
-		'[ingat] Bayangkan kedai kopi berantai dengan kartu stempel. Kalau stempelnya cuma diingat satu barista, barista berikutnya tidak kenal kamu. Taruh stempelnya di kartu di sakumu (atau di satu buku bersama), dan barista mana pun bisa melayanimu.',
+		'[ingat] Load balancer membagi request ke beberapa server yang siap melayani.',
 		'Flash salenya tinggal dimulai, dan baru ada satu server yang berjaga. Biarkan dia tumbang dulu, lalu pasang load balancer dengan beberapa server dan perhatikan bebannya terbagi rata.'
 	],
 	reactions: {

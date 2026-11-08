@@ -27,7 +27,7 @@ Nimbus is a free, open source website that teaches tech the way a good game teac
 sign up, no wall of text. **Nim**, a little cloud in a hard hat, walks next to you the whole way. Nim
 floats, blinks, follows your pointer, talks word by word, and reacts to what you do.
 
-Every lesson is a short story with a picture that moves by itself. You watch a laptop get opened up
+Lessons combine short explanations, visual demonstrations, and experiments you can play. You watch a laptop get opened up
 and see the CPU, RAM, and battery where they really sit, follow a packet from your phone across
 undersea cables, see a database jam at checkout until an analytics warehouse takes the big
 questions, or watch a typo in a discount turn a test red before any shopper sees it. When you feel
@@ -40,23 +40,22 @@ finished in one track counts in every other track that has it.
 
 | Track              | What you learn                                                                                   | Lessons |
 | ------------------ | ------------------------------------------------------------------------------------------------ | ------: |
-| **Dari Nol**       | Everything below in one story, from the computer itself to the crossroads where you pick a track |    175+ |
-| **Jaringan**       | IP, DNS, routing, Wi Fi, VPN, and a router lab on MikroTik or Cisco                              |      39 |
-| **Web**            | HTTP, HTML, CSS, JavaScript, frameworks, backends and APIs, databases, Git, going live           |      55 |
-| **Cloud & DevOps** | Servers, Linux, regions, scaling, containers, CI/CD, monitoring, and the AWS, GCP, Azure branch  |      59 |
-| **Keamanan**       | How attackers think, passwords and keys, TLS, common attacks, detection, ethical hacking         |      33 |
-| **AI & ML**        | Data and training, neural networks, LLMs, embeddings and RAG, agents, using AI safely            |      27 |
+| **Dari Nol**       | Everything below in one story, from the computer itself to the crossroads where you pick a track |     201 |
+| **Jaringan**       | IP, DNS, routing, Wi Fi, VPN, and a router lab on MikroTik or Cisco                              |      46 |
+| **Web**            | HTTP, HTML, CSS, JavaScript, frameworks, backends and APIs, databases, Git, going live           |      60 |
+| **Cloud & DevOps** | Servers, Linux, regions, scaling, containers, CI/CD, monitoring, and the AWS, GCP, Azure branch  |      63 |
+| **Keamanan**       | How attackers think, passwords and keys, TLS, common attacks, detection, ethical hacking         |      63 |
+| **AI & ML**        | Data and training, neural networks, LLMs, embeddings and RAG, agents, using AI safely            |      28 |
 
 The full roadmap, lesson by lesson, lives in [CURRICULUM.md](./CURRICULUM.md).
 
 ## How a lesson feels
 
-- **Watch first, play if you like.** The picture follows Nim's lines, so nothing is locked behind a
-  puzzle. A few lessons add one optional thing to try, like swapping two lines of a recipe to watch
-  the computer follow the wrong order anyway.
-- **Explained from zero.** Every word is introduced before it is used, with everyday comparisons
-  (RAM is the desk, storage is the cupboard).
-- **Biar nempel.** Every lesson has a memory trick, marked with a green tag.
+- **See it, try it, understand the result.** Change a request, inspect a component, run a command,
+  or break and repair a simulated service. Nim explains the effect of your action.
+- **Explained from zero.** Introduce the concept and its parts before using them. Labels name the
+  actual component or operation, with examples that show how it works.
+- **Cara ingat.** Every lesson has a short memory cue about the mechanism, marked with a green tag.
 - **Cross links, not detours.** When a lesson touches another subject, Nim shows a chip you can tap.
   Jump there and Nim brings you back to the exact line you left.
 - **Real people, real stories.** Babbage, Ada Lovelace, Turing, Grace Hopper, the moth in the logbook,
@@ -99,7 +98,9 @@ copy, nimbus.com as the only example domain, calm and minimal visuals).
 
 ## Contributing
 
-Contributions are very welcome, from a typo to a whole lesson.
+Contributions are very welcome, from a typo to a whole lesson. Before editing, read
+[NIMBUS_EDITING_GUIDE.md](./NIMBUS_EDITING_GUIDE.md) for module design standards covering wording,
+interactive learning, curriculum structure, and visual design.
 
 1. Branch off `main`, for example `feat/new-lesson`.
 2. Keep `bun run check` at zero errors and zero warnings.

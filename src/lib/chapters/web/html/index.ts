@@ -6,23 +6,17 @@ import { en } from './en';
 export const html: Lesson = {
 	id: 'html',
 	mood: 'calm',
-	moods: [
-		'calm',
-		'thinking',
-		'idea',
-		'calm',
-		'happy',
-		'happy',
-		'happy',
-		'idea',
-		'excited',
-		'wink',
-		'excited'
-	],
+	moods: ['calm', 'thinking', 'idea', 'calm', 'happy', 'wink', 'excited'],
 	reactionMood: {
-		edited: 'excited',
-		unclosed: 'thinking'
+		heading: 'happy',
+		paragraph: 'happy',
+		button: 'excited',
+		image: 'happy',
+		link: 'wink',
+		unclosed: 'thinking',
+		done: 'excited'
 	},
+	playable: true,
 	stage: HtmlStage,
 	text: { id, en }
 };

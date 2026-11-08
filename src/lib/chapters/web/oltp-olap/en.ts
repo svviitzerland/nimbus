@@ -57,7 +57,7 @@ export const en: OltpOlapText = {
 			body: '<b>E</b>xtract the new rows, <b>T</b>ransform them (fix formats, drop test orders), <b>L</b>oad them into the warehouse. Usually while everyone sleeps.'
 		},
 		{
-			tag: 'Make it stick',
+			tag: 'Remember it',
 			title: 'Cashier and accountant',
 			body: 'OLTP writes small and fast, all day. OLAP reads big and deep, a few times a day.'
 		},

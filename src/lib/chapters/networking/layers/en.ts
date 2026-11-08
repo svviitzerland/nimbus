@@ -12,7 +12,8 @@ export const en: LayersText = {
 		'At the very bottom, the packet is just a signal, light in a cable or waves in the air. This is the moment it really leaves your phone and shoots off to the server.',
 		'The server catches it and opens all those wrappers back up in reverse, until it can read your original note. Then it sends the products page back to you the same way.',
 		'So here is the pattern. Each layer just adds one wrapper and passes it down. On the way out you wrap from the top down, on the way in you unwrap from the bottom up, and that order never changes. Some steps can be quick or skipped, like no lock on a plain site, but the stack stays the same.',
-		'That packet can travel two ways, the careful way or the fast way. Send it over TCP and over UDP and see the difference for yourself.'
+		'That packet can travel two ways, the careful way or the fast way. Send it over TCP and over UDP and see the difference for yourself.',
+		'[ingat] Data is wrapped on the way out and unwrapped on arrival. Each layer has a job.'
 	],
 	reactions: {
 		tcp: 'TCP shook hands first, then sent each parcel and waited for every one. All four arrived in order, nothing missing. That care costs a little time.',

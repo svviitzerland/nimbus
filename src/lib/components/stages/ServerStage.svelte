@@ -5,8 +5,11 @@
 	import type { LessonText, ServerText } from '$lib/chapters/types';
 	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
 
-	let { text, oncomplete, onstate }: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } =
-		$props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as ServerText);
 
 	let phase = $state<'idle' | 'req' | 'res'>('idle'); // the packet
@@ -48,7 +51,7 @@
 		<!-- phone (visitor) -->
 		<div class="flex shrink-0 flex-col items-center gap-2">
 			<Browser phase={browser} />
-			<span class="text-muted text-xs font-semibold">{tx.you}</span>
+			<span class="text-xs font-semibold text-muted">{tx.you}</span>
 		</div>
 
 		<!-- connection + packet -->
@@ -64,7 +67,7 @@
 		<!-- server -->
 		<div class="flex shrink-0 flex-col items-center gap-2">
 			<Server active={phase === 'res'} />
-			<span class="text-muted text-xs font-semibold">{tx.server}</span>
+			<span class="text-xs font-semibold text-muted">{tx.server}</span>
 		</div>
 	</div>
 
@@ -73,7 +76,9 @@
 			{tx.open}
 		</CallToActionButton>
 		{#if count > 0}
-			<p class="text-grass mt-3 text-sm font-semibold">✓ {tx.count.replace('{n}', String(count))}</p>
+			<p class="mt-3 text-sm font-semibold text-grass">
+				✓ {tx.count.replace('{n}', String(count))}
+			</p>
 		{/if}
 	</div>
 </div>

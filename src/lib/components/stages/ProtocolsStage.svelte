@@ -1,356 +1,483 @@
 <script lang="ts">
-	// Guided protocols lesson. The nimbus.com server is drawn as a building with four numbered
-	// doors (80 HTTP, 443 HTTPS, 22 SSH, 53 DNS). As Nim names each protocol, a packet walks from
-	// the laptop to its door by itself and the door opens on what lives behind it. The only
-	// (optional) play is tapping a door on the last beat to send a knock there.
-	import { onMount } from 'svelte';
-	import Guide from '$lib/components/Guide.svelte';
-	import NgLaptop from './netguide/NgLaptop.svelte';
-	import { Traveller } from './netguide/traveller.svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import { onDestroy } from 'svelte';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { ProtocolsText } from '$lib/chapters/network/protocols/types';
+	import MiniLaptop from './delivery/MiniLaptop.svelte';
+	import Server from '$lib/components/Server.svelte';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as ProtocolsText);
 
-	onMount(() => {
-		onshow?.(true);
-		oncomplete?.();
-	});
+	// The doors on the server, one per distinct port, in ascending order.
+	const doors = $derived([...new Set(tx.protocols.map((p) => p.port))].sort((a, b) => a - b));
+	// Which protocols wait behind each door (SFTP and SSH share 22).
+	const doorNames = (port: number) =>
+		tx.protocols
+			.filter((p) => p.port === port)
+			.map((p) => p.name)
+			.join(' ');
+	const doorX = (port: number) => ((doors.indexOf(port) + 0.5) / doors.length) * 100;
 
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const last = $derived(tx.steps.length - 1);
-	const shown = $derived(Math.max(0, Math.min(peek ?? beat, last)));
+	let idx = $state(0);
+	let busy = $state(false);
+	let flying = $state<{ name: string; port: number; kind: 'ok' | 'close' | 'wrong' } | null>(null);
+	let landed = $state(false);
+	let outcome = $state<'' | 'ok' | 'close' | 'wrong'>('');
+	let lastPick = $state('');
+	let shot = $state(0); // remounts the flying packet for every pick
+	let finished = $state(false);
+	let completed = false;
+	let timers: ReturnType<typeof setTimeout>[] = [];
+	const later = (fn: () => void, ms: number) => timers.push(setTimeout(fn, ms));
+	const reduce = () =>
+		typeof window !== 'undefined' &&
+		window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
-	const DOORS = [
-		{ id: 'http', port: 80, cx: 176, top: 96, tone: 'var(--color-amber)' },
-		{ id: 'https', port: 443, cx: 274, top: 96, tone: 'var(--color-grass)' },
-		{ id: 'ssh', port: 22, cx: 176, top: 214, tone: 'var(--color-brand)' },
-		{ id: 'dns', port: 53, cx: 274, top: 214, tone: 'var(--color-brand)' }
-	] as const;
-	const DW = 58;
-	const DH = 62;
-	const LAP = { x: 54, y: 252 };
+	const task = $derived(tx.tasks[Math.min(idx, tx.tasks.length - 1)]);
 
-	let knock = $state<number | null>(null);
-	function knockOn(d: number) {
-		if (shown !== last) return;
-		knock = d;
-		onstate?.(DOORS[d].id);
+	function pick(pid: string) {
+		if (busy || finished) return;
+		const p = tx.protocols.find((x) => x.id === pid);
+		if (!p) return;
+		busy = true;
+		outcome = '';
+		landed = false;
+		lastPick = p.name;
+		shot += 1;
+		const kind = pid === task.answer ? 'ok' : pid === task.close ? 'close' : 'wrong';
+		flying = { name: p.name, port: p.port, kind };
+		const fly = reduce() ? 50 : 750;
+		// one frame later so the transition from the laptop runs
+		later(() => (landed = true), 30);
+		later(() => {
+			outcome = kind;
+			busy = kind === 'ok';
+			if (kind === 'ok') {
+				const last = idx === tx.tasks.length - 1;
+				if (last) {
+					onstate?.('done');
+					if (!completed) {
+						completed = true;
+						oncomplete?.();
+					}
+				} else onstate?.(pid);
+				later(
+					() => {
+						flying = null;
+						landed = false;
+						outcome = '';
+						busy = false;
+						if (last) finished = true;
+						else idx += 1;
+					},
+					reduce() ? 300 : 1300
+				);
+			} else {
+				onstate?.(kind === 'close' ? pid : 'wrong');
+			}
+		}, fly + 60);
 	}
 
-	// Which door is in focus on this step, if any.
-	const target = $derived(shown >= 2 && shown <= 5 ? shown - 2 : shown === last ? knock : null);
+	function again() {
+		timers.forEach(clearTimeout);
+		timers = [];
+		idx = 0;
+		finished = false;
+		flying = null;
+		landed = false;
+		outcome = '';
+		busy = false;
+	}
 
-	const plan = $derived.by(() => {
-		if (target === null) return [] as { x: number; y: number }[];
-		const d = DOORS[target];
-		return [
-			{ x: LAP.x, y: LAP.y - 34 },
-			{ x: 108, y: 180 },
-			{ x: d.cx, y: d.top + DH / 2 }
-		];
-	});
+	const note = $derived(
+		outcome === 'wrong' ? task.hint : outcome === 'close' ? task.hint : finished ? tx.doneNote : ' '
+	);
 
-	const tr = new Traveller();
-	$effect(() => {
-		tr.play(plan.length, { loop: true, step: 850, hold: 2600 });
-		return () => tr.stop();
-	});
-	const pkt = $derived(plan.length ? plan[Math.min(tr.at, plan.length - 1)] : null);
-	const isOpen = (d: number) => (target === d && tr.ended && plan.length > 0) || shown === 6;
-	const plateLit = (d: number) => shown === 1 || shown === 6 || target === d;
+	onDestroy(() => timers.forEach(clearTimeout));
 </script>
 
-<div class="stage">
-	<div class="actions">
-		{#if shown === last && knock === null}
-			<span class="hint">{tx.knockHint}</span>
+<div class="flex h-full w-full flex-col items-center justify-center gap-3">
+	<div class="taskcard" class:fin={finished}>
+		<div class="dots" aria-hidden="true">
+			{#each tx.tasks as _, i (i)}
+				<span class:done={i < idx || finished} class:cur={i === idx && !finished}></span>
+			{/each}
+		</div>
+		{#if finished}
+			<b class="tt">{tx.doneNote}</b>
+			<button type="button" class="again" onclick={again}>{tx.againBtn}</button>
+		{:else}
+			<span class="tl"
+				>{tx.taskLabel
+					.replace('{n}', String(idx + 1))
+					.replace('{total}', String(tx.tasks.length))}</span
+			>
+			<b class="tt">{task.text}</b>
 		{/if}
 	</div>
 
-	<Guide
-		steps={tx.steps}
-		active={shown}
-		onselect={(k) => (peek = k)}
-		accent={target !== null ? DOORS[target].tone : 'var(--color-brand)'}
-	>
-		{#snippet visual()}
-			<svg viewBox="0 0 340 320" class="scene" role="img" aria-label={tx.title}>
-				<!-- the server, drawn as a building -->
-				<rect x="122" y="26" width="206" height="288" rx="16" class="building" />
-				<text x="225" y="47" text-anchor="middle" class="b-name">{tx.serverLabel}</text>
-				<text x="225" y="61" text-anchor="middle" class="b-sub">{tx.serverSub}</text>
-
-				{#each DOORS as d, i (d.id)}
-					{@const x = d.cx - DW / 2}
-					{@const open = isOpen(i)}
-					<g
-						class="door"
-						class:tappable={shown === last}
-						role="button"
-						tabindex={shown === last ? 0 : -1}
-						aria-disabled={shown !== last}
-						aria-label={tx.doorAria
-							.replace('{name}', tx.doors[i].name)
-							.replace('{port}', String(d.port))}
-						onclick={() => knockOn(i)}
-						onkeydown={(e) => {
-							if (e.key === 'Enter' || e.key === ' ') {
-								e.preventDefault();
-								knockOn(i);
-							}
-						}}
-						style="--tone: {d.tone}"
+	{#if !finished}
+		<div class="pickwrap">
+			<span class="pl">{tx.pickLabel}</span>
+			<div class="chips">
+				{#each tx.protocols as p (p.id)}
+					<button
+						type="button"
+						class="chip"
+						class:bad={outcome === 'wrong' && lastPick === p.name}
+						class:meh={outcome === 'close' && lastPick === p.name}
+						onclick={() => pick(p.id)}
+						disabled={busy}
 					>
-						<!-- what lives behind the door -->
-						<rect {x} y={d.top} width={DW} height={DH} rx="5" class="inside" class:open />
-						<g transform="translate({d.cx} {d.top + DH / 2})" class="glyph" class:open>
-							{#if d.id === 'http' || d.id === 'https'}
-								<rect x="-11" y="-14" width="22" height="26" rx="2.5" class="g-fill" />
-								<rect x="-7" y="-9" width="14" height="2.4" rx="1.2" class="g-line" />
-								<rect x="-7" y="-4" width="10" height="2.4" rx="1.2" class="g-line" />
-								{#if d.id === 'https'}
-									<rect x="-1" y="2" width="14" height="11" rx="2" class="g-lock" />
-									<path d="M2 2 v-3 a4 4 0 0 1 8 0 v3" fill="none" class="g-shackle" />
-								{/if}
-							{:else if d.id === 'ssh'}
-								<rect x="-15" y="-12" width="30" height="24" rx="3" class="g-term" />
-								<text x="-10" y="4" class="g-prompt">&gt;_</text>
-							{:else}
-								<rect x="-12" y="-13" width="24" height="26" rx="2.5" class="g-fill" />
-								<line x1="-6" y1="-13" x2="-6" y2="13" class="g-spine" />
-								<text x="3" y="4" text-anchor="middle" class="g-at">@</text>
-							{/if}
-						</g>
-						<!-- the door itself, it swings open when a packet knocks -->
-						<rect {x} y={d.top} width={DW} height={DH} rx="5" class="panel" class:open />
-						<circle cx={x + DW - 9} cy={d.top + DH / 2 + 4} r="2.4" class="knob" class:open />
-						<!-- the number plate and the name -->
-						<g class="plate" class:lit={plateLit(i)}>
-							<rect x={d.cx - 20} y={d.top - 22} width="40" height="18" rx="9" />
-							<text x={d.cx} y={d.top - 9} text-anchor="middle">{d.port}</text>
-						</g>
-						<text x={d.cx} y={d.top + DH + 15} text-anchor="middle" class="d-name">
-							{tx.doors[i].name}
-						</text>
-						<text x={d.cx} y={d.top + DH + 27} text-anchor="middle" class="d-use">
-							{tx.doors[i].use}
-						</text>
-					</g>
+						<b>{p.name}</b><span>{p.port}</span>
+					</button>
 				{/each}
+			</div>
+		</div>
+	{/if}
 
-				<NgLaptop x={LAP.x} y={LAP.y} label={tx.laptopLabel} />
+	<div class="scene">
+		<div class="lap">
+			<MiniLaptop label={tx.laptopLabel} led={outcome === 'ok' ? 'ok' : 'off'} />
+		</div>
 
-				{#if pkt && target !== null}
-					<g
-						class="packet"
-						class:jump={tr.jump}
-						class:gone={tr.hidden}
-						style="transform: translate({pkt.x}px, {pkt.y}px); --tone: {DOORS[target].tone}"
+		{#if flying}
+			{#key shot}
+				<span
+					class="pkt {flying.kind}"
+					class:landed
+					class:bounce={landed && (outcome === 'wrong' || outcome === 'close')}
+					style="--tx:{doorX(flying.port)}%"
+				>
+					{flying.name}
+					{flying.port}
+				</span>
+			{/key}
+		{/if}
+
+		<div class="building">
+			<div class="bhead">
+				<Server slots={2} active={outcome === 'ok'} />
+				<div>
+					<b>{tx.serverLabel}</b>
+					<span>{tx.doorsLabel}</span>
+				</div>
+			</div>
+			<div class="doors" style="grid-template-columns:repeat({doors.length}, 1fr)">
+				{#each doors as d (d)}
+					<div
+						class="door"
+						class:ok={flying?.port === d && outcome === 'ok'}
+						class:meh={flying?.port === d && outcome === 'close'}
+						class:bad={flying?.port === d && outcome === 'wrong'}
 					>
-						<rect x="-12" y="-8" width="24" height="16" rx="3" class="env" />
-						<path d="M-12 -7 L0 2 L12 -7" fill="none" class="flap" />
-						{#if DOORS[target].id === 'https'}
-							<rect x="6" y="2" width="10" height="8" rx="1.6" class="mini-lock" />
-						{/if}
-					</g>
-				{/if}
-			</svg>
-		{/snippet}
-	</Guide>
+						<b>{d}</b>
+						<span>{doorNames(d)}</span>
+					</div>
+				{/each}
+			</div>
+		</div>
+	</div>
+
+	<p class="note" class:warn={outcome === 'close'} class:bad={outcome === 'wrong'}>{note}</p>
 </div>
 
 <style>
-	.stage {
+	.taskcard {
 		display: flex;
-		width: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 10px;
-		padding-bottom: 7rem;
+		gap: 4px;
+		width: min(94vw, 340px);
+		border-radius: 14px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 9px 14px 11px;
+		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.06);
+		text-align: center;
 	}
-	@media (min-width: 768px) {
-		.stage {
-			padding-bottom: 1.5rem;
-		}
+	.taskcard.fin {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
 	}
-	.actions {
+	.dots {
 		display: flex;
-		min-height: 38px;
-		align-items: center;
-		justify-content: center;
+		gap: 5px;
 	}
-	.hint {
-		border-radius: 999px;
-		background: var(--color-brand-soft);
-		padding: 6px 14px;
-		font-size: 13px;
+	.dots span {
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: var(--color-line);
+		transition: background 0.25s ease;
+	}
+	.dots span.done {
+		background: var(--color-grass);
+	}
+	.dots span.cur {
+		background: var(--color-brand);
+	}
+	.tl {
+		font-size: 9.5px;
+		font-weight: 800;
+		color: var(--color-faint);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.tt {
+		font-size: 14px;
 		font-weight: 700;
-		color: var(--color-brand);
+		color: var(--color-ink);
 	}
-	.scene {
-		width: 100%;
-		max-width: 400px;
-		overflow: visible;
-	}
-	.building {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.6;
-	}
-	.b-name {
-		fill: var(--color-ink);
-		font-size: 13px;
-		font-weight: 800;
-	}
-	.b-sub {
-		fill: var(--color-faint);
-		font-size: 10px;
-		font-family: ui-monospace, monospace;
-	}
-	.door {
-		outline: none;
-	}
-	.door.tappable {
-		cursor: pointer;
-	}
-	.door.tappable:focus-visible .panel {
-		stroke: var(--color-brand);
-		stroke-width: 2.4;
-	}
-	.inside {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-		stroke-width: 1.4;
-		transition: fill 0.4s;
-	}
-	.inside.open {
-		fill: color-mix(in srgb, var(--tone) 14%, var(--color-card));
-	}
-	.glyph {
-		opacity: 0;
-		transition: opacity 0.4s 0.25s;
-	}
-	.glyph.open {
-		opacity: 1;
-	}
-	.g-fill {
-		fill: var(--color-card);
-		stroke: var(--tone);
-		stroke-width: 1.6;
-	}
-	.g-line {
-		fill: var(--tone);
-		opacity: 0.6;
-	}
-	.g-lock {
-		fill: var(--color-grass);
-	}
-	.g-shackle {
-		stroke: var(--color-grass);
-		stroke-width: 1.8;
-	}
-	.g-term {
-		fill: var(--color-ink);
-	}
-	.g-prompt {
-		fill: var(--color-grass);
-		font-size: 11px;
-		font-weight: 800;
-		font-family: ui-monospace, monospace;
-	}
-	.g-spine {
-		stroke: var(--tone);
-		stroke-width: 1.6;
-	}
-	.g-at {
-		fill: var(--tone);
+	.again {
+		margin-top: 2px;
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-ink);
+		padding: 5px 12px;
 		font-size: 12px;
-		font-weight: 800;
-	}
-	.panel {
-		fill: var(--color-card);
-		stroke: var(--color-faint);
-		stroke-width: 1.6;
-		transform-box: fill-box;
-		transform-origin: 0 50%;
-		transition: transform 0.55s cubic-bezier(0.3, 0.9, 0.4, 1);
-	}
-	.panel.open {
-		transform: scaleX(0.14);
-	}
-	.knob {
-		fill: var(--color-faint);
-		transition: opacity 0.2s;
-	}
-	.knob.open {
-		opacity: 0;
-	}
-	.plate rect {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-		stroke-width: 1.2;
-		transition:
-			fill 0.3s,
-			stroke 0.3s;
-	}
-	.plate text {
-		fill: var(--color-muted);
-		font-size: 11px;
-		font-weight: 800;
-		transition: fill 0.3s;
-	}
-	.plate.lit rect {
-		fill: color-mix(in srgb, var(--tone) 16%, var(--color-card));
-		stroke: var(--tone);
-	}
-	.plate.lit text {
-		fill: var(--tone);
-	}
-	.d-name {
-		fill: var(--color-ink);
-		font-size: 11px;
-		font-weight: 800;
-	}
-	.d-use {
-		fill: var(--color-faint);
-		font-size: 9px;
 		font-weight: 600;
 	}
-	.packet {
+	.pickwrap {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 5px;
+	}
+	.pl {
+		font-size: 11px;
+		color: var(--color-muted);
+	}
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 6px;
+		max-width: min(94vw, 360px);
+	}
+	.chip {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 5px;
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-ink);
+		padding: 6px 10px;
+		font-size: 12px;
 		transition:
-			transform 0.8s cubic-bezier(0.45, 0, 0.25, 1),
-			opacity 0.25s;
+			border-color 0.2s ease,
+			transform 0.15s ease;
 	}
-	.packet.jump {
-		transition: opacity 0.25s;
+	.chip span {
+		font-size: 10px;
+		font-weight: 700;
+		color: var(--color-faint);
 	}
-	.packet.gone {
-		opacity: 0;
+	.chip:enabled:hover {
+		border-color: var(--color-ink);
+		transform: translateY(-1px);
 	}
-	.env {
-		fill: var(--tone);
+	.chip:disabled {
+		opacity: 0.55;
 	}
-	.flap {
-		stroke: var(--color-card);
-		stroke-width: 1.6;
+	.chip.bad {
+		border-color: var(--color-danger);
+		background: var(--color-danger-soft);
 	}
-	.mini-lock {
-		fill: var(--color-ink);
+	.chip.meh {
+		border-color: var(--color-amber);
+		background: var(--color-amber-soft);
+	}
+
+	.scene {
+		position: relative;
+		width: min(94vw, 340px);
+		height: 210px;
+	}
+	.lap {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		transform: translateX(-50%);
+	}
+	.pkt {
+		position: absolute;
+		z-index: 3;
+		left: 50%;
+		top: 52px;
+		transform: translate(-50%, 0);
+		border-radius: 999px;
+		background: var(--color-brand);
+		color: #fff;
+		font-size: 10px;
+		font-weight: 800;
+		padding: 3px 9px;
+		white-space: nowrap;
+		box-shadow: 0 4px 10px rgba(22, 40, 60, 0.18);
+		transition:
+			left 0.7s ease-in-out,
+			top 0.7s ease-in-out;
+	}
+	.pkt.landed {
+		left: var(--tx);
+		top: calc(100% - 68px);
+	}
+	.pkt.landed.ok {
+		background: var(--color-grass);
+	}
+	.pkt.bounce.close {
+		background: var(--color-amber);
+	}
+	.pkt.bounce.wrong {
+		background: var(--color-danger);
+		animation: shake 0.35s ease 1;
+	}
+	@keyframes shake {
+		25% {
+			translate: -4px 0;
+		}
+		75% {
+			translate: 4px 0;
+		}
+	}
+	.building {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		border-radius: 14px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 8px 8px 9px;
+		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.07);
+		display: flex;
+		flex-direction: column;
+		gap: 7px;
+	}
+	.bhead {
+		display: flex;
+		align-items: center;
+		gap: 9px;
+	}
+	.bhead :global(.server) {
+		width: 38px;
+		gap: 3px;
+		padding: 4px;
+		border-radius: 7px;
+		box-shadow: none;
+	}
+	.bhead :global(.server .slot) {
+		height: 7px;
+		padding: 0 3px;
+	}
+	.bhead :global(.server .dot) {
+		width: 4px;
+		height: 4px;
+	}
+	.bhead div {
+		display: flex;
+		flex-direction: column;
+		line-height: 1.15;
+	}
+	.bhead b {
+		font-size: 12px;
+		font-weight: 800;
+		color: var(--color-ink);
+	}
+	.bhead span {
+		font-size: 9.5px;
+		color: var(--color-faint);
+	}
+	.doors {
+		display: grid;
+		gap: 5px;
+	}
+	.door {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		border-radius: 8px 8px 4px 4px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-paper);
+		padding: 5px 2px;
+		line-height: 1.15;
+		transition:
+			border-color 0.25s ease,
+			background 0.25s ease;
+	}
+	.door b {
+		font-size: 12px;
+		font-weight: 800;
+		color: var(--color-ink);
+	}
+	.door span {
+		font-size: 8px;
+		font-weight: 700;
+		color: var(--color-faint);
+		text-align: center;
+	}
+	.door.ok {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
+	}
+	.door.meh {
+		border-color: var(--color-amber);
+		background: var(--color-amber-soft);
+	}
+	.door.bad {
+		border-color: var(--color-danger);
+		background: var(--color-danger-soft);
+	}
+	.note {
+		min-height: 1.4em;
+		max-width: 340px;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.note.warn {
+		color: var(--color-amber);
+	}
+	.note.bad {
+		color: var(--color-danger);
+	}
+	:global(.dark) .taskcard,
+	:global(.dark) .building {
+		box-shadow: none;
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.panel,
-		.glyph,
-		.packet,
-		.inside,
-		.plate rect,
-		.plate text {
+		.pkt {
 			transition: none;
+			animation: none;
+		}
+	}
+	@media (min-width: 768px) {
+		.taskcard,
+		.scene {
+			width: 440px;
+		}
+		.chips {
+			max-width: 460px;
+		}
+		.tt {
+			font-size: 16px;
+		}
+		.chip {
+			font-size: 13.5px;
+		}
+		.note {
+			font-size: 14px;
+			max-width: 440px;
+		}
+		.door span {
+			font-size: 9.5px;
 		}
 	}
 </style>

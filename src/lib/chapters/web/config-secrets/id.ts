@@ -1,7 +1,7 @@
 import type { ConfigSecretsText } from './types';
 
 export const id: ConfigSecretsText = {
-	title: 'Config dan rahasia',
+	title: 'Konfigurasi dan Secrets',
 	intro: [
 		'Kode nimbus.com yang sama jalan di dua tempat, di laptopmu selagi kamu bikin dan di server buat semua orang. Tapi ada beberapa setelan yang harus beda. Di laptop, database ada di <b>localhost</b> (komputer ini sendiri), di server ada di db.nimbus.com. Setelan kayak gini namanya <b>config</b>.',
 		'Cara cepatnya, ketik langsung di dalam kode, namanya <b>hard coding</b>. Akibatnya kodenya cuma cocok di satu tempat. Begitu diunggah, server nyari localhost, yang buat server artinya dirinya sendiri, dan nggak nemu database di sana.',
@@ -51,8 +51,8 @@ export const id: ConfigSecretsText = {
 			body: 'Nilai buat server diketik di <b>dashboard host</b>. Rahasianya tetap disembunyikan di layar, bahkan darimu.'
 		},
 		{
-			tag: 'Biar nempel',
-			title: 'Resep dan catatan tempel',
+			tag: 'Cara ingat',
+			title: 'Pisahkan kode dan konfigurasi',
 			body: 'Bagikan <b>resepnya</b> (kodenya). Simpan <b>catatan tempelnya</b> (.env) di kulkasmu sendiri.'
 		},
 		{

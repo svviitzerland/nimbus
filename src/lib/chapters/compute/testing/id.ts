@@ -56,8 +56,8 @@ export const id: TestingText = {
 			body: 'Test dijalankan otomatis tiap ada perubahan, jadi nggak ada yang bergantung pada ingatan.'
 		},
 		{
-			tag: 'Biar nempel',
-			title: 'Alarm asap',
+			tag: 'Cara ingat',
+			title: 'Tes mendeteksi perubahan yang salah',
 			body: 'Diam kalau aman, berbunyi begitu ada masalah, dan selalu lebih awal dari apinya.'
 		},
 		{

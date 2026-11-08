@@ -57,8 +57,8 @@ export const id: PullRequestText = {
 			body: 'Tombol <b>Merge</b> menyatukan branch ke main. Situsnya ikut berubah, PR ditutup sebagai selesai.'
 		},
 		{
-			tag: 'Biar nempel',
-			title: 'Karangan dan pulpen merah',
+			tag: 'Cara ingat',
+			title: 'Review sebelum merge',
 			body: 'Review itu pulpen merah, checks itu pengecek ejaan, approve itu tanda tangan, merge itu dikumpulkan.'
 		},
 		{

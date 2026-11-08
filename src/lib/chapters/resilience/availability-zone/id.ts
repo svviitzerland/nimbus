@@ -8,7 +8,7 @@ export const id: AZText = {
 		'Hardware juga sering rusak, satu disk atau server bisa mati kapan saja, tapi itu biasanya sudah ditangani cadangan (redundansi) di dalam data center.',
 		'Yang lebih bahaya kalau satu gedung data center utuh tumbang. Pertanyaannya, gimana caranya website tetap jalan kalau itu terjadi?',
 		'Layanan besar bikin janji namanya <b>SLA</b> (Service Level Agreement), berapa banyak waktu dalam setahun mereka tetap nyala, alias <b>uptime</b>. 99,9% kedengarannya sempurna, tapi tetap boleh mati sekitar 8,8 jam setahun. 99,99% cuma boleh sekitar 53 menit. Satu gedung saja nggak akan sanggup janji begitu.',
-		'[ingat] Tiap tambah satu angka 9, waktu matinya jadi sepuluh kali lebih sedikit. Dua sembilan sekitar 3,6 hari setahun, tiga sembilan sekitar 8,8 jam, empat sembilan sekitar 53 menit, lima sembilan sekitar 5 menit. Orang menyebutnya "ngejar angka sembilan".',
+		'[ingat] Region memilih kawasan, zone memisahkan lokasi kegagalan di dalam kawasan itu.',
 		'Jawabannya, satu <b>region</b> itu bukan satu gedung. Di dalamnya ada beberapa <b>Availability Zone</b> (AZ), yaitu data center terpisah yang letaknya berjarak beberapa kilometer dan punya listrik serta jaringan sendiri. Jadi kalau satu AZ kena masalah, yang lain tetap jalan.',
 		'Petanya sudah terbuka dengan dua region. Masuk ke salah satunya, sebar server kamu ke beberapa AZ, lalu picu gangguannya sendiri.'
 	],
@@ -35,14 +35,6 @@ export const id: AZText = {
 	activeZones: 'AZ aktif',
 	regions: { virginia: 'Virginia', singapore: 'Singapura' },
 	strikeLabel: 'Timur Tengah',
-	slaTitle: 'Jatah mati per tahun',
-	sla: [
-		{ pct: '99%', down: 'sekitar 3,6 hari' },
-		{ pct: '99,9%', down: 'sekitar 8,8 jam' },
-		{ pct: '99,99%', down: 'sekitar 53 menit' },
-		{ pct: '99,999%', down: 'sekitar 5 menit' }
-	],
-	slaRule: 'Tambah satu 9, matinya sepuluh kali lebih sedikit',
 	news: [
 		{
 			src: 'CNBC, 2026',
@@ -89,5 +81,13 @@ export const id: AZText = {
 			head: 'Gempa besar Jepang, pemadaman dan krisis bahan bakar tekan data center',
 			url: 'https://www.datacenterdynamics.com/en/news/the-after-effect-of-the-japanese-earthquake/'
 		}
-	]
+	],
+	slaTitle: 'Jatah mati per tahun',
+	sla: [
+		{ pct: '99%', down: 'sekitar 3,6 hari' },
+		{ pct: '99,9%', down: 'sekitar 8,8 jam' },
+		{ pct: '99,99%', down: 'sekitar 53 menit' },
+		{ pct: '99,999%', down: 'sekitar 5 menit' }
+	],
+	slaRule: 'Tambah satu 9, matinya sepuluh kali lebih sedikit'
 };

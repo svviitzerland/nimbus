@@ -5,12 +5,15 @@ import { en } from './en';
 
 export const transaction: Lesson = {
 	id: 'transaction',
-	mood: 'calm',
-	moods: ['calm', 'worried', 'idea', 'happy', 'wink', 'thinking', 'excited'],
+	mood: 'thinking',
+	moods: ['calm', 'worried', 'idea', 'thinking', 'wink', 'excited'],
 	reactionMood: {
-		off: 'sad',
-		on: 'happy'
+		ok: 'calm',
+		vanish: 'sad',
+		commit: 'happy',
+		rollback: 'excited'
 	},
+	playable: true,
 	stage: TransactionStage,
 	text: { id, en }
 };

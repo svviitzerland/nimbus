@@ -3,75 +3,51 @@ import type { LanguagesText } from './types';
 export const en: LanguagesText = {
 	title: 'Programming languages',
 	intro: [
-		'Here is a secret about every computer. The chip that does the real work, the <b>CPU</b> (the brain of the computer), cannot read words at all. It only understands <b>0 and 1</b>.',
-		'Instructions written as pure 0 and 1 are called <b>machine code</b>. Long ago people really wrote programs like this, by hand. Slow, painful, and one wrong digit broke everything.',
-		'So people invented friendlier ways to write instructions, <b>programming languages</b>. You write with words and symbols, and a translator (like a [[compiler|basics/compiler]]) turns them into 0 and 1 for the CPU.',
-		'Meet <b>C</b>, one of the classics, born in the 1970s. Same job as the machine code, add 2 and 3 and show the answer. It is a little fussy with brackets and semicolons, but it runs very close to the machine, so it is fast.',
-		'And here is <b>Python</b>. The exact same job, in one line. It reads almost like plain English, which is why so many people learn it first.',
-		'Notice the trade. The higher up, the easier for people to write. The lower down, the closer to the machine, faster but fussier. No language wins at everything.',
-		'So people pick a language the way you pick a tool from a toolbox. A hammer is not better than a screwdriver, it just fits nails.',
-		'[fyi] Same word, different world. Spoken languages have grammar and slang, programming languages have rules too, only much stricter. Forget one bracket and the translator refuses to understand you, no matter how obvious it looks.',
-		'[ingat] First ask, where will the code run? Web gets JavaScript, data and AI get Python, speed gets C, phones get Kotlin and Swift.',
-		'That is the whole idea. If you like, tap any version of the code and watch it write itself again.'
+		'Last time Nim wrote steps in plain words. Here is the catch, the chip inside a computer (the CPU) cannot read words at all. It only runs long rows of <b>0 and 1</b>, called <b>machine code</b>.',
+		'People did write programs straight in 0 and 1 a long time ago. It was slow, painful, and one wrong digit broke everything. So they invented friendlier ways to write instructions.',
+		'Those are <b>programming languages</b>. They look a bit like English and math, so people can read and write them. Then a translator turns them into the 0 and 1 the machine actually runs.',
+		'There are hundreds of languages, and each one trades something. Some are easy to read but run a little slower. Some run blazing fast but ask you to spell out every tiny detail.',
+		'[fyi] Same word, different world. A spoken language has grammar and slang, a programming language has rules too, only much stricter. Forget one bracket and the translator refuses to understand you, no matter how obvious it looks.',
+		'So people pick the language that suits the job, like picking a tool from a toolbox. A hammer is not better than a screwdriver, it just fits nails.',
+		'[ingat] Choose a programming language for the requirements and its ecosystem. One language can serve more than one kind of application.',
+		'Here is the same tiny job written three ways. Tap each one and compare, then try matching languages to the jobs they are famous for.'
 	],
 	reactions: {
 		machine:
-			'Nine bytes of 0 and 1, and this is only the adding part. Showing the answer on screen would take hundreds more rows. Nobody misses writing this by hand.',
-		c: 'C asks you to spell things out, which library (ready made code) to use, where the program starts, a semicolon after each line. In return it runs fast.',
+			'This is what the CPU really runs. Every row is a byte, eight 0s and 1s. And this only adds 2 and 3, showing the answer on screen takes hundreds more rows. Nobody wants to write that by hand.',
+		c: 'C is much friendlier, but still a bit fussy. You say which library you need, wrap the code in a main function, and end lines with semicolons. In return, it runs very close to the machine, so it is fast.',
 		python:
-			'One line, and Python handles the fussy parts for you. Behind the scenes, a translator still turns it into steps the CPU can run.'
+			'One line! Python hides the fussy parts so you can focus on the idea. That ease costs a little speed, but for most jobs nobody notices. Either way, none of these is 0 and 1 yet, a [[compiler or interpreter|basics/compiler]] still has to translate them.',
+		data: 'Yes, Python. Scientists and data people love it because it reads almost like notes, and it has huge collections of ready made tools for numbers and charts.',
+		web: 'Right, JavaScript. It is the one language every browser understands, so anything that reacts when you tap a web page, like on nimbus.com, is almost always JavaScript.',
+		fast: 'Exactly, C. When every millisecond matters, like a game engine or the [[operating system|basics/os]] itself, people reach for C (or its cousin C++) because it runs so close to the hardware.',
+		wrong:
+			'That one could work too, honestly, but it is not the usual pick. Think about where the code runs and what matters most there.'
 	},
-	panels: [
-		{
-			tag: 'Machine code',
-			title: 'All the CPU understands',
-			body: 'The CPU reads 0 and 1 in groups of eight (each group is a <b>byte</b>). These nine bytes only put 2 in a box, add 3 to it, and stop.'
-		},
-		{
-			tag: 'C',
-			title: 'Close to the machine',
-			body: 'Words and symbols instead of bits. A compiler turns this into machine code before it runs.'
-		},
-		{
-			tag: 'Python',
-			title: 'Close to people',
-			body: 'The same job in a single line. Python hides the fussy details, and pays for it with a little speed.'
-		},
-		{
-			tag: 'The trade',
-			title: 'Easy or fast',
-			body: 'Languages higher up are easier to read and write. Lower ones leave the machine less work to figure out, so they run faster.'
-		},
-		{
-			tag: 'Toolbox',
-			title: 'Each language has a specialty',
-			body: 'Most languages can do almost anything, but each one has the jobs it is famous for.'
-		},
-		{
-			tag: 'Make it stick',
-			title: 'Where will the code run?',
-			body: 'In a browser, JavaScript. On a phone, Kotlin for Android or Swift for iPhone. Data and AI, Python. Raw speed, C.'
-		},
-		{
-			tag: 'Look again',
-			title: 'Same job, three ways',
-			body: 'Tap any version to watch it write itself again.'
-		}
-	],
-	taskLabel: 'Same job, add 2 and 3 and show the answer',
+	taskLabel: 'The same job, add 2 and 3 and show the answer',
+	pickHint: 'Tap a language to see its version',
 	langs: {
-		machine: { name: 'Machine code', sub: 'what the CPU runs' },
-		c: { name: 'C', sub: 'close to the machine' },
-		python: { name: 'Python', sub: 'close to people' }
+		machine: { name: 'Machine code', sub: 'what the CPU runs', note: 'Only the adding part' },
+		c: { name: 'C', sub: 'close to the machine', note: 'Fast, a bit fussy' },
+		python: { name: 'Python', sub: 'close to people', note: 'Easy, a little slower' }
 	},
-	people: 'Easier for people',
-	machine: 'Closer to the machine',
-	cpu: 'CPU',
-	jobs: {
-		data: { lang: 'Python', job: 'Data and AI' },
-		web: { lang: 'JavaScript', job: 'Websites' },
-		speed: { lang: 'C', job: 'Speed, like games and operating systems' },
-		phone: { lang: 'Kotlin and Swift', job: 'Phone apps' }
-	},
-	rule: 'Web gets JavaScript, data gets Python, speed gets C, phones get Kotlin and Swift.'
+	humanMeter: 'Easy for people',
+	machineMeter: 'Close to the machine',
+	linesLabel: '{n} lines',
+	toJobs: 'Match languages to jobs',
+	jobsLabel: 'Job {n} of {total}, which language would people usually pick?',
+	jobLangs: { python: 'Python', js: 'JavaScript', c: 'C' },
+	jobs: [
+		{
+			id: 'data',
+			text: 'Crunch a big spreadsheet of nimbus.com visitors and draw a chart',
+			answer: 'python'
+		},
+		{ id: 'web', text: 'Make a button on nimbus.com react when someone taps it', answer: 'js' },
+		{ id: 'fast', text: 'Build a game engine that has to draw 60 frames every second', answer: 'c' }
+	],
+	wrongTag: 'not the usual pick',
+	rightTag: 'good match',
+	allDone: 'Three for three, every language has its job',
+	backToCode: 'Back to the code'
 };

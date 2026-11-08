@@ -3,95 +3,83 @@ import type { OnCallText } from './types';
 export const id: OnCallText = {
 	title: 'Incident dan on call',
 	intro: [
-		'Website nggak pernah tidur, jadi harus ada orang yang bisa dihubungi waktu ada yang rusak jam tiga pagi. Orang itu sedang <b>on call</b>. Tim bergiliran, biasanya seminggu sekali ganti, jadi nggak ada yang pegang HP darurat selamanya. Minggu ini giliranmu.',
-		'Jam 02.58 garis error di grafik [[monitoring|compute/monitoring]] melonjak. Checkout mulai gagal buat kebanyakan pembeli, dan alarm memanggil siapa pun yang sedang on call. Masa rusak itu namanya <b>incident</b>.',
-		'HP terus berdering sampai ada manusia yang menjawab. Menekan <b>acknowledge</b> memberi tahu sistem pemanggilnya (pager) bahwa kamu sedang menangani. Kalau lima menit nggak dijawab, giliran orang berikutnya yang dibangunkan.',
-		'Orang setengah tidur susah mikir jernih, makanya tim menulis <b>runbook</b> dari jauh hari, resep singkat untuk satu jenis masalah. Cek ini, lalu itu, lalu lakukan ini. Kamu tinggal ikuti, nggak perlu improvisasi.',
-		'Langkah satu, buka dashboard error. Error melonjak dari hampir nol ke 38 persen jam 02.58. Langkah dua, cek apa yang berubah. Ada rilis baru, v2.4.1, keluar jam 02.57, semenit sebelumnya.',
-		'Langkah tiga, <b>rollback</b>, artinya memasang lagi rilis terakhir yang sehat. Errornya turun lagi, dan langkah empat menutup incidentnya. Kamu nggak perlu paham bugnya jam tiga pagi, cukup hentikan kerusakannya dulu.',
-		'[ingat] <b>Yang terakhir berubah, yang pertama dicurigai.</b> Kebanyakan incident muncul tepat setelah ada perubahan, rilis baru, setelan baru, server baru. Cek di situ dulu sebelum ke mana mana.',
-		'Siang harinya tim menulis <b>post mortem</b>, cerita tentang apa yang terjadi dan apa yang diubah setelahnya. Yang bagus itu <b>blameless</b>, tanpa menyalahkan orang. Lihat kalimat yang menyalahkan orang dicoret. Orang yang takut disalahkan akan menyembunyikan kesalahan, dan kesalahan yang disembunyikan pasti datang lagi.',
+		'Website nggak pernah tidur, jadi harus ada orang yang bisa dihubungi waktu ada yang rusak jam tiga pagi. Orang itu sedang <b>on call</b>. Tim bergiliran, biasanya seminggu sekali ganti, jadi nggak ada yang pegang HP darurat selamanya.',
+		'Waktu alarm dari [[monitoring|compute/monitoring]] berbunyi, alarm itu memanggil siapa pun yang sedang on call. Masa rusaknya disebut <b>incident</b>, dan tugas pertama adalah menghentikan kerusakannya, bukan mencari siapa yang salah.',
+		'<b>Runbook</b> mencatat langkah pemeriksaan dan penanganan suatu masalah. Gunakan hasil metrik dan log untuk menentukan apakah langkahnya sesuai insiden yang sedang terjadi.',
+		'Setelah apinya padam, tim menulis <b>post mortem</b>, cerita tentang apa yang terjadi dan apa yang diubah setelahnya. Post mortem yang bagus itu <b>blameless</b>, tanpa menyalahkan orang. Orang yang takut disalahkan akan menyembunyikan kesalahan, dan kesalahan yang disembunyikan pasti datang lagi.',
 		'[fyi] Kata yang sama, dunia yang beda. Tim keamanan juga menangani incident, tapi untuk pembobolan, bukan kerusakan, di [[incident response|security/incident]]. Dan kalau satu region padam total, rencananya adalah [[failover|resilience/failover]].',
-		'Penasaran kenapa runbook bilang rollback, bukan restart? Ketuk tombolnya dan coba restart semua server. Atau nikmati saja malam yang tenang, itu juga boleh.'
+		'[ingat] Periksa perubahan terbaru sebagai salah satu petunjuk. Cocokkan dengan metrik dan log sebelum menyimpulkan penyebab insiden.',
+		'HP kamu bergetar. Malam ini kamu yang on call untuk nimbus.com. Angkat, yuk.'
 	],
 	reactions: {
+		ack: 'Sudah di acknowledge. Itu memberi tahu pager bahwa ada manusia yang menangani, jadi dia berhenti berbunyi dan nggak membangunkan Sari. Sekarang buka runbooknya, dan jangan gaya bebas.',
 		panic:
-			'Restart semua server rasanya kayak sedang berbuat sesuatu, dan errornya sempat turun sebentar. Lalu langsung balik lagi, karena restart cuma menjalankan rilis rusak yang sama. Makanya runbook bilang rollback.'
+			'Restart semua server rasanya kayak sedang berbuat sesuatu, tapi errornya langsung balik. Bugnya ada di kode baru, dan restart cuma menjalankan kode rusak yang sama lagi. Ikuti runbooknya.',
+		dash: 'Dashboard menunjukkan error melonjak tiba tiba jam 02.58. Pasti ada yang berubah sesaat sebelumnya. Kata runbook, cek itu berikutnya.',
+		change:
+			'Ada rilis baru, v2.4.1, keluar jam 02.57, semenit sebelum error mulai. Itu petunjuk paling kuat.',
+		rollback:
+			'Sudah di rollback, dan errornya mencair. Kamu nggak harus paham bugnya jam tiga pagi, cukup bikin nimbus.com jalan lagi. Perbaikan sungguhannya bisa menunggu pagi.',
+		resolved:
+			'Incident selesai, dua belas menit dari panggilan sampai beres. Silakan tidur lagi. Besok tim menulis post mortem bareng.',
+		blame:
+			'Jawaban itu menunjuk satu orang. Lain kali, orang bakal menyembunyikan kesalahannya, bukan menceritakannya. Tanyakan apa yang membuat kesalahan itu lolos, bukan siapa yang membuatnya.',
+		postmortem:
+			'Itulah post mortem yang blameless. Nggak ada yang dihukum, dan sistemnya dapat jaring pengaman baru, jadi kesalahan yang sama nggak bisa lolos dua kali. Tim seperti Google dan Etsy yang membuat cara kerja ini terkenal.'
 	},
+	acts: ['Alarm', 'Runbook', 'Post mortem'],
+	pagerApp: 'Pager',
+	alertTitle: 'Error nimbus.com 38%',
+	alertBody: 'Checkout gagal untuk sebagian besar pembeli',
+	onCallNote: 'Minggu ini kamu yang on call',
+	escalateNote: 'Nggak dijawab 5 menit, giliran Sari yang ditelepon',
+	ackBtn: 'Acknowledge',
+	ackedTag: 'diterima',
+	runbookBtn: 'Buka runbooknya',
+	runbookTitle: 'Runbook, error rate tinggi',
+	errorsLabel: 'request yang gagal',
+	panicBtn: 'Restart semua server',
+	panicResult: 'Semua server sudah direstart, dan errornya langsung balik lagi',
 	steps: [
+		{ label: 'Buka dashboard error', result: 'Error melonjak dari 0.3% ke 38% jam 02.58' },
+		{ label: 'Cek apa yang baru berubah', result: 'Rilis v2.4.1 keluar jam 02.57' },
+		{ label: 'Rollback ke rilis terakhir yang sehat', result: 'Kembali ke v2.4.0, error turun' },
+		{ label: 'Pastikan sudah sehat, lalu tutup', result: 'Error 0.3%, incident ditutup' }
+	],
+	rollingTag: 'sedang rollback',
+	postBtn: 'Tulis post mortem',
+	pmTitle: 'Post mortem, error checkout',
+	timelineLabel: 'Kronologi',
+	timeline: [
+		'02.57 rilis v2.4.1 keluar',
+		'02.58 error checkout mulai',
+		'03.12 alarm memanggil engineer on call',
+		'03.20 rollback ke v2.4.0',
+		'03.24 error kembali normal'
+	],
+	questions: [
 		{
-			tag: 'Bergiliran',
-			title: 'On call',
-			body: 'Tiap minggu satu orang menjaga HP tetap dekat, siang dan malam. Minggu depan gantian orang lain.'
+			q: 'Apa yang terjadi?',
+			good: 'Rilis dengan satu setelan yang hilang merusak checkout selama 26 menit',
+			bad: 'Dimas merilis kode rusak dan menjatuhkan checkout'
 		},
 		{
-			tag: 'Ada yang rusak',
-			title: 'Incident',
-			body: 'Masa antara sesuatu rusak sampai jalan lagi. Alarmnya datang dari monitoring, bukan dari orang.'
+			q: 'Kenapa bisa lolos?',
+			good: 'Belum ada langkah di pipeline yang mengecek semua setelan sudah lengkap',
+			bad: 'Dimas ceroboh dan nggak mengecek ulang'
 		},
 		{
-			tag: 'Aku tangani',
-			title: 'Acknowledge',
-			body: 'Satu ketukan menghentikan dering dan memberi tahu tim ada manusia yang menangani. Nggak dijawab, orang berikutnya dipanggil.'
-		},
-		{
-			tag: 'Resepnya',
-			title: 'Runbook',
-			body: 'Langkah pendek yang ditulis waktu siang dan tenang, untuk satu jenis masalah, supaya otak ngantuk nggak perlu mengarang.'
-		},
-		{
-			tag: 'Lihat dulu',
-			title: 'Dashboard, lalu perubahan',
-			body: 'Kapan mulainya, dan apa yang berubah sesaat sebelumnya? Di sini, rilis semenit sebelumnya.'
-		},
-		{
-			tag: 'Pulihkan cepat',
-			title: 'Rollback',
-			body: 'Pasang lagi versi sehat terakhir. Situsnya pulih dalam hitungan menit, perbaikan sungguhannya menunggu pagi.'
-		},
-		{
-			tag: 'Biar nempel',
-			title: 'Terakhir berubah, pertama dicurigai',
-			body: 'Ada yang rusak? Tanya apa yang terakhir berubah. Lebih sering benar daripada salah.'
-		},
-		{
-			tag: 'Sesudahnya',
-			title: 'Post mortem blameless',
-			body: 'Tanya apa yang membuat kesalahan lolos, jangan siapa pembuatnya. Lalu pasang jaring pengaman supaya nggak terulang.'
-		},
-		{
-			tag: 'Beda hal',
-			title: 'Incident jenis lain',
-			body: 'Pembobolan itu incident keamanan. Satu region padam total butuh failover.'
-		},
-		{
-			tag: 'Opsional',
-			title: 'Restart saja?',
-			body: 'Coba jalan pintas yang menggoda itu dan lihat garis errornya.'
+			q: 'Apa yang kita ubah?',
+			good: 'Tambah cek setelan di pipeline, dan rollback otomatis kalau error melonjak setelah rilis',
+			bad: 'Dimas nggak boleh merilis lagi'
 		}
 	],
-	onCallNote: 'On call minggu ini',
-	pagerApp: 'Pager',
-	alertTitle: 'Error 38%',
-	alertBody: 'checkout nimbus.com',
-	ackBtn: 'Acknowledge',
-	ackedTag: 'Ditangani',
-	resolvedTag: 'Selesai',
-	runbookTitle: 'Runbook, error tinggi',
-	runbook: [
-		{ label: 'Buka dashboard error', result: 'Naik dari 0.3% ke 38% jam 02.58' },
-		{ label: 'Cek apa yang berubah', result: 'Rilis v2.4.1 keluar jam 02.57' },
-		{ label: 'Rollback rilisnya', result: 'Kembali ke v2.4.0, error turun' },
-		{ label: 'Pastikan, lalu tutup', result: 'Error 0.3%, incident ditutup' }
-	],
-	pmTitle: 'Post mortem, error checkout',
-	blameLine: 'Dimas merilis kode rusak',
-	pmLines: [
-		'Rilis tanpa satu setelan merusak checkout',
-		'Belum ada cek bahwa semua setelan lengkap',
-		'Tambah cek itu, rollback otomatis saat lonjakan'
-	],
-	errorsLabel: 'error',
-	releaseTag: 'v2.4.1',
-	panicBtn: 'Restart semua server saja'
+	nopeTag: 'itu menyalahkan orang',
+	pmDoneTag: 'Post mortem blameless, beres',
+	noteAlarm: 'Jam tiga pagi, dan HP kamu nggak mau diam',
+	noteAcked: 'Pager tahu kamu sedang menangani',
+	noteRunbook: 'Ikuti langkahnya berurutan',
+	noteFixed: 'nimbus.com sehat lagi',
+	notePm: 'Pilih jawaban yang memperbaiki sistem, bukan orangnya',
+	notePmDone: 'Sudah ditulis, dibagikan, dan nggak ada yang kena masalah'
 };

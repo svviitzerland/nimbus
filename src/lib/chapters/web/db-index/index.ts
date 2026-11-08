@@ -6,13 +6,14 @@ import { en } from './en';
 export const dbIndex: Lesson = {
 	id: 'db-index',
 	mood: 'thinking',
-	moods: ['calm', 'worried', 'idea', 'thinking', 'excited', 'wink', 'thinking', 'happy'],
+	moods: ['calm', 'worried', 'idea', 'thinking', 'wink', 'excited'],
 	reactionMood: {
 		small: 'calm',
 		mid: 'surprised',
 		big: 'excited',
 		huge: 'excited'
 	},
+	playable: true,
 	stage: DbIndexStage,
 	text: { id, en }
 };

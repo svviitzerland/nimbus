@@ -30,7 +30,7 @@
 		</div>
 	{/if}
 	<div class="body">
-		{#each lines as l}
+		{#each lines as l, eachIndex953 (eachIndex953)}
 			<div class="ln {l.tone ?? 'out'}">
 				{#if l.tone === 'cmd' && prompt}<span class="pr">{prompt}</span>
 				{/if}{l.text}{#if l.caret}<span class="cur"></span>{/if}

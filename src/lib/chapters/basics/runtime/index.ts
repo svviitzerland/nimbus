@@ -6,19 +6,17 @@ import { en } from './en';
 export const runtime: Lesson = {
 	id: 'runtime',
 	mood: 'calm',
-	moods: [
-		'thinking',
-		'idea',
-		'calm',
-		'wink',
-		'happy',
-		'excited',
-		'surprised',
-		'idea',
-		'worried',
-		'excited'
-	],
-	reactionMood: { noRuntime: 'surprised', runtime: 'happy' },
+	moods: ['calm', 'thinking', 'idea', 'happy', 'wink', 'worried', 'excited'],
+	reactionMood: {
+		noRuntime: 'surprised',
+		runtime: 'happy',
+		scratch: 'worried',
+		library: 'excited',
+		built: 'happy',
+		broke: 'sad',
+		pinned: 'wink'
+	},
+	playable: true,
 	stage: RuntimeStage,
 	text: { id, en }
 };

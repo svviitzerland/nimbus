@@ -1,13 +1,17 @@
 import type { LessonText } from '../../types';
 
 export interface KubernetesText extends LessonText {
-	/** The side panel, one entry per beat (a small tag, a title, a short plain explanation). */
-	steps: { tag: string; title: string; body: string }[];
-	planeLabel: string; // caption under the ship wheel (the control plane)
+	youDeclare: string; // heading over the desired count
+	replicasLabel: string; // the word next to the number (replicas)
+	runningLabel: string; // template with {n} and {d}, actual versus desired
+	planeLabel: string; // the control plane
+	planeWatching: string;
+	planeFixing: string; // template with {n}, pods it is starting
+	planePending: string; // template with {n}, pods with nowhere to go
 	nodeLabel: string; // template with {n}
-	readout: string; // template with {w} wanted and {r} running
-	night: string; // shown on the beat about crashes in the middle of the night
-	rule: string; // the rule of thumb line under the readout
-	tapHint: string; // caption on the last beat
-	podLabel: string; // accessible label for a pod
+	nodeDownTag: string;
+	podHint: string; // tells the learner to tap a pod
+	unplugBtn: string; // template with {n}
+	plugBtn: string; // template with {n}
+	pendingLabel: string;
 }

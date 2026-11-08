@@ -6,7 +6,8 @@ export const en: DnsText = {
 		'Every server on the internet has an <b>IP address</b>, a string of numbers marking its location, like a house number. The browser needs those numbers to connect.',
 		'The catch is that humans are terrible at memorizing numbers. So we use friendly names like nimbus.com. But computers still need the numbers.',
 		'That is where <b>DNS</b> comes in. It is the phone book of the internet. You say a name, it answers with the IP address, and only then can the browser reach the right server.',
-		'The phone book is already open. Call out a name and follow DNS as it digs up the number until your phone connects.'
+		'The phone book is already open. Call out a name and follow DNS as it digs up the number until your phone connects.',
+		'[ingat] DNS helps find addresses from names. A site name and an IP address are different things.'
 	],
 	reactions: {
 		resolved:
@@ -14,7 +15,7 @@ export const en: DnsText = {
 	},
 	youLabel: 'Your phone',
 	bookTitle: 'DNS',
-	bookSub: 'the internet phone book',
+	bookSub: 'Looking up IP addresses by domain name',
 	serverLabel: 'Server',
 	domains: [
 		{ host: 'nimbus.com', ip: '76.76.21.21' },
@@ -22,6 +23,6 @@ export const en: DnsText = {
 		{ host: 'warta.com', ip: '151.101.1.67' }
 	],
 	idleNote: 'Pick a site name below',
-	lookupNote: 'DNS looks the name up in the book',
+	lookupNote: 'DNS looks up the IP address for this name',
 	connectNote: 'Found it, {ip}. Your phone connects there'
 };

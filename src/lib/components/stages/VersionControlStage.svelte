@@ -49,7 +49,6 @@
 	type Commit = { n: number; msg: string };
 	let commits = $state<Commit[]>([]);
 	let viewing = $state<number | null>(null); // null means the newest
-	let browsedOld = $state(false);
 	let done = false;
 
 	const max = $derived(tx.commitMsgs.length);
@@ -67,7 +66,6 @@
 	function view(n: number) {
 		viewing = n;
 		if (n < commits.length) {
-			browsedOld = true;
 			onstate?.('checkout');
 			if (!done && commits.length >= 2) {
 				done = true;

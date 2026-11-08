@@ -7,9 +7,9 @@ export const en: RouterIntroText = {
 		'A router brand you will meet a lot is <b>MikroTik</b>, from Latvia. It runs its own system called <b>RouterOS</b>. You can click around in an app called Winbox, or type in its terminal, the same two ways as [[CLI vs GUI|foundations/cli-gui]]. Watch, the terminal asks the router its name.',
 		'Right now it is just called MikroTik, like every new one out of the box. Let us give it a real name, so one day, with ten routers, you always know which one you are typing into. Keep an eye on the prompt.',
 		'Now look at the front of the box. Those holes are <b>physical ports</b>, where LAN cables plug in. RouterOS calls them ether1 to ether5, and the <b>R</b> in the list means running, a live cable is plugged in.',
-		'Careful, these are not the numbered [[ports|foundations/port]] like 80 or 443. Those are <b>logical ports</b>, doors inside a service. ether2 is a hole you can touch, 443 is only a number a web server listens on.',
+		'[fyi] Physical ports differ from [[network ports|foundations/port]] such as 80 or 443. ether2 is a cable connector. Port 443 is a number commonly used for HTTPS.',
 		'ether1 takes the cable from the ISP (your internet provider), and ether2 goes to the office. Give ether2 an address, and it becomes the door every office laptop walks through to reach the internet.',
-		'[ingat] Read a RouterOS command like a street address. First the place (/ip address), then the job (add), then the details (address= and interface=).',
+		'[ingat] A RouterOS command has a menu, action, and parameters. In /ip address add, the menu is /ip address and the action is add.',
 		'Your turn. Ask the router for its address list with <b>/ip address print</b>. Type it yourself, or tap the suggestion.'
 	],
 	reactions: {
@@ -23,17 +23,17 @@ export const en: RouterIntroText = {
 	},
 	steps: [
 		{
-			title: 'The box in the middle',
+			title: 'MikroTik router',
 			body: 'A <b>router</b> joins two networks. Here it joins the internet from the ISP with the office.'
 		},
 		{
 			tag: 'RouterOS',
-			title: 'Talking to the router',
-			body: 'Every command starts with a menu, like <b>/system identity</b>, and ends with a job, like <b>print</b> (show me).'
+			title: 'Configuring a router with the CLI',
+			body: 'A command starts with a menu such as <b>/system identity</b>, followed by an action such as <b>print</b> to display its value.'
 		},
 		{
 			tag: 'identity',
-			title: 'A name on the door',
+			title: 'Naming the router',
 			body: 'The identity is the name in the prompt, <b>[admin@nimbus]</b>. It changes nothing in the traffic, it only keeps you from typing into the wrong router.'
 		},
 		{
@@ -47,16 +47,16 @@ export const en: RouterIntroText = {
 		},
 		{
 			tag: 'ip address',
-			title: 'The office door',
+			title: 'Router IP address',
 			body: '<b>192.168.88.1/24</b> on ether2 means the router answers at .1, and the whole 192.168.88.x street is the office.'
 		},
 		{
-			tag: 'Make it stick',
-			title: 'Place, job, details',
+			tag: 'Remember it',
+			title: 'RouterOS command structure',
 			body: '<b>/ip address</b> is the place, <b>add</b> is the job, the <b>key=value</b> pairs are the details.'
 		},
 		{
-			title: 'Your turn',
+			title: 'Try the commands',
 			body: '<b>print</b> works in almost every menu. It is the safest command there is, it only looks.'
 		}
 	],

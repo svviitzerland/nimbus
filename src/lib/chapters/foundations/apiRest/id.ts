@@ -8,7 +8,8 @@ export const id: ApiStyleText = {
 		'Lalu <b>POST</b>, buat membuat data baru. Frontend mengirim produk baru ke backend, backend menyimpannya, dan produk itu ikut muncul di daftar.',
 		'Lalu <b>PUT</b>, buat mengubah data yang sudah ada. Frontend mengirim data baru buat produk nomor 2, backend menggantinya, dan harganya berubah di layar.',
 		'Terakhir <b>DELETE</b>, buat menghapus data. Frontend minta backend menghapus produk nomor 2, dan produk itu hilang dari daftar.',
-		'[fyi] REST itu sebenarnya cuma sekumpulan kesepakatan di atas HTTP biasa, dirumuskan Roy Fielding tahun 2000. Karena sederhana dan jalan di mana saja, dia jadi gaya paling banyak dipakai.'
+		'[fyi] REST itu sebenarnya cuma sekumpulan kesepakatan di atas HTTP biasa, dirumuskan Roy Fielding tahun 2000. Karena sederhana dan jalan di mana saja, dia jadi gaya paling banyak dipakai.',
+		'[ingat] REST menamai sumber daya. Method menjelaskan tindakan terhadap sumber daya itu.'
 	],
 	reactions: {},
 	style: 'rest',

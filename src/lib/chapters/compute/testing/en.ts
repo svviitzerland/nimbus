@@ -57,7 +57,7 @@ export const en: TestingText = {
 			body: 'Tests run automatically on every change, so nothing depends on someone remembering.'
 		},
 		{
-			tag: 'Make it stick',
+			tag: 'Remember it',
 			title: 'The smoke alarm',
 			body: 'Quiet when all is well, loud the moment something is wrong, and always earlier than the fire.'
 		},

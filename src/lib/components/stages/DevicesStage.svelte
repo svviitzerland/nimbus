@@ -1,462 +1,460 @@
 <script lang="ts">
-	// Guided: the chain that carries the internet from the street to every desk. The provider's
-	// cable enters, then modem, router, switch, with cables to the PCs and an access point that
-	// sends WiFi to a phone. Each beat lights one box; on the last beat a box can be unplugged.
-	import { untrack } from 'svelte';
-	import type { StageProps } from '$lib/chapters/types';
-	import type { DevicePart, DevicesText } from '$lib/chapters/network/devices/types';
-	import Guide from '$lib/components/Guide.svelte';
-	import Thing from './netguide/Thing.svelte';
+	import type { LessonText } from '$lib/chapters/types';
+	import type { DevicesText, DevicePart } from '$lib/chapters/network/devices/types';
+	import DeviceIcon from './netbasics/DeviceIcon.svelte';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as DevicesText);
 
-	$effect(() => {
-		untrack(() => {
-			onshow?.(true);
-			oncomplete?.();
-		});
-	});
-
-	const last = $derived(tx.intro.length - 1);
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const active = $derived(peek ?? Math.min(beat, tx.steps.length - 1));
-	const isLast = $derived(beat >= last);
-	const TRY = 7;
-
-	// the one optional interaction, unplug a box
-	let pulled = $state<DevicePart | null>(null);
-	const TOKENS: Record<DevicePart, string> = {
+	const PARTS: DevicePart[] = ['modem', 'router', 'switch', 'ap'];
+	const PULL_TOKEN: Record<DevicePart, string> = {
 		modem: 'noModem',
 		router: 'noRouter',
 		switch: 'noSwitch',
 		ap: 'noAp'
 	};
-	function toggle(p: DevicePart) {
-		if (!isLast) return;
-		peek = null;
-		if (pulled === p) {
-			pulled = null;
-			onstate?.('fixed');
-		} else {
-			pulled = p;
-			onstate?.(TOKENS[p]);
+
+	// The office floor plan, in board units (100 wide, 118 tall).
+	const H = 118;
+	const POS = {
+		net: { x: 50, y: 6 },
+		modem: { x: 50, y: 25 },
+		router: { x: 50, y: 44 },
+		switch: { x: 50, y: 63 },
+		pc1: { x: 14, y: 92 },
+		pc2: { x: 38, y: 92 },
+		ap: { x: 74, y: 84 },
+		phone: { x: 74, y: 109 }
+	};
+	const BUS = 75; // where the switch cables split sideways
+
+	let placed = $state<Record<DevicePart, boolean>>({
+		modem: false,
+		router: false,
+		switch: false,
+		ap: false
+	});
+	let picked = $state<DevicePart | null>(null);
+	let shake = $state<DevicePart | null>(null);
+	let pulled = $state<DevicePart | null>(null);
+	let builtOnce = false;
+	let pulledOnce = false;
+	let completed = false;
+
+	const tray = $derived(PARTS.filter((p) => !placed[p]));
+	const allIn = $derived(PARTS.every((p) => placed[p]));
+
+	// What actually works, given which boxes are in.
+	const internetOk = $derived(placed.modem && placed.router);
+	type Status = 'online' | 'local' | 'offline';
+	const pcStatus = $derived<Status>(!placed.switch ? 'offline' : internetOk ? 'online' : 'local');
+	const phoneStatus = $derived<Status>(
+		!placed.switch || !placed.ap ? 'offline' : internetOk ? 'online' : 'local'
+	);
+	type Wire = 'live' | 'local' | 'gone';
+	const w = (present: boolean, live: boolean): Wire =>
+		!present ? 'gone' : live ? 'live' : 'local';
+	const wires = $derived({
+		netModem: w(placed.modem, true),
+		modemRouter: w(placed.modem && placed.router, true),
+		routerSwitch: w(placed.router && placed.switch, placed.modem),
+		pcs: w(placed.switch, internetOk),
+		ap: w(placed.switch && placed.ap, internetOk)
+	});
+
+	function pick(p: DevicePart) {
+		picked = picked === p ? null : p;
+	}
+
+	function tapSlot(slot: DevicePart) {
+		if (placed[slot]) {
+			// Pull a box out to see what breaks.
+			const wasFull = allIn;
+			placed[slot] = false;
+			pulled = slot;
+			picked = null;
+			if (wasFull && builtOnce) {
+				onstate?.(PULL_TOKEN[slot]);
+				pulledOnce = true;
+				if (!completed) {
+					completed = true;
+					oncomplete?.();
+				}
+			}
+			return;
+		}
+		if (!picked) return;
+		if (picked !== slot) {
+			shake = slot;
+			setTimeout(() => (shake = null), 450);
+			onstate?.('wrong');
+			return;
+		}
+		placed[slot] = true;
+		picked = null;
+		pulled = null;
+		if (PARTS.every((p) => placed[p])) {
+			onstate?.(builtOnce ? 'fixed' : 'built');
+			builtOnce = true;
+		} else if (!pulledOnce) {
+			onstate?.(slot);
 		}
 	}
-	type Status = 'online' | 'local' | 'offline';
-	function statusOf(dev: 'pc' | 'phone', p: DevicePart | null): Status {
-		if (!p) return 'online';
-		if (p === 'switch') return 'offline';
-		if (p === 'ap') return dev === 'phone' ? 'offline' : 'online';
-		return 'local';
-	}
 
-	const BOXES: { part: DevicePart; x: number; y: number; step: number }[] = [
-		{ part: 'modem', x: 92, y: 112, step: 1 },
-		{ part: 'router', x: 182, y: 112, step: 2 },
-		{ part: 'switch', x: 278, y: 112, step: 3 },
-		{ part: 'ap', x: 278, y: 222, step: 4 }
-	];
-	const ENDS = [
-		{ dev: 'pc' as const, x: 398, y: 64, n: 1 },
-		{ dev: 'pc' as const, x: 398, y: 162, n: 2 },
-		{ dev: 'phone' as const, x: 398, y: 236, n: 0 }
-	];
-	const arc = (d: number) =>
-		`M ${300 + d} ${222 - d * 0.55} Q ${300 + d * 1.4} 222 ${300 + d} ${222 + d * 0.55}`;
+	const note = $derived(
+		picked
+			? tx.placeHint.replace('{name}', tx.parts[picked].name)
+			: allIn
+				? tx.builtNote
+				: pulled && builtOnce
+					? tx.brokenNote.replace('{name}', tx.parts[pulled].name)
+					: tx.pickHint
+	);
+
+	const top = (y: number) => `${(y / H) * 100}%`;
 </script>
 
-<div class="wrap">
-	<p class="tryrow" class:show={isLast} aria-hidden={!isLast}>{tx.unplugHint}</p>
+{#snippet slot(p: DevicePart)}
+	{@const pos = POS[p]}
+	<button
+		type="button"
+		class="slot"
+		class:filled={placed[p]}
+		class:target={picked !== null && !placed[p]}
+		class:shake={shake === p}
+		style="left:{pos.x}%; top:{top(pos.y)}"
+		aria-label={placed[p] ? tx.parts[p].name : '?'}
+		onclick={() => tapSlot(p)}
+	>
+		{#if placed[p]}
+			<span class="ic"><DeviceIcon kind={p} size={26} /></span>
+			<span class="nm">{tx.parts[p].name}</span>
+		{:else}
+			<span class="q">?</span>
+		{/if}
+	</button>
+{/snippet}
 
-	<Guide steps={tx.steps} {active} onselect={(k) => (peek = k)}>
-		{#snippet visual(s)}
-			{@const play = s === TRY}
-			{@const p = play ? pulled : null}
-			<svg viewBox="0 0 460 300" class="art" role="img" aria-label={tx.title}>
-				<!-- the building wall and the provider's cable coming through it -->
-				<line class="wall" x1="40" y1="28" x2="40" y2="292" />
-				<text class="lbl start" x="4" y="96">{tx.internetLabel}</text>
-				<line class="isp" class:hi={s === 0} x1="0" y1="112" x2="78" y2="112" />
+{#snippet endpoint(kind: 'pc' | 'phone', label: string, x: number, y: number, s: Status)}
+	<div class="end" style="left:{x}%; top:{top(y)}">
+		<span class="ic" class:dim={s === 'offline'}><DeviceIcon {kind} size={24} /></span>
+		<span class="nm">{label}</span>
+		<span class="st {s}">{tx.status[s]}</span>
+	</div>
+{/snippet}
 
-				<!-- cables inside -->
-				<g class="cables" class:hi={s === 0}>
-					<line x1="106" y1="112" x2="158" y2="112" />
-					<line x1="206" y1="112" x2="250" y2="112" />
-					<polyline points="306,112 340,112 340,64 376,64" />
-					<polyline points="340,112 340,162 376,162" />
-					<line x1="278" y1="120" x2="278" y2="214" />
-				</g>
+<div class="flex h-full w-full flex-col items-center gap-3">
+	<!-- the shelf of boxes still to place -->
+	<div class="tray">
+		<span class="tlabel">{tx.trayLabel}</span>
+		<div class="tparts">
+			{#each tray as p (p)}
+				<button
+					type="button"
+					class="part"
+					class:on={picked === p}
+					aria-pressed={picked === p}
+					onclick={() => pick(p)}
+				>
+					<span class="ic"><DeviceIcon kind={p} size={22} /></span>
+					<span class="ptext">
+						<b>{tx.parts[p].name}</b>
+						<span>{tx.parts[p].job}</span>
+					</span>
+				</button>
+			{:else}
+				<span class="empty">✓</span>
+			{/each}
+		</div>
+	</div>
 
-				<!-- the radio waves from the access point to the phone -->
-				<g class="waves" class:on={p !== 'ap' && p !== 'switch'} class:hi={s === 4}>
-					{#each [0, 18, 36] as d, k (d)}
-						<path d={arc(d + 8)} style="animation-delay: {k * 0.35}s" />
-					{/each}
-				</g>
+	<div class="board">
+		<svg class="wires" viewBox="0 0 100 {H}" preserveAspectRatio="none" aria-hidden="true">
+			<path d="M50 {POS.net.y} V{POS.modem.y}" class={wires.netModem} />
+			<path d="M50 {POS.modem.y} V{POS.router.y}" class={wires.modemRouter} />
+			<path d="M50 {POS.router.y} V{POS.switch.y}" class={wires.routerSwitch} />
+			<path
+				d="M50 {POS.switch.y} V{BUS} H{POS.pc1.x} V{POS.pc1.y} M{POS.pc2.x} {BUS} V{POS.pc2.y}"
+				class={wires.pcs}
+			/>
+			<path d="M50 {BUS} H{POS.ap.x} V{POS.ap.y}" class={wires.ap} />
+		</svg>
 
-				<!-- the four boxes -->
-				{#each BOXES as b (b.part)}
-					{@const isOff = p === b.part}
-					<g
-						class="box"
-						class:pulled={isOff}
-						class:tap={play}
-						role="button"
-						tabindex={play ? 0 : -1}
-						aria-label={tx.parts[b.part].name}
-						onclick={() => toggle(b.part)}
-						onkeydown={(e) => {
-							if (e.key === 'Enter' || e.key === ' ') {
-								e.preventDefault();
-								toggle(b.part);
-							}
-						}}
-					>
-						<rect class="hit" x={b.x - 36} y={b.y - 34} width="72" height="62" rx="12" />
-						<Thing
-							kind={b.part}
-							x={b.x}
-							y={b.y}
-							s={1.05}
-							hi={s === b.step || s === 5}
-							dim={(s >= 1 && s <= 4 && s !== b.step) || isOff}
-							off={isOff}
-						/>
-						<text
-							class="name"
-							class:hi={s === b.step}
-							x={b.x}
-							y={b.part === 'ap' ? b.y + 26 : b.y - 30}>{tx.parts[b.part].name}</text
-						>
-					</g>
-				{/each}
+		<div class="end net" style="left:{POS.net.x}%; top:{top(POS.net.y)}">
+			<span class="ic brand"><DeviceIcon kind="globe" size={22} /></span>
+			<span class="nm">{tx.internetLabel}</span>
+		</div>
 
-				<!-- the memory words, one under each box -->
-				<g class="memos" class:show={s === 5}>
-					{#each BOXES as b (b.part)}
-						{@const w = tx.parts[b.part].memo.length * 6.6 + 18}
-						<g class="memo">
-							<rect
-								x={b.x - w / 2}
-								y={b.part === 'ap' ? b.y + 34 : b.y + 22}
-								width={w}
-								height="19"
-								rx="9.5"
-							/>
-							<text x={b.x} y={b.part === 'ap' ? b.y + 47 : b.y + 35}>{tx.parts[b.part].memo}</text>
-						</g>
-					{/each}
-				</g>
+		{@render slot('modem')}
+		{@render slot('router')}
+		{@render slot('switch')}
+		{@render slot('ap')}
 
-				<!-- the PCs and the phone -->
-				{#each ENDS as e (e.n)}
-					{@const st = statusOf(e.dev, p)}
-					<Thing
-						kind={e.dev}
-						x={e.x}
-						y={e.y}
-						dim={s >= 1 && s <= 3 ? false : s === 4 && e.dev === 'pc'}
-						off={st === 'offline'}
-					/>
-					{#if play}
-						<g class="status {st}">
-							<rect x={e.x - 40} y={e.y + 24} width="80" height="19" rx="9.5" />
-							<text x={e.x} y={e.y + 37}>{tx.status[st]}</text>
-						</g>
-					{:else}
-						<text class="lbl" x={e.x} y={e.y + 36}
-							>{e.dev === 'pc' ? tx.pcLabel.replace('{n}', String(e.n)) : tx.phoneLabel}</text
-						>
-					{/if}
-				{/each}
-
-				<!-- at home, all four live in one case -->
-				<g class="home" class:show={s === 6}>
-					<rect x="52" y="54" width="268" height="206" rx="22" />
-					<text x="186" y="282">{tx.homeBoxLabel}</text>
-				</g>
-
-				<!-- data flowing in from the street -->
-				{#if !p}
-					<circle class="pkt a" r="4.5" />
-					<circle class="pkt b" r="4.5" />
-				{/if}
+		<!-- radio between the access point and the phone -->
+		<span
+			class="radio"
+			class:live={phoneStatus !== 'offline'}
+			style="left:{POS.ap.x}%; top:{top((POS.ap.y + POS.phone.y) / 2 + 1)}"
+			aria-hidden="true"
+		>
+			<svg width="24" height="16" viewBox="0 0 24 16" fill="none" aria-hidden="true">
+				<path d="M4 3a8 8 0 0 0 16 0M8.5 3a3.5 3.5 0 0 0 7 0" />
 			</svg>
-		{/snippet}
-	</Guide>
+		</span>
+
+		{@render endpoint('pc', tx.pcLabel.replace('{n}', '1'), POS.pc1.x, POS.pc1.y, pcStatus)}
+		{@render endpoint('pc', tx.pcLabel.replace('{n}', '2'), POS.pc2.x, POS.pc2.y, pcStatus)}
+		{@render endpoint('phone', tx.phoneLabel, POS.phone.x, POS.phone.y, phoneStatus)}
+	</div>
+
+	<p class="note">{note}</p>
 </div>
 
 <style>
-	.wrap {
+	.tray {
 		display: flex;
-		width: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 12px;
-		padding-bottom: 7rem;
+		gap: 6px;
 	}
-	@media (min-width: 768px) {
-		.wrap {
-			padding-bottom: 1rem;
+	.tlabel {
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+	}
+	.tparts {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 6px;
+		min-height: 44px;
+		width: min(94vw, 360px);
+	}
+	.part {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		border-radius: 12px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-ink);
+		padding: 6px 9px;
+		text-align: left;
+		transition:
+			border-color 0.2s ease,
+			box-shadow 0.2s ease;
+	}
+	.part:hover {
+		border-color: var(--color-ink);
+	}
+	.part.on {
+		border-color: var(--color-brand);
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 20%, transparent);
+	}
+	.ptext {
+		display: flex;
+		min-width: 0;
+		flex-direction: column;
+		line-height: 1.2;
+	}
+	.ptext b {
+		font-size: 11.5px;
+		font-weight: 800;
+	}
+	.ptext span {
+		font-size: 9.5px;
+		color: var(--color-muted);
+	}
+	.empty {
+		grid-column: span 2;
+		align-self: center;
+		text-align: center;
+		font-size: 18px;
+		color: var(--color-grass);
+	}
+
+	.board {
+		position: relative;
+		width: min(82vw, 300px);
+		aspect-ratio: 100 / 118;
+		flex: none;
+	}
+	.wires {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		fill: none;
+	}
+	.wires path {
+		stroke-width: 2.5;
+		vector-effect: non-scaling-stroke;
+		stroke-linejoin: round;
+		transition: stroke 0.3s ease;
+	}
+	.wires .live {
+		stroke: var(--color-grass);
+	}
+	.wires .local {
+		stroke: var(--color-amber);
+	}
+	.wires .gone {
+		stroke: var(--color-line);
+	}
+
+	.slot,
+	.end {
+		position: absolute;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1px;
+		transform: translate(-50%, -50%);
+		line-height: 1.15;
+	}
+	.slot {
+		min-width: 64px;
+		border-radius: 12px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 5px 8px;
+		color: var(--color-ink);
+		transition:
+			border-color 0.2s ease,
+			box-shadow 0.2s ease;
+	}
+	.slot:not(.filled) {
+		min-height: 44px;
+		justify-content: center;
+		background: var(--color-paper);
+	}
+	.slot.filled:hover {
+		border-color: var(--color-danger);
+	}
+	.slot.target {
+		border-color: var(--color-brand);
+		animation: breathe 1.4s ease-in-out infinite;
+	}
+	.slot.shake {
+		animation: shake 0.4s ease;
+		border-color: var(--color-danger);
+	}
+	@keyframes breathe {
+		50% {
+			box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand) 18%, transparent);
 		}
 	}
-	.tryrow {
-		display: flex;
-		min-height: 40px;
-		align-items: center;
-		margin: 0;
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--color-muted);
-		visibility: hidden;
-		opacity: 0;
+	@keyframes shake {
+		25% {
+			transform: translate(calc(-50% - 5px), -50%);
+		}
+		75% {
+			transform: translate(calc(-50% + 5px), -50%);
+		}
+	}
+	.q {
+		font-size: 15px;
+		font-weight: 800;
+		color: var(--color-faint);
+	}
+	.ic {
+		line-height: 0;
+		color: var(--color-ink);
+		transition: color 0.3s ease;
+	}
+	.ic.dim {
+		color: var(--color-faint);
+	}
+	.ic.brand {
+		color: var(--color-brand);
+	}
+	.nm {
+		font-size: 10px;
+		font-weight: 700;
+		white-space: nowrap;
+		color: var(--color-ink);
+	}
+	.end {
+		padding: 2px 4px;
+		border-radius: 10px;
+		background: var(--color-paper);
+	}
+	.end.net .nm {
+		color: var(--color-brand);
+	}
+	.st {
+		border-radius: 999px;
+		padding: 1px 7px;
+		font-size: 9px;
+		font-weight: 800;
+		white-space: nowrap;
+	}
+	.st.online {
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+	}
+	.st.local {
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
+	}
+	.st.offline {
+		background: var(--color-danger-soft);
+		color: var(--color-danger);
+	}
+
+	.radio {
+		position: absolute;
+		line-height: 0;
+		transform: translate(-50%, -50%);
+		opacity: 0.25;
 		transition: opacity 0.3s ease;
 	}
-	.tryrow.show {
-		visibility: visible;
+	.radio.live {
 		opacity: 1;
 	}
-	.art {
-		width: 100%;
-		max-width: 480px;
-		height: auto;
-		overflow: visible;
-	}
-	.wall {
-		stroke: var(--color-line);
-		stroke-width: 6;
+	.radio path {
+		stroke: var(--color-brand);
+		stroke-width: 2;
 		stroke-linecap: round;
 	}
-	.lbl {
-		fill: var(--color-faint);
-		font-size: 11.5px;
+
+	.note {
+		min-height: 1.4em;
+		max-width: 340px;
+		text-align: center;
+		font-size: 12px;
 		font-weight: 600;
-		text-anchor: middle;
+		color: var(--color-muted);
 	}
-	.lbl.start {
-		text-anchor: start;
-	}
-	.isp {
-		stroke: var(--color-amber);
-		stroke-width: 4;
-		stroke-linecap: round;
-		transition: stroke-width 0.3s;
-	}
-	.isp.hi {
-		stroke-width: 6;
-	}
-	.cables line,
-	.cables polyline {
-		fill: none;
-		stroke: var(--color-muted);
-		stroke-width: 2;
-		stroke-linejoin: round;
-		opacity: 0.6;
-		transition: stroke 0.3s;
-	}
-	.cables.hi line,
-	.cables.hi polyline {
-		stroke: var(--color-brand);
-		opacity: 0.8;
-	}
-	.waves path {
-		fill: none;
-		stroke: var(--color-muted);
-		stroke-width: 2;
-		stroke-linecap: round;
-		opacity: 0;
-	}
-	.waves.on path {
-		opacity: 0.6;
-		animation: wave 1.8s ease-in-out infinite;
-	}
-	.waves.on.hi path {
-		stroke: var(--color-brand);
-	}
-	@keyframes wave {
-		0%,
-		100% {
-			opacity: 0.15;
-		}
-		50% {
-			opacity: 0.85;
-		}
-	}
-	.hit {
-		fill: transparent;
-		stroke: none;
-	}
-	.box {
-		outline: none;
-	}
-	.box.tap {
-		cursor: pointer;
-	}
-	.box.tap:hover .hit,
-	.box.tap:focus-visible .hit {
-		fill: var(--color-brand-soft);
-	}
-	.box.pulled .hit {
-		fill: var(--color-danger-soft);
-	}
-	.name {
-		fill: var(--color-muted);
-		font-size: 12px;
-		font-weight: 700;
-		text-anchor: middle;
-		transition: fill 0.3s;
-	}
-	.name.hi {
-		fill: var(--color-brand);
-	}
-	.memos {
-		opacity: 0;
-		transition: opacity 0.5s ease;
-	}
-	.memos.show {
-		opacity: 1;
-	}
-	.memo rect {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		stroke-width: 1.2;
-	}
-	.memo text {
-		fill: var(--color-grass);
-		font-size: 11px;
-		font-weight: 700;
-		text-anchor: middle;
-	}
-	.status rect {
-		stroke-width: 1.2;
-	}
-	.status text {
-		font-size: 11px;
-		font-weight: 700;
-		text-anchor: middle;
-	}
-	.status.online rect {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-	}
-	.status.online text {
-		fill: var(--color-grass);
-	}
-	.status.local rect {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-	}
-	.status.local text {
-		fill: var(--color-amber);
-	}
-	.status.offline rect {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-	}
-	.status.offline text {
-		fill: var(--color-danger);
-	}
-	.home {
-		opacity: 0;
-		transition: opacity 0.6s ease;
-	}
-	.home.show {
-		opacity: 1;
-	}
-	.home rect {
-		fill: color-mix(in srgb, var(--color-amber) 7%, transparent);
-		stroke: var(--color-amber);
-		stroke-width: 2;
-	}
-	.home text {
-		fill: var(--color-amber);
-		font-size: 12px;
-		font-weight: 700;
-		text-anchor: middle;
-	}
-	.pkt {
-		fill: var(--color-amber);
-		opacity: 0;
-	}
-	.pkt.a {
-		animation: to-pc 4.2s ease-in-out infinite;
-	}
-	.pkt.b {
-		animation: to-ap 4.2s ease-in-out 2.1s infinite;
-	}
-	@keyframes to-pc {
-		0% {
-			transform: translate(0px, 112px);
-			opacity: 0;
-		}
-		6%,
-		94% {
-			opacity: 1;
-		}
-		22% {
-			transform: translate(92px, 112px);
-		}
-		44% {
-			transform: translate(182px, 112px);
-		}
-		64% {
-			transform: translate(278px, 112px);
-		}
-		74% {
-			transform: translate(340px, 112px);
-		}
-		84% {
-			transform: translate(340px, 64px);
-		}
-		100% {
-			transform: translate(376px, 64px);
-			opacity: 0;
-		}
-	}
-	@keyframes to-ap {
-		0% {
-			transform: translate(0px, 112px);
-			opacity: 0;
-		}
-		6%,
-		94% {
-			opacity: 1;
-		}
-		22% {
-			transform: translate(92px, 112px);
-		}
-		44% {
-			transform: translate(182px, 112px);
-		}
-		64% {
-			transform: translate(278px, 112px);
-		}
-		100% {
-			transform: translate(278px, 214px);
-			opacity: 0;
-		}
-	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.tryrow,
-		.memos,
-		.home,
-		.name,
-		.isp,
-		.cables line,
-		.cables polyline {
-			transition: none;
-		}
-		.waves.on path {
+		.slot.target,
+		.slot.shake {
 			animation: none;
 		}
-		.pkt {
-			animation: none !important;
-			opacity: 0 !important;
+	}
+	@media (min-width: 768px) {
+		.tparts {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			width: 600px;
+		}
+		.empty {
+			grid-column: span 4;
+		}
+		.board {
+			width: 380px;
+		}
+		.nm {
+			font-size: 11px;
+		}
+		.note {
+			font-size: 14px;
+			max-width: 460px;
 		}
 	}
 </style>

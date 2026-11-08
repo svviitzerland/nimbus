@@ -6,15 +6,24 @@ import { en } from './en';
 export const whatIsAi: Lesson = {
 	id: 'what-is-ai',
 	mood: 'thinking',
-	moods: ['calm', 'thinking', 'idea', 'happy', 'wink', 'surprised', 'excited', 'wink', 'happy'],
+	moods: ['thinking', 'idea', 'excited', 'surprised', 'happy', 'wink', 'excited'],
 	reactionMood: {
-		calc: 'calm',
-		chess: 'thinking',
-		spam: 'happy',
+		calc: 'happy',
+		chess: 'happy',
+		spam: 'excited',
+		price: 'happy',
 		face: 'excited',
 		chat: 'excited',
-		image: 'happy'
+		image: 'happy',
+		calc_wrong: 'thinking',
+		chess_wrong: 'thinking',
+		spam_wrong: 'thinking',
+		price_wrong: 'thinking',
+		face_wrong: 'thinking',
+		chat_wrong: 'thinking',
+		image_wrong: 'thinking'
 	},
+	playable: true,
 	stage: WhatIsAiStage,
 	text: { id, en }
 };

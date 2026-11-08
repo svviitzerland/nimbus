@@ -57,7 +57,7 @@ export const en: PullRequestText = {
 			body: 'The <b>Merge</b> button brings the branch into main. The site follows, and the PR closes as done.'
 		},
 		{
-			tag: 'Make it stick',
+			tag: 'Remember it',
 			title: 'The essay and the red pen',
 			body: 'Review is the red pen, checks are the spellchecker, approve is the signature, merge is handing it in.'
 		},

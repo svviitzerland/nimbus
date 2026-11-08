@@ -3,27 +3,31 @@ import type { LessonText } from '../../types';
 /** The apps on the laptop. How much RAM each one takes lives in the stage. */
 export type OsAppId = 'browser' | 'music' | 'chat' | 'game';
 
-/** One part of the picture, shown in the side panel while its beats play. */
-export type OsStep = { title: string; body: string };
-
 export interface OsText extends LessonText {
-	/** Panel text, one per scene (laptop, manager, opening, CPU, RAM, processes, swap, files, names, play). */
-	steps: OsStep[];
+	procTitle: string;
+	procCols: { pid: string; name: string; ram: string; state: string };
+	running: string;
+	waiting: string;
+
+	dockHint: string; // over the row of apps
 	apps: { id: OsAppId; name: string }[];
-	osLabel: string; // the manager band between apps and hardware
+	desktopEmpty: string; // the screen before any app is open
+	osLabel: string; // the manager layer
+	osSub: string;
 	cpuLabel: string;
-	ramLabel: string;
-	diskLabel: string; // storage
 	turn: string; // template with {app}, whose turn it is on the CPU
+	cpuIdle: string; // nothing open, the CPU waits
+	ramLabel: string;
 	ramUsed: string; // template with {n}, gigabytes in use out of 8
-	procTitle: string; // heading of the little process list
-	procCols: { pid: string; name: string; ram: string; state: string }; // its column headings
-	running: string; // the process on the CPU right now
-	waiting: string; // the processes waiting for their turn
-	slowTag: string; // badge on the laptop once RAM spills onto storage
-	fileName: string; // the song the music app asks for
-	osTrick: string; // the short memory line shown with the manager
-	devices: { os: string; kind: string }[]; // Windows laptop, macOS laptop, Linux server, Android phone, iOS phone
-	dockHint: string; // over the tappable apps in the play scene
-	toggleLabel: string; // template with {app}, screen reader label to open or close an app
+	osChunk: string; // the slice of RAM the OS keeps for itself
+	swapLabel: string; // the overflow pushed onto storage
+	closeLabel: string; // template with {app}, screen reader label on a window's close button
+	slowTag: string; // badge on the laptop once it struggles
+	notes: {
+		idle: string;
+		one: string;
+		sharing: string;
+		slow: string;
+		eased: string;
+	};
 }

@@ -5,7 +5,8 @@ export const en: CapstoneText = {
 	intro: [
 		'You made it to the end of the Cloud track. From one laptop server to an architecture that takes a punch, you now hold all the big concepts.',
 		'The next branch takes those ideas into the real world, one provider at a time. The exact same concepts, now with their real names and buttons, like EC2 and Cloud Run.',
-		'Pick the provider you want to learn first. All three are still under construction, and you can leave an email to be told the moment your track is ready.'
+		'Pick the provider you want to learn first. All three are still under construction, and you can leave an email to be told the moment your track is ready.',
+		'[ingat] Start with needs, assemble the parts, test failures, and check the cost.'
 	],
 	reactions: {
 		picked:

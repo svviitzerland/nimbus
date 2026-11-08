@@ -3,89 +3,57 @@ import type { BruteForceText } from './types';
 export const en: BruteForceText = {
 	title: 'Brute force',
 	intro: [
-		'Meet the guessing machine. It stands at a login and types password after password, aaaa, aaab, aaac, and never gets tired. Winning by simply trying every possibility is called a <b>brute force</b> attack.',
-		'Computers are fast. A strong machine can try about <b>10 billion</b> guesses every second. A short password like <b>kopi</b> has under half a million possibilities, so it falls before you can blink.',
-		'Here is the secret. Every extra letter <b>multiplies</b> the work by 26, because each new spot can be any letter. Watch the second password grow, and watch the time next to it jump.',
-		'Now the race. The same machine attacks both at once. kopi opens instantly, while <b>kopisusupagihari</b> (sixteen plain letters, no tricks) would keep it busy for over a hundred thousand years.',
-		'What about clever passwords like <b>P@ssw0rd</b>, with swapped letters and symbols? Huge lists of real passwords leak from hacked sites every year, and the machine tries those favourites first. Clever tricks are on the list too. Using a leaked password on other sites is called <b>credential stuffing</b>.',
-		'[ingat] <b>Long beats clever.</b> Pick a long password made of a few random words, not a famous line. Length does the heavy lifting.',
-		'Sites fight back too, with a <b>lockout</b>. After a few wrong tries the login makes you wait, so the machine slows from billions of guesses to a handful a minute. Even kopi would now take months.',
-		'[fyi] If attackers steal the password file itself, there is no lockout, they guess on their own machines at full speed. That is why good sites store passwords with slow [[hashing|security/hashing]], and why [[MFA|security/mfa]] matters, a guessed password alone is not enough. A password manager can remember the long ones for you.',
-		'Want to feel it? Drag the slider to change the length of the second password and watch the time. Or just watch the machine sweat, that works too.'
+		'Imagine a robot standing at the nimbus.com login page, typing password after password and never getting tired. aaaa, aaab, aaac, and on and on. That is a <b>brute force</b> attack, winning by simply trying every possibility.',
+		'Computers are fast. One bot, or a whole crowd of hijacked computers working together, can try thousands of passwords every second. A short password made of only digits has so few possibilities that it falls almost at once.',
+		'There is a lazier version too. Every year huge lists of real passwords leak from hacked sites, and people keep reusing the same favourites (123456, password, qwerty). Attackers try those first, or take an email and password leaked from one site and try them everywhere else. That is called <b>credential stuffing</b>.',
+		'Defenders have two big weapons. <b>Length</b>, because every extra character multiplies the possibilities. And a <b>lockout</b> (or rate limit), where the site allows only a few wrong tries before making you wait, so the robot slows to a crawl.',
+		'[fyi] If an attacker steals the password file itself, there is no lockout to slow them down, and they guess offline at billions per second. That is why good sites store passwords with slow [[hashing|security/hashing]], and why [[MFA|security/mfa]] matters, a guessed password alone is not enough.',
+		'[ingat] Use long, random, unique passwords. Login attempt limits and MFA add protection.',
+		'This guessing machine only attacks a pretend login, so make up a password (never a real one). Start short, then go longer, then switch on the lockout and watch the clock.'
 	],
 	reactions: {
-		weak: 'Short enough that the machine gets through it in hours or less. Add a few more letters and see what happens.',
-		okay: 'Getting there. Days or years is already annoying for an attacker, and every extra letter multiplies it by 26.',
+		leaked:
+			'Instant. That password sits on the leaked lists every attacker starts with, so the machine did not even need to guess, it just looked it up. Never use a famous password.',
+		leakedLock:
+			'Even with the lockout, a password from the leaked list falls within the first few rounds. A lockout slows the guessing, but it cannot save a password everyone already knows.',
+		fast: 'Done before your coffee cools. Short passwords, or ones made of only one kind of character, have too few combinations. Add length and the number explodes.',
+		medium:
+			'Better, the machine needs a while now. But a patient attacker with more computers could still get there. A few more characters would push it out of reach.',
 		strong:
-			'Now that is long. Thousands of years or more, even at 10 billion guesses a second. Long beats clever, every time.'
+			'In this estimate, length and the character space increase possible guesses. Long passwords still need to be unique. Leaks, predictable patterns, and other attacks are outside this calculation.',
+		lockOn:
+			'Lockout on. After five wrong tries, nimbus.com makes everyone wait 15 minutes. You will barely notice it, but the robot drops from thousands of guesses a second to a handful every quarter hour.'
 	},
-	steps: [
-		{
-			tag: 'The attacker',
-			title: 'Brute force',
-			body: 'Trying <b>every</b> possible password, one after another, until one fits.'
-		},
-		{
-			tag: 'Speed',
-			title: 'Short falls fast',
-			body: 'Four letters means 26 × 26 × 26 × 26, under half a million tries. For a machine that is <b>nothing</b>.'
-		},
-		{
-			tag: 'Length',
-			title: 'Each letter multiplies',
-			body: 'One more letter, <b>26 times</b> more work. A few extra letters turn seconds into centuries.'
-		},
-		{
-			tag: 'The race',
-			title: 'Short versus long',
-			body: 'Same machine, same speed. The only difference is <b>length</b>.'
-		},
-		{
-			tag: 'Leaked lists',
-			title: 'Favourites go first',
-			body: 'Popular passwords and common tricks sit on <b>leaked lists</b>. The machine tries them before anything else.'
-		},
-		{
-			tag: 'Make it stick',
-			title: 'Long beats clever',
-			body: 'A few <b>random words</b> in a row beat any short password full of symbols.'
-		},
-		{
-			tag: 'Defense',
-			title: 'Lockout',
-			body: 'A few wrong tries, then a <b>wait</b>. Billions of guesses a second drop to a handful a minute.'
-		},
-		{
-			tag: 'Side note',
-			title: 'Stolen files',
-			body: 'A stolen password file has no lockout. Slow <b>hashing</b> and <b>MFA</b> protect you there.'
-		},
-		{
-			tag: 'Optional',
-			title: 'Try a length',
-			body: 'Drag the slider and watch how long the machine would need.'
-		}
-	],
+	passLabel: 'Your made up password',
+	passPlaceholder: 'try 1234 first',
+	passHint: 'Make one up, never type a real password here',
+	lockLabel: 'Lock the login for 15 minutes after 5 wrong tries',
+	runBtn: 'Start the guessing machine',
+	emptyPass: 'Type a password first',
 	machineLabel: 'Guessing machine',
-	speedFast: '10 billion guesses a second',
-	speedLock: 'Locked out, 5 guesses a minute',
-	listLabel: 'leaked list',
-	waitLabel: 'please wait',
-	letters: '{n} letters',
-	cracked: 'Cracked',
-	holding: 'Holding',
-	onList: 'on the list',
+	targetLabel: 'nimbus.com login',
+	lockedTag: 'locked, wait 15 min',
+	kinds: { lower: 'a to z', upper: 'A to Z', digits: '0 to 9', symbols: 'symbols' },
+	lengthStat: '{n} characters',
+	combosStat: 'possible passwords to try',
+	speedFast: '10,000 guesses a second',
+	speedLock: '5 guesses every 15 minutes',
+	resultLabel: 'Time to try them all',
+	leakedTitle: 'Found on a leaked list',
+	leakedSub: 'entry number {n}, checked first',
+	verdicts: { leaked: 'leaked', fast: 'weak', medium: 'okay', strong: 'strong' },
 	units: {
-		instant: 'instantly',
-		seconds: 'about {n} seconds',
-		minutes: 'about {n} minutes',
-		hours: 'about {n} hours',
-		days: 'about {n} days',
-		years: 'about {n} years',
-		million: 'about {n} million years',
-		billion: 'about {n} billion years'
+		instant: 'less than a second',
+		seconds: '{n} seconds',
+		minutes: '{n} minutes',
+		hours: '{n} hours',
+		days: '{n} days',
+		years: '{n} years',
+		million: '{n} million years',
+		billion: '{n} billion years',
+		forever: 'longer than the age of the universe'
 	},
-	numberLocale: 'en-US',
-	rule: 'Long beats clever',
-	sliderLabel: 'Length of the second password'
+	historyLabel: 'Your tries',
+	lockShort: 'lockout',
+	goals: ['Find a password the machine cannot finish', 'Run the machine once with the lockout on']
 };

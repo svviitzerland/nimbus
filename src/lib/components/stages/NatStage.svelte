@@ -1,541 +1,631 @@
 <script lang="ts">
-	// Guided NAT lesson. A house with three phones on private addresses, a router at the door
-	// with the one public address, and nimbus.com outside. Following the beats, a letter leaves
-	// phone A, gets its sender rewritten at the door, a line appears in the translation table,
-	// and the reply finds its way back. Then all three phones at once. On the last beat a
-	// stranger may knock from outside (optional) and the router drops it.
-	import { onDestroy, onMount } from 'svelte';
-	import { fade } from 'svelte/transition';
-	import Guide from '$lib/components/Guide.svelte';
+	import { onDestroy } from 'svelte';
+	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
+	import Server from '$lib/components/Server.svelte';
 	import Device from '$lib/components/stages/addressing/Device.svelte';
 	import type { LessonText } from '$lib/chapters/types';
 	import type { NatText } from '$lib/chapters/network/nat/types';
 
 	let {
 		text,
-		beat = 0,
 		oncomplete,
-		onstate,
-		onshow
-	}: {
-		text: LessonText;
-		beat?: number;
-		oncomplete?: () => void;
-		onstate?: (s: string) => void;
-		onshow?: (v: boolean) => void;
-	} = $props();
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as NatText);
-	const LAST = $derived(tx.intro.length - 1);
 
-	type Pt = { x: number; y: number };
+	const PUBLIC_IP = '203.0.113.5';
+	// Phones A and B pick the same inside port on purpose, the router keeps them apart outside.
 	const PHONES = [
-		{ n: 'A', ip: '192.168.1.10', port: 40001, at: { x: 50, y: 92 } },
-		{ n: 'B', ip: '192.168.1.11', port: 40002, at: { x: 50, y: 172 } },
-		{ n: 'C', ip: '192.168.1.12', port: 40003, at: { x: 50, y: 252 } }
+		{ name: 'A', ip: '192.168.1.10', port: 51000, x: 17 },
+		{ name: 'B', ip: '192.168.1.11', port: 51000, x: 50 },
+		{ name: 'C', ip: '192.168.1.12', port: 49152, x: 83 }
 	];
-	const PUBLIC = '203.0.113.5';
-	const ROUTER: Pt = { x: 178, y: 172 };
-	const SERVER: Pt = { x: 294, y: 112 };
-	const STRANGER: Pt = { x: 294, y: 246 };
+	type Pos = { x: number; y: number };
+	const ROUTER_LOW: Pos = { x: 50, y: 61 };
+	const ROUTER_HIGH: Pos = { x: 50, y: 34 };
+	const SERVER: Pos = { x: 50, y: 18 };
+	const STRANGER: Pos = { x: 82, y: 9 };
+	const nearPhone = (i: number): Pos => ({ x: Math.max(26, Math.min(74, PHONES[i].x)), y: 73 });
 
-	let still = $state(false);
-	let t = $state(0);
-	let peek = $state<number | null>(null);
-	let knock = $state<'idle' | 'go' | 'arrive' | 'drop'>('idle');
+	type Tone = 'brand' | 'amber' | 'grass' | 'danger';
+	type Pkt = {
+		id: number;
+		x: number;
+		y: number;
+		a: string;
+		b: string;
+		tone: Tone;
+		dropped: boolean;
+	};
+	type Row = { phone: number; outPort: number };
+
+	let packets = $state<Pkt[]>([]);
+	let rows = $state<Row[]>([]);
+	let hotRow = $state(-1);
+	const busy = $state([false, false, false]);
+	const loaded = $state([false, false, false]);
+	let serverHit = $state(false);
+	let strangerBusy = $state(false);
+	let note = $state('');
+	let completed = $state(false);
+	let saidOut = false;
+	let saidBack = false;
+	let nextId = 0;
 	let timers: ReturnType<typeof setTimeout>[] = [];
 
-	onMount(() => {
-		still = matchMedia('(prefers-reduced-motion: reduce)').matches;
-		onshow?.(true);
-		oncomplete?.();
-	});
+	function speed() {
+		const r =
+			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+		return r ? 0.3 : 1;
+	}
+	const MOVE = 750;
+	function later(ms: number, fn: () => void) {
+		timers.push(setTimeout(fn, ms * speed()));
+	}
+	function pkt(id: number) {
+		return packets.find((p) => p.id === id);
+	}
+	function move(id: number, to: Pos) {
+		const p = pkt(id);
+		if (p) {
+			p.x = to.x;
+			p.y = to.y;
+		}
+	}
+	function relabel(id: number, a: string, b: string, tone: Tone) {
+		const p = pkt(id);
+		if (p) {
+			p.a = a;
+			p.b = b;
+			p.tone = tone;
+		}
+	}
+	function drop(id: number) {
+		packets = packets.filter((p) => p.id !== id);
+	}
+	const fromT = (ip: string) => tx.from.replace('{ip}', ip);
+	const toT = (ip: string) => tx.to.replace('{ip}', ip);
+	const portT = (n: number) => tx.port.replace('{n}', String(n));
 
-	$effect(() => {
-		void beat;
-		peek = null;
-		t = 0;
-		if (still) return;
-		const id = setInterval(() => (t += 1), 1400);
-		return () => clearInterval(id);
-	});
+	function send(i: number, delay = 0) {
+		if (busy[i]) return;
+		busy[i] = true;
+		loaded[i] = false;
+		const ph = PHONES[i];
+		const id = ++nextId;
+		let t = delay;
+		later(t, () => {
+			const start = nearPhone(i);
+			packets.push({
+				id,
+				x: start.x,
+				y: start.y,
+				a: fromT(ph.ip),
+				b: portT(ph.port),
+				tone: 'brand',
+				dropped: false
+			});
+		});
+		t += 60;
+		later(t, () => move(id, ROUTER_LOW));
+		t += MOVE;
+		later(t, () => {
+			let r = rows.findIndex((x) => x.phone === i);
+			if (r < 0) {
+				rows.push({ phone: i, outPort: 40001 + rows.length });
+				r = rows.length - 1;
+			}
+			hotRow = r;
+			relabel(id, fromT(PUBLIC_IP), portT(rows[r].outPort), 'amber');
+			note = tx.notes.rewriteOut;
+			if (!saidOut) {
+				saidOut = true;
+				onstate?.('out');
+			}
+		});
+		t += 500;
+		later(t, () => move(id, SERVER));
+		t += MOVE;
+		later(t, () => {
+			const r = rows.findIndex((x) => x.phone === i);
+			serverHit = true;
+			relabel(id, toT(PUBLIC_IP), portT(rows[r].outPort), 'grass');
+			note = tx.notes.atServer;
+		});
+		t += 500;
+		later(t, () => {
+			serverHit = false;
+			move(id, ROUTER_HIGH);
+		});
+		t += MOVE;
+		later(t, () => {
+			hotRow = rows.findIndex((x) => x.phone === i);
+			relabel(id, toT(ph.ip), portT(ph.port), 'brand');
+			note = tx.notes.rewriteBack;
+		});
+		t += 500;
+		later(t, () => move(id, nearPhone(i)));
+		t += MOVE;
+		later(t, () => {
+			drop(id);
+			busy[i] = false;
+			loaded[i] = true;
+			if (loaded.every(Boolean) && !completed) {
+				completed = true;
+				note = tx.notes.delivered;
+				onstate?.('all');
+				oncomplete?.();
+			} else if (!saidBack) {
+				saidBack = true;
+				onstate?.('back');
+			}
+		});
+	}
+
+	function sendAll() {
+		PHONES.forEach((_, i) => send(i, i * 700));
+	}
+
+	function knock() {
+		if (strangerBusy) return;
+		strangerBusy = true;
+		const id = ++nextId;
+		packets.push({
+			id,
+			x: STRANGER.x,
+			y: STRANGER.y,
+			a: toT(PUBLIC_IP),
+			b: portT(3389),
+			tone: 'danger',
+			dropped: false
+		});
+		later(60, () => move(id, ROUTER_HIGH));
+		later(60 + MOVE, () => {
+			const p = pkt(id);
+			if (p) p.dropped = true;
+			hotRow = -1;
+			note = tx.notes.stranger;
+			onstate?.('stranger');
+		});
+		later(60 + MOVE + 1400, () => {
+			drop(id);
+			strangerBusy = false;
+		});
+	}
+
+	const shown = $derived(note || tx.notes.idle);
+	const anyBusy = $derived(busy.some(Boolean));
 
 	onDestroy(() => timers.forEach(clearTimeout));
-
-	function letStrangerKnock() {
-		if (knock !== 'idle') return;
-		knock = 'go';
-		const k = still ? 0.2 : 1;
-		timers.push(
-			setTimeout(() => (knock = 'arrive'), 60),
-			setTimeout(() => {
-				knock = 'drop';
-				onstate?.('stranger');
-			}, 1300 * k),
-			setTimeout(() => (knock = 'idle'), 4200 * k)
-		);
-	}
-
-	type Letter = { at: Pt; key: string };
-	type View = {
-		letters: Letter[];
-		rewritten: boolean; // the letter card shows the new address
-		dir: 'out' | 'back' | '';
-		rows: number; // how many lines the translation table has
-		hotRow: number; // which line is in focus, -1 for none
-		loaded: boolean[];
-		flash: boolean; // the router is rewriting right now
-	};
-
-	function phase(i: number) {
-		if (i === 2 || i === 4) return still ? 3 : t % 5;
-		if (i === 5) return still ? 5 : t % 6;
-		return 0;
-	}
-
-	function view(i: number): View {
-		const v: View = {
-			letters: [],
-			rewritten: false,
-			dir: '',
-			rows: i >= 5 ? 3 : i >= 3 ? 1 : 0,
-			hotRow: i === 3 || i === 4 ? 0 : -1,
-			loaded: [false, false, false],
-			flash: false
-		};
-		const p = phase(i);
-		const A = PHONES[0].at;
-		if (i === 2) {
-			const at = p === 0 ? A : p <= 2 ? ROUTER : SERVER;
-			return { ...v, letters: [{ at, key: 'a' }], rewritten: p >= 2, dir: 'out', flash: p === 2 };
-		}
-		if (i === 3) return { ...v, letters: [{ at: SERVER, key: 'a' }], rewritten: true, dir: 'out' };
-		if (i === 4) {
-			const at = p === 0 ? SERVER : p <= 2 ? ROUTER : A;
-			return {
-				...v,
-				letters: [{ at, key: 'a' }],
-				rewritten: p >= 2,
-				dir: 'back',
-				flash: p === 2,
-				loaded: [p >= 3, false, false]
-			};
-		}
-		if (i === 5) {
-			const where = (k: number): Pt =>
-				p === 0 || p === 5 ? PHONES[k].at : p === 1 || p === 4 ? ROUTER : SERVER;
-			return {
-				...v,
-				letters: PHONES.map((ph, k) => ({ at: where(k), key: ph.n })),
-				flash: p === 1 || p === 4,
-				loaded: [p === 5, p === 5, p === 5]
-			};
-		}
-		return v;
-	}
-
-	const fill = (s: string, ip: string) => s.replace('{ip}', ip);
-	const portOf = (n: number) => tx.port.replace('{n}', String(n));
 </script>
 
 <div class="wrap">
-	{#if beat >= LAST}
-		<div class="play" in:fade={{ duration: 200 }}>
-			<button type="button" class="ask" disabled={knock !== 'idle'} onclick={letStrangerKnock}
-				>{tx.strangerBtn}</button
-			>
+	<!-- actions up top -->
+	<div class="btns">
+		<span class="olabel">{tx.openLabel}</span>
+		<div class="chips">
+			{#each PHONES as ph, i (ph.name)}
+				<button
+					type="button"
+					class="chip"
+					class:done={loaded[i]}
+					disabled={busy[i]}
+					onclick={() => send(i)}>{tx.phoneLabel.replace('{n}', ph.name)}</button
+				>
+			{/each}
 		</div>
-	{/if}
+		<div class="ctas">
+			<CallToActionButton onclick={sendAll} disabled={anyBusy}>
+				{tx.allBtn}
+			</CallToActionButton>
+			{#if completed}
+				<button type="button" class="line" onclick={knock} disabled={strangerBusy}
+					>{tx.strangerBtn}</button
+				>
+			{/if}
+		</div>
+	</div>
 
-	<Guide steps={tx.steps} active={peek ?? beat} onselect={(k) => (peek = k)}>
-		{#snippet visual(i)}
-			{@const v = view(i)}
-			<div class="scene">
-				{@render house(i, v)}
-				{#if v.dir}
-					{@render letterCard(v)}
-				{/if}
-				{#if v.rows > 0}
-					{@render table(v)}
-				{/if}
+	<div class="scene">
+		<!-- the wires: phones to the router, router out to the internet -->
+		<svg class="wires" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+			{#each PHONES as ph (ph.name)}
+				<line x1={ph.x} y1="82" x2="50" y2="54" />
+			{/each}
+			<line x1="50" y1="42" x2="50" y2="22" />
+		</svg>
+		<span class="zone outside">Internet</span>
+
+		<div class="node server" class:hit={serverHit} style="left:50%;top:9%">
+			<Server active={serverHit} slots={2} />
+			<span class="nlabel">{tx.serverLabel}</span>
+		</div>
+
+		{#if strangerBusy}
+			<div class="node stranger" style="left:{STRANGER.x}%;top:{STRANGER.y - 2}%">
+				<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+					<circle cx="12" cy="8" r="4" fill="var(--color-danger)" />
+					<path d="M4 21a8 8 0 0 1 16 0Z" fill="var(--color-danger)" />
+				</svg>
+				<span class="nlabel">{tx.strangerLabel}</span>
 			</div>
-		{/snippet}
-	</Guide>
-</div>
+		{/if}
 
-{#snippet envelope()}
-	<rect x="-10" y="-7" width="20" height="14" rx="2.5" class="env" />
-	<path d="M-10 -6 L0 1 L10 -6" class="env-flap" />
-{/snippet}
+		<div class="node router" style="left:50%;top:48%">
+			<Device kind="router" size={44} tone="var(--color-grass)" />
+			<span class="nlabel">{tx.routerLabel}</span>
+			<span class="pub"><i>{tx.publicLabel}</i>{PUBLIC_IP}</span>
+		</div>
 
-{#snippet house(i: number, v: View)}
-	{@const play = i === LAST}
-	<svg viewBox="0 0 340 312" class="svg" role="img" aria-label={tx.homeLabel}>
-		<!-- the house -->
-		<path d="M8 66 L92 22 L176 66" class="roof" />
-		<rect x="8" y="64" width="168" height="240" rx="14" class="home" class:hot={i === 1} />
-		<!-- the house name sits under the roof, clear of the first phone -->
-		<text x="92" y="58" class="corner mid">{tx.homeLabel}</text>
-		{#each PHONES as ph, k (ph.n)}
-			<g transform="translate({ph.at.x - 17} {ph.at.y - 14})">
+		{#each PHONES as ph, i (ph.name)}
+			<div class="node phone" style="left:{ph.x}%;top:89%">
+				{#if loaded[i]}<span class="ok">{tx.loaded}</span>{/if}
 				<Device
 					kind="phone"
-					size={34}
-					tone={v.loaded[k] ? 'var(--color-grass)' : 'var(--color-brand)'}
+					size={30}
+					tone={loaded[i] ? 'var(--color-grass)' : 'var(--color-brand)'}
 				/>
-			</g>
-			<text x={ph.at.x + 30} y={ph.at.y - 2} class="name">{tx.phoneLabel.replace('{n}', ph.n)}</text
-			>
-			<text x={ph.at.x + 30} y={ph.at.y + 11} class="ip" class:hot={i === 1}>{ph.ip}</text>
-			{#if v.loaded[k]}
-				<text x={ph.at.x + 30} y={ph.at.y + 24} class="ok" in:fade={{ duration: 200 }}
-					>{tx.loaded}</text
-				>
-			{/if}
+				<span class="nlabel">{tx.phoneLabel.replace('{n}', ph.name)}</span>
+				<span class="priv">{ph.ip}</span>
+			</div>
 		{/each}
-		{#if i === 1}
-			<rect
-				x="104"
-				y="26"
-				width="62"
-				height="18"
-				rx="9"
-				class="chip-r"
-				in:fade={{ duration: 300 }}
-			/>
-			<text x="135" y="39" class="chip-t">{tx.privateLabel}</text>
-		{/if}
 
-		<!-- the router in the doorway -->
-		<g transform="translate({ROUTER.x - 22} {ROUTER.y - 18})">
-			<Device
-				kind="router"
-				size={44}
-				tone={v.flash ? 'var(--color-amber)' : 'var(--color-grass)'}
-			/>
-		</g>
-		<!-- the router stands in the doorway, so its labels get a halo and the wall passes behind them -->
-		<text x={ROUTER.x} y={ROUTER.y + 30} class="name mid halo">{tx.routerLabel}</text>
-		<text x={ROUTER.x} y={ROUTER.y + 43} class="ip mid halo" class:pub={i === 0}>{PUBLIC}</text>
-		<text x={ROUTER.x} y={ROUTER.y + 55} class="corner mid halo">{tx.publicLabel}</text>
-		{#if i === 6}
-			<g in:fade={{ duration: 300 }}>
-				<rect x={ROUTER.x - 36} y={ROUTER.y - 48} width="72" height="18" rx="9" class="chip-g" />
-				<text x={ROUTER.x} y={ROUTER.y - 35} class="chip-t">{tx.frontDesk}</text>
-			</g>
-		{/if}
-		{#if v.flash && !still}
-			<circle cx={ROUTER.x} cy={ROUTER.y} r="30" class="pulse" />
-		{/if}
-
-		<!-- outside -->
-		<g transform="translate({SERVER.x - 18} {SERVER.y - 24})">
-			<rect width="36" height="48" rx="5" class="rack" />
-			{#each [0, 1, 2] as k (k)}
-				<rect x="5" y={6 + k * 14} width="26" height="9" rx="2" class="slot" />
-				<circle cx="26" cy={10.5 + k * 14} r="1.6" class="led" />
-			{/each}
-		</g>
-		<text x={SERVER.x} y={SERVER.y + 40} class="name mid">{tx.serverLabel}</text>
-		{#if play}
-			<g transform="translate({STRANGER.x - 24} {STRANGER.y - 20})" in:fade={{ duration: 300 }}>
-				<Device kind="laptop" size={48} tone="var(--color-amber)" />
-			</g>
-			<text x={STRANGER.x} y={STRANGER.y + 32} class="name mid">{tx.strangerLabel}</text>
-		{/if}
-
-		<!-- letters on the move -->
-		{#each v.letters as l (l.key)}
-			<g class="mover" style="transform:translate({l.at.x + 14}px, {l.at.y - 26}px)">
-				{@render envelope()}
-			</g>
-		{/each}
-		{#if play && knock !== 'idle'}
-			{@const at = knock === 'go' ? STRANGER : ROUTER}
-			<g
-				class="mover"
-				class:gone={knock === 'drop'}
-				style="transform:translate({at.x + 22}px, {at.y - 30}px)"
+		<!-- packets on the move, their labels rewritten at the router -->
+		{#each packets as p (p.id)}
+			<div
+				class="pkt {p.tone}"
+				class:dropped={p.dropped}
+				style="left:{p.x}%;top:{p.y}%;--mv:{MOVE * speed()}ms"
 			>
-				{@render envelope()}
-			</g>
-			{#if knock === 'drop'}
-				<text x={ROUTER.x + 22} y={ROUTER.y - 46} class="bad mid" in:fade={{ duration: 200 }}
-					>{tx.dropped}</text
-				>
-			{/if}
-		{/if}
-	</svg>
-{/snippet}
-
-{#snippet letterCard(v: View)}
-	{@const a = PHONES[0]}
-	<div class="letter" class:flash={v.flash}>
-		{#if v.dir === 'out'}
-			<span class:old={v.rewritten}>{fill(tx.from, a.ip)}</span>
-			{#if v.rewritten}
-				<span class="new" in:fade={{ duration: 250 }}>{fill(tx.from, PUBLIC)}</span>
-				<span class="port" in:fade={{ duration: 250 }}>{portOf(a.port)}</span>
-			{/if}
-		{:else}
-			<span class:old={v.rewritten}>{fill(tx.to, PUBLIC)}</span>
-			<span class="port" class:old={v.rewritten}>{portOf(a.port)}</span>
-			{#if v.rewritten}
-				<span class="new" in:fade={{ duration: 250 }}>{fill(tx.to, a.ip)}</span>
-			{/if}
-		{/if}
-	</div>
-{/snippet}
-
-{#snippet table(v: View)}
-	<div class="table" in:fade={{ duration: 300 }}>
-		<p class="t-title">{tx.tableTitle}</p>
-		<div class="row head"><span>{tx.insideHead}</span><span>{tx.outsideHead}</span></div>
-		{#each PHONES.slice(0, v.rows) as ph, k (ph.n)}
-			<div class="row" class:hot={k === v.hotRow} in:fade={{ duration: 300 }}>
-				<span>{ph.ip}</span>
-				<span>{portOf(ph.port)}</span>
+				{#key p.a + p.b}
+					<span class="plabel"><b>{p.a}</b><span>{p.b}</span></span>
+				{/key}
+				{#if p.dropped}<em>{tx.dropped}</em>{/if}
 			</div>
 		{/each}
 	</div>
-{/snippet}
+
+	<p class="note">{shown}</p>
+
+	<!-- the router memory -->
+	<div class="table">
+		<b class="ttitle">{tx.tableTitle}</b>
+		{#if rows.length === 0}
+			<span class="empty">{tx.tableEmpty}</span>
+		{:else}
+			<div class="row head"><span>{tx.insideHead}</span><span>{tx.outsideHead}</span></div>
+			{#each rows as r, k (r.phone)}
+				<div class="row" class:hot={hotRow === k}>
+					<span
+						><em>{tx.phoneLabel.replace('{n}', PHONES[r.phone].name)}</em>
+						{PHONES[r.phone].ip}, {portT(PHONES[r.phone].port)}</span
+					>
+					<span>{PUBLIC_IP}, {portT(r.outPort)}</span>
+				</div>
+			{/each}
+		{/if}
+	</div>
+</div>
 
 <style>
 	.wrap {
 		display: flex;
 		width: 100%;
+		max-height: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 14px;
-		padding: 8px 16px 112px;
+		gap: 9px;
+		overflow-x: hidden;
+		overflow-y: auto;
+		padding-bottom: 12px;
 	}
-	@media (min-width: 768px) {
-		.wrap {
-			padding-bottom: 24px;
-		}
-	}
-	.play {
+	.btns {
 		display: flex;
-		justify-content: center;
-	}
-	.ask {
-		border: 1px solid var(--color-line);
-		border-radius: 999px;
-		background: var(--color-card);
-		padding: 9px 18px;
-		font-size: 13.5px;
-		font-weight: 600;
-		color: var(--color-ink);
-		box-shadow: 0 6px 16px rgba(22, 40, 60, 0.06);
-	}
-	.ask:disabled {
-		opacity: 0.55;
-	}
-	.scene {
-		display: flex;
-		width: 100%;
-		max-width: 440px;
 		flex-direction: column;
 		align-items: center;
-		gap: 10px;
+		gap: 6px;
 	}
-	.svg {
-		width: 100%;
-		height: auto;
-		overflow: visible;
-	}
-	.roof {
-		fill: none;
-		stroke: var(--color-muted);
-		stroke-width: 1.5;
-		stroke-linejoin: round;
-	}
-	.home {
-		fill: var(--color-card);
-		stroke: var(--color-muted);
-		stroke-width: 1.5;
-		transition: stroke 0.5s;
-	}
-	.home.hot {
-		stroke: var(--color-brand);
-	}
-	.corner {
-		font-size: 9.5px;
-		font-weight: 700;
-		fill: var(--color-faint);
-	}
-	.halo {
-		paint-order: stroke;
-		stroke: var(--color-card);
-		stroke-width: 4px;
-		stroke-linejoin: round;
-	}
-	.name {
-		font-size: 10.5px;
-		font-weight: 600;
-		fill: var(--color-ink);
-	}
-	.mid {
-		text-anchor: middle;
-	}
-	.ip {
-		font-family: var(--font-mono, ui-monospace, monospace);
-		font-size: 9.5px;
-		fill: var(--color-muted);
-	}
-	.ip.hot {
-		fill: var(--color-brand);
-		font-weight: 700;
-	}
-	.ip.pub {
-		fill: var(--color-grass);
-		font-weight: 700;
-	}
-	.ok {
-		font-size: 9.5px;
-		font-weight: 700;
-		fill: var(--color-grass);
-	}
-	.bad {
-		font-size: 10.5px;
-		font-weight: 700;
-		fill: var(--color-danger);
-	}
-	.chip-r,
-	.chip-g {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-brand);
-		stroke-width: 1;
-	}
-	.chip-g {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-	}
-	.chip-t {
-		text-anchor: middle;
+	.olabel {
 		font-size: 10px;
-		font-weight: 700;
-		fill: var(--color-ink);
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-faint);
 	}
-	.rack {
-		fill: var(--color-card);
-		stroke: var(--color-muted);
-		stroke-width: 1.5;
-	}
-	.slot {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-	}
-	.led {
-		fill: var(--color-grass);
-	}
-	.pulse {
-		fill: none;
-		stroke: var(--color-amber);
-		stroke-width: 1.5;
-		animation: pulse 1.1s ease-out infinite;
-		transform-origin: 178px 172px;
-	}
-	@keyframes pulse {
-		from {
-			transform: scale(0.6);
-			opacity: 0.8;
-		}
-		to {
-			transform: scale(1.3);
-			opacity: 0;
-		}
-	}
-	.env {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 1.4;
-	}
-	.env-flap {
-		fill: none;
-		stroke: var(--color-amber);
-		stroke-width: 1.2;
-	}
-	.mover {
-		transition:
-			transform 1.1s cubic-bezier(0.45, 0, 0.2, 1),
-			opacity 0.6s;
-	}
-	.mover.gone {
-		opacity: 0.25;
-	}
-	.letter {
+	.chips,
+	.ctas {
 		display: flex;
 		flex-wrap: wrap;
-		align-items: center;
 		justify-content: center;
-		gap: 6px 10px;
+		gap: 6px;
+	}
+	.ctas :global(.cta) {
+		padding: 9px 16px;
+		font-size: 13px;
+	}
+	.chip,
+	.line {
+		border-radius: 999px;
 		border: 1px solid var(--color-line);
-		border-radius: 14px;
 		background: var(--color-card);
-		padding: 8px 14px;
-		font-family: var(--font-mono, ui-monospace, monospace);
-		font-size: 12px;
 		color: var(--color-ink);
-		transition: border-color 0.3s;
+		padding: 6px 13px;
+		font-size: 12px;
+		font-weight: 600;
+		transition: border-color 0.2s;
 	}
-	.letter.flash {
-		border-color: var(--color-amber);
+	.line {
+		border-radius: 12px;
+		padding: 9px 14px;
 	}
-	.old {
-		color: var(--color-faint);
-		text-decoration: line-through;
+	.chip:enabled:hover,
+	.line:enabled:hover {
+		border-color: var(--color-ink);
 	}
-	.new {
-		font-weight: 700;
+	.chip:disabled,
+	.line:disabled {
+		opacity: 0.5;
+	}
+	.chip.done::after {
+		content: ' ✓';
 		color: var(--color-grass);
 	}
-	.port {
+
+	.scene {
+		position: relative;
+		width: min(94vw, 370px);
+		height: 330px;
+		border-radius: 18px;
+		border: 1px solid var(--color-line);
+		background: linear-gradient(
+			to bottom,
+			var(--color-paper) 0%,
+			var(--color-paper) 40%,
+			var(--color-card) 40%
+		);
+		overflow: hidden;
+	}
+	.wires {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+	}
+	.wires line {
+		stroke: var(--color-line);
+		stroke-width: 2;
+		vector-effect: non-scaling-stroke;
+	}
+	.zone {
+		position: absolute;
+		top: 8px;
+		left: 12px;
+		font-size: 9.5px;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+	}
+	.node {
+		position: absolute;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1px;
+		transform: translate(-50%, -50%);
+		z-index: 1;
+	}
+	.server :global(.server) {
+		width: 50px;
+		gap: 5px;
+		padding: 6px;
+		border-radius: 9px;
+		transition: border-color 0.3s;
+	}
+	.server :global(.server .slot) {
+		height: 9px;
+	}
+	.server.hit :global(.server) {
+		border-color: var(--color-grass);
+	}
+	.nlabel {
+		font-size: 10px;
+		font-weight: 700;
+		color: var(--color-muted);
+		white-space: nowrap;
+	}
+	.router .nlabel {
+		color: var(--color-ink);
+	}
+	.pub,
+	.priv {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 9px;
+		white-space: nowrap;
+	}
+	.pub {
+		display: flex;
+		gap: 4px;
 		border-radius: 999px;
 		background: var(--color-amber-soft);
-		padding: 1px 8px;
-		font-weight: 700;
 		color: var(--color-amber);
+		padding: 1px 7px;
+		font-weight: 700;
+	}
+	.pub i {
+		font-family: inherit;
+		font-style: normal;
+		font-weight: 800;
+		opacity: 0.8;
+	}
+	.priv {
+		color: var(--color-brand);
+	}
+	.ok {
+		border-radius: 999px;
+		background: var(--color-grass);
+		color: #fff;
+		padding: 1px 7px;
+		font-size: 8.5px;
+		font-weight: 800;
+		animation: pop 0.25s ease;
+	}
+	.pkt {
+		--c: var(--color-brand);
+		position: absolute;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		transform: translate(-50%, -50%);
+		border-radius: 8px;
+		background: var(--c);
+		color: #fff;
+		padding: 3px 8px;
+		box-shadow: 0 4px 12px rgba(22, 40, 60, 0.18);
+		z-index: 3;
+		transition:
+			left var(--mv) ease-in-out,
+			top var(--mv) ease-in-out,
+			background 0.25s,
+			opacity 0.4s;
+	}
+	.pkt.amber {
+		--c: var(--color-amber);
+	}
+	.pkt.grass {
+		--c: var(--color-grass);
+	}
+	.pkt.danger {
+		--c: var(--color-danger);
+	}
+	.pkt.dropped {
+		opacity: 0.55;
+	}
+	.plabel {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		line-height: 1.2;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		white-space: nowrap;
+		animation: swap 0.35s ease;
+	}
+	.plabel b {
+		font-size: 9px;
+	}
+	.plabel span {
+		font-size: 8.5px;
+		opacity: 0.9;
+	}
+	.pkt em {
+		margin-top: 2px;
+		border-radius: 999px;
+		background: #fff;
+		color: var(--color-danger);
+		padding: 0 6px;
+		font-size: 8.5px;
+		font-style: normal;
+		font-weight: 800;
+	}
+	@keyframes swap {
+		from {
+			opacity: 0;
+			transform: scale(0.8);
+		}
+	}
+	@keyframes pop {
+		from {
+			opacity: 0;
+			transform: scale(0.5);
+		}
+	}
+
+	.note {
+		min-height: 1.4em;
+		max-width: 340px;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
 	}
 	.table {
-		width: 100%;
-		max-width: 300px;
+		display: flex;
+		width: min(94vw, 340px);
+		flex-direction: column;
+		gap: 3px;
+		border-radius: 13px;
 		border: 1px solid var(--color-line);
-		border-radius: 14px;
 		background: var(--color-card);
-		padding: 10px 14px;
-		font-size: 12px;
+		padding: 9px 12px;
 	}
-	.t-title {
-		margin: 0 0 6px;
-		font-weight: 700;
-		color: var(--color-ink);
+	.ttitle {
+		font-size: 9.5px;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+	}
+	.empty {
+		font-size: 11px;
+		color: var(--color-faint);
 	}
 	.row {
 		display: grid;
-		grid-template-columns: 1fr 1fr;
+		grid-template-columns: 1.25fr 1fr;
 		gap: 8px;
 		border-radius: 6px;
 		padding: 2px 4px;
-		font-family: var(--font-mono, ui-monospace, monospace);
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 9.5px;
 		color: var(--color-ink);
+		transition: background 0.3s;
+	}
+	.row em {
+		display: block;
+		font-family: var(--font-sans, sans-serif);
+		font-style: normal;
+		font-weight: 700;
+		color: var(--color-muted);
+	}
+	.row.head {
+		font-family: inherit;
+		font-size: 9px;
+		font-weight: 800;
+		color: var(--color-faint);
 	}
 	.row.hot {
 		background: var(--color-amber-soft);
 	}
-	.row.head {
-		font-family: inherit;
-		font-size: 10.5px;
-		font-weight: 700;
-		color: var(--color-faint);
-	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.mover,
-		.home,
-		.letter {
-			transition: none;
-		}
-		.pulse {
+		.plabel,
+		.ok {
 			animation: none;
+		}
+	}
+	@media (min-width: 768px) {
+		.scene {
+			width: 460px;
+			height: 360px;
+		}
+		.plabel b {
+			font-size: 10.5px;
+		}
+		.plabel span {
+			font-size: 9.5px;
+		}
+		.nlabel {
+			font-size: 11.5px;
+		}
+		.note {
+			font-size: 14px;
+			max-width: 460px;
+		}
+		.table {
+			width: 400px;
+		}
+		.row {
+			font-size: 11px;
 		}
 	}
 </style>

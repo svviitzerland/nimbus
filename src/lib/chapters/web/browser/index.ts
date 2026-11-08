@@ -6,22 +6,19 @@ import { en } from './en';
 export const browser: Lesson = {
 	id: 'browser',
 	mood: 'calm',
-	moods: [
-		'calm',
-		'thinking',
-		'idea',
-		'calm',
-		'happy',
-		'happy',
-		'excited',
-		'wink',
-		'idea',
-		'excited'
-	],
+	moods: ['calm', 'thinking', 'idea', 'calm', 'happy', 'wink', 'excited'],
 	reactionMood: {
+		html: 'thinking',
+		css: 'happy',
+		img: 'happy',
+		js: 'excited',
+		deadbutton: 'thinking',
+		liked: 'happy',
 		nocss: 'surprised',
-		cssback: 'happy'
+		nojs: 'wink',
+		again: 'calm'
 	},
+	playable: true,
 	stage: BrowserStage,
 	text: { id, en }
 };

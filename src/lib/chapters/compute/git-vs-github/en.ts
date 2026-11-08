@@ -1,12 +1,13 @@
 import type { GitSecretsText } from '../types';
 
 export const en: GitSecretsText = {
-	title: 'Git is not GitHub',
+	title: 'Git and GitHub',
 	intro: [
 		'Lots of people think Git and GitHub are the same thing. They are not. <b>Git</b> is the tool running on your laptop, the one that just made those snapshots. <b>GitHub</b> is an online place to keep and share the result.',
 		'While your commits live only on your laptop, they are safe but alone. If the laptop is lost, they are gone with it. So you <b>push</b>, sending those commits to GitHub, so there is an online copy and other people can see them too.',
 		'One big rule before you push, never commit secrets like passwords or <b>API keys</b> (keys to services in your name). Put the file’s name in <b>.gitignore</b>, a list of files Git never saves. A public repo is public forever, and bots scan GitHub for leaked keys within minutes.',
-		'Walk the flow. Commit on the laptop first, then push to GitHub, and finally let a teammate <b>clone</b> the copy. Feel which part is local and which is already online.'
+		'Walk the flow. Commit on the laptop first, then push to GitHub, and finally let a teammate <b>clone</b> the copy. Feel which part is local and which is already online.',
+		'[ingat] Git manages history. GitHub hosts repositories and supports collaboration.'
 	],
 	reactions: {
 		committed:

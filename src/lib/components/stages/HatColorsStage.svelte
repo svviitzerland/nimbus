@@ -1,593 +1,372 @@
 <script lang="ts">
-	// Guided hacker hats. Three cowboy hats hang on a rack (white, gray, black) and each beat
-	// lights one and sets a small prop under it, a signed contract, a broken padlock, a crossed
-	// out paper. The Mitnick story plays as a little hat walking a timeline and turning from black
-	// to white. On the last beat the learner may tap a hat to hear a short story about it.
-	import { untrack } from 'svelte';
-	import { fade } from 'svelte/transition';
-	import type { StageProps } from '$lib/chapters/types';
-	import type { Hat, HatColorsText } from '$lib/chapters/security/hat-colors/types';
-	import GuideWrap from './secbasics/GuideWrap.svelte';
-	import { startGuided } from './secbasics/guided.svelte';
-	import { prefersReducedMotion, runSeq } from './webguide/seq';
+	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
+	import type { LessonText } from '$lib/chapters/types';
+	import type { Hat, HatColorsText, HatScenarioId } from '$lib/chapters/security/hat-colors/types';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as HatColorsText);
-	startGuided(() => {
-		onshow?.(true);
-		oncomplete?.();
-	});
 
-	const last = $derived(tx.steps.length - 1);
-	let peek = $state<number | null>(null);
-	let picked = $state<Hat | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-		picked = null;
-	});
-	const active = $derived(Math.max(0, Math.min(peek ?? beat, last)));
-
-	type Scene =
-		| 'western'
-		| 'hacker'
-		| 'white'
-		| 'black'
-		| 'gray'
-		| 'mitnick'
-		| 'permission'
-		| 'ingat'
-		| 'bounty'
-		| 'try';
-	const SCENES: Scene[] = [
-		'western',
-		'hacker',
-		'white',
-		'black',
-		'gray',
-		'mitnick',
-		'permission',
-		'ingat',
-		'bounty',
-		'try'
+	// The stories, in order, with the right answer and the hat each one wears.
+	const stories: { id: HatScenarioId; legal: boolean; hat: Hat }[] = [
+		{ id: 'lab', legal: true, hat: 'white' },
+		{ id: 'wifi', legal: false, hat: 'gray' },
+		{ id: 'pentest', legal: true, hat: 'white' },
+		{ id: 'extort', legal: false, hat: 'black' },
+		{ id: 'warn', legal: false, hat: 'gray' },
+		{ id: 'bounty', legal: true, hat: 'white' }
 	];
-	const scene = $derived(SCENES[active] ?? 'western');
 
-	const HATS: Hat[] = ['white', 'gray', 'black'];
-	const HX: Record<Hat, number> = { white: 90, gray: 210, black: 330 };
+	let idx = $state(0);
+	let answer = $state<boolean | null>(null);
+	let results = $state<boolean[]>([]); // right or wrong, per story answered
+	let completed = false;
 
-	let pos = $state(2);
-	let reduce = $state(false);
-	$effect(() => {
-		reduce = prefersReducedMotion();
-	});
-	$effect(() => {
-		const sc = scene;
-		const still = reduce;
-		return untrack(() => {
-			pos = 2;
-			if (sc !== 'mitnick' || still) return;
-			return runSeq(
-				[
-					[1900, () => (pos = 0)],
-					[1900, () => (pos = 1)],
-					[3600, () => (pos = 2)]
-				],
-				true
-			);
-		});
-	});
+	const story = $derived(idx < stories.length ? stories[idx] : null);
+	const finished = $derived(idx >= stories.length);
+	const score = $derived(results.filter(Boolean).length);
 
-	type Look = 'lit' | 'dim' | 'plain';
-	function lookOf(h: Hat, sc: Scene): Look {
-		switch (sc) {
-			case 'western':
-			case 'permission':
-				return h === 'gray' ? 'dim' : 'lit';
-			case 'white':
-			case 'gray':
-			case 'black':
-				return h === sc ? 'lit' : 'dim';
-			case 'mitnick':
-				return 'dim';
-			case 'ingat':
-				return 'lit';
-			case 'bounty':
-				return h === 'white' ? 'lit' : 'dim';
-			case 'try':
-				return picked === h ? 'lit' : 'plain';
-			default:
-				return 'plain';
+	function pick(legal: boolean) {
+		if (!story || answer !== null) return;
+		answer = legal;
+		results.push(legal === story.legal);
+		onstate?.(story.id);
+		if (idx === stories.length - 1 && !completed) {
+			completed = true;
+			oncomplete?.();
 		}
 	}
-	/** Which hats get a paper under them, and whether it carries permission. */
-	function papers(sc: Scene): { h: Hat; ok: boolean }[] {
-		if (sc === 'white') return [{ h: 'white', ok: true }];
-		if (sc === 'gray') return [{ h: 'gray', ok: false }];
-		if (sc === 'permission')
-			return [
-				{ h: 'white', ok: true },
-				{ h: 'black', ok: false }
-			];
-		if (sc === 'ingat')
-			return [
-				{ h: 'white', ok: true },
-				{ h: 'gray', ok: false },
-				{ h: 'black', ok: false }
-			];
-		return [];
+	function next() {
+		idx += 1;
+		answer = null;
+	}
+	function again() {
+		idx = 0;
+		answer = null;
+		results = [];
 	}
 
-	function pick(h: Hat) {
-		peek = null;
-		picked = h;
-		onstate?.(h);
-	}
-
-	const crown = (cx: number, cy: number) =>
-		`M${cx - 24} ${cy + 14} C${cx - 26} ${cy - 10} ${cx - 16} ${cy - 18} ${cx - 8} ${cy - 14} Q${cx} ${cy - 6} ${cx + 8} ${cy - 14} C${cx + 16} ${cy - 18} ${cx + 26} ${cy - 10} ${cx + 24} ${cy + 14} Z`;
-	const TL = [90, 210, 330];
+	const hatFill: Record<Hat, string> = {
+		white: '#f7f4ee',
+		gray: '#9aa3ab',
+		black: '#1d2630'
+	};
 </script>
 
-{#snippet hat(cx: number, cy: number, kind: Hat, s = 1)}
-	<g transform="translate({cx} {cy}) scale({s})" class="hat {kind}">
-		<path d={crown(0, 0)} class="crown" />
-		<rect x="-24" y="6" width="48" height="7" rx="2" class="band" />
-		<ellipse cx="0" cy="15" rx="46" ry="8" class="brim" />
-	</g>
+{#snippet hat(kind: Hat, size: number)}
+	<svg width={size} height={size * 0.62} viewBox="0 0 64 40" fill="none" aria-hidden="true">
+		<path
+			d="M20 25c-1-8 1-17 5-19 3-1.5 5 1.5 7 1.5s4-3 7-1.5c4 2 6 11 5 19Z"
+			fill={hatFill[kind]}
+			stroke="var(--color-muted)"
+			stroke-width="2"
+			stroke-linejoin="round"
+		/>
+		<path
+			d="M4 25c6 6 18 8 28 8s22-2 28-8c-6 1-16 2-28 2S10 26 4 25Z"
+			fill={hatFill[kind]}
+			stroke="var(--color-muted)"
+			stroke-width="2"
+			stroke-linejoin="round"
+		/>
+		<path d="M20.5 22c7 1.5 16 1.5 23 0" stroke="var(--color-amber)" stroke-width="2.4" />
+	</svg>
 {/snippet}
 
-{#snippet paper(cx: number, ok: boolean)}
-	<g class="paper" class:ok>
-		<rect x={cx - 22} y="132" width="44" height="58" rx="4" class="sheet" />
-		{#each [144, 152, 160] as y (y)}
-			<line x1={cx - 14} y1={y} x2={cx + 14} y2={y} class="txt" />
+<div class="wrap">
+	<!-- one dot per story -->
+	<div class="dots" aria-hidden="true">
+		{#each stories as s, i (s.id)}
+			<span
+				class="d"
+				class:on={i === idx}
+				class:ok={results[i] === true}
+				class:bad={results[i] === false}
+			></span>
 		{/each}
-		{#if ok}
-			<path d="M{cx - 14} 176 q5 -8 9 0 t9 0 t8 -2" class="sign" />
-			<circle cx={cx + 18} cy="186" r="10" class="badge-ok" />
-			<path d="M{cx + 13} 186 l3.5 3.5 l6.5 -7" class="mark" />
-		{:else}
-			<path d="M{cx - 16} 136 L{cx + 16} 186 M{cx + 16} 136 L{cx - 16} 186" class="cross" />
-		{/if}
-		<g class="cap" class:ok>
-			<rect x={cx - 48} y="204" width="96" height="20" rx="10" />
-			<text x={cx} y="218">{ok ? tx.permission : tx.noPermission}</text>
-		</g>
-	</g>
-{/snippet}
-
-{#snippet visual(s: number)}
-	{@const sc = SCENES[s] ?? 'western'}
-	<div class="vis">
-		<div class="slot">
-			{#if sc === 'mitnick'}
-				<p class="news" in:fade={{ duration: 240 }}>
-					<span class="news-tag">{tx.news.tag}</span>
-					<span class="news-head">{tx.news.head}</span>
-				</p>
-			{:else if sc === 'try'}
-				{#if picked}
-					{#key picked}
-						<p class="story {picked}" in:fade={{ duration: 200 }}>
-							<b>{tx.stories[picked].who}</b>
-							<span>{tx.stories[picked].story}</span>
-						</p>
-					{/key}
-				{:else}
-					<p class="hint">{tx.tapHint}</p>
-				{/if}
-			{/if}
-		</div>
-
-		<svg viewBox="0 0 420 256" class="scene" role="img" aria-label={tx.title}>
-			<!-- the rack -->
-			<rect x="34" y="20" width="352" height="10" rx="5" class="rack" />
-			{#each HATS as h (h)}
-				<line x1={HX[h]} y1="30" x2={HX[h]} y2="46" class="peg" />
-			{/each}
-
-			{#each HATS as h (h)}
-				{@const look = lookOf(h, sc)}
-				{#if sc === 'try'}
-					<g
-						class="hang tap {look}"
-						role="button"
-						tabindex="0"
-						aria-label={tx.hats[h]}
-						onclick={() => pick(h)}
-						onkeydown={(e) => {
-							if (e.key === 'Enter' || e.key === ' ') {
-								e.preventDefault();
-								pick(h);
-							}
-						}}
-					>
-						<rect x={HX[h] - 54} y="34" width="108" height="86" rx="14" class="hit" />
-						{@render hat(HX[h], 58, h)}
-						<text x={HX[h]} y="106" class="name">{tx.hats[h]}</text>
-					</g>
-				{:else}
-					<g class="hang {look}">
-						{@render hat(HX[h], 58, h)}
-						<text x={HX[h]} y="106" class="name">{tx.hats[h]}</text>
-					</g>
-				{/if}
-			{/each}
-
-			<!-- the props under the hats -->
-			{#each papers(sc) as p (p.h)}
-				{@render paper(HX[p.h], p.ok)}
-			{/each}
-
-			{#if sc === 'western'}
-				<g class="cactus">
-					<path d="M204 228 V158 a6 6 0 0 1 12 0 V228 Z" />
-					<path d="M204 196 h-10 a5 5 0 0 1 -5 -5 v-14 a4 4 0 0 1 8 0 v11 h7" />
-					<path d="M216 186 h10 v-15 a4 4 0 0 1 8 0 v18 a5 5 0 0 1 -5 5 h-13" />
-				</g>
-				<line x1="150" y1="228" x2="270" y2="228" class="sand" />
-			{:else if sc === 'hacker'}
-				<g class="keys">
-					<circle cx="210" cy="150" r="14" class="ring" />
-					{#each [-28, 0, 28] as a, k (k)}
-						<g transform="rotate({a} 210 164)">
-							<line x1="210" y1="164" x2="210" y2="208" class="shaft" />
-							<path d="M210 196 h8 M210 204 h6" class="shaft" />
-							<circle cx="210" cy="170" r="6" class="bow" />
-						</g>
-					{/each}
-				</g>
-			{:else if sc === 'black'}
-				<g class="broken">
-					<path d="M318 160 v-12 a12 12 0 0 1 24 0" class="shackle" />
-					<rect x="312" y="164" width="36" height="28" rx="5" class="lockbody" />
-					<circle cx="330" cy="176" r="3.5" class="keyhole" />
-				</g>
-				<g class="cap">
-					<rect x="282" y="204" width="96" height="20" rx="10" />
-					<text x="330" y="218">{tx.noPermission}</text>
-				</g>
-			{:else if sc === 'gray'}
-				<g class="mail">
-					<rect x="246" y="150" width="44" height="30" rx="4" class="env" />
-					<path d="M246 152 L268 168 L290 152" class="flap" />
-				</g>
-			{:else if sc === 'mitnick'}
-				<line x1="60" y1="196" x2="360" y2="196" class="tl" />
-				<line x1="60" y1="196" x2={TL[pos]} y2="196" class="tl-on" />
-				{#each tx.timeline as t, k (k)}
-					<circle cx={TL[k]} cy="196" r={k === pos ? 6 : 4} class="tick" class:on={k <= pos} />
-					<text x={TL[k]} y="222" class="year">{t.year}</text>
-					<text x={TL[k]} y="238" class="tl-label">{t.label}</text>
-				{/each}
-				<g class="walker" style="transform: translate({TL[pos]}px, 160px)">
-					{@render hat(0, 0, pos === 2 ? 'white' : 'black', 0.62)}
-				</g>
-			{:else if sc === 'bounty'}
-				<rect x="150" y="128" width="120" height="96" rx="6" class="sheet big" />
-				<text x="210" y="148" class="b-title">{tx.bountyLabel}</text>
-				{#each [162, 172, 182] as y (y)}
-					<line x1="164" y1={y} x2="256" y2={y} class="txt" />
-				{/each}
-				{#each [0, 1, 2] as k (k)}
-					<ellipse cx="300" cy={214 - k * 7} rx="16" ry="5" class="coin" />
-				{/each}
-				<path d="M164 206 q5 -8 9 0 t9 0 t8 -2" class="sign" />
-			{/if}
-		</svg>
 	</div>
-{/snippet}
 
-<GuideWrap steps={tx.steps} {active} onselect={(k) => (peek = k)} {visual} />
+	{#if story}
+		<p class="prog">
+			{tx.progress.replace('{n}', String(idx + 1)).replace('{total}', String(stories.length))}
+		</p>
+		{#key story.id}
+			<article class="card pop">
+				<span class="who">{tx.scenarios[story.id].who}</span>
+				<p class="story">{tx.scenarios[story.id].story}</p>
+			</article>
+		{/key}
+
+		{#if answer === null}
+			<p class="ask">{tx.askLabel}</p>
+			<div class="pick">
+				<button type="button" class="choice yes" onclick={() => pick(true)}>{tx.legalBtn}</button>
+				<button type="button" class="choice no" onclick={() => pick(false)}>{tx.illegalBtn}</button>
+			</div>
+		{:else}
+			<div class="reveal pop">
+				<div class="hatbox">
+					{@render hat(story.hat, 58)}
+					<span class="hname">{tx.hats[story.hat]}</span>
+				</div>
+				<div class="verdict">
+					<span class="vt" class:legal={story.legal}
+						>{story.legal ? tx.legalTag : tx.illegalTag}</span
+					>
+					<span class="rt" class:right={answer === story.legal}
+						>{answer === story.legal ? tx.rightTag : tx.wrongTag}</span
+					>
+					<p class="why">{tx.scenarios[story.id].why}</p>
+				</div>
+			</div>
+			{#if idx < stories.length - 1}
+				<CallToActionButton onclick={next}>
+					{tx.nextBtn}
+				</CallToActionButton>
+			{:else}
+				<button type="button" class="ghost" onclick={next}>{tx.nextBtn}</button>
+			{/if}
+		{/if}
+	{:else if finished}
+		<div class="end pop">
+			<div class="hats">
+				{@render hat('white', 50)}
+				{@render hat('gray', 50)}
+				{@render hat('black', 50)}
+			</div>
+			<p class="score">
+				{tx.scoreLine.replace('{n}', String(score)).replace('{total}', String(stories.length))}
+			</p>
+			<p class="doneline">{tx.doneLine}</p>
+		</div>
+		<button type="button" class="ghost" onclick={again}>{tx.again}</button>
+	{/if}
+</div>
 
 <style>
-	.vis {
+	.wrap {
 		display: flex;
-		width: 100%;
+		width: min(94vw, 360px);
+		max-height: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 4px;
+		gap: 10px;
+		overflow-y: auto;
 	}
-	.slot {
+	.dots {
 		display: flex;
-		min-height: 56px;
-		width: 100%;
-		align-items: center;
-		justify-content: center;
+		gap: 6px;
 	}
-	.news,
-	.story {
-		margin: 0;
-		max-width: 360px;
-		border-left: 3px solid var(--color-danger);
-		border-radius: 6px;
-		background: var(--color-card);
-		padding: 6px 12px;
-		box-shadow: 0 6px 16px rgba(22, 40, 60, 0.08);
-		line-height: 1.35;
+	.d {
+		width: 9px;
+		height: 9px;
+		border-radius: 50%;
+		background: var(--color-line);
+		transition: background 0.2s;
 	}
-	.story {
-		display: flex;
-		flex-direction: column;
-		gap: 2px;
-		font-size: 12.5px;
-		color: var(--color-muted);
+	.d.on {
+		background: var(--color-brand);
 	}
-	.story b {
-		font-family: var(--font-display);
-		font-size: 14px;
-		color: var(--color-ink);
+	.d.ok {
+		background: var(--color-grass);
 	}
-	.story.white {
-		border-left-color: var(--color-grass);
+	.d.bad {
+		background: var(--color-danger);
 	}
-	.story.gray {
-		border-left-color: var(--color-amber);
-	}
-	.news-tag {
-		display: block;
+	.prog {
 		font-size: 10.5px;
-		font-weight: 800;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		color: var(--color-danger);
-	}
-	.news-head {
-		font-family: var(--font-display);
-		font-size: 14px;
-		font-weight: 600;
-		color: var(--color-ink);
-	}
-	.hint {
-		margin: 0;
-		font-size: 12.5px;
 		font-weight: 700;
+		color: var(--color-faint);
+	}
+	.card {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		gap: 5px;
+		border-radius: 14px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 12px 14px;
+		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.07);
+	}
+	.who {
+		font-size: 10px;
+		font-weight: 800;
 		color: var(--color-brand);
 	}
-	.scene {
-		width: 100%;
-		max-width: 420px;
-		height: auto;
-		overflow: visible;
+	.story {
+		font-family: var(--font-display);
+		font-size: 15px;
+		line-height: 1.35;
+		color: var(--color-ink);
 	}
-
-	.rack {
-		fill: var(--color-amber);
-	}
-	.peg {
-		stroke: var(--color-amber);
-		stroke-width: 4;
-		stroke-linecap: round;
-	}
-	.hang {
-		transition:
-			opacity 0.35s,
-			transform 0.35s;
-	}
-	.hang.dim {
-		opacity: 0.32;
-	}
-	.hang.lit {
-		transform: translateY(-4px);
-	}
-	.name {
-		font-size: 11.5px;
+	.ask {
+		font-size: 12px;
 		font-weight: 700;
-		text-anchor: middle;
-		fill: var(--color-muted);
+		color: var(--color-muted);
 	}
-	.hang.lit .name {
-		fill: var(--color-ink);
-		font-weight: 800;
+	.pick {
+		display: grid;
+		width: 100%;
+		grid-template-columns: 1fr 1fr;
+		gap: 10px;
 	}
-	.hit {
-		fill: transparent;
-		stroke: transparent;
-		stroke-width: 2;
+	.choice {
+		border-radius: 12px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 11px 8px;
+		font-size: 14px;
+		font-weight: 700;
+		color: var(--color-ink);
+		transition:
+			border-color 0.2s,
+			background 0.2s,
+			transform 0.15s;
 	}
-	.tap {
-		cursor: pointer;
-		outline: none;
+	.choice:active {
+		transform: translateY(1px);
 	}
-	.tap:hover .hit,
-	.tap:focus-visible .hit {
-		stroke: var(--color-brand);
+	.choice.yes:hover {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
 	}
-	.tap.lit .hit {
-		stroke: var(--color-brand);
-		fill: color-mix(in srgb, var(--color-brand) 8%, transparent);
+	.choice.no:hover {
+		border-color: var(--color-danger);
+		background: var(--color-danger-soft);
 	}
-
-	/* hats are real objects, so they keep their own colours in both themes */
-	.hat .crown,
-	.hat .brim {
-		stroke: #5e6b76;
-		stroke-width: 1.6;
-		stroke-linejoin: round;
+	.reveal {
+		display: flex;
+		width: 100%;
+		align-items: center;
+		gap: 12px;
+		border-radius: 14px;
+		background: var(--color-paper);
+		border: 1px solid var(--color-line);
+		padding: 10px 12px;
 	}
-	.hat.white .crown,
-	.hat.white .brim {
-		fill: #f6f3ec;
+	.hatbox {
+		display: flex;
+		flex: none;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
 	}
-	.hat.gray .crown,
-	.hat.gray .brim {
-		fill: #9aa3ab;
-	}
-	.hat.black .crown,
-	.hat.black .brim {
-		fill: #262c33;
-		stroke: #11161b;
-	}
-	.hat .band {
-		fill: #c98a2b;
-	}
-	.hat.black .band {
-		fill: #6b4a1f;
-	}
-
-	.sheet {
-		fill: var(--color-card);
-		stroke: var(--color-muted);
-		stroke-width: 1.6;
-	}
-	.txt {
-		stroke: var(--color-line);
-		stroke-width: 2.5;
-		stroke-linecap: round;
-	}
-	.sign {
-		fill: none;
-		stroke: var(--color-brand);
-		stroke-width: 1.8;
-		stroke-linecap: round;
-	}
-	.badge-ok {
-		fill: var(--color-grass);
-	}
-	.mark {
-		fill: none;
-		stroke: #fff;
-		stroke-width: 2.2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-	.cross {
-		stroke: var(--color-danger);
-		stroke-width: 3;
-		stroke-linecap: round;
-	}
-	.cap rect {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-	}
-	.cap text {
+	.hname {
 		font-size: 10px;
 		font-weight: 800;
-		text-anchor: middle;
-		fill: var(--color-danger);
+		color: var(--color-ink);
+		white-space: nowrap;
 	}
-	.cap.ok rect {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
+	.verdict {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 5px;
 	}
-	.cap.ok text {
-		fill: var(--color-grass);
-	}
-	.cactus path {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		stroke-width: 2;
-		stroke-linejoin: round;
-	}
-	.sand {
-		stroke: var(--color-amber);
-		stroke-width: 3;
-		stroke-linecap: round;
-	}
-	.ring,
-	.shaft,
-	.bow {
-		fill: none;
-		stroke: var(--color-amber);
-		stroke-width: 3;
-		stroke-linecap: round;
-	}
-	.bow {
-		fill: var(--color-amber-soft);
-	}
-	.shackle {
-		fill: none;
-		stroke: var(--color-danger);
-		stroke-width: 4;
-		stroke-linecap: round;
-	}
-	.lockbody {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-		stroke-width: 2;
-	}
-	.keyhole {
-		fill: var(--color-danger);
-	}
-	.env {
-		fill: var(--color-card);
-		stroke: var(--color-amber);
-		stroke-width: 2;
-	}
-	.flap {
-		fill: none;
-		stroke: var(--color-amber);
-		stroke-width: 1.6;
-	}
-	.tl {
-		stroke: var(--color-line);
-		stroke-width: 3;
-		stroke-linecap: round;
-	}
-	.tl-on {
-		stroke: var(--color-brand);
-		stroke-width: 3;
-		stroke-linecap: round;
-	}
-	.tick {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 2;
-	}
-	.tick.on {
-		fill: var(--color-brand);
-		stroke: var(--color-brand);
-	}
-	.year {
-		font-size: 11px;
+	.vt,
+	.rt {
+		border-radius: 999px;
+		font-size: 9.5px;
 		font-weight: 800;
-		text-anchor: middle;
-		fill: var(--color-ink);
+		padding: 2px 8px;
 	}
-	.tl-label {
-		font-size: 10px;
-		text-anchor: middle;
-		fill: var(--color-muted);
+	.vt {
+		background: var(--color-danger);
+		color: #fff;
 	}
-	.walker {
-		transition: transform 1.1s cubic-bezier(0.45, 0, 0.3, 1);
+	.vt.legal {
+		background: var(--color-grass);
 	}
-	.b-title {
-		font-size: 10.5px;
-		font-weight: 800;
-		text-anchor: middle;
-		fill: var(--color-ink);
+	.rt {
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
 	}
-	.coin {
-		fill: var(--color-amber);
-		stroke: #b47a1f;
-		stroke-width: 1.4;
+	.rt.right {
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
 	}
-
-	@media (prefers-reduced-motion: no-preference) {
-		.paper,
-		.broken,
-		.mail,
-		.keys,
-		.cactus {
-			animation: rise 0.5s ease both;
+	.why {
+		width: 100%;
+		font-size: 11.5px;
+		line-height: 1.4;
+		color: var(--color-muted);
+	}
+	.ghost {
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-muted);
+		font-size: 12px;
+		font-weight: 700;
+		padding: 7px 14px;
+	}
+	.ghost:hover {
+		border-color: var(--color-brand);
+		color: var(--color-ink);
+	}
+	.wrap :global(.cta) {
+		padding: 10px 18px;
+		font-size: 13px;
+	}
+	.end {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+		border-radius: 14px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 14px;
+	}
+	.hats {
+		display: flex;
+		gap: 10px;
+	}
+	.score {
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--color-muted);
+	}
+	.doneline {
+		text-align: center;
+		font-family: var(--font-display);
+		font-size: 16px;
+		line-height: 1.35;
+		color: var(--color-ink);
+	}
+	.pop {
+		animation: popin 0.28s ease;
+	}
+	@keyframes popin {
+		from {
+			transform: translateY(8px);
+			opacity: 0;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.hang,
-		.walker {
-			transition: none;
+		.pop {
+			animation-duration: 0.01s;
 		}
 	}
-	@keyframes rise {
-		from {
-			opacity: 0;
-			transform: translateY(8px);
+	@media (min-width: 768px) {
+		.wrap {
+			width: 440px;
+			gap: 12px;
 		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
+		.story {
+			font-size: 17px;
+		}
+		.why {
+			font-size: 12.5px;
+		}
+		.wrap :global(.cta) {
+			padding: 12px 22px;
+			font-size: 14px;
 		}
 	}
 </style>

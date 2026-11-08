@@ -3,77 +3,46 @@ import type { WhatDevopsText } from './types';
 export const id: WhatDevopsText = {
 	title: 'Apa itu DevOps',
 	intro: [
-		'Dulu, orang orang yang bikin aplikasi dipecah jadi dua tim. <b>Developer</b> (Dev) nulis fitur baru di laptop mereka. <b>Operations</b> (Ops) ngejaga [[server|foundations/server]] tetap nyala. Di antara mereka berdiri tembok tinggi.',
-		'Developer kerja berbulan bulan dan numpuk semua perubahan ke satu kotak raksasa. Terus kotaknya dilempar lewat tembok, dan Ops harus masang tanpa tahu isinya apa.',
-		'Ya jelas ada yang rusak. Dev bilang di laptopnya jalan kok, Ops bilang kodenya yang rusak. Hari rilis jadi menakutkan, jadi rilisnya makin jarang, dan kotaknya makin gede.',
-		'<b>DevOps</b> ngerobohin tembok itu. Namanya cuma gabungan dua kata tadi, karena Dev dan Ops jadi satu tim yang bareng bareng bikin, ngirim, dan ngerawat aplikasinya.',
-		'Rahasianya, kirim <b>perubahan kecil, tapi sering</b>. Bagian yang membosankan dikerjain mesin, ngetes dan ngirim tiap kotak kecil sendiri, lewat [[pipeline CI/CD|compute/cicd]], yang bakal kamu kenal sesudah ini.',
-		'Kotak kecil juga kadang rusak. Tapi kalau isinya cuma satu perubahan, kamu langsung tahu salahnya di mana. Tarik balik, benerin, kirim lagi, semuanya beres dalam beberapa menit.',
-		'[ingat] <b>Kecil tapi sering, jangan besar tapi jarang.</b> Kotak kecil gampang dicek dan gampang ditarik balik. Kotak raksasa nyembunyiin bugnya kayak jarum di tumpukan jerami.',
-		'[fyi] DevOps awalnya cara kerja, bukan alat yang tinggal diinstal. Namanya mulai ngetren sekitar 2009, waktu orang mulai bikin acara DevOpsDays. Sekarang DevOps engineer juga jadi nama pekerjaan, tapi idenya tetap sama, satu tim, langkah kecil.',
-		'Mau bandingin? Ganti ganti antara cara lama dan cara DevOps, terus lihat gimana kotaknya jalan. Atau tonton aja terus, itu juga boleh.'
+		'Tim pengembangan menulis fitur nimbus.com, sementara tim operasi menjaga layanan tetap berjalan. Keduanya perlu berbagi informasi tentang perubahan dan kondisi aplikasi.',
+		'Dalam contoh ini, perubahan dikumpulkan lama sebelum diserahkan ke tim operasi. Akibatnya, satu rilis memuat banyak hal yang perlu dipahami, diuji, dan dipasang bersamaan.',
+		'Jika rilis bermasalah, tim harus mencari perubahan penyebabnya. Semakin banyak perubahan dalam satu rilis, semakin banyak kemungkinan yang perlu diperiksa.',
+		'<b>DevOps</b> adalah cara kerja yang menghubungkan pengembangan dan operasi melalui tanggung jawab bersama, otomatisasi, dan umpan balik. Perubahan kecil serta [[CI/CD|compute/cicd]] membantu tim menguji dan mengirim perbaikan.',
+		'[fyi] DevOps awalnya adalah cara kerja, bukan alat. Namanya mulai populer sekitar 2009, waktu orang mulai bikin konferensi "DevOpsDays". Sekarang "DevOps engineer" juga jadi nama pekerjaan, tapi idenya tetap sama, satu tim, langkah kecil.',
+		'[ingat] <b>Perubahan kecil, umpan balik cepat.</b> Uji, rilis, pantau, dan perbaiki bersama. DevOps mencakup kerja sama tim serta prosesnya, bukan satu alat tertentu.',
+		'Setiap rilis simulasi memuat satu bug untuk membandingkan banyaknya kode yang perlu diperiksa. Coba rilis tahunan dan harian, lalu bandingkan ukuran setiap perubahan.'
 	],
 	reactions: {
-		old: 'Cara lama lagi. Satu kotak raksasa terbang lewat tembok, servernya merah, dan semua orang mulai saling tunjuk. Nyari satu bug di antara ratusan perubahan bisa makan waktu berhari hari.',
-		new: 'Balik ke DevOps. Satu tim, kotak kecil terus mengalir, dan kalau ada masalah, tersangkanya cuma satu perubahan.'
+		yearly:
+			'Rilis ini berisi banyak perubahan. Dalam simulasi, pemeriksaan memerlukan waktu lebih lama karena lebih banyak bagian yang mungkin menjadi penyebab.',
+		middle:
+			'Jumlah perubahan berkurang, sehingga bagian yang perlu diperiksa lebih sedikit. Bandingkan dengan rilis harian.',
+		daily:
+			'Rilis ini hanya memuat satu perubahan. Pada contoh ini, tim lebih cepat mengidentifikasi dan membatalkannya. Waktu nyata bergantung pada sistem dan kesiapan pemulihan.',
+		both: 'Ukuran perubahan memengaruhi kemudahan pengujian dan penelusuran masalah. Frekuensi rilis perlu didukung otomatisasi, pemantauan, dan kemampuan pemulihan.'
 	},
-	steps: [
-		{
-			tag: 'Dua tim',
-			title: 'Dev dan Ops',
-			body: '<b>Developer</b> bikin fitur baru. <b>Operations</b> ngejaga server tetap hidup. Dulu mereka jarang banget ngobrol.'
-		},
-		{
-			tag: 'Rilis cara lama',
-			title: 'Satu kotak raksasa',
-			body: 'Perubahan berbulan bulan dikirim sekaligus. Ops nerima kotak yang belum pernah mereka lihat.'
-		},
-		{
-			tag: 'Hari rilis',
-			title: 'Saling salahin',
-			body: 'Isinya ratusan perubahan, jadi nggak ada yang tahu mana yang bikin situsnya rusak. Akhirnya rilis berikutnya ditunda lebih lama lagi.'
-		},
-		{
-			tag: 'Idenya',
-			title: 'DevOps',
-			body: 'Dev ditambah Ops, satu tim. Yang nulis kode juga ikut ngejalanin, jadi nggak ada yang dilempar lewat tembok.'
-		},
-		{
-			tag: 'Kebiasaannya',
-			title: 'Kecil dan sering',
-			body: 'Tiap kotak isinya satu perubahan kecil. Pipeline ngetes dan ngirimnya sendiri, berkali kali seminggu, bahkan sehari.'
-		},
-		{
-			tag: 'Kalau rusak',
-			title: 'Tersangkanya satu',
-			body: 'Yang keluar cuma satu perubahan, jadi penyebabnya jelas. Ditarik balik dan dibenerin dalam hitungan menit, bukan hari.'
-		},
-		{
-			tag: 'Biar nempel',
-			title: 'Kecil menang',
-			body: '<b>Kecil tapi sering</b> ngalahin <b>besar tapi jarang</b>. Lihat setahun di bawah, banyak kotak mungil, bukan satu kotak raksasa.'
-		},
-		{
-			tag: 'Sejarah',
-			title: 'Cara kerja',
-			body: 'DevOps itu soal orang dulu. Alatnya (pipeline, otomasi, monitoring) datang setelah timnya mau kerja sebagai satu tim.'
-		},
-		{
-			tag: 'Opsional',
-			title: 'Bandingin',
-			body: 'Ganti antara dua cara kerja ini dan perhatiin kotaknya.'
-		}
-	],
+	everyLabel: 'Rilis tiap',
+	cadences: ['tahun', '3 bulan', 'bulan', 'minggu', 'hari'],
 	devLabel: 'Dev',
 	opsLabel: 'Ops',
 	oneTeam: 'Satu tim',
-	blameDev: 'Di laptopku jalan kok',
-	blameOps: 'Kodemu yang rusak',
-	bigBox: '200 perubahan',
-	oneChange: 'Cuma 1 perubahan dicek',
-	fixed: 'Udah dibenerin',
-	yearLabel: 'Rilis dalam setahun',
-	modeLabel: 'Pilih cara kerja',
-	oldBtn: 'Cara lama',
-	newBtn: 'Cara DevOps'
+	wallLabel: 'tembok',
+	changesTag: '{n} perubahan',
+	changesOne: '1 perubahan',
+	waitLabel: 'Fitur yang sudah jadi menunggu',
+	waits: [
+		'sampai setahun',
+		'sampai 3 bulan',
+		'sampai sebulan',
+		'sampai seminggu',
+		'paling lama sehari'
+	],
+	findLabel: 'Waktu pencarian dalam simulasi',
+	finds: ['2 hari', '1 hari', '6 jam', '1 jam', '5 menit'],
+	shipBtn: 'Kirim rilis ini',
+	againBtn: 'Kirim lagi',
+	downTag: 'mati',
+	backTag: 'beres',
+	noteIdle: 'Pilih ritmenya, lalu kirim kotaknya',
+	noteBig: 'Ada {n} perubahan untuk diperiksa. Perkiraan latihan {t}.',
+	noteSmall: 'Satu perubahan diperiksa. Waktu simulasi 5 menit.'
 };

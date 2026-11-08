@@ -10,7 +10,7 @@ export const id: GcpText = {
 		'Lalu komputer yang menjalankan nimbus.com. <b>Compute Engine</b> itu server sewaan, <b>Cloud Run</b> menjalankan container dan menyusut sampai nol waktu sepi, dan <b>Cloud Functions</b> menjalankan satu fungsi kecil tiap ada permintaan.',
 		'Tiap website butuh tempat buat datanya. <b>Cloud Storage</b> menyimpan file, <b>Cloud SQL</b> itu database SQL yang diurus Google, dan <b>Firestore</b> itu database NoSQL yang bisa langsung mengirim perubahan ke HP.',
 		'Terakhir, alat yang menjaga dan mengawasi. <b>IAM</b> membagi peran, <b>Cloud KMS</b> menyimpan kunci enkripsi, dan <b>Cloud Monitoring</b> menggambar grafik dan membunyikan alarm.',
-		'[ingat] <b>Idenya sama, cuma ganti papan nama.</b> Google bikin gampang, namanya biasanya sudah menyebut kerjanya. Cloud Storage ya menyimpan, Cloud SQL ya SQL. Satu pasang buat diingat, <b>Compute Engine itu VM</b>, mesin yang menghitung buatmu.',
+		'[ingat] Compute Engine menyediakan virtual machine, Cloud Storage menyediakan object storage, dan Cloud SQL menyediakan database relasional terkelola.',
 		'[fyi] Satu kata, beda dunia. Server sewaan disebut EC2 di [[AWS|providers/aws]] dan Virtual Machines di [[Azure|providers/azure]]. Satu VPC Google juga bisa mencakup semua region, sementara di dua cloud lain tiap jaringan privat tinggal di satu region.',
 		'Lihat satu pengunjung berjalan melewati seluruh papan, dari Cloud DNS sampai Cloud Monitoring. Mau coba sendiri? Pasang lagi nama namanya ke kartu, ini cuma bonus.'
 	],
@@ -41,9 +41,9 @@ export const id: GcpText = {
 	},
 	steps: [
 		{
-			tag: 'Ide polos',
+			tag: 'Kebutuhan situs',
 			title: 'Website di cloud',
-			body: 'Lima lapis, dari pintu depan sampai alat yang mengawasi. Tiap kartu itu ide yang sudah kamu kenal.'
+			body: 'Susunan ini mencakup akses situs, jaringan, komputasi, data, dan monitoring. Pilih kartu untuk melihat fungsi layanannya.'
 		},
 		{
 			tag: 'Sejak 2008',
@@ -52,7 +52,7 @@ export const id: GcpText = {
 		},
 		{
 			tag: 'Lapis 1',
-			title: 'Pintu depan',
+			title: 'DNS, CDN, dan load balancer',
 			body: '<b>Cloud DNS</b>, <b>Cloud CDN</b>, dan <b>Cloud Load Balancing</b>. Namanya sudah menyebut kerjanya.'
 		},
 		{
@@ -72,22 +72,22 @@ export const id: GcpText = {
 		},
 		{
 			tag: 'Lapis 5',
-			title: 'Akses dan pantau',
+			title: 'Akses dan monitoring',
 			body: '<b>IAM</b> buat peran, <b>Cloud KMS</b> buat kunci, <b>Cloud Monitoring</b> buat grafik dan alarm.'
 		},
 		{
-			tag: 'Biar nempel',
-			title: 'Ide sama, papan nama baru',
-			body: 'Di Google papan namanya kebanyakan terbaca seperti idenya. Pasangan paling gampang, <b>Compute Engine itu VM</b>.'
+			tag: 'Cara ingat',
+			title: 'Nama layanan dan fungsinya',
+			body: 'Compute Engine menyediakan VM, Cloud Storage menyimpan objek, dan Cloud SQL mengelola database relasional.'
 		},
 		{
-			tag: 'Di tempat lain',
-			title: 'Tiga label, satu kotak',
-			body: 'Virtual machine di AWS, Google Cloud, dan Azure. Yang berubah cuma papan namanya.'
+			tag: 'Perbandingan',
+			title: 'Perbandingan antar penyedia',
+			body: 'Ketiga penyedia menawarkan virtual machine. Nama, konfigurasi, batas layanan, dan harga perlu diperiksa pada masing masing penyedia.'
 		},
 		{
 			tag: 'Opsional',
-			title: 'Satu pengunjung, semua lapis',
+			title: 'Alur request pengunjung',
 			body: 'Permintaannya menyalakan tiap bagian yang dilewati. Ketuk tombolnya kalau mau mencocokkan sendiri.'
 		}
 	],

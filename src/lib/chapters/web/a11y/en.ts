@@ -3,74 +3,46 @@ import type { A11yText } from './types';
 export const en: A11yText = {
 	title: 'Accessibility',
 	intro: [
-		'Close your eyes and try to order something on your phone. Sounds impossible? Millions of people do it every day. They are blind or have low vision, and they use the web with a <b>screen reader</b>.',
-		'A screen reader is an app that reads the page out loud, one piece at a time. Watch it walk through the nimbus.com signup page. Some pieces sound wrong, and one is never read at all.',
-		'It can only read what the code tells it. The picture has no <b>alt</b> text, so all it can say is a file name. Nim adds a short description, and now the picture makes sense by ear.',
-		'At the text box, the reader only says "edit text, blank". Edit what? Nim adds a <b>label</b> and ties it to the box, so the reader says Email first.',
-		'The Subscribe box looks like a button, but it is a plain <b>div</b> (a box with no meaning), so the reader jumps right past it. Nim swaps it for a real <b>button</b>, and now it is announced, reachable with the Tab key, and pressed with Enter.',
-		'Making a page work for everyone is called <b>accessibility</b>, often written a11y (an a, then 11 letters, then a y). It also helps people who cannot use a mouse, and anyone squinting at a phone in bright sunlight.',
-		'Color matters too. Light gray on white looks elegant, but many people cannot read it. How much text stands out from its background is called <b>contrast</b>, and normal text needs at least 4.5 to 1. Nim darkens it.',
-		'[fyi] Same word, different world. A ramp beside the stairs is accessibility in a building. Curb ramps were made for wheelchairs, then everyone pushing a stroller or dragging a suitcase loved them too. The web works the same way.',
+		'Close your eyes and try to order something on your phone. Sounds impossible? Millions of people do it every day. They are blind or have low vision, and they use the web through a <b>screen reader</b>.',
+		'A screen reader is an app that reads the page out loud, one piece at a time. You swipe or press Tab to move on, and it tells you what each piece is, like heading or button, and what it says.',
+		'But it can only read what the code tells it. A picture without <b>alt</b> text is just a file name. A text box without a <b>label</b> is just "edit text, blank". A clickable box that is not a real button gets skipped completely.',
+		'Making a page work for everyone is called <b>accessibility</b>, often shortened to a11y (an a, then 11 letters, then a y). It also covers people who cannot use a mouse, people with low vision, and anyone squinting at a phone in bright sunlight.',
+		'Color matters too. Light gray text on white looks elegant, but many people simply cannot read it. How different the text is from its background is called <b>contrast</b>, and there is a minimum to hit.',
+		'[fyi] Same word, different world. A ramp beside the stairs is accessibility in a building. Curb ramps were made for wheelchairs, then it turned out everyone pushing a stroller or dragging a suitcase loves them too. The web works the same way.',
 		'[ingat] Picture describing the page over the phone. <b>A picture needs alt, a box needs a label, a click needs a button</b>. And small text needs at least 4.5 to 1.',
-		'nimbus.com now works with eyes closed. Put on the blindfold if you want to follow it by ear only. Good accessibility is mostly good HTML used as intended, and a big part of good [[UX|web/ui-ux]].'
+		'Your turn! Put on the blindfold and listen to the nimbus.com signup page through a screen reader. Fix every piece that sounds wrong, then fix the text that is hard to see.'
 	],
 	reactions: {
 		blind:
-			'Everything went dark. Now only the captions below (and the voice, if your device has one) tell you what is on the page.'
+			'Everything went dark. Now the only way to know what is on the page is to listen. Move through it one piece at a time.',
+		alt: 'Much better. Before, the reader could only say a file name. With <b>alt</b> text it describes the picture, the very same alt you met in [[HTML|web/html]].',
+		label:
+			'Now the reader says what the box is for. A <b>label</b> tied to the box also helps sighted people, tapping the word puts the cursor right in the box.',
+		button:
+			'A real <b>button</b>! The reader announces it, Tab can reach it, and Enter presses it. A plain box that only listens for clicks gets none of that for free.',
+		contrast:
+			'Readable at last. A ratio of 4.5 to 1 is the official minimum for normal text in WCAG, the accessibility rulebook used around the world.',
+		done: 'nimbus.com now works with eyes closed, without a mouse, and in bright sunlight. Good accessibility is mostly good HTML used the way it was meant, and a big part of good [[UX|web/ui-ux]] too.'
 	},
-	steps: [
-		{
-			tag: 'Screen reader',
-			title: 'Reading out loud',
-			body: 'An app that reads the page one piece at a time. Every phone and laptop has one built in.'
-		},
-		{
-			title: 'Listening to the page',
-			body: 'The ring shows where the reader is, the strip shows what it says. Something sounds off.'
-		},
-		{
-			title: 'alt text',
-			body: '<b>alt</b> describes a picture in words. Without it, the reader can only say the file name.'
-		},
-		{
-			title: 'A label',
-			body: '<b>label</b> names a text box. Tying it to the box with <b>for</b> and <b>id</b> lets the reader say what goes in.'
-		},
-		{
-			title: 'A real button',
-			body: 'A <b>div</b> only looks like a button. A real <b>button</b> is announced, reachable with Tab, and pressed with Enter.'
-		},
-		{
-			title: 'For everyone',
-			body: 'Keyboard users, people with low vision, someone in bright sun. Good HTML helps all of them at once.'
-		},
-		{
-			title: 'Contrast',
-			body: 'How much the text stands out from its background. Normal text needs at least <b>4.5 to 1</b>.'
-		},
-		{
-			title: 'Curb ramps',
-			body: 'Built for wheelchairs, loved by strollers and suitcases. Accessible pages are easier for everybody too.'
-		},
-		{
-			tag: 'Make it stick',
-			title: 'Picture, box, click',
-			body: 'Picture gets <b>alt</b>, box gets <b>label</b>, click gets <b>button</b>. Small text at least 4.5 to 1.'
-		},
-		{
-			title: 'Try the blindfold',
-			body: 'Cover the screen and follow the page by ear alone, the way a screen reader user does.'
-		}
-	],
-	htmlLabel: 'signup.html',
-	previewLabel: 'nimbus.com/join',
+	missionsLabel: 'Make nimbus.com work for everyone',
+	missions: {
+		alt: 'Give the picture a description',
+		label: 'Tell the reader what the box is for',
+		button: 'Make the button reachable',
+		contrast: 'Make the small text readable'
+	},
+	blindfold: 'Blindfold',
+	next: 'Next piece',
+	restart: 'From the top',
+	voice: 'Voice',
+	voiceLang: 'en-US',
 	readerLabel: 'The screen reader says',
-	readerIdle: 'Nothing yet, the reader is about to start',
+	readerIdle: 'Nothing yet, move to the next piece to start',
+	cover: 'You cannot see the screen, listen instead',
 	roles: { image: 'image', heading: 'heading level 1', editText: 'edit text', button: 'button' },
 	blank: 'blank',
-	skipped: '(silence, it jumped right past a clickable box)',
+	skipped: '(silence, the reader jumped right past a clickable box)',
 	endOfPage: 'end of page',
-	voiceLang: 'en-US',
 	page: {
 		heading: 'Join the Nimbus newsletter',
 		tagline: 'Cloud tips every Friday, never any spam.',
@@ -78,9 +50,15 @@ export const en: A11yText = {
 		subscribe: 'Subscribe',
 		alt: 'Nim the cloud, the Nimbus logo'
 	},
+	fixLabel: 'Fix it',
+	fixes: {
+		alt: 'Add alt text that describes the picture',
+		label: 'Add a label to the box',
+		button: 'Use a real button with a name'
+	},
 	contrastLabel: 'Contrast of the small text',
 	ratio: '{n} to 1',
 	need: 'needs 4.5 or more',
-	blindfold: 'Blindfold',
-	cover: 'You cannot see the screen, listen instead'
+	darker: 'Text color, lighter to darker',
+	allDone: 'Four accessibility improvements completed'
 };

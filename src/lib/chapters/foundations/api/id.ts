@@ -7,7 +7,8 @@ export const id: ApiText = {
 		'Frontend ini tidak menyimpan data aslinya. Produk, harga, dan akun yang sebenarnya ada di komputer jauh, namanya <b>backend</b>. Frontend cuma menampilkan, backend yang menyimpan.',
 		'Keduanya nyambung lewat <b>API</b>, semacam pelayan di antara mereka. Frontend minta satu hal, API mengantar permintaannya ke backend, backend kasih datanya, lalu dibawa balik ke layar.',
 		'Datanya dikirim sebagai teks biasa dalam format bernama <b>JSON</b>, dan kebanyakan API menjawab pakai format ini. Tiap fakta berupa <b>key</b> (namanya) dan <b>value</b> (isinya), dibungkus kurung kurawal, kayak topi dari toko nimbus.com ini. Sepupunya, <b>YAML</b>, nggak pakai kurung kurawal dan lebih sering tinggal di file config.',
-		'Lihat sendiri. Layar HP kamu masih kosong karena belum minta apa apa. Pencet minta data, dan perhatikan perjalanannya bolak balik lewat API sampai layarnya terisi.'
+		'Lihat sendiri. Layar HP kamu masih kosong karena belum minta apa apa. Pencet minta data, dan perhatikan perjalanannya bolak balik lewat API sampai layarnya terisi.',
+		'[ingat] API menentukan cara aplikasi saling meminta dan bertukar data.'
 	],
 	reactions: {
 		fetch:

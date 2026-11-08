@@ -6,19 +6,19 @@ import { en } from './en';
 export const fineTuning: Lesson = {
 	id: 'fine-tuning',
 	mood: 'thinking',
-	moods: [
-		'calm',
-		'thinking',
-		'idea',
-		'thinking',
-		'excited',
-		'wink',
-		'worried',
-		'surprised',
-		'idea',
-		'happy'
-	],
-	reactionMood: { bad_out: 'happy', bad_in: 'worried' },
+	moods: ['calm', 'thinking', 'idea', 'thinking', 'wink', 'worried', 'excited'],
+	reactionMood: {
+		ask: 'thinking',
+		pick: 'happy',
+		pick_bad: 'worried',
+		tuning: 'thinking',
+		tuned_good: 'excited',
+		tuned_rude: 'surprised',
+		tuned_wrong: 'surprised',
+		stale: 'idea',
+		compare: 'wink'
+	},
+	playable: true,
 	stage: FineTuningStage,
 	text: { id, en }
 };

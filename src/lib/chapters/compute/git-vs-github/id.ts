@@ -1,12 +1,13 @@
 import type { GitSecretsText } from '../types';
 
 export const id: GitSecretsText = {
-	title: 'Git bukan GitHub',
+	title: 'Git dan GitHub',
 	intro: [
 		'Banyak yang ngira Git dan GitHub itu sama. Padahal beda. <b>Git</b> itu alat yang jalan di laptopmu, dialah yang tadi bikin snapshot. <b>GitHub</b> itu tempat online buat menaruh dan membagikan hasilnya.',
 		'Selama commit cuma ada di laptopmu, dia aman tapi sendirian. Kalau laptopmu hilang, ikut hilang juga. Makanya kamu <b>push</b>, mengirim commit tadi ke GitHub, biar ada salinannya online dan orang lain bisa ikut lihat.',
 		'Aturan penting sebelum push, jangan pernah commit rahasia seperti password atau <b>API key</b> (kunci layanan atas namamu). Tulis nama filenya di <b>.gitignore</b>, daftar file yang tidak ikut disimpan Git. Repo publik itu publik selamanya, dan bot menyisir GitHub mencari kunci bocor dalam hitungan menit.',
-		'Coba alurnya. Commit dulu di laptop, lalu push ke GitHub, terakhir biarkan temanmu <b>clone</b> salinannya. Rasakan mana yang lokal dan mana yang sudah online.'
+		'Coba alurnya. Commit dulu di laptop, lalu push ke GitHub, terakhir biarkan temanmu <b>clone</b> salinannya. Rasakan mana yang lokal dan mana yang sudah online.',
+		'[ingat] Git mengelola riwayat. GitHub menyediakan tempat berbagi repository dan bekerja bersama.'
 	],
 	reactions: {
 		committed:

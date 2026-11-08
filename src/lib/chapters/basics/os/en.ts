@@ -3,92 +3,52 @@ import type { OsText } from './types';
 export const en: OsText = {
 	title: 'Operating systems',
 	intro: [
-		'Look at this laptop. A browser, music, and chat are all running at once, yet it has only one CPU, one RAM, and one storage, the parts you met in [[CPU, RAM, and storage|basics/hardware]]. So who decides which app gets what?',
-		'That is the job of the <b>operating system</b>, or <b>OS</b>. It is the manager sitting between the apps and the hardware. Apps never grab the CPU or RAM themselves, they ask the OS, and the OS hands it out.',
-		'[ingat] The OS is like a waiter in a restaurant. The apps are the guests and the hardware is the kitchen. Guests never walk into the kitchen, they order through the waiter.',
-		'Watch the apps open. Each one first asks the OS for a window and some memory, and only then does it show up on the screen.',
-		'The CPU can only work on a few things at once, and there are far more apps, so the OS lets them take turns. Each app gets a tiny slice of time, a few thousandths of a second, then the next one goes. It switches so fast that everything looks like it runs at once.',
-		'The OS also hands each app its own piece of RAM and keeps those pieces apart. That way a game that crashes (suddenly breaks) cannot mess up your chat. The OS keeps a little RAM for itself, too.',
-		'Here is a word you will hear a lot. A program that is running is called a <b>process</b>. The OS gives every process its own number, the <b>PID</b> (process ID), and its own share of RAM, then decides which process gets the CPU next. That deciding is called <b>scheduling</b>.',
-		'[fyi] Open one app too many and RAM fills up. The OS then parks the extra on storage (this is called <b>swap</b>). Storage is much slower than RAM, and that is the moment a laptop starts to crawl.',
-		'The OS looks after your files as well. When the music app wants a song, it asks the OS, and the OS fetches it from storage. Folders are simply the OS keeping your files tidy.',
-		'You already know a few OSes. <b>Windows</b> and <b>macOS</b> run laptops, <b>Linux</b> runs most of the servers on the internet, and <b>Android</b> and <b>iOS</b> run phones (Android is built on Linux). You can talk to any of them with icons or typed commands, see [[CLI and GUI|foundations/cli-gui]].',
-		'Different names, same job. If you like, open and close apps on the laptop and watch the OS share out the RAM.'
+		'A laptop can run music, chat, and a browser together. These applications share resources such as the [[CPU and RAM|basics/hardware]]. What manages that sharing?',
+		'The <b>operating system</b>, or OS, manages computer resources and provides services to applications. Examples include scheduling processes, allocating memory, and accessing files.',
+		'You already know a few. <b>Windows</b> and <b>macOS</b> run laptops, <b>Android</b> and <b>iOS</b> run phones, and <b>Linux</b> runs most of the servers on the internet (Android is built on Linux too). You talk to an OS by tapping icons or by typing commands, see [[CLI and GUI|foundations/cli-gui]].',
+		'The OS shares the CPU by taking turns. Each app gets a tiny slice of time, a few thousandths of a second, then the next app gets one. It switches so fast that everything looks like it runs at the same time.',
+		'A running program is a <b>process</b>. The OS assigns it a <b>PID</b> (process ID) and allocates CPU time through <b>scheduling</b>. Open a few apps. The list below the laptop shows the processes and CPU turns in this example.',
+		'It also hands every app its own piece of RAM and keeps those pieces apart, so a crashing game cannot mess up your chat. And it looks after the files in storage, that is where folders come from.',
+		'[fyi] When RAM is full, the OS borrows a corner of storage and pretends it is RAM (called <b>swap</b>, or virtual memory). It works, but storage is far slower than RAM, and that is the moment a computer starts to crawl.',
+		'[ingat] An operating system manages hardware and provides applications with services such as file, memory, and device access.',
+		'Here is a laptop with its OS in the middle. Open the apps one by one, watch the OS share out the CPU and RAM, and keep going until it struggles.'
 	],
 	reactions: {
-		open: 'Another app, another piece of RAM. The OS slots it in and adds it to the line for CPU turns.',
-		slow: 'Uh oh, RAM is full. The OS parks the rest on slow storage, so everything stutters and every click feels late. Try closing an app.',
+		first:
+			'One app open. The OS gave it a piece of RAM and a turn on the CPU. With nobody else around, it has the CPU almost all to itself.',
+		more: 'Now the CPU takes turns. See the highlight hopping between apps? Each one gets a tiny slice, over and over, far too fast for you to notice in real life. So they all feel like they run together.',
+		slow: 'Uh oh, RAM is full. The OS starts parking pieces of apps on storage, and storage is slow, so everything stutters. This is when the fan spins up and the loading circle keeps spinning. Try closing an app.',
 		close:
-			'Closing an app gives its RAM back to the OS, and the others can breathe again. That is why closing apps you do not use helps an older laptop.'
+			'Closing an app gives its RAM back to the OS, which hands it to the others. That is why closing apps you are not using really does help an older laptop.'
 	},
-	steps: [
-		{
-			title: 'Only one set of hardware',
-			body: 'Many apps, but just one <b>CPU</b>, one <b>RAM</b>, and one <b>storage</b>. Someone has to share them out.'
-		},
-		{
-			title: 'The manager',
-			body: 'The <b>OS</b> sits between the apps and the hardware. Apps ask, the OS decides and hands out.'
-		},
-		{
-			title: 'Opening apps',
-			body: 'Before an app can start, the OS gives it a window on the screen and a place in memory.'
-		},
-		{
-			title: 'Turns on the CPU',
-			body: 'Each core (a worker inside the CPU) runs one app at a time. The OS passes them around in tiny slices, round and round.'
-		},
-		{
-			title: 'Sharing RAM',
-			body: 'Each app gets its <b>own piece</b> of RAM, kept apart from the others. All the apps share the same 8 GB.'
-		},
-		{
-			title: 'Processes',
-			body: 'A running program is a <b>process</b>. Each one has a <b>PID</b> and its own RAM. Task Manager on Windows and Activity Monitor on a Mac show this very list.'
-		},
-		{
-			title: 'When RAM is full',
-			body: 'The extra spills onto storage, called <b>swap</b>. It still works, just slowly.'
-		},
-		{
-			title: 'Files',
-			body: 'Apps ask the OS for files. The OS finds them on storage and keeps the folders in order.'
-		},
-		{
-			title: 'OSes you know',
-			body: '<b>Windows</b>, <b>macOS</b>, and <b>Linux</b> on computers and servers. <b>Android</b> and <b>iOS</b> on phones.'
-		},
-		{
-			title: 'Try it, if you like',
-			body: 'Tap an app under the laptop to open or close it, and watch how much RAM is used.'
-		}
-	],
+	dockHint: 'Tap an app to open it',
 	apps: [
 		{ id: 'browser', name: 'Browser' },
 		{ id: 'music', name: 'Music' },
 		{ id: 'chat', name: 'Chat' },
 		{ id: 'game', name: 'Game' }
 	],
+	desktopEmpty: 'Nothing open yet',
 	osLabel: 'Operating system',
+	osSub: 'Manages resources and application services',
 	cpuLabel: 'CPU',
-	ramLabel: 'RAM',
-	diskLabel: 'Storage',
 	turn: '{app} has its turn',
+	cpuIdle: 'waiting for work',
+	ramLabel: 'RAM',
 	ramUsed: '{n} of 8 GB used',
-	procTitle: 'Processes',
-	procCols: { pid: 'PID', name: 'Program', ram: 'RAM', state: 'State' },
-	running: 'running',
-	waiting: 'waiting',
+	osChunk: 'OS',
+	swapLabel: 'spilled onto slow storage',
+	closeLabel: 'Close {app}',
 	slowTag: 'slow',
-	fileName: 'song.mp3',
-	osTrick: 'apps order, the OS serves',
-	devices: [
-		{ os: 'Windows', kind: 'laptop' },
-		{ os: 'macOS', kind: 'laptop' },
-		{ os: 'Linux', kind: 'server' },
-		{ os: 'Android', kind: 'phone' },
-		{ os: 'iOS', kind: 'phone' }
-	],
-	dockHint: 'Tap an app',
-	toggleLabel: 'Open or close {app}'
+	notes: {
+		idle: 'Only the OS is running, keeping a little RAM for itself',
+		one: 'One app, one piece of RAM, the CPU all to itself',
+		sharing: 'The OS hands the CPU to each app in turn',
+		slow: 'RAM is full, so the OS pushes the rest onto storage',
+		eased: 'RAM freed up, everything runs smoothly again'
+	},
+	procTitle: 'Running processes',
+	procCols: { pid: 'PID', name: 'Program', ram: 'RAM', state: 'State' },
+	running: 'Using CPU',
+	waiting: 'Waiting'
 };

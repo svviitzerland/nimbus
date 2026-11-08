@@ -1,13 +1,14 @@
 import type { CicdText } from '../types';
 
 export const id: CicdText = {
-	title: 'Dari commit sampai live',
+	title: 'CI/CD',
 	intro: [
 		'Aplikasimu sudah jalan dan dipantau. Tapi tiap ada perubahan baru dari laptopmu, gimana caranya sampai ke situs yang dipakai orang (namanya <b>live</b> atau production) tanpa merusak apa apa? Cara manual itu serem. Kamu masuk ke server, salin file, restart, lalu berdoa. Satu typo jam dua pagi, situsnya mati.',
 		'Cara yang kalem itu pakai <b>pipeline</b>. Kamu tinggal push perubahanmu. Langkah yang sama jalan otomatis tiap kali. Build, test, lalu deploy.',
 		'Pipeline ini punya dua bagian. <b>CI</b> (continuous integration) membangun perubahanmu jadi aplikasi lalu mengetesnya. Itu bagian build dan test. <b>CD</b> (continuous delivery) mengirim yang lolos ke production. Itu bagian deploy. Jadi CI memastikan perubahanmu tidak rusak, CD yang menaruhnya ke live.',
 		'Satu lagi, kodemu biasanya lewat tiga tempat. <b>Development</b> itu laptopmu, tempat bebas coba coba. <b>Staging</b> itu salinan latihan yang mirip aslinya, buat gladi resik. <b>Production</b> itu yang dipakai orang beneran, jadi cuma yang lolos latihan yang boleh naik ke sana.',
-		'Kalau testnya gagal, pipeline langsung berhenti di situ. Perubahan rusak nggak akan pernah sampai ke pengguna. Coba kirim perubahan yang baik, lalu yang rusak. Lihat lognya di konsol bawah.'
+		'Kalau testnya gagal, pipeline langsung berhenti di situ. Perubahan rusak nggak akan pernah sampai ke pengguna. Coba kirim perubahan yang baik, lalu yang rusak. Lihat lognya di konsol bawah.',
+		'[ingat] Perubahan diperiksa dulu, lalu dikirim melalui langkah yang bisa diulang.'
 	],
 	reactions: {
 		pass: 'Lancar. Build lolos, test lolos, deploy jalan sendiri. Production pindah ke versi baru. Tanpa begadang, tanpa nyalin file.',

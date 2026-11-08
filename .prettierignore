@@ -7,3 +7,6 @@ bun.lockb
 
 # Miscellaneous
 /static/
+
+# Preserve the pinned upstream calculator source
+src/lib/components/labs/vendor/cvss40.js

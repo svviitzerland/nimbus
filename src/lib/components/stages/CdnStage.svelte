@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onDestroy } from 'svelte';
 	import { Tween } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
 	import { geoDistance, geoInterpolate } from 'd3-geo';
@@ -697,7 +696,7 @@
 	}
 	/* the delivery draws itself from the sender to the visitor as one solid line */
 	.arcflow {
-		stroke-dasharray: 1;
+		stroke-dasharray: none;
 		stroke-dashoffset: 1;
 		animation:
 			arcin 0.45s ease both,

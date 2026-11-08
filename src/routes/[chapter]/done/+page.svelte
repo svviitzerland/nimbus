@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { lang, t } from '$lib/i18n';
 	import { getChapter, getNextChapter } from '$lib/chapters';
 	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
@@ -19,14 +20,15 @@
 	function pick(track: Track) {
 		path.setTrack(track.id);
 		const r = path.firstOpen(track);
-		if (r) goto(`/${r.chapterId}/${r.lessonId}`);
+		if (r) goto(resolve('/[chapter]/[lesson]', { chapter: r.chapterId, lesson: r.lessonId }));
 	}
 
 	function restart() {
-		goto(`/${chapter.id}/${chapter.lessons[0].id}`);
+		goto(resolve('/[chapter]/[lesson]', { chapter: chapter.id, lesson: chapter.lessons[0].id }));
 	}
 	function goNext() {
-		if (next) goto(`/${next.id}/${next.lessons[0].id}`);
+		if (next)
+			goto(resolve('/[chapter]/[lesson]', { chapter: next.id, lesson: next.lessons[0].id }));
 	}
 </script>
 
@@ -74,15 +76,20 @@
 			>
 				{#each s.items as item (item)}
 					<li class="flex gap-2.5 text-[12.5px] leading-snug md:text-sm">
-						<span class="mt-px font-bold text-grass">✓</span><span class="text-muted"
-							>{@html item}</span
-						>
+						<span class="mt-px font-bold text-grass">✓</span>
+						<span class="text-muted">
+							<!-- Curated lesson markup, never learner input. -->
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+							{@html item}
+						</span>
 					</li>
 				{/each}
 			</ul>
 			<p
 				class="mx-auto mt-3.5 max-w-sm text-[12px] leading-relaxed text-faint md:mt-5 md:text-[13px]"
 			>
+				<!-- Curated lesson markup, never learner input. -->
+				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				{@html s.nextNote}
 			</p>
 			{#if next}
@@ -90,7 +97,7 @@
 					<CallToActionButton onclick={goNext}>
 						{next.unnumbered
 							? next.title[$lang]
-							: `${$t.chapter} ${next.number}: ${next.title[$lang]}`}
+							: `${$t.chapter} ${next.number} / ${next.title[$lang]}`}
 					</CallToActionButton>
 					<button
 						onclick={restart}

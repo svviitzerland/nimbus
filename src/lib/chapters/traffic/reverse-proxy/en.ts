@@ -6,7 +6,8 @@ export const en: ReverseProxyText = {
 		'A site is rarely just one server. Usually one server holds the pages, another holds the data, and another holds the images. Three different servers, and it gets messy if every visitor has to remember all of them.',
 		'So we put one receiver out front, called a <b>reverse proxy</b>. Every request comes in through it, then it forwards each one to the right server behind.',
 		'Think of it as a receptionist. Every guest is greeted at the front desk, then walked to the correct room. Guests never see the back offices, and they only know one address, <b>nimbus.com</b>.',
-		'The receptionist is already seated behind <b>nimbus.com</b>. Ask for a page, some data, or an image, and watch each request get walked to the right server while the real addresses stay hidden.'
+		'The receptionist is already seated behind <b>nimbus.com</b>. Ask for a page, some data, or an image, and watch each request get walked to the right server while the real addresses stay hidden.',
+		'[ingat] A reverse proxy receives visitors and forwards requests to servers behind it.'
 	],
 	reactions: {
 		web: 'The request to <b>/</b> goes to the page server, and you get the web page back. One address out front, the proxy handles the rest. Try another path.',

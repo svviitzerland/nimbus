@@ -6,22 +6,14 @@ import { en } from './en';
 export const mfa: Lesson = {
 	id: 'mfa',
 	mood: 'thinking',
-	moods: [
-		'worried',
-		'sad',
-		'idea',
-		'wink',
-		'calm',
-		'excited',
-		'happy',
-		'surprised',
-		'worried',
-		'excited'
-	],
+	moods: ['worried', 'idea', 'happy', 'thinking', 'excited', 'wink', 'calm'],
 	reactionMood: {
-		you: 'happy',
-		wrongCode: 'thinking'
+		noMfa: 'sad',
+		stuck: 'excited',
+		wrongCode: 'thinking',
+		you: 'happy'
 	},
+	playable: true,
 	stage: MfaStage,
 	text: { id, en }
 };

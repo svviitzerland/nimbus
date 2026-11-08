@@ -6,21 +6,16 @@ import { en } from './en';
 export const hashing: Lesson = {
 	id: 'hashing',
 	mood: 'thinking',
-	moods: [
-		'calm',
-		'worried',
-		'idea',
-		'surprised',
-		'wink',
-		'happy',
-		'worried',
-		'excited',
-		'thinking',
-		'excited'
-	],
+	moods: ['calm', 'worried', 'idea', 'happy', 'thinking', 'excited', 'wink', 'excited'],
 	reactionMood: {
-		typed: 'happy'
+		typed: 'surprised',
+		registered: 'happy',
+		leaked: 'worried',
+		leakedWeak: 'surprised',
+		lookup: 'sad',
+		salted: 'excited'
 	},
+	playable: true,
 	stage: HashingStage,
 	text: { id, en }
 };

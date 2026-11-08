@@ -1,88 +1,47 @@
 import type { BlockchainText } from './types';
 
 export const id: BlockchainText = {
-	title: 'Blockchain',
+	title: 'Apa itu blockchain',
 	intro: [
-		'Bayangkan buku catatan siapa bayar siapa, yang dipegang satu kampung, bukan satu petugas bank. Semua orang punya salinannya, siapa pun bisa mengecek, dan nggak ada yang bisa diam diam menulis ulang halaman lama. Itulah ide di balik <b>blockchain</b>.',
-		'Tiap halaman adalah <b>blok</b> yang berisi beberapa catatan. Tiap blok juga punya <b>sidik jari</b>, kode pendek yang dihitung dari seluruh isinya (hash, seperti di [[tanda tangan digital|security/signature]]). Ubah apa pun di dalamnya, sidik jarinya berubah total.',
-		'Ini triknya. Tiap blok juga mencatat sidik jari blok <b>sebelumnya</b>. Jadi blok blok itu saling bergantung seperti mata rantai, terus sampai ke blok pertama.',
-		'Sekarang lihat ada yang diam diam mengubah nominal lama, 5 jadi 50. Blok itu dapat sidik jari baru, padahal blok berikutnya masih ingat yang lama. Rantainya putus, dan semua orang bisa melihatnya.',
-		'[ingat] <b>Ubah satu halaman lama, semua halaman sesudahnya harus ditulis ulang.</b> Buat menyembunyikan editannya, si curang harus mengulang semua blok sesudahnya, dan justru itu yang dibuat susah.',
-		'Dan ini bukan satu buku, tapi ribuan salinan. Salinanmu yang diedit nggak cocok dengan yang lain, jadi jaringan mengabaikannya. Versi yang disepakati kebanyakan komputer yang menang.',
-		'Ide ini lebih tua dari dugaanmu. Tahun 1991, Stuart Haber dan W. Scott Stornetta merangkai dokumen pakai sidik jari supaya tanggalnya nggak bisa dimundurkan. Tahun 2008, seseorang yang menyebut dirinya <b>Satoshi Nakamoto</b> menambahkan <b>mining</b>, di mana komputer harus mencoba angka satu per satu sampai sidik jarinya diawali nol, lalu lahirlah <b>Bitcoin</b> (jalan Januari 2009). Siapa Satoshi sebenarnya, sampai sekarang nggak ada yang tahu.',
-		'[fyi] Trik sama, dunia beda. [[Git|compute/version-control]] menyambung tiap commit ke sidik jari commit sebelumnya, jadi commit lama yang diam diam diubah juga langsung ketahuan. Bedanya, Git nggak punya koin dan nggak ada mining.',
-		'Jujur saja ya. Blockchain itu lambat dan mahal dibanding database biasa. Dia cuma berguna kalau banyak pihak butuh catatan bersama dan nggak percaya satu penjaga pun. Banyak proyek "taruh saja di blockchain" yang akhirnya tutup diam diam, karena database biasa sebenarnya sudah cukup.',
-		'Kalau mau, ubah sendiri nominal di blok 2 dan lihat rantainya putus, lalu kembalikan lagi.'
+		'<b>Blockchain</b> menyimpan catatan dalam blok yang saling terhubung dengan hash. Beberapa komputer dapat memegang salinannya, dan aturan konsensus menentukan riwayat mana yang diterima.',
+		'Tiap halaman disebut <b>blok</b>, isinya beberapa catatan. Setiap blok juga menyimpan <b>sidik jari</b> (hash, seperti di [[tanda tangan digital|security/signature]]) dari blok sebelumnya. Ubah apa pun di dalam blok, sidik jarinya ikut berubah total.',
+		'Jadi blok blok itu saling bergantung seperti mata rantai. Ubah blok lama, maka sidik jari yang disimpan blok berikutnya jadi nggak cocok, mata rantainya putus, begitu juga semua mata rantai setelahnya.',
+		'Menyambung catatan pakai hash itu lebih tua dari yang kamu kira. Tahun 1991, Stuart Haber dan W. Scott Stornetta memakainya untuk memberi cap waktu pada dokumen supaya nggak bisa dimundurkan tanggalnya. Tahun 2008, seseorang yang menyebut dirinya <b>Satoshi Nakamoto</b> menggabungkannya dengan trik lain jadi <b>Bitcoin</b>, yang mulai jalan Januari 2009. Siapa Satoshi sebenarnya sampai sekarang belum diketahui.',
+		'Di Bitcoin, ribuan komputer masing masing menyimpan salinan lengkap. Sebelum boleh menambah blok, sebuah komputer harus menghabiskan banyak kerja komputasi (namanya <b>mining</b>, atau proof of work). Menulis ulang sejarah berarti mengulang semua kerja itu lebih cepat dari gabungan semua komputer lain.',
+		'[fyi] Trik yang sama, dunia yang beda. [[Git|compute/version-control]] menyambung tiap commit ke sidik jari commit sebelumnya, jadi commit lama yang diubah diam diam juga langsung ketahuan. Bedanya, Git nggak punya koin dan nggak ada mining.',
+		'Blockchain menambah biaya koordinasi dan penyimpanan dibanding banyak rancangan database terpusat. Pilih sesuai kebutuhan, misalnya siapa yang boleh menulis, siapa yang memverifikasi, dan apakah satu pengelola dipercaya.',
+		'[ingat] <b>Hash menghubungkan blok, konsensus memilih riwayat.</b> Mengubah isi blok memerlukan penghitungan ulang hash. Agar diterima jaringan, rantainya juga harus memenuhi aturan konsensus.',
+		'Ini rantai kecil berisi empat blok, plus empat komputer yang menyimpan salinannya. Ubah sesuatu di blok lama, misalnya jumlahnya, lalu lihat apa yang terjadi pada sisanya.'
 	],
 	reactions: {
 		broken:
-			'Putus. Blok 2 dapat sidik jari baru, blok 3 masih ingat yang lama, jadi rantainya putus persis di situ dan semua orang bisa lihat.',
-		restored: 'Balik ke 5. Sidik jarinya sama seperti semula, dan seluruh rantai nyambung lagi.'
+			'Rantainya putus. Editanmu mengubah sidik jari blok itu, tapi blok berikutnya masih ingat yang lama. Mata rantainya lepas, dan semua blok setelahnya nggak bisa dipercaya lagi.',
+		tip: 'Kamu mengubah blok paling baru, jadi belum ada blok setelahnya yang sadar. Tapi lihat komputer lain, sidik jari terakhir mereka beda dengan punyamu. Sekarang coba blok yang lebih lama.',
+		restored:
+			'Kembali ke tulisan aslinya, dan semua mata rantai pas lagi. Sidik jari cuma peduli pada isi yang persis sama.',
+		rehash:
+			'Hash di salinanmu sudah dihitung ulang, tetapi isinya berbeda dari salinan jaringan. Contoh ini menunjukkan perbedaan salinan, bukan voting konsensus. Pada Bitcoin, node memeriksa aturan dan memilih rantai valid dengan akumulasi proof of work terbesar.',
+		synced:
+			'Kamu mengambil salinan yang disepakati semua orang. Komputer baru yang bergabung ke jaringan juga begitu, dia mengunduh rantainya lalu memeriksa setiap mata rantai sendiri.'
 	},
-	steps: [
-		{
-			tag: 'Idenya',
-			title: 'Buku catatan bersama',
-			body: 'Satu catatan siapa bayar siapa, disalin ke banyak orang, bukan disimpan satu petugas.'
-		},
-		{
-			tag: 'Satu halaman',
-			title: 'Blok dan sidik jari',
-			body: '<b>Blok</b> berisi beberapa catatan. <b>Sidik jarinya</b> dihitung dari seluruh isinya.'
-		},
-		{
-			tag: 'Rantainya',
-			title: 'Tiap blok menunjuk ke belakang',
-			body: 'Tiap blok menyimpan sidik jari blok sebelumnya. Sidik jari yang disimpan itulah mata rantainya.'
-		},
-		{
-			tag: 'Diutak atik',
-			title: 'Rantainya putus',
-			body: 'Edit blok lama, sidik jarinya berubah. Blok berikutnya nggak cocok lagi, jadi editannya langsung kelihatan.'
-		},
-		{
-			tag: 'Biar nempel',
-			title: 'Satu diedit, semua diulang',
-			body: 'Menyembunyikan perubahan berarti mengulang <b>semua</b> blok sesudahnya. Makin tua bloknya, makin banyak kerjanya.'
-		},
-		{
-			tag: 'Banyak salinan',
-			title: 'Suara terbanyak menang',
-			body: 'Ribuan komputer menyimpan salinan. Satu salinan yang beda sendiri langsung diabaikan.'
-		},
-		{
-			tag: '1991 sampai 2009',
-			title: 'Mining dan Bitcoin',
-			body: 'Buat menambah blok, komputer mengganti satu angka (<b>nonce</b>) terus menerus sampai sidik jarinya diawali nol. Sengaja dibuat lambat, supaya mengulang sejarah mahalnya bukan main.'
-		},
-		{
-			tag: 'Trik sama',
-			title: 'Git juga begitu',
-			body: 'Tiap commit Git menyimpan sidik jari commit sebelumnya. Rantai blok, tanpa koin.'
-		},
-		{
-			tag: 'Jujur saja',
-			title: 'Bukan buat semua hal',
-			body: 'Lambat dan mahal. Cuma sepadan kalau banyak pihak berbagi catatan dan nggak percaya satu penjaga.'
-		},
-		{
-			tag: 'Opsional',
-			title: 'Edit sendiri',
-			body: 'Ubah nominal di blok 2 dan lihat mata rantai mana yang putus. Lalu kembalikan.'
-		}
-	],
 	blockLabel: 'Blok {n}',
-	commitLabel: 'Commit {n}',
-	records: ['Halaman awal', 'Ana bayar Budi 5', 'Budi bayar Cici 2', 'Cici bayar Dodi 1'],
-	edited: 'Ana bayar Budi 50',
-	prevLabel: 'sebelum',
-	hashLabel: 'milikku',
-	redoTag: 'harus diulang',
-	brokenTag: 'nggak cocok',
-	nonceLabel: 'nonce',
-	yourCopy: 'salinanmu',
-	computer: 'salinan {n}',
-	rule: 'ubah satu halaman, tulis ulang semua sesudahnya',
-	editBtn: 'Ubah 5 jadi 50 di blok 2',
-	restoreBtn: 'Kembalikan ke 5'
+	records: [
+		'Ana bayar Budi 5 koin',
+		'Budi bayar Citra 2 koin',
+		'Citra bayar Dodi 1 koin',
+		'Dodi bayar Ana 3 koin'
+	],
+	prevLabel: 'sebelumnya',
+	hashLabel: 'sidik jari',
+	editHint: 'Ketuk sebuah blok lalu ubah tulisannya',
+	brokenTag: 'rantai putus',
+	changedTag: 'diubah',
+	rehashBtn: 'Hitung ulang semua sidik jari di salinanku',
+	syncBtn: 'Ambil salinan jaringan',
+	networkLabel: 'Salinan di komputer lain',
+	yourCopy: 'Salinanmu',
+	computer: 'Komputer {n}',
+	agree: 'cocok',
+	disagree: 'beda',
+	shortNote: 'Sidik jari di sini dipotong jadi 8 karakter, yang asli di Bitcoin panjangnya 64.'
 };

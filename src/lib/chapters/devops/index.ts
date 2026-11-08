@@ -1,3 +1,4 @@
+import { secrets } from './secrets';
 import type { Chapter } from '../types';
 import { backup } from './backup';
 import { whatDevops } from './what-devops';
@@ -16,7 +17,7 @@ export const devopsChapter: Chapter = {
 	number: 14,
 	unnumbered: true,
 	title: { id: 'Cloud & DevOps', en: 'Cloud & DevOps' },
-	lessons: [backup, whatDevops, iac, configMgmt, kubernetes, release, logs, onCall],
+	lessons: [secrets, backup, whatDevops, iac, configMgmt, kubernetes, release, logs, onCall],
 	summary: {
 		id: {
 			title: 'Cloud & DevOps selesai',

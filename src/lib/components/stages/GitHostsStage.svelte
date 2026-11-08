@@ -4,6 +4,8 @@
 	Tap to compare them, then reveal why most people land on GitHub.
 -->
 <script lang="ts">
+	import { SvelteSet } from 'svelte/reactivity';
+
 	import { slide } from 'svelte/transition';
 	import type { LessonText, GitHostsText } from '$lib/chapters/types';
 	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
@@ -28,7 +30,7 @@
 	};
 
 	let selected = $state<string | null>(null);
-	let explored = $state<Set<string>>(new Set());
+	const explored = new SvelteSet<string>();
 	let whyOpen = $state(false);
 	let done = false;
 
@@ -37,7 +39,7 @@
 
 	function pick(id: string) {
 		selected = id;
-		if (!explored.has(id)) explored = new Set(explored).add(id);
+		explored.add(id);
 		onstate?.(id);
 	}
 	function why() {
@@ -87,6 +89,8 @@
 			<span class="whylabel">{tx.whyLabel}</span>
 			<ul>
 				{#each tx.whyPoints as p (p)}
+					<!-- Curated lesson markup, never learner input. -->
+					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 					<li>{@html p}</li>
 				{/each}
 			</ul>

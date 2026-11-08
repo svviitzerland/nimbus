@@ -49,6 +49,9 @@
 						>
 					{:else}
 						<span class="watch"><i></i>{tx.watchLabel}</span>
+						<button class="cmd" type="button" onclick={() => onselect?.(tx.panels.length - 1)}
+							>{tx.tryLabel}</button
+						>
 					{/if}
 				</div>
 				<LinuxTerminal {shell} {live} inputLabel={tx.inputLabel} short />

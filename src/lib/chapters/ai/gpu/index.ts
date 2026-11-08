@@ -6,11 +6,14 @@ import { en } from './en';
 export const gpu: Lesson = {
 	id: 'gpu',
 	mood: 'happy',
-	moods: ['thinking', 'calm', 'idea', 'excited', 'wink', 'happy', 'idea', 'thinking'],
+	moods: ['thinking', 'calm', 'idea', 'excited', 'wink', 'happy'],
 	reactionMood: {
-		chain: 'surprised',
-		pile: 'excited'
+		racing: 'excited',
+		gpu: 'excited',
+		cpu: 'surprised',
+		done: 'happy'
 	},
+	playable: true,
 	stage: GpuStage,
 	text: { id, en }
 };

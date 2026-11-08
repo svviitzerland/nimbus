@@ -5,7 +5,8 @@ export const id: CapstoneText = {
 	intro: [
 		'Sampai juga di ujung jalur Cloud. Dari satu server di laptop sampai arsitektur yang tahan banting, kamu sudah paham semua konsep besarnya.',
 		'Cabang berikutnya membawa konsep itu ke dunia nyata, satu penyedia demi satu. Konsepnya sama persis, cuma sekarang pakai nama dan tombol aslinya, misalnya EC2 dan Cloud Run.',
-		'Pilih penyedia yang paling ingin kamu pelajari duluan. Ketiganya masih tahap pembangunan, dan kamu bisa titip email biar dikabari begitu jalurnya siap.'
+		'Pilih penyedia yang paling ingin kamu pelajari duluan. Ketiganya masih tahap pembangunan, dan kamu bisa titip email biar dikabari begitu jalurnya siap.',
+		'[ingat] Mulai dari kebutuhan, susun komponen, uji kegagalannya, lalu periksa biayanya.'
 	],
 	reactions: {
 		picked:

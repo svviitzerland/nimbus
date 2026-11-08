@@ -3,92 +3,46 @@ import type { CompilerText } from './types';
 export const id: CompilerText = {
 	title: 'Compiler dan interpreter',
 	intro: [
-		'Ini masalah besarnya. Manusia nulis kode pakai kata kata kayak print dan name, tapi komputer sama sekali nggak ngerti satu pun. Jauh di dalam, CPU cuma menjalankan [[0 dan 1|basics/binary]].',
-		'Jadi sebelum apa pun bisa jalan, kodenya harus <b>diterjemahkan</b> dulu jadi 0 dan 1. Itulah alasan compiler dan interpreter ada. Dua duanya penerjemah, cuma gayanya beda.',
-		'<b>Compiler</b> itu kayak penerjemah yang menerjemahkan <b>satu buku utuh dulu</b>. Kamu nunggu di awal, lalu dapat buku jadinya dan bisa baca dengan ngebut. C dan Go bekerja begini.',
-		'<b>Interpreter</b> itu kayak juru bahasa yang berdiri di samping pembicara, menerjemahkan <b>kalimat per kalimat</b>. Kamu bisa langsung mulai, tapi tiap kalimat makan waktu tambahan. Python dan JavaScript biasanya bekerja begini.',
-		'Yuk lihat mereka menerjemahkan program kecil yang sama, berdampingan. Compiler diam dulu, lalu ngebut. Interpreter langsung mulai, tapi jalannya santai.',
-		'Sekarang ada salah ketik nyelip di baris 3. Compiler membaca semuanya sebelum apa pun jalan, jadi dia berhenti di situ dan nggak ada yang jalan sama sekali. Interpreter santai menjalankan baris baris awal, dan baru crash (berhenti karena error) waktu sampai di baris 3.',
-		'Sedikit sejarah. Tahun 1952 <b>Grace Hopper</b> membuat salah satu compiler paling awal, namanya A0. Banyak orang bilang komputer cuma bisa berhitung, tapi dia yakin program sebaiknya ditulis pakai kata kata yang mirip bahasa Inggris, ide yang kemudian tumbuh jadi bahasa COBOL. Timnya bahkan pernah menemukan ngengat sungguhan nyangkut di dalam komputer Harvard Mark II tahun 1947, dan dia senang sekali menceritakan "bug" pertama yang beneran itu.',
-		'Satu lagi kelebihan compiler. Hasil terjemahannya disimpan jadi file, jadi waktu dijalankan lagi nggak perlu menerjemahkan, langsung jalan. Makanya aplikasi yang kamu install biasanya hasil compile, diterjemahkan sekali di komputer pembuatnya, lalu cepat buat semua orang.',
-		'[fyi] Di dunia nyata batasnya agak kabur. Java dikompilasi dulu jadi bahasa setengah jadi, lalu program pembantu (Java virtual machine) menerjemahkan sisanya sambil programnya jalan. Mesin JavaScript di browser kamu juga mencampur dua gaya ini, biar makin cepat.',
-		'[ingat] Compiler itu penerjemah buku, terjemahkan semua dulu baru dibaca. Interpreter itu juru bahasa di rapat, ngomong sekalimat langsung diterjemahkan sekalimat.',
-		'Kalau mau, giliran kamu. Selipkan salah ketik di baris 3 dan lihat siapa yang sadar duluan, lalu betulkan lagi.'
+		'CPU tidak langsung menjalankan kalimat yang kita tulis. Program perlu diterjemahkan atau dijalankan oleh program lain yang memahami bahasanya.',
+		'<b>Compiler</b> menerjemahkan kode ke bentuk lain, misalnya kode mesin atau bytecode. Hasilnya bisa disimpan untuk dijalankan kemudian.',
+		'<b>Interpreter</b> menjalankan instruksi melalui program penerjemah saat aplikasi berjalan. Sistem nyata sering menggabungkan kompilasi dan interpretasi.',
+		'Meja ini membandingkan dua <b>model sederhana</b>. Satu menerjemahkan dahulu, satu menjalankan langkah bertahap. Waktunya diperlambat agar perbedaannya terlihat.',
+		'Coba ubah print menjadi prnit. Model kiri memeriksa nama fungsi sebelum berjalan. Model kanan baru memeriksanya saat baris itu dijalankan. Ini pilihan model, bukan aturan semua bahasa.',
+		'[fyi] Python bisa menemukan syntax error sebelum program berjalan. Nama fungsi yang tidak ada dapat menghasilkan NameError saat dipakai. Program hasil kompilasi pun masih bisa mengalami error saat berjalan.',
+		'[ingat] <b>Compiler menghasilkan terjemahan, interpreter menjalankan instruksi.</b> Satu aplikasi bisa menggunakan keduanya.',
+		'Jalankan sekali, ulangi dengan hasil terjemahan tersimpan, lalu uji nama fungsi yang salah. Bandingkan kapan model berhenti.'
 	],
 	reactions: {
-		typo: 'Compiler menangkapnya sebelum satu baris pun jalan. Interpreter sudah sempat menampilkan satu baris di layar, baru crash di baris 3. Kesalahannya sama, ketahuannya di saat yang beda jauh.',
-		fixed: 'Sudah betul, dan dua duanya sampai ke akhir lagi.'
+		race: 'Di model ini, penerjemahan awal memerlukan waktu. Waktu sebenarnya bergantung pada bahasa, runtime, dan programnya. Coba jalankan lagi.',
+		rerun:
+			'Hasil terjemahan model kiri sudah disimpan, jadi tahap itu tidak diulang. Runtime nyata juga dapat menyimpan bytecode atau hasil optimasi dengan cara berbeda.',
+		typo: 'Model pemeriksaan awal berhenti sebelum eksekusi. Model bertahap berhenti di prnit. Nama fungsi tidak ada, bukan kesalahan tanda baca.'
 	},
-	steps: [
-		{
-			title: 'Cuma 0 dan 1',
-			body: 'CPU, otaknya komputer, cuma paham pola <b>0 dan 1</b>. Kata kayak <b>print</b> nggak ada artinya buat dia.'
-		},
-		{
-			title: 'Penerjemahan',
-			body: 'Sebuah program penerjemah mengubah kodemu jadi 0 dan 1, baru setelah itu CPU bisa menjalankannya.'
-		},
-		{
-			title: 'Compiler',
-			body: 'Menerjemahkan <b>semua baris dulu</b> lalu menyimpan hasilnya jadi file. Setelah itu file tersebut jalan cepat, tanpa menerjemahkan lagi di tengah jalan.'
-		},
-		{
-			title: 'Interpreter',
-			body: 'Ambil <b>satu baris</b>, terjemahkan, jalankan, lalu pindah ke baris berikutnya. Nggak ada yang disimpan, jadi tiap kali jalan ya diterjemahkan lagi.'
-		},
-		{
-			title: 'Berdampingan',
-			body: 'Compiler nunggu di awal, lalu ngebut. Interpreter langsung mulai, tapi bayar sedikit waktu di tiap baris.'
-		},
-		{
-			title: 'Menangkap salah ketik',
-			body: 'Compiler menemukan kesalahan <b>sebelum apa pun jalan</b>. Interpreter baru menemukannya <b>waktu sampai di situ</b>, setelah baris sebelumnya terlanjur jalan.'
-		},
-		{
-			title: 'Grace Hopper',
-			tag: 'Sejarah',
-			body: 'Membuat compiler <b>A0</b> tahun 1952 dan memperjuangkan kode yang ditulis pakai kata kata mirip bahasa Inggris, yang kemudian melahirkan <b>COBOL</b>. Cerita ngengat timnya ikut bikin kata <b>bug</b> terkenal di dunia komputer.'
-		},
-		{
-			title: 'Terjemahkan sekali',
-			body: 'File yang tersimpan (di sini <b>nimbus.exe</b>) bisa jalan lagi tanpa diterjemahkan. Interpreter harus mulai dari awal tiap kali.'
-		},
-		{
-			title: 'Campuran',
-			body: 'Java dan JavaScript di browser mencampur dua gaya ini, sebagian diterjemahkan lebih awal dan sisanya sambil program jalan.'
-		},
-		{
-			title: 'Buku dan rapat',
-			tag: 'Biar nempel',
-			body: 'Compiler itu <b>penerjemah buku</b>, semua dulu baru dibaca. Interpreter itu <b>juru bahasa di rapat</b>, sekalimat demi sekalimat.'
-		}
+	code: [
+		'name = "Nimbus"',
+		'visitors = 120',
+		'visitors = visitors + 1',
+		'print("Halo,", name)',
+		'print(visitors)',
+		'print("Dadah!")'
 	],
-	code: ['name = "Nim"', 'print("Halo", name)', 'print(1 + 1)', 'print("Dadah")'],
-	output: [null, 'Halo Nim', '2', 'Dadah'],
-	typoLine: 2,
-	typoCode: 'prnit(1 + 1)',
-	codeLabel: 'Kode kamu',
-	cpuLabel: 'CPU',
-	translatorLabel: 'Penerjemah',
-	compiler: { name: 'Compiler', sub: 'C, Go' },
-	interpreter: { name: 'Interpreter', sub: 'Python, JavaScript' },
-	fileName: 'nimbus.exe',
+	output: [null, null, null, 'Halo, Nimbus', '121', 'Dadah!'],
+	typoLine: 4,
+	typoCode: 'prnit(visitors)',
+	compiler: { name: 'Compiler', sub: 'terjemahkan semua dulu' },
+	interpreter: { name: 'Interpreter', sub: 'terjemahkan baris per baris' },
+	run: 'Jalankan keduanya',
+	runAgain: 'Jalankan lagi',
+	addTypo: 'Bikin salah ketik di baris 5',
+	fixTypo: 'Betulkan salah ketiknya',
+	compiling: 'Menerjemahkan seluruh program',
+	ready: 'Sudah diterjemahkan, disimpan jadi nimbus.exe',
+	reused: 'Sudah diterjemahkan, langsung jalankan nimbus.exe',
+	readingLine: 'Menerjemahkan baris {n}, lalu menjalankannya',
+	finishedIn: 'Selesai dalam {s} detik',
+	errCompile: 'Salah ketik ketahuan di baris {n}, nggak ada yang jalan',
+	errInterp: 'Crash di baris {n}, baris di atasnya sudah terlanjur jalan',
 	screenLabel: 'Layar',
-	waiting: 'Menunggu',
-	compiling: 'Menerjemahkan semua baris',
-	saved: 'Tersimpan, sekarang ngebut',
-	reused: 'Sudah diterjemahkan, langsung jalan',
-	running: 'Jalan',
-	readingLine: 'Baris {n}, terjemahkan lalu jalankan',
-	done: 'Selesai',
-	errCompile: 'Salah ketik di baris {n}, nggak ada yang jalan',
-	errInterp: 'Crash di baris {n}',
-	hopper: {
-		alt: 'Potret Grace Hopper dengan seragam Angkatan Laut Amerika Serikat',
-		name: 'Grace Hopper',
-		caption: 'Perintis komputer, 1906 sampai 1992',
-		logbook: 'First actual case of bug being found.'
-	},
-	addTypo: 'Bikin salah ketik di baris 3',
-	fixTypo: 'Betulkan salah ketiknya'
+	waiting: 'belum ada apa apa',
+	noteIdle: 'Siap kapan aja'
 };

@@ -104,7 +104,7 @@
 	<div class="acts">
 		{#if !surging}
 			<CallToActionButton onclick={surge}>
-				{#snippet children()}{tx.surge}{/snippet}
+				{tx.surge}
 			</CallToActionButton>
 		{:else}
 			<button type="button" class="line" onclick={calm}>{tx.again}</button>

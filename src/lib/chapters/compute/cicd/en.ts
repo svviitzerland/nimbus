@@ -1,13 +1,14 @@
 import type { CicdText } from '../types';
 
 export const en: CicdText = {
-	title: 'From commit to live',
+	title: 'CI/CD',
 	intro: [
 		'Your app is running and watched. But how does each new change on your laptop reach the site people use (called <b>live</b>, or production) without breaking anything? The manual way is scary. You log into the server, copy the files, restart, and hope. One typo at two in the morning and the site is down.',
 		'The calm way is a <b>pipeline</b>. You just push your change. The same steps run automatically every time. Build, test, then deploy.',
 		'A pipeline has two halves. <b>CI</b> (continuous integration) builds your change into an app and tests it. That is the build and test part. <b>CD</b> (continuous delivery) ships the ones that pass to production. That is the deploy part. So CI makes sure your change is not broken, and CD puts it live.',
 		'One more thing, your code usually passes through three places. <b>Development</b> is your laptop, where you can try anything. <b>Staging</b> is a rehearsal copy that looks just like the real one. <b>Production</b> is what real users see, so only what passed the rehearsal gets there.',
-		'If a test fails, the pipeline stops right there. A broken change never reaches your users. Ship a good change, then a broken one. Watch the log in the console below.'
+		'If a test fails, the pipeline stops right there. A broken change never reaches your users. Ship a good change, then a broken one. Watch the log in the console below.',
+		'[ingat] Check changes first, then deliver them through repeatable steps.'
 	],
 	reactions: {
 		pass: 'Clean run. Build passed, tests passed, deploy went on its own. Production moved to the new version. No late night, no copying files.',

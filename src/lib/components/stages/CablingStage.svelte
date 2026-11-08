@@ -1,418 +1,456 @@
 <script lang="ts">
-	// Guided: a laptop and a server joined by two cables, copper on top and fibre below. Pulses
-	// run along both by themselves; copper fades with distance and breaks past 100 metres, fibre
-	// stays bright. A close up lens shows what is inside. On the last beat the learner may drag
-	// the distance.
-	import { untrack } from 'svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import { onDestroy } from 'svelte';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { CablingText } from '$lib/chapters/network/cabling/types';
-	import Guide from '$lib/components/Guide.svelte';
-	import Thing from './netguide/Thing.svelte';
+	import DeviceIcon from './netbasics/DeviceIcon.svelte';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as CablingText);
 
-	$effect(() => {
-		untrack(() => {
-			onshow?.(true);
-			oncomplete?.();
-		});
-	});
+	type Cable = 'copper' | 'fibre';
+	const DIST = [10, 50, 100, 300, 5000, 60000]; // metres
+	const distText = (m: number) => (m >= 1000 ? `${m / 1000} km` : `${m} m`);
+	const LIMIT = 0.2; // below this the far end cannot read the signal
 
-	const last = $derived(tx.intro.length - 1);
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const active = $derived(peek ?? Math.min(beat, tx.steps.length - 1));
-	const isLast = $derived(beat >= last);
-	const TRY = 6;
+	let cable = $state<Cable>('copper');
+	let step = $state(0);
+	const metres = $derived(DIST[step]);
 
-	// the distance shown at each step, in metres; the last step follows the slider
-	const STEP_DIST = [10, 10, 150, 20000, 300, 10];
-	const DISTS = [10, 50, 100, 150, 300, 2000, 20000];
-	let pick = $state(0);
-	const distOf = (s: number) => (s === TRY ? DISTS[pick] : (STEP_DIST[s] ?? 10));
-	const fmt = (d: number) => (d >= 1000 ? `${d / 1000} km` : `${d} m`);
+	// How much of the signal survives the trip. Copper fades within metres, light within tens of km.
+	const signalFor = (c: Cable, m: number) =>
+		c === 'copper' ? Math.exp(-m / 75) : Math.exp(-m / 150000);
 
-	type Zone = 'ok' | 'fail' | 'far';
-	const zoneOf = (d: number): Zone => (d <= 100 ? 'ok' : d < 2000 ? 'fail' : 'far');
-	function slide(e: Event) {
-		const before = zoneOf(DISTS[pick]);
-		pick = Number((e.currentTarget as HTMLInputElement).value);
-		peek = null;
-		const now = zoneOf(DISTS[pick]);
-		if (now === before) return;
-		onstate?.(now === 'ok' ? 'copperOk' : now === 'fail' ? 'copperFail' : 'fibreFar');
+	// ---- One send ----
+	type Shot = { cable: Cable; m: number; s: number; n: number };
+	let shot = $state<Shot | null>(null);
+	let arrived = $state(false);
+	let n = 0;
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	const seen = { copperFail: false, fibreFar: false };
+	let completed = false;
+
+	function send() {
+		clearTimeout(timer);
+		arrived = false;
+		const s = signalFor(cable, metres);
+		shot = { cable, m: metres, s, n: ++n };
+		const sent = shot;
+		timer = setTimeout(() => {
+			arrived = true;
+			const ok = sent.s >= LIMIT;
+			const token =
+				sent.cable === 'copper'
+					? ok
+						? 'copperOk'
+						: 'copperFail'
+					: sent.m > 100
+						? 'fibreFar'
+						: 'fibreOk';
+			onstate?.(token);
+			if (token === 'copperFail') seen.copperFail = true;
+			if (token === 'fibreFar') seen.fibreFar = true;
+			if (seen.copperFail && seen.fibreFar && !completed) {
+				completed = true;
+				oncomplete?.();
+			}
+		}, 1400);
 	}
 
-	// the cable runs from X0 to X1 on screen, whatever the distance
-	const X0 = 90;
-	const X1 = 354;
-	const LEN = X1 - X0;
-	function copperRun(d: number) {
-		if (d <= 100) return { to: X1, fade: Math.max(0.3, 1 - 0.65 * (d / 100)), ok: true };
-		return { to: X0 + LEN * Math.max(0.04, 100 / d), fade: 0, ok: false };
+	// ---- The wave drawn along the cable ----
+	const X0 = 34;
+	const X1 = 266;
+	const MID = 38;
+	const rand = (i: number) => {
+		const v = Math.sin(i * 12.9898) * 43758.5453;
+		return v - Math.floor(v) - 0.5;
+	};
+	function wavePath(c: Cable, s: number) {
+		const pts: string[] = [];
+		const len = X1 - X0;
+		for (let x = 0; x <= len; x += 2) {
+			const t = x / len;
+			const amp = 15 * Math.pow(s, t);
+			let y: number;
+			if (c === 'copper') {
+				const sq = Math.sin(x * 0.32);
+				const shaped = Math.sign(sq) * Math.pow(Math.abs(sq), 0.35);
+				const noise = 16 * t * (1 - s) * rand(x);
+				y = MID + amp * shaped + noise;
+			} else {
+				// crisp on and off pulses of light
+				const on = Math.floor(x / 10) % 3 !== 2;
+				y = MID - (on ? amp : 0);
+			}
+			pts.push(`${(X0 + x).toFixed(1)} ${y.toFixed(1)}`);
+		}
+		return 'M' + pts.join(' L');
 	}
+
+	const ok = $derived(shot ? shot.s >= LIMIT : false);
+	const note = $derived(
+		!shot || !arrived
+			? tx.idleNote
+			: ok
+				? tx.okNote.replace('{t}', shot.cable === 'copper' ? tx.times.copper : tx.times.fibre)
+				: tx.failNote
+	);
+
+	onDestroy(() => clearTimeout(timer));
 </script>
 
-<div class="wrap">
-	<div class="tryrow" class:show={isLast} aria-hidden={!isLast}>
-		<label class="trylabel" for="cabling-dist">{tx.distLabel}</label>
-		<input
-			id="cabling-dist"
-			type="range"
-			min="0"
-			max={DISTS.length - 1}
-			step="1"
-			value={pick}
-			disabled={!isLast}
-			oninput={slide}
-		/>
-		<span class="dist">{fmt(DISTS[pick])}</span>
+<div class="flex h-full w-full flex-col items-center gap-3">
+	<!-- controls up top -->
+	<div class="controls">
+		<div class="seg" role="radiogroup" aria-label={tx.copper.name + ' / ' + tx.fibre.name}>
+			{#each ['copper', 'fibre'] as const as c (c)}
+				<button
+					type="button"
+					role="radio"
+					aria-checked={cable === c}
+					class="opt {c}"
+					class:on={cable === c}
+					onclick={() => (cable = c)}
+				>
+					<b>{tx[c].name}</b>
+					<span>{tx[c].sub}</span>
+				</button>
+			{/each}
+		</div>
+
+		<label class="dist">
+			<span class="dlabel">{tx.distLabel}</span>
+			<span class="dval"><b>{distText(metres)}</b> {tx.places[step]}</span>
+			<input type="range" min="0" max={DIST.length - 1} step="1" bind:value={step} />
+		</label>
+
+		<button type="button" class="cta" onclick={send}>{tx.sendBtn}</button>
 	</div>
 
-	<Guide steps={tx.steps} {active} onselect={(k) => (peek = k)}>
-		{#snippet visual(s)}
-			{@const d = distOf(s)}
-			{@const cu = copperRun(d)}
-			{@const cuFocus = s === 1 || s === 2 || s === 5}
-			{@const fiFocus = s === 3}
-			<svg viewBox="0 0 440 300" class="art" role="img" aria-label={tx.title}>
-				<!-- the two ends -->
-				<Thing kind="laptop" x={44} y={163} />
-				<text class="lbl" x="44" y="196">{tx.youLabel}</text>
-				<Thing kind="server" x={404} y={163} s={0.9} />
-				<text class="lbl" x="404" y="204">{tx.farLabel}</text>
+	<!-- the cable, the two ends, and the signal travelling along it -->
+	<div class="scene">
+		<svg viewBox="0 0 300 78" class="wire" aria-hidden="true">
+			{#if shot}
+				{#key shot.n}
+					<path d={wavePath(shot.cable, shot.s)} class="wave {shot.cable}" />
+					<rect x={X0} y="0" width={X1 - X0 + 6} height="66" class="cover" />
+				{/key}
+			{/if}
+			<line x1={X0} y1={MID} x2={X1} y2={MID} class="cable {cable}" />
+			<text x="150" y="74" class="len">{distText(metres)}</text>
+		</svg>
+		<div class="endA">
+			<span class="ic"><DeviceIcon kind="laptop" size={30} /></span>
+			<span class="nm">{tx.youLabel}</span>
+		</div>
+		<div class="endB" class:bad={arrived && !ok} class:good={arrived && ok}>
+			<span class="ic"><DeviceIcon kind="server" size={30} /></span>
+			<span class="nm">{tx.farLabel}</span>
+		</div>
+		<span class="file">{tx.fileLabel}</span>
+	</div>
 
-				<!-- copper on top -->
-				<g class="cable copper" class:dim={fiFocus} class:hi={cuFocus}>
-					<path class="lead" d="M64 156 C 78 156, 74 118, {X0} 118" />
-					<path class="lead" d="M{X1} 118 C 370 118, 368 150, 386 150" />
-					<line class="jacket" x1={X0} y1="118" x2={X1} y2="118" />
-					<rect class="plug" x={X0 - 8} y="112" width="12" height="12" rx="2" />
-					<rect class="plug" x={X1 - 4} y="112" width="12" height="12" rx="2" />
-					<text class="name" x={X0} y="100">{tx.copper}</text>
-					{#key `${d}-${s}`}
-						{#each [0, 0.6, 1.2] as delay (delay)}
-							<g transform="translate(0 118)">
-								<rect
-									class="pulse cu"
-									x="-6"
-									y="-3.5"
-									width="12"
-									height="7"
-									rx="2"
-									style="--from:{X0}px; --to:{cu.to}px; --fade:{cu.fade}; animation-delay:{delay}s"
-								/>
-							</g>
-						{/each}
-					{/key}
-					{#if !cu.ok}
-						<g class="chip bad">
-							<rect x="282" y="88" width="88" height="19" rx="9.5" />
-							<text x="326" y="101">{tx.brokenTag}</text>
-						</g>
-						<path class="cross" d="M{cu.to + 6} 112 l10 12 M{cu.to + 16} 112 l-10 12" />
-					{/if}
-				</g>
+	<!-- what is left when it arrives -->
+	<div class="meter" class:show={arrived}>
+		<span class="mlabel">{tx.signalLabel}</span>
+		<div class="track">
+			<span
+				class="fill"
+				class:bad={!ok}
+				style="width:{arrived && shot ? Math.max(shot.s * 100, 1.5) : 0}%"
+			></span>
+			<span class="limit" style="left:{LIMIT * 100}%"><i>{tx.limitLabel}</i></span>
+		</div>
+	</div>
 
-				<!-- fibre below -->
-				<g class="cable fibre" class:dim={cuFocus} class:hi={fiFocus}>
-					<path class="lead" d="M64 168 C 78 168, 74 208, {X0} 208" />
-					<path class="lead" d="M{X1} 208 C 370 208, 368 176, 386 176" />
-					<line class="jacket" x1={X0} y1="208" x2={X1} y2="208" />
-					<line class="core" x1={X0} y1="208" x2={X1} y2="208" />
-					<text class="name" x={X0} y="190">{tx.fibre}</text>
-					{#key `${d}-${s}`}
-						{#each [0.3, 0.9, 1.5] as delay (delay)}
-							<g transform="translate(0 208)">
-								<circle
-									class="pulse fi"
-									r="4"
-									style="--from:{X0}px; --to:{X1}px; --fade:1; animation-delay:{delay}s"
-								/>
-							</g>
-						{/each}
-					{/key}
-					{#if d > 100}
-						<g class="chip ok">
-							<rect x="290" y="178" width="72" height="19" rx="9.5" />
-							<text x="326" y="191">{tx.okTag}</text>
-						</g>
-					{/if}
-				</g>
-
-				<!-- the distance ruler -->
-				<g class="ruler">
-					<line x1={X0} y1="262" x2={X1} y2="262" />
-					<line x1={X0} y1="256" x2={X0} y2="268" />
-					<line x1={X1} y1="256" x2={X1} y2="268" />
-					<text x={X0} y="284">0</text>
-					<text class="far" x={X1} y="284">{fmt(d)}</text>
-					{#if d > 100}
-						{@const lx = X0 + LEN * (100 / d)}
-						<line class="limit" x1={lx} y1="252" x2={lx} y2="272" />
-						{#if lx > X0 + 34 && lx < X1 - 40}
-							<text class="limit-t" x={lx} y="284">{tx.limitTag}</text>
-						{/if}
-					{/if}
-				</g>
-
-				<!-- close ups -->
-				<g class="lens" class:show={s === 1 || s === 5}>
-					<line class="pointer" x1="222" y1="84" x2="222" y2="112" />
-					<circle class="glass" cx="222" cy="50" r="34" />
-					<g clip-path="url(#cabling-lens)">
-						<path
-							class="wire a"
-							d="M186 50 C 194 36, 202 36, 210 50 S 226 64, 234 50 S 250 36, 258 50"
-						/>
-						<path
-							class="wire b"
-							d="M186 50 C 194 64, 202 64, 210 50 S 226 36, 234 50 S 250 64, 258 50"
-						/>
-					</g>
-					<text class="cap" x="264" y="54">{tx.pairLabel}</text>
-				</g>
-				<g class="lens" class:show={s === 3}>
-					<line class="pointer" x1="222" y1="84" x2="222" y2="202" />
-					<circle class="glass" cx="222" cy="50" r="34" />
-					<g clip-path="url(#cabling-lens)">
-						<rect class="fcore" x="186" y="42" width="72" height="16" />
-						<polyline class="ray" points="186,50 196,43 208,57 220,43 232,57 244,43 258,52" />
-					</g>
-					<text class="cap" x="264" y="54">{tx.glassLabel}</text>
-				</g>
-				<defs>
-					<clipPath id="cabling-lens"><circle cx="222" cy="50" r="32" /></clipPath>
-				</defs>
-			</svg>
-		{/snippet}
-	</Guide>
+	<p class="note" class:bad={arrived && !ok} class:good={arrived && ok}>{note}</p>
 </div>
 
 <style>
-	.wrap {
+	.controls {
+		display: flex;
+		width: min(94vw, 360px);
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+	}
+	.seg {
+		display: grid;
+		width: 100%;
+		grid-template-columns: 1fr 1fr;
+		gap: 6px;
+	}
+	.opt {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		border-radius: 12px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 6px 8px;
+		line-height: 1.2;
+		color: var(--color-muted);
+		transition: border-color 0.2s ease;
+	}
+	.opt b {
+		font-size: 12.5px;
+		font-weight: 800;
+	}
+	.opt span {
+		font-size: 9.5px;
+		font-weight: 600;
+	}
+	.opt.copper.on {
+		border-color: var(--color-amber);
+		color: var(--color-ink);
+	}
+	.opt.fibre.on {
+		border-color: var(--color-brand);
+		color: var(--color-ink);
+	}
+	.dist {
 		display: flex;
 		width: 100%;
 		flex-direction: column;
-		align-items: center;
-		gap: 12px;
-		padding-bottom: 7rem;
+		gap: 2px;
 	}
-	@media (min-width: 768px) {
-		.wrap {
-			padding-bottom: 1rem;
-		}
+	.dlabel {
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-faint);
 	}
-	.tryrow {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		gap: 12px;
-		min-height: 40px;
-		visibility: hidden;
-		opacity: 0;
-		transition: opacity 0.3s ease;
-	}
-	.tryrow.show {
-		visibility: visible;
-		opacity: 1;
-	}
-	.trylabel {
+	.dval {
 		font-size: 12px;
-		font-weight: 600;
 		color: var(--color-muted);
 	}
-	.tryrow input {
-		width: min(220px, 50vw);
+	.dval b {
+		color: var(--color-ink);
+		font-weight: 800;
+	}
+	.dist input {
+		width: 100%;
 		accent-color: var(--color-brand);
 	}
-	.dist {
-		min-width: 52px;
-		font-family: ui-monospace, monospace;
+	.cta {
+		border-radius: 12px;
+		background: var(--btn-primary);
+		color: #fff;
+		padding: 10px 22px;
 		font-size: 13px;
-		font-weight: 700;
-		color: var(--color-ink);
-	}
-	.art {
-		width: 100%;
-		max-width: 470px;
-		height: auto;
-		overflow: visible;
-	}
-	.lbl {
-		fill: var(--color-faint);
-		font-size: 11.5px;
 		font-weight: 600;
-		text-anchor: middle;
+		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.16);
+		transition: filter 0.2s ease;
 	}
-	.cable {
-		transition: opacity 0.45s ease;
+	.cta:hover {
+		filter: brightness(1.18);
 	}
-	.cable.dim {
-		opacity: 0.3;
-	}
-	.lead {
-		fill: none;
-		stroke: var(--color-muted);
-		stroke-width: 2;
-		opacity: 0.6;
-	}
-	.jacket {
-		stroke: var(--color-line);
-		stroke-width: 9;
-		stroke-linecap: round;
-	}
-	.fibre .jacket {
-		stroke-width: 6;
-	}
-	.core {
-		stroke: var(--color-amber);
-		stroke-width: 1.4;
-		opacity: 0.5;
-	}
-	.plug {
-		fill: var(--color-card);
-		stroke: var(--color-muted);
-		stroke-width: 1.4;
-	}
-	.name {
-		fill: var(--color-muted);
-		font-size: 12px;
-		font-weight: 700;
-		transition: fill 0.3s;
-	}
-	.cable.hi .name {
-		fill: var(--color-brand);
-	}
-	.pulse {
-		opacity: 0;
-		animation: run 1.8s linear infinite;
-	}
-	.pulse.cu {
-		fill: var(--color-brand);
-	}
-	.pulse.fi {
-		fill: var(--color-amber);
-	}
-	@keyframes run {
-		0% {
-			transform: translateX(var(--from));
-			opacity: 0;
-		}
-		8% {
-			opacity: 1;
-		}
-		100% {
-			transform: translateX(var(--to));
-			opacity: var(--fade);
-		}
-	}
-	.cross {
-		fill: none;
-		stroke: var(--color-danger);
-		stroke-width: 2.4;
-		stroke-linecap: round;
-	}
-	.chip rect {
-		stroke-width: 1.2;
-	}
-	.chip text {
-		font-size: 11px;
-		font-weight: 700;
-		text-anchor: middle;
-	}
-	.chip.bad rect {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-	}
-	.chip.bad text {
-		fill: var(--color-danger);
-	}
-	.chip.ok rect {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-	}
-	.chip.ok text {
-		fill: var(--color-grass);
-	}
-	.ruler line {
-		stroke: var(--color-faint);
-		stroke-width: 1.4;
-	}
-	.ruler text {
-		fill: var(--color-faint);
-		font-size: 11px;
-		font-weight: 600;
-		text-anchor: middle;
-	}
-	.ruler .far {
-		fill: var(--color-ink);
-		font-family: ui-monospace, monospace;
-		font-weight: 700;
-	}
-	.ruler .limit {
-		stroke: var(--color-danger);
-		stroke-width: 2;
-	}
-	.ruler .limit-t {
-		fill: var(--color-danger);
-	}
-	.lens {
-		opacity: 0;
-		transition: opacity 0.5s ease;
-	}
-	.lens.show {
-		opacity: 1;
-	}
-	.glass {
-		fill: var(--color-card);
-		stroke: var(--color-muted);
-		stroke-width: 1.6;
-	}
-	.pointer {
-		stroke: var(--color-muted);
-		stroke-width: 1.2;
-		opacity: 0.6;
+
+	.scene {
+		position: relative;
+		width: min(94vw, 360px);
+		border-radius: 16px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 26px 0 4px;
 	}
 	.wire {
-		fill: none;
-		stroke-width: 5;
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	.cable {
+		opacity: 0.7;
+		stroke-width: 3;
 		stroke-linecap: round;
 	}
-	.wire.a {
-		stroke: var(--color-brand);
+	.cable.copper {
+		stroke: color-mix(in srgb, var(--color-amber) 45%, var(--color-line));
 	}
-	.wire.b {
-		stroke: var(--color-amber);
+	.cable.fibre {
+		stroke: color-mix(in srgb, var(--color-brand) 35%, var(--color-line));
+		stroke-width: 2;
 	}
-	.fcore {
-		fill: var(--color-brand-soft);
-	}
-	.ray {
+	.wave {
 		fill: none;
-		stroke: var(--color-amber);
-		stroke-width: 2.2;
+		stroke-width: 1.8;
 		stroke-linejoin: round;
 	}
-	.cap {
-		fill: var(--color-muted);
-		font-size: 11.5px;
-		font-weight: 600;
+	.wave.copper {
+		stroke: var(--color-amber);
 	}
+	.wave.fibre {
+		stroke: var(--color-brand);
+	}
+	.cover {
+		fill: var(--color-card);
+		transform-box: fill-box;
+		transform-origin: right center;
+		animation: reveal 1.3s linear forwards;
+	}
+	@keyframes reveal {
+		from {
+			transform: scaleX(1);
+		}
+		to {
+			transform: scaleX(0);
+		}
+	}
+	.len {
+		fill: var(--color-muted);
+		font-size: 10px;
+		font-weight: 800;
+		text-anchor: middle;
+	}
+	.endA,
+	.endB {
+		position: absolute;
+		top: 46px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1px;
+		background: var(--color-card);
+		padding: 2px;
+	}
+	.endA {
+		left: 2px;
+	}
+	.endB {
+		right: 2px;
+		border-radius: 10px;
+		transition: box-shadow 0.3s ease;
+	}
+	.endB.good {
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-grass) 35%, transparent);
+	}
+	.endB.bad {
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-danger) 35%, transparent);
+	}
+	.ic {
+		line-height: 0;
+		color: var(--color-ink);
+	}
+	.nm {
+		font-size: 9.5px;
+		font-weight: 700;
+		color: var(--color-muted);
+		white-space: nowrap;
+	}
+	.file {
+		position: absolute;
+		top: 8px;
+		left: 50%;
+		transform: translateX(-50%);
+		border-radius: 999px;
+		background: var(--color-paper);
+		border: 1px solid var(--color-line);
+		padding: 1px 9px;
+		font-size: 10px;
+		font-weight: 700;
+		color: var(--color-muted);
+		white-space: nowrap;
+	}
+
+	.meter {
+		display: flex;
+		width: min(94vw, 360px);
+		flex-direction: column;
+		gap: 4px;
+		opacity: 0.35;
+		transition: opacity 0.3s ease;
+	}
+	.meter.show {
+		opacity: 1;
+	}
+	.mlabel {
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+	}
+	.track {
+		position: relative;
+		height: 10px;
+		border-radius: 999px;
+		background: var(--color-line);
+	}
+	.fill {
+		position: absolute;
+		inset: 0 auto 0 0;
+		border-radius: 999px;
+		background: var(--color-grass);
+		transition: width 0.5s ease;
+	}
+	.fill.bad {
+		background: var(--color-danger);
+	}
+	.limit {
+		position: absolute;
+		top: -3px;
+		bottom: -3px;
+		width: 2px;
+		background: var(--color-ink);
+	}
+	.limit i {
+		position: absolute;
+		top: 15px;
+		left: 50%;
+		transform: translateX(-50%);
+		font-style: normal;
+		font-size: 9px;
+		font-weight: 700;
+		color: var(--color-muted);
+		white-space: nowrap;
+	}
+
+	.note {
+		min-height: 1.4em;
+		max-width: 340px;
+		margin-top: 8px;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--color-muted);
+	}
+	.note.good {
+		color: var(--color-grass);
+	}
+	.note.bad {
+		color: var(--color-danger);
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.tryrow,
-		.cable,
-		.lens,
-		.name {
+		.cover {
+			animation-duration: 0.01s;
+		}
+		.fill {
 			transition: none;
 		}
-		.pulse {
-			animation: none;
-			opacity: 0;
+	}
+	@media (min-width: 768px) {
+		.controls,
+		.scene,
+		.meter {
+			width: 460px;
+		}
+		.opt b {
+			font-size: 13.5px;
+		}
+		.dval {
+			font-size: 13.5px;
+		}
+		.nm {
+			font-size: 11px;
+		}
+		.note {
+			font-size: 14px;
+			max-width: 460px;
 		}
 	}
 </style>

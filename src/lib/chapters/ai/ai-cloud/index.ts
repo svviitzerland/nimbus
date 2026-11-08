@@ -5,9 +5,17 @@ import { en } from './en';
 
 export const aiCloud: Lesson = {
 	id: 'ai-cloud',
-	mood: 'calm',
-	moods: ['happy', 'thinking', 'excited', 'worried', 'idea', 'idea', 'wink', 'thinking', 'happy'],
-	reactionMood: { off: 'worried', on: 'excited' },
+	mood: 'thinking',
+	moods: ['excited', 'idea', 'thinking', 'idea', 'wink', 'happy'],
+	reactionMood: {
+		grow: 'surprised',
+		budget: 'worried',
+		cache: 'happy',
+		small: 'thinking',
+		route: 'idea',
+		fixed: 'excited'
+	},
+	playable: true,
 	stage: AiCloudStage,
 	text: { id, en }
 };

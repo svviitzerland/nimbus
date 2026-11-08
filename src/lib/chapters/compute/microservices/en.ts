@@ -8,7 +8,8 @@ export const en: MicroservicesText = {
 		'Now the payment feature breaks. But because every feature lives in the same one program, the moment it crashes, <b>everything goes down with it</b>. Watch, every user request fails, not just the paying one.',
 		'The other shape is <b>microservices</b>. Each feature is split into <b>its own separate program</b>, often in its own container, and they talk through APIs.',
 		'The payment feature breaks again. But because it is a separate program, <b>only the pay request fails</b>. Browsing and search are still served, since their programs are different and untouched.',
-		'So a monolith is one program, simple to start but one crash takes it all down. Microservices are many separate programs, sturdy because a broken one does not drag the others, but more work to run. Neither is always better, pick what fits the need.'
+		'So a monolith is one program, simple to start but one crash takes it all down. Microservices are many separate programs, sturdy because a broken one does not drag the others, but more work to run. Neither is always better, pick what fits the need.',
+		'[ingat] Small services have focused jobs. They still need communication and failure handling.'
 	],
 	reactions: {},
 	userLabel: 'User',

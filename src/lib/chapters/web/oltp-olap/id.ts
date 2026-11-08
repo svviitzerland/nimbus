@@ -57,7 +57,7 @@ export const id: OltpOlapText = {
 			body: '<b>E</b>xtract baris baru, <b>T</b>ransform (rapikan format, buang pesanan uji coba), <b>L</b>oad ke warehouse. Biasanya saat semua orang tidur.'
 		},
 		{
-			tag: 'Biar nempel',
+			tag: 'Cara ingat',
 			title: 'Kasir dan akuntan',
 			body: 'OLTP menulis kecil dan cepat, sepanjang hari. OLAP membaca besar dan dalam, beberapa kali sehari.'
 		},

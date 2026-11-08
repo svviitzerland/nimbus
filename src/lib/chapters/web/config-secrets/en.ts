@@ -51,7 +51,7 @@ export const en: ConfigSecretsText = {
 			body: 'The server values are typed into the <b>host dashboard</b>. Secrets stay hidden on screen, even from you.'
 		},
 		{
-			tag: 'Make it stick',
+			tag: 'Remember it',
 			title: 'Recipe and sticky note',
 			body: 'Share the <b>recipe</b> (the code). Keep the <b>sticky note</b> (.env) on your own fridge.'
 		},

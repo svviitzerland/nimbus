@@ -7,9 +7,9 @@ export const id: RouterIntroText = {
 		'Merek router yang bakal sering kamu temui itu <b>MikroTik</b>, asalnya dari Latvia. Dia jalan pakai sistem sendiri bernama <b>RouterOS</b>. Ngaturnya bisa klik klik di aplikasi Winbox, atau ngetik di terminalnya, persis dua cara di [[CLI vs GUI|foundations/cli-gui]]. Lihat, terminalnya lagi nanya nama router.',
 		'Sekarang namanya masih MikroTik, sama kayak semua router baru. Yuk kasih nama beneran, biar nanti kalau ngurus sepuluh router, kamu selalu tau lagi ngetik di yang mana. Perhatikan promptnya.',
 		'Sekarang lihat bagian depan kotaknya. Lubang lubang itu namanya <b>port fisik</b>, tempat nyolok kabel LAN. RouterOS namain mereka ether1 sampai ether5, dan huruf <b>R</b> di daftar artinya running, ada kabel yang nyolok dan nyala.',
-		'Hati hati, ini beda sama [[port|foundations/port]] bernomor kayak 80 atau 443. Yang itu <b>port logis</b>, pintu di dalam sebuah layanan. ether2 itu lubang yang bisa kamu pegang, sedangkan 443 cuma nomor tempat web server nunggu tamu.',
+		'[fyi] Port fisik berbeda dari [[port jaringan|foundations/port]] seperti 80 atau 443. ether2 adalah konektor kabel. Port 443 adalah nomor yang umum digunakan untuk layanan HTTPS.',
 		'ether1 nerima kabel dari ISP (penyedia internetmu), ether2 nyambung ke kantor. Kasih alamat ke ether2, dan dia jadi pintu yang dilewati semua laptop kantor buat keluar ke internet.',
-		'[ingat] Perintah RouterOS itu kayak pesan makanan. Sebut warungnya dulu (/ip address), lalu mau ngapain (add), baru detailnya (address= dan interface=). Warung, pesanan, level pedas.',
+		'[ingat] Perintah RouterOS terdiri dari menu, tindakan, dan parameter. Pada /ip address add, menunya /ip address dan tindakannya add.',
 		'Giliran kamu. Minta daftar alamat router pakai <b>/ip address print</b>. Ketik sendiri, atau tekan sarannya.'
 	],
 	reactions: {
@@ -23,17 +23,17 @@ export const id: RouterIntroText = {
 	},
 	steps: [
 		{
-			title: 'Kotak di tengah',
+			title: 'Router MikroTik',
 			body: '<b>Router</b> nyambungin dua jaringan. Di sini dia nyambungin internet dari ISP dengan kantor.'
 		},
 		{
 			tag: 'RouterOS',
-			title: 'Ngobrol sama router',
-			body: 'Tiap perintah diawali menu, kayak <b>/system identity</b>, dan diakhiri kerjaan, kayak <b>print</b> (tunjukin).'
+			title: 'Mengatur router lewat CLI',
+			body: 'Perintah dimulai dengan menu, misalnya <b>/system identity</b>, lalu tindakan seperti <b>print</b> untuk menampilkan nilainya.'
 		},
 		{
 			tag: 'identity',
-			title: 'Nama di pintu',
+			title: 'Memberi nama router',
 			body: 'Identity itu nama di prompt, <b>[admin@nimbus]</b>. Nggak ngubah lalu lintas apa pun, cuma biar kamu nggak salah ngetik di router lain.'
 		},
 		{
@@ -47,16 +47,16 @@ export const id: RouterIntroText = {
 		},
 		{
 			tag: 'ip address',
-			title: 'Pintu kantor',
-			body: '<b>192.168.88.1/24</b> di ether2 artinya router jawab di .1, dan semua alamat 192.168.88.x milik jaringan kantor.'
+			title: 'Alamat IP router',
+			body: '<b>192.168.88.1/24</b> di ether2 artinya router jawab di .1, dan seluruh jalan 192.168.88.x itu kantor.'
 		},
 		{
-			tag: 'Biar nempel',
-			title: 'Warung, pesanan, detail',
-			body: '<b>/ip address</b> itu warungnya, <b>add</b> itu pesanannya, pasangan <b>key=value</b> (nama=isi) itu detailnya.'
+			tag: 'Cara ingat',
+			title: 'Susunan perintah RouterOS',
+			body: '<b>/ip address</b> itu warungnya, <b>add</b> itu pesanannya, pasangan <b>key=value</b> itu detailnya.'
 		},
 		{
-			title: 'Giliran kamu',
+			title: 'Coba perintahnya',
 			body: '<b>print</b> bisa dipakai di hampir semua menu. Ini perintah paling aman, dia cuma ngelihat.'
 		}
 	],

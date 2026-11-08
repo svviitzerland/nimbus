@@ -5,8 +5,11 @@
 	import Plane from '../Plane.svelte';
 	import type { LessonText, FailoverText } from '$lib/chapters/types';
 
-	let { text, oncomplete, onstate }: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } =
-		$props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as FailoverText);
 
 	const FLAT_W = 960;
@@ -65,10 +68,13 @@
 				onstate?.('spof');
 			}
 		}, 850);
-		tR = setTimeout(() => {
-			phase = 'normal';
-			striking = false;
-		}, standby ? 5000 : 3400);
+		tR = setTimeout(
+			() => {
+				phase = 'normal';
+				striking = false;
+			},
+			standby ? 5000 : 3400
+		);
 	}
 
 	const standbyStatus = $derived(
@@ -81,7 +87,13 @@
 					: `${tx.standbyLabel}, ${tx.standbyState}`
 	);
 	const standbyColor = $derived(
-		!standby ? '#a9c8e8' : phase === 'failed-over' ? '#2f9e44' : phase === 'failing' ? '#dd9e36' : '#8a949d'
+		!standby
+			? '#a9c8e8'
+			: phase === 'failed-over'
+				? '#2f9e44'
+				: phase === 'failing'
+					? '#dd9e36'
+					: '#8a949d'
 	);
 
 	onDestroy(() => {
@@ -93,8 +105,17 @@
 </script>
 
 <div class="flex h-full w-full flex-col gap-4 md:flex-row">
-	<div class="border-line relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-2xl border" style="background:#f1f6fc;">
-		<svg viewBox="0 0 {FLAT_W} {FLAT_H}" class="h-full w-full" preserveAspectRatio="xMidYMid meet" role="img" aria-label="map">
+	<div
+		class="relative min-h-0 min-w-0 flex-1 overflow-hidden rounded-2xl border border-line"
+		style="background:#f1f6fc;"
+	>
+		<svg
+			viewBox="0 0 {FLAT_W} {FLAT_H}"
+			class="h-full w-full"
+			preserveAspectRatio="xMidYMid meet"
+			role="img"
+			aria-label="map"
+		>
 			<rect width={FLAT_W} height={FLAT_H} fill="#f1f6fc" />
 			<WorldMap />
 
@@ -107,9 +128,31 @@
 				onclick={toggleStandby}
 				onkeydown={(e) => e.key === 'Enter' && toggleStandby()}
 			>
-				<circle cx={sAt.x} cy={sAt.y} r="6.5" fill={standbyColor} stroke="#fff" stroke-width="2" opacity={standby ? 1 : 0.7} />
-				<text x={sAt.x} y={sAt.y - 12} text-anchor="middle" fill="#16212b" font-size="12.5" font-weight="700">{tx.regions[STANDBY.key]}</text>
-				<text x={sAt.x} y={sAt.y + 18} text-anchor="middle" fill="#5e6b76" font-size="10.5" font-weight="600">{standbyStatus}</text>
+				<circle
+					cx={sAt.x}
+					cy={sAt.y}
+					r="6.5"
+					fill={standbyColor}
+					stroke="#fff"
+					stroke-width="2"
+					opacity={standby ? 1 : 0.7}
+				/>
+				<text
+					x={sAt.x}
+					y={sAt.y - 12}
+					text-anchor="middle"
+					fill="#16212b"
+					font-size="12.5"
+					font-weight="700">{tx.regions[STANDBY.key]}</text
+				>
+				<text
+					x={sAt.x}
+					y={sAt.y + 18}
+					text-anchor="middle"
+					fill="#5e6b76"
+					font-size="10.5"
+					font-weight="600">{standbyStatus}</text
+				>
 			</g>
 
 			<!-- primary region -->
@@ -117,9 +160,30 @@
 				{#if !primaryDown}
 					<circle cx={pAt.x} cy={pAt.y} r="13" fill="#2f9e44" opacity="0.18" class="pulse" />
 				{/if}
-				<circle cx={pAt.x} cy={pAt.y} r="6.5" fill={primaryDown ? '#e03131' : '#2f9e44'} stroke="#fff" stroke-width="2" />
-				<text x={pAt.x} y={pAt.y - 12} text-anchor="middle" fill="#16212b" font-size="12.5" font-weight="700">{tx.regions[PRIMARY.key]}</text>
-				<text x={pAt.x} y={pAt.y + 18} text-anchor="middle" fill="#5e6b76" font-size="10.5" font-weight="600">
+				<circle
+					cx={pAt.x}
+					cy={pAt.y}
+					r="6.5"
+					fill={primaryDown ? '#e03131' : '#2f9e44'}
+					stroke="#fff"
+					stroke-width="2"
+				/>
+				<text
+					x={pAt.x}
+					y={pAt.y - 12}
+					text-anchor="middle"
+					fill="#16212b"
+					font-size="12.5"
+					font-weight="700">{tx.regions[PRIMARY.key]}</text
+				>
+				<text
+					x={pAt.x}
+					y={pAt.y + 18}
+					text-anchor="middle"
+					fill="#5e6b76"
+					font-size="10.5"
+					font-weight="600"
+				>
 					{tx.primaryLabel}, {primaryDown ? tx.statusDown : tx.serving}
 				</text>
 			</g>
@@ -151,8 +215,10 @@
 		</svg>
 
 		<!-- controls -->
-		<div class="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 p-3">
-			<p class="text-faint text-[11px]">{tx.addHint}</p>
+		<div
+			class="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 p-3"
+		>
+			<p class="text-[11px] text-faint">{tx.addHint}</p>
 			<button
 				type="button"
 				onclick={kill}
@@ -166,10 +232,18 @@
 	</div>
 
 	<!-- Phone + readout, desktop only. Small screens hide it so the map gets the whole space. -->
-	<div class="hidden shrink-0 items-center justify-center gap-4 md:flex md:w-[200px] md:flex-col md:justify-center">
+	<div
+		class="hidden shrink-0 items-center justify-center gap-4 md:flex md:w-[200px] md:flex-col md:justify-center"
+	>
 		<Browser phase={browser} />
-		<div class="border-line bg-card w-[150px] rounded-2xl border p-4 text-center md:w-full">
-			<p class="text-lg font-bold {phase === 'down' ? 'text-danger' : phase === 'failing' ? 'text-amber' : 'text-grass'}">
+		<div class="w-[150px] rounded-2xl border border-line bg-card p-4 text-center md:w-full">
+			<p
+				class="text-lg font-bold {phase === 'down'
+					? 'text-danger'
+					: phase === 'failing'
+						? 'text-amber'
+						: 'text-grass'}"
+			>
 				{phase === 'down' ? tx.statusDown : phase === 'failing' ? tx.failingOver : tx.statusUp}
 			</p>
 		</div>

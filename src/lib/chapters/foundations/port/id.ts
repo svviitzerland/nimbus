@@ -6,7 +6,8 @@ export const id: PortText = {
 		'Tiap server cuma punya satu alamat, tapi di balik alamat itu ada banyak pintu bernomor. Tiap pintu namanya <b>port</b>, dan tiap layanan nungguin di pintunya sendiri.',
 		'Bayangin server itu gedung dengan satu alamat tapi banyak pintu. Jadi pas nyambung, kamu nggak cuma sebut alamat, tapi juga pintu mana yang mau kamu tuju.',
 		'[fyi] Biar nggak ketuker ya. Port yang ini pintu <b>logis</b>, cuma angka di dalam server. Di router atau switch, misalnya [[MikroTik|netlab/router-intro]] atau [[Cisco|netlab/cisco-intro]], ada juga port <b>fisik</b>, lubang tempat kamu colok kabel LAN (di MikroTik namanya ether1, ether2, dan seterusnya). Sama sama disebut port, tapi beda dunia.',
-		'Ketuk tiap pintu buat lihat layanan apa yang nungguin di baliknya.'
+		'Ketuk tiap pintu buat lihat layanan apa yang nungguin di baliknya.',
+		'[ingat] IP memilih komputer, port memilih layanan di komputer itu.'
 	],
 	reactions: {
 		'22': 'Port 22 itu pintu <b>SSH</b>, buat masuk ke terminal server Linux dari jauh.',

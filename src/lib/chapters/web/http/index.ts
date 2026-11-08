@@ -6,24 +6,17 @@ import { en } from './en';
 export const http: Lesson = {
 	id: 'http',
 	mood: 'calm',
-	moods: [
-		'calm',
-		'thinking',
-		'idea',
-		'thinking',
-		'calm',
-		'happy',
-		'thinking',
-		'wink',
-		'idea',
-		'excited'
-	],
+	moods: ['calm', 'thinking', 'idea', 'calm', 'thinking', 'wink', 'wink', 'excited'],
 	reactionMood: {
 		ok: 'happy',
-		moved: 'wink',
+		list: 'happy',
+		created: 'excited',
 		notfound: 'thinking',
-		broken: 'worried'
+		notallowed: 'surprised',
+		broken: 'worried',
+		done: 'excited'
 	},
+	playable: true,
 	stage: HttpStage,
 	text: { id, en }
 };

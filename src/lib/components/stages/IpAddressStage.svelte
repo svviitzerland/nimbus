@@ -1,408 +1,467 @@
 <script lang="ts">
-	// Guided: a house with rooms. The public address hangs on the roof like a house number, every
-	// device inside wears a private "room number", and a letter flies in from the internet. The
-	// picture follows Nim's beats; on the last beat the learner may send a letter themselves.
-	import { onDestroy, untrack } from 'svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import { onDestroy } from 'svelte';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { IpAddressText } from '$lib/chapters/network/ip-address/types';
-	import Guide from '$lib/components/Guide.svelte';
-	import Thing from './netguide/Thing.svelte';
+	import DeviceIcon from './netbasics/DeviceIcon.svelte';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as IpAddressText);
 
-	// watch first: visible from the start, and never blocking Next
-	$effect(() => {
-		untrack(() => {
-			onshow?.(true);
-			oncomplete?.();
-		});
-	});
+	type Dev = 'phone' | 'laptop' | 'router';
+	let seen = $state<Record<Dev, boolean>>({ phone: false, laptop: false, router: false });
+	const allSeen = $derived(seen.phone && seen.laptop && seen.router);
 
-	const last = $derived(tx.intro.length - 1);
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const active = $derived(peek ?? Math.min(beat, tx.steps.length - 1));
-	const isLast = $derived(beat >= last);
+	function reveal(d: Dev) {
+		if (!seen[d]) seen[d] = true;
+		onstate?.(d);
+	}
 
-	// the one optional interaction, a letter sent to a room number or to the house number
-	type Shot = { to: 'room' | 'house'; n: number; landed: boolean };
-	let shot = $state<Shot | null>(null);
-	let timer: ReturnType<typeof setTimeout> | undefined;
+	// ---- Act two, a stranger out on the internet knocks on an address ----
+	type Target = 'phone' | 'laptop' | 'routerIn' | 'routerOut';
+	const TARGETS: Target[] = ['phone', 'laptop', 'routerIn', 'routerOut'];
+	let knock = $state<{ t: Target; n: number } | null>(null);
+	let landed = $state(false);
+	let tried = { lost: false, public: false };
+	let done = false;
+	let timers: ReturnType<typeof setTimeout>[] = [];
 	let n = 0;
-	function send(to: 'room' | 'house') {
-		clearTimeout(timer);
-		shot = { to, n: ++n, landed: false };
-		timer = setTimeout(
-			() => {
-				if (shot) shot.landed = true;
-				onstate?.(to === 'house' ? 'public' : 'lost');
-			},
-			to === 'house' ? 2300 : 1500
+
+	function send(t: Target) {
+		timers.forEach(clearTimeout);
+		timers = [];
+		landed = false;
+		knock = { t, n: ++n };
+		const hit = t === 'routerOut';
+		timers.push(
+			setTimeout(() => {
+				landed = true;
+				const token = hit ? 'public' : 'lost';
+				onstate?.(token);
+				tried[token] = true;
+				if (tried.lost && tried.public && !done) {
+					done = true;
+					oncomplete?.();
+				}
+			}, 1000)
 		);
 	}
-	onDestroy(() => clearTimeout(timer));
 
-	// which part of the picture is in focus at each step
-	const privHi = (s: number) => s === 2 || s === 4 || s === 5;
-	const pubHi = (s: number) => s === 3 || s === 4 || s === 6;
+	const note = $derived(
+		!allSeen
+			? tx.tapHint
+			: knock && landed
+				? (knock.t === 'routerOut' ? tx.hitNote : tx.lostNote).replace('{ip}', tx.ips[knock.t])
+				: tx.knockPrompt
+	);
+
+	onDestroy(() => timers.forEach(clearTimeout));
 </script>
 
-<div class="wrap">
-	<div class="tryrow" class:show={isLast} aria-hidden={!isLast}>
-		<span class="trylabel">{tx.sendLabel}</span>
-		<div class="trybtns">
-			<button
-				type="button"
-				class="try"
-				class:on={shot?.to === 'room'}
-				disabled={!isLast}
-				onclick={() => send('room')}>{tx.ips.laptop}</button
-			>
-			<button
-				type="button"
-				class="try pub"
-				class:on={shot?.to === 'house'}
-				disabled={!isLast}
-				onclick={() => send('house')}>{tx.ips.routerOut}</button
-			>
+<div class="flex h-full w-full flex-col items-center gap-3">
+	<!-- the actions sit up top, clear of Nim in the corner -->
+	<div class="knocks" class:off={!allSeen} aria-hidden={!allSeen}>
+		<span class="klabel">{tx.knockLabel}</span>
+		<div class="kgrid">
+			{#each TARGETS as t (t)}
+				<button
+					type="button"
+					class="kbtn"
+					class:pub={t === 'routerOut'}
+					class:on={knock?.t === t}
+					disabled={!allSeen}
+					onclick={() => send(t)}>{tx.ips[t]}</button
+				>
+			{/each}
 		</div>
 	</div>
 
-	<Guide steps={tx.steps} {active} onselect={(k) => (peek = k)}>
-		{#snippet visual(s)}
-			<svg viewBox="0 0 440 320" class="art" role="img" aria-label={tx.title}>
-				<!-- the internet, where letters come from -->
-				<Thing kind="cloud" x={70} y={52} s={1.5} />
-				<text class="lbl" x="70" y="92">{tx.internetLabel}</text>
+	<div class="scene">
+		<!-- out on the internet -->
+		<div class="net">
+			<span class="zlabel">{tx.internetLabel}</span>
+			<div class="stranger">
+				<span class="ink"><DeviceIcon kind="person" size={26} /></span>
+				<span class="slabel">{tx.strangerLabel}</span>
+			</div>
+		</div>
 
-				<!-- the house next door, it reuses the same room numbers -->
-				<g class="fade" class:gone={s < 5}>
-					<polygon class="roof" points="12,214 66,170 120,214" />
-					<rect class="wall" x="18" y="212" width="96" height="92" rx="3" />
-					<Thing kind="laptop" x={66} y={276} s={0.7} />
-					<g class="chip priv" class:hi={s === 5}>
-						<rect x="22" y="226" width="88" height="20" rx="10" />
-						<text x="66" y="240">{tx.ips.laptop}</text>
-					</g>
-					<text class="lbl" x="66" y="316">{tx.neighbourLabel}</text>
-				</g>
+		<!-- the home network, the router sits in its wall -->
+		<div class="house">
+			<span class="hlabel">{tx.houseLabel}</span>
 
-				<!-- your house -->
-				<polygon class="roof" points="140,152 287,64 434,152" />
-				<rect class="wall" x="150" y="150" width="274" height="156" rx="3" />
-				<line class="inner" x1="287" y1="152" x2="287" y2="248" />
-				<line class="inner" x1="152" y1="248" x2="422" y2="248" />
+			<button
+				type="button"
+				class="dev router"
+				class:seen={seen.router}
+				class:hit={landed && knock?.t === 'routerOut'}
+				onclick={() => reveal('router')}
+			>
+				<span class="chip pub" class:show={seen.router}>
+					<i>{tx.outsideTag}</i>{tx.ips.routerOut}
+				</span>
+				<span class="icon"><DeviceIcon kind="router" size={34} /></span>
+				<span class="dlabel">{tx.routerLabel}</span>
+				<span class="chip" class:show={seen.router}>
+					<i>{tx.insideTag}</i>{tx.ips.routerIn}
+				</span>
+			</button>
 
-				<!-- the house number on the roof, the public address -->
-				<g class="chip pubchip" class:hi={pubHi(s)} class:soft={!pubHi(s) && s !== 7}>
-					<rect x="227" y="104" width="120" height="26" rx="8" />
-					<text x="287" y="121.5">{tx.ips.routerOut}</text>
-				</g>
-				<text class="tag pubtag" class:show={s === 4} x="287" y="144">{tx.streetTag}</text>
+			<div class="row">
+				<button type="button" class="dev" class:seen={seen.phone} onclick={() => reveal('phone')}>
+					<span class="icon"><DeviceIcon kind="phone" size={32} /></span>
+					<span class="dlabel">{tx.phoneLabel}</span>
+					<span class="chip" class:show={seen.phone}>{tx.ips.phone}</span>
+				</button>
+				<button type="button" class="dev" class:seen={seen.laptop} onclick={() => reveal('laptop')}>
+					<span class="icon"><DeviceIcon kind="laptop" size={34} /></span>
+					<span class="dlabel">{tx.laptopLabel}</span>
+					<span class="chip" class:show={seen.laptop}>{tx.ips.laptop}</span>
+				</button>
+			</div>
+			<span class="legend">
+				<span class="dot"></span>{tx.privateTag}
+				<span class="dot pubdot"></span>{tx.publicTag}
+			</span>
+		</div>
 
-				<!-- the rooms -->
-				<Thing kind="laptop" x={218} y={222} hi={s === 0} />
-				<Thing kind="phone" x={356} y={220} />
-				<Thing kind="router" x={287} y={284} hi={s === 3} />
-				<g class="chip priv" class:hi={privHi(s) || s === 0}>
-					<rect x="172" y="166" width="92" height="20" rx="10" />
-					<text x="218" y="180">{tx.ips.laptop}</text>
-				</g>
-				<g class="chip priv" class:hi={privHi(s)}>
-					<rect x="310" y="166" width="92" height="20" rx="10" />
-					<text x="356" y="180">{tx.ips.phone}</text>
-				</g>
-				<g class="chip priv" class:hi={privHi(s)}>
-					<rect x="326" y="272" width="88" height="20" rx="10" />
-					<text x="370" y="286">{tx.ips.routerIn}</text>
-				</g>
-				<!-- left of the router, so the letter that lands on the router never covers it -->
-				<text class="tag privtag" class:show={s === 4} x="206" y="290">{tx.roomTag}</text>
-
-				<!-- a letter flying in, looping while the beat is about addresses on packets -->
-				{#if s === 1 || s === 4}
-					<g class="letter loop">
-						<rect x="-10" y="-7" width="20" height="14" rx="2" />
-						<polyline points="-10,-7 0,1 10,-7" />
-					</g>
+		<!-- the knock itself -->
+		{#if knock}
+			{#key knock.n}
+				<span
+					class="packet"
+					class:lost={knock.t !== 'routerOut'}
+					class:hitp={knock.t === 'routerOut'}
+				></span>
+				{#if landed}
+					<span class="ktag" class:hittag={knock.t === 'routerOut'}
+						>{knock.t === 'routerOut' ? tx.hitTag : tx.lostTag}</span
+					>
 				{/if}
+			{/key}
+		{/if}
+	</div>
 
-				<!-- the learner's own letter -->
-				{#if s === 7 && shot}
-					{#key shot.n}
-						<g class="letter {shot.to === 'house' ? 'once' : 'lost'}">
-							<rect x="-10" y="-7" width="20" height="14" rx="2" />
-							<polyline points="-10,-7 0,1 10,-7" />
-						</g>
-						{#if shot.landed}
-							{#if shot.to === 'house'}
-								<g class="chip ok">
-									<rect x="180" y="128" width="76" height="20" rx="10" />
-									<text x="218" y="142">{tx.hitTag}</text>
-								</g>
-							{:else}
-								<g class="chip bad">
-									<rect x="78" y="150" width="96" height="20" rx="10" />
-									<text x="126" y="164">{tx.lostTag}</text>
-								</g>
-							{/if}
-						{/if}
-					{/key}
-				{/if}
-			</svg>
-		{/snippet}
-	</Guide>
+	<p class="note">{note}</p>
 </div>
 
 <style>
-	.wrap {
+	.knocks {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 6px;
+		transition: opacity 0.3s ease;
+	}
+	.knocks.off {
+		opacity: 0;
+		pointer-events: none;
+	}
+	.klabel {
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+	}
+	.kgrid {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 6px;
+	}
+	.kbtn {
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-ink);
+		padding: 7px 12px;
+		font-size: 12px;
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		transition: border-color 0.2s ease;
+	}
+	.kbtn:enabled:hover,
+	.kbtn.on {
+		border-color: var(--color-ink);
+	}
+	.kbtn.pub {
+		color: var(--color-brand);
+	}
+
+	.scene {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		width: min(94vw, 360px);
+	}
+	.net {
+		position: relative;
+		width: 100%;
+		height: 70px;
+		border-radius: 16px;
+		background: var(--color-brand-soft);
+	}
+	.zlabel {
+		position: absolute;
+		top: 8px;
+		right: 12px;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-brand);
+	}
+	.stranger {
+		position: absolute;
+		top: 12px;
+		left: 12%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+	}
+	.ink {
+		color: var(--color-ink);
+		line-height: 0;
+	}
+	.slabel {
+		font-size: 10px;
+		font-weight: 700;
+		color: var(--color-muted);
+	}
+
+	.house {
+		position: relative;
+		margin-top: 54px;
 		display: flex;
 		width: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 12px;
-		padding-bottom: 7rem;
+		gap: 14px;
+		border-radius: 18px;
+		border: 2px solid var(--color-line);
+		background: var(--color-card);
+		padding: 0 12px 12px;
 	}
-	@media (min-width: 768px) {
-		.wrap {
-			padding-bottom: 1rem;
+	.hlabel {
+		position: absolute;
+		top: 8px;
+		left: 12px;
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+	}
+	.dev {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 3px;
+		border-radius: 14px;
+		border: 1px solid transparent;
+		padding: 6px 8px;
+		color: var(--color-muted);
+		transition:
+			border-color 0.2s ease,
+			color 0.2s ease,
+			box-shadow 0.3s ease;
+	}
+	.dev:hover {
+		border-color: var(--color-line);
+	}
+	.dev.seen {
+		color: var(--color-ink);
+	}
+	.icon {
+		line-height: 0;
+	}
+	.dlabel {
+		font-size: 11px;
+		font-weight: 700;
+	}
+	/* the router straddles the wall of the house, half outside and half inside */
+	.router {
+		margin-top: -44px;
+		background: var(--color-card);
+		border-color: var(--color-line);
+	}
+	.router.hit {
+		box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-brand) 25%, transparent);
+	}
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		border-radius: 999px;
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+		padding: 2px 8px;
+		font-size: 11px;
+		font-weight: 800;
+		font-variant-numeric: tabular-nums;
+		opacity: 0;
+		transform: scale(0.8);
+		transition:
+			opacity 0.25s ease,
+			transform 0.25s ease;
+	}
+	.chip.show {
+		opacity: 1;
+		transform: none;
+	}
+	.chip.pub {
+		background: var(--color-brand-soft);
+		color: var(--color-brand);
+	}
+	.chip i {
+		font-style: normal;
+		font-size: 9px;
+		font-weight: 700;
+		opacity: 0.75;
+	}
+	.row {
+		display: flex;
+		justify-content: center;
+		gap: 36px;
+	}
+	.legend {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+		font-size: 10px;
+		font-weight: 600;
+		color: var(--color-faint);
+	}
+	.dot {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: var(--color-grass);
+	}
+	.dot.pubdot {
+		margin-left: 8px;
+		background: var(--color-brand);
+	}
+
+	.packet {
+		position: absolute;
+		top: 30px;
+		left: 15%;
+		width: 12px;
+		height: 12px;
+		margin-left: -6px;
+		border-radius: 50%;
+		background: var(--color-amber);
+		box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-amber) 25%, transparent);
+		z-index: 3;
+		pointer-events: none;
+	}
+	.packet.lost {
+		animation: lost 1.1s ease-out forwards;
+	}
+	.packet.hitp {
+		animation: hit 1s ease-in-out forwards;
+	}
+	@keyframes lost {
+		0% {
+			left: 15%;
+			top: 30px;
+		}
+		85% {
+			left: 54%;
+			top: 44px;
+			opacity: 1;
+		}
+		100% {
+			left: 58%;
+			top: 44px;
+			opacity: 0;
 		}
 	}
-	.tryrow {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
-		gap: 8px 12px;
-		min-height: 40px;
-		visibility: hidden;
-		opacity: 0;
-		transition: opacity 0.3s ease;
+	@keyframes hit {
+		0% {
+			left: 15%;
+			top: 30px;
+		}
+		100% {
+			left: 50%;
+			top: 86px;
+		}
 	}
-	.tryrow.show {
-		visibility: visible;
-		opacity: 1;
+	.ktag {
+		position: absolute;
+		top: 36px;
+		left: 62%;
+		border-radius: 999px;
+		background: var(--color-card);
+		border: 1px solid var(--color-line);
+		color: var(--color-muted);
+		padding: 2px 9px;
+		font-size: 10px;
+		font-weight: 800;
+		white-space: nowrap;
+		z-index: 4;
+		animation: pop 0.25s ease;
 	}
-	.trylabel {
+	.ktag.hittag {
+		top: 78px;
+		left: auto;
+		right: 4%;
+		border-color: transparent;
+		background: var(--color-brand);
+		color: #fff;
+	}
+	@keyframes pop {
+		from {
+			opacity: 0;
+			transform: scale(0.6);
+		}
+	}
+
+	.note {
+		min-height: 1.4em;
+		max-width: 340px;
+		text-align: center;
 		font-size: 12px;
 		font-weight: 600;
 		color: var(--color-muted);
 	}
-	.trybtns {
-		display: flex;
-		gap: 8px;
-	}
-	.try {
-		border: 1px solid var(--color-line);
-		border-radius: 999px;
-		background: var(--color-card);
-		padding: 8px 14px;
-		font-family: ui-monospace, monospace;
-		font-size: 13px;
-		font-weight: 600;
-		color: var(--color-ink);
-		transition:
-			border-color 0.2s,
-			background 0.2s;
-	}
-	.try:hover,
-	.try.on {
-		border-color: var(--color-brand);
-		background: var(--color-brand-soft);
-	}
-	.try.pub:hover,
-	.try.pub.on {
-		border-color: var(--color-grass);
-		background: var(--color-grass-soft);
-	}
-	.art {
-		width: 100%;
-		max-width: 460px;
-		height: auto;
-		overflow: visible;
-	}
-	.lbl {
-		fill: var(--color-faint);
-		font-size: 12px;
-		font-weight: 600;
-		text-anchor: middle;
-	}
-	.roof {
-		fill: var(--color-paper);
-		stroke: var(--color-muted);
-		stroke-width: 1.6;
-		stroke-linejoin: round;
-	}
-	.wall {
-		fill: var(--color-card);
-		stroke: var(--color-muted);
-		stroke-width: 1.6;
-	}
-	.inner {
-		stroke: var(--color-line);
-		stroke-width: 2;
-	}
-	.chip rect {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.2;
-		transition:
-			fill 0.35s,
-			stroke 0.35s;
-	}
-	.chip text {
-		fill: var(--color-muted);
-		font-family: ui-monospace, monospace;
-		font-size: 11.5px;
-		font-weight: 600;
-		text-anchor: middle;
-		transition: fill 0.35s;
-	}
-	.chip.priv.hi rect {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-brand);
-	}
-	.chip.priv.hi text {
-		fill: var(--color-brand);
-	}
-	.pubchip rect {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-	}
-	.pubchip text {
-		fill: var(--color-grass);
-		font-size: 13px;
-	}
-	.pubchip.hi rect {
-		stroke-width: 2.2;
-	}
-	.pubchip.soft {
-		opacity: 0.55;
-	}
-	.chip.ok rect {
-		fill: var(--color-grass);
-		stroke: var(--color-grass);
-	}
-	.chip.ok text {
-		fill: #fff;
-		font-family: var(--font-sans);
-	}
-	.chip.bad rect {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-	}
-	.chip.bad text {
-		fill: var(--color-danger);
-		font-family: var(--font-sans);
-	}
-	.tag {
-		font-size: 11px;
-		font-weight: 700;
-		letter-spacing: 0.06em;
-		text-anchor: middle;
-		text-transform: uppercase;
-		opacity: 0;
-		transition: opacity 0.4s;
-	}
-	.tag.show {
-		opacity: 1;
-	}
-	.pubtag {
-		fill: var(--color-grass);
-	}
-	.privtag {
-		fill: var(--color-brand);
-	}
-	.fade {
-		transition: opacity 0.6s ease;
-	}
-	.fade.gone {
-		opacity: 0;
-	}
-	.letter rect {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 1.6;
-	}
-	.letter polyline {
-		fill: none;
-		stroke: var(--color-amber);
-		stroke-width: 1.6;
-		stroke-linejoin: round;
-	}
-	.letter {
-		opacity: 0;
-	}
-	.letter.loop {
-		animation: deliver 3.6s ease-in-out infinite;
-	}
-	.letter.once {
-		animation: deliver 2.4s ease-in-out 1 forwards;
-	}
-	.letter.lost {
-		animation: lose 1.6s ease-in 1 forwards;
-	}
-	@keyframes deliver {
-		0% {
-			transform: translate(100px, 64px);
-			opacity: 0;
-		}
-		8% {
-			opacity: 1;
-		}
-		38% {
-			transform: translate(287px, 117px);
-		}
-		66% {
-			transform: translate(287px, 266px);
-		}
-		90% {
-			transform: translate(218px, 214px);
-			opacity: 1;
-		}
-		100% {
-			transform: translate(218px, 214px);
-			opacity: 0;
-		}
-	}
-	@keyframes lose {
-		0% {
-			transform: translate(100px, 64px);
-			opacity: 0;
-		}
-		12% {
-			opacity: 1;
-		}
-		70% {
-			transform: translate(126px, 132px) rotate(-8deg);
-			opacity: 1;
-		}
-		100% {
-			transform: translate(130px, 150px) rotate(-20deg);
-			opacity: 0;
-		}
-	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.tryrow,
-		.fade,
-		.tag,
-		.chip rect,
-		.chip text {
+		.packet.lost,
+		.packet.hitp,
+		.ktag {
+			animation-duration: 0.01s;
+		}
+		.chip {
 			transition: none;
 		}
-		.letter.loop,
-		.letter.once,
-		.letter.lost {
-			animation: none;
-			opacity: 0;
+	}
+	@media (min-width: 768px) {
+		.scene {
+			width: 440px;
 		}
-		.letter.loop {
-			transform: translate(287px, 117px);
-			opacity: 1;
+		.kbtn {
+			font-size: 13px;
+			padding: 8px 16px;
+		}
+		.dlabel {
+			font-size: 12.5px;
+		}
+		.chip {
+			font-size: 12px;
+		}
+		.row {
+			gap: 64px;
+		}
+		.note {
+			font-size: 14px;
+			max-width: 460px;
 		}
 	}
 </style>

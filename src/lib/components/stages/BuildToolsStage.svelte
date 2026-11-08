@@ -1,387 +1,491 @@
 <script lang="ts">
-	// Guided "watch" stage. Six source files on the left, a build machine in the middle, and what
-	// goes online on the right, with a download meter underneath. Following Nim's beats the files
-	// first travel one by one, then the machine appears and bundles, minifies, and compresses
-	// them by itself. The only optional play is switching the build tool off and on.
-	import { fade } from 'svelte/transition';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import { onDestroy } from 'svelte';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { BuildToolsText, BuildStep } from '$lib/chapters/web/build-tools/types';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: {
+		text: LessonText;
+		oncomplete?: () => void;
+		onstate?: (s: string) => void;
+	} = $props();
 	const tx = $derived(text as BuildToolsText);
 
-	$effect(() => {
-		onshow?.(true);
-		oncomplete?.();
-	});
+	type Kind = 'html' | 'css' | 'js';
+	type File = { name: string; kb: number; kind: Kind };
 
-	const lastBeat = $derived(tx.intro.length - 1);
-	const isPlay = $derived(beat >= lastBeat);
+	// The source of nimbus.com, sizes in KB as a human wrote them.
+	const SRC: File[] = [
+		{ name: 'index.html', kb: 6, kind: 'html' },
+		{ name: 'style.css', kb: 14, kind: 'css' },
+		{ name: 'header.css', kb: 6, kind: 'css' },
+		{ name: 'cart.css', kb: 5, kind: 'css' },
+		{ name: 'app.js', kb: 38, kind: 'js' },
+		{ name: 'cart.js', kb: 22, kind: 'js' },
+		{ name: 'search.js', kb: 16, kind: 'js' },
+		{ name: 'utils.js', kb: 30, kind: 'js' },
+		{ name: 'chart.js', kb: 58, kind: 'js' }
+	];
+	const SRC_KB = SRC.reduce((a, f) => a + f.kb, 0);
+	// How much each kind keeps after minify, and what compression keeps of that.
+	const MINIFY: Record<Kind, number> = { html: 0.8, css: 0.7, js: 0.55 };
+	const COMPRESS = 0.3;
+	// A slow phone, roughly a quarter second per trip plus 40 KB per second.
+	const loadTime = (files: number, kb: number) => files * 0.25 + kb / 40;
+	const STEPS: BuildStep[] = ['bundle', 'minify', 'compress'];
 
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const step = $derived(peek ?? Math.min(beat, tx.steps.length - 1));
-	const live = $derived(isPlay && peek === null);
+	let on = $state<Record<BuildStep, boolean>>({ bundle: false, minify: false, compress: false });
+	let building = $state(false);
+	let out = $state<File[] | null>(null);
+	let peek = $state(false);
+	let saidPeek = false;
+	let finished = false;
+	let timer: ReturnType<typeof setTimeout> | undefined;
 
-	let off = $state(false);
-	function toggle() {
-		off = !off;
-		onstate?.(off ? 'off' : 'on');
+	function compile(cfg: Record<BuildStep, boolean>): File[] {
+		let files = SRC.map((f) => ({ ...f }));
+		if (cfg.bundle) {
+			const sum = (k: Kind) => files.filter((f) => f.kind === k).reduce((a, f) => a + f.kb, 0);
+			files = [
+				{ name: 'index.html', kb: sum('html'), kind: 'html' },
+				{ name: 'app.css', kb: sum('css'), kind: 'css' },
+				{ name: 'app.js', kb: sum('js'), kind: 'js' }
+			];
+		}
+		return files.map((f) => {
+			let kb = f.kb;
+			if (cfg.minify) kb *= MINIFY[f.kind];
+			if (cfg.compress) kb *= COMPRESS;
+			return { ...f, kb: Math.max(0.5, Math.round(kb * 10) / 10) };
+		});
 	}
 
-	// One clock, restarted on every step.
-	let t = $state(0);
-	let reduced = $state(false);
-	$effect(() => {
-		void step;
-		reduced =
-			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-		t = 0;
-		if (reduced) return;
-		const start = Date.now();
-		const id = setInterval(() => (t = Date.now() - start), 80);
-		return () => clearInterval(id);
-	});
+	function build() {
+		if (building) return;
+		const cfg = { ...on };
+		building = true;
+		out = null;
+		clearTimeout(timer);
+		timer = setTimeout(() => {
+			building = false;
+			out = compile(cfg);
+			const n = STEPS.filter((s) => cfg[s]).length;
+			if (n === 0) onstate?.('none');
+			else if (n === STEPS.length) {
+				onstate?.('best');
+				if (!finished) {
+					finished = true;
+					oncomplete?.();
+				}
+			} else onstate?.('partial');
+		}, 1300);
+	}
 
-	const JOBS: BuildStep[] = ['bundle', 'minify', 'compress'];
-	const SRC = [
-		[16, 44],
-		[66, 44],
-		[16, 108],
-		[66, 108],
-		[16, 172],
-		[66, 172]
-	];
-	const SW = 42;
-	const SH = 54;
-	const MOUTH = [158, 132];
+	function togglePeek() {
+		peek = !peek;
+		if (peek && !saidPeek) {
+			saidPeek = true;
+			onstate?.('peek');
+		}
+	}
 
-	type Out = 'none' | 'raw' | 'bundled' | 'minified' | 'compressed';
-	const LOOP: Record<number, number> = { 3: 4200, 4: 3600, 5: 3200 };
-	const FULL = 6000;
-	const loopLen = $derived(LOOP[step] ?? (step >= 6 && !live ? FULL : 0));
-	const lt = $derived(reduced || !loopLen ? 1e9 : t % loopLen);
+	const outKb = $derived(out ? Math.round(out.reduce((a, f) => a + f.kb, 0) * 10) / 10 : 0);
+	const fmtS = (s: number) => tx.loadValue.replace('{s}', s.toFixed(1));
+	const barW = (kb: number) => `${Math.max(8, Math.min(100, (kb / 58) * 100))}%`;
 
-	// Step 1, six trips, one file every 600 ms, then a rest.
-	const arrived = $derived(
-		step === 1 ? (reduced ? 6 : Math.min(6, Math.floor((t % 6000) / 600))) : 6
-	);
+	const BEFORE = `// add one item to the cart
+function addToCart(product, quantity) {
+  const cartItems = getCart();
+  cartItems.push({ product, quantity });
+  saveCart(cartItems);
+}`;
+	const AFTER = `function a(b,c){const d=e();d.push({b,c}),f(d)}`;
 
-	const out = $derived.by((): Out => {
-		if (live) return off ? 'raw' : 'compressed';
-		if (step === 0 || step === 2) return 'none';
-		if (step === 1) return 'raw';
-		if (step === 3) return lt >= 1700 ? 'bundled' : 'none';
-		if (step === 4) return lt >= 1200 ? 'minified' : 'bundled';
-		if (step === 5) return lt >= 900 ? 'compressed' : 'minified';
-		return lt >= 3500 ? 'compressed' : 'none';
-	});
-	const lit = $derived.by((): Record<BuildStep, boolean> => {
-		if (live) return { bundle: !off, minify: !off, compress: !off };
-		if (step === 3) return { bundle: true, minify: false, compress: false };
-		if (step === 4) return { bundle: false, minify: true, compress: false };
-		if (step === 5) return { bundle: false, minify: false, compress: true };
-		if (step >= 6) return { bundle: lt >= 1500, minify: lt >= 2300, compress: lt >= 3100 };
-		return { bundle: false, minify: false, compress: false };
-	});
-	const feeding = $derived(!reduced && !live && (step === 3 || step >= 6));
-	const showMachine = $derived(step >= 2);
-
-	const meter = $derived.by(() => {
-		if (step === 1 && !live) return { trips: arrived, kb: arrived * 40 };
-		if (step >= 6 && !live) return { trips: 2, kb: 32 };
-		if (out === 'bundled') return { trips: 2, kb: 230 };
-		if (out === 'minified') return { trips: 2, kb: 110 };
-		if (out === 'compressed') return { trips: 2, kb: 32 };
-		return { trips: 6, kb: 240 };
-	});
-	const OUT_RAW = [
-		[286, 44],
-		[336, 44],
-		[286, 108],
-		[336, 108],
-		[286, 172],
-		[336, 172]
-	];
-	const OUT_BIG = [
-		[282, 70],
-		[338, 70]
-	];
-	const OUT_NAMES = ['app.js', 'app.css'];
+	onDestroy(() => clearTimeout(timer));
 </script>
 
-{#snippet sheet(x: number, y: number, w: number, h: number, mini: boolean)}
-	<rect {x} {y} width={w} height={h} rx="5" class="sheet" />
-	<path d="M{x + w - 10} {y}v10h10" class="fold" />
-	{#if mini}
-		{#each [0, 1, 2, 3, 4, 5, 6, 7] as k (k)}
-			<rect x={x + 5} y={y + 14 + k * 6} width={w - 10} height="3" rx="1.5" class="code" />
-		{/each}
-	{:else}
-		<rect x={x + 6} y={y + 14} width={w * 0.6} height="3.5" rx="1.75" class="code" />
-		<rect x={x + 12} y={y + 22} width={w * 0.5} height="3.5" rx="1.75" class="code" />
-		<rect x={x + 6} y={y + 30} width={w * 0.4} height="3.5" rx="1.75" class="code" />
-		<rect x={x + 6} y={y + 40} width={w * 0.55} height="3.5" rx="1.75" class="note" />
-	{/if}
-{/snippet}
-
-{#snippet visual()}
-	<div class="w-full">
-		<svg
-			viewBox="0 0 400 330"
-			class="mx-auto block w-full max-w-[440px]"
-			role="img"
-			aria-label={tx.steps[step].title}
-		>
-			<!-- two calm trays, so each header always sits on something -->
-			<rect x="4" y="12" width="116" height="226" rx="14" class="zone" />
-			<rect x="274" y="12" width="118" height="226" rx="14" class="zone" />
-			<text x="62" y="31" text-anchor="middle" class="lbl">{tx.srcLabel}</text>
-			{#each SRC as [x, y], i (i)}
-				<g
-					class:feed={feeding}
-					class:sending={step === 1 && i === arrived && arrived < 6}
-					style="--dx:{MOUTH[0] - x - SW / 2}px;--dy:{MOUTH[1] -
-						y -
-						SH / 2}px;--dur:{loopLen}ms;animation-delay:{i * 120}ms"
-				>
-					{@render sheet(x, y, SW, SH, false)}
-				</g>
-			{/each}
-
-			<!-- the build machine -->
-			{#if showMachine}
-				<g in:fade={{ duration: 350 }} class:asleep={live && off}>
-					<rect x="150" y="80" width="100" height="116" rx="16" class="machine" />
-					<rect x="142" y="116" width="12" height="32" rx="4" class="mouth" />
-					<rect x="246" y="116" width="12" height="32" rx="4" class="mouth" />
-					<text x="200" y="104" text-anchor="middle" class="mlabel">{tx.toolLabel}</text>
-					<!-- one row per job, a lamp with its name beside it -->
-					{#each JOBS as j, k (j)}
-						<circle cx="172" cy={126 + k * 22} r="6.5" class="lamp" class:on={lit[j]} />
-						<text x="184" y={129.5 + k * 22} class="job" class:on={lit[j]}>
-							{tx.jobs[j]}
-						</text>
-					{/each}
-				</g>
-			{/if}
-
-			<!-- what goes online -->
-			<text x="333" y="31" text-anchor="middle" class="lbl">{tx.outLabel}</text>
-			{#key out}
-				<g in:fade={{ duration: 300 }}>
-					{#if out === 'raw'}
-						{#each OUT_RAW as [x, y], i (i)}
-							{#if live || step !== 1 || i < arrived}
-								<g in:fade={{ duration: 250 }}>{@render sheet(x, y, SW, SH, false)}</g>
-							{/if}
-						{/each}
-					{:else if out !== 'none'}
-						{#each OUT_BIG as [x, y], i (i)}
-							<g
-								class="pack"
-								class:squeezed={out === 'compressed'}
-								style="transform-origin:{x + 24}px {y + 36}px"
-							>
-								{@render sheet(x, y, 48, 72, out !== 'bundled')}
-								{#if out === 'bundled'}
-									<rect x={x + 6} y={y + 50} width="30" height="3.5" rx="1.75" class="note" />
-									<rect x={x + 6} y={y + 58} width="22" height="3.5" rx="1.75" class="code" />
-								{/if}
-								{#if out === 'compressed'}
-									<rect x={x - 3} y={y + 30} width="54" height="12" rx="3" class="strap" />
-								{/if}
-							</g>
-							<text x={x + 24} y={y + 96} text-anchor="middle" class="fname">{OUT_NAMES[i]}</text>
-						{/each}
+<div class="flex h-full w-full flex-col items-center justify-center gap-3">
+	<div class="steps">
+		{#each STEPS as s (s)}
+			<label class="step" class:on={on[s]}>
+				<input type="checkbox" bind:checked={on[s]} disabled={building} />
+				<span class="box" aria-hidden="true">
+					{#if on[s]}
+						<svg width="10" height="10" viewBox="0 0 12 12"
+							><path
+								d="m2.5 6.3 2.3 2.3 4.7-5"
+								stroke="currentColor"
+								stroke-width="2"
+								fill="none"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/></svg
+						>
 					{/if}
-				</g>
-			{/key}
+				</span>
+				<span class="txt"><b>{tx.steps[s].label}</b><span>{tx.steps[s].sub}</span></span>
+			</label>
+		{/each}
+	</div>
 
-			<!-- the meter -->
-			<text x="16" y="270" class="mtext">{tx.tripsTpl.replace('{n}', String(meter.trips))}</text>
-			<text x="384" y="270" text-anchor="end" class="mtext">
-				{tx.sizeLabel}
-				{tx.kbTpl.replace('{n}', String(meter.kb))}
-			</text>
-			<rect x="16" y="282" width="368" height="12" rx="6" class="track" />
-			<rect
-				x="16"
-				y="282"
-				width={Math.max(6, (368 * meter.kb) / 240)}
-				height="12"
-				rx="6"
-				class="fillbar"
-				class:light={meter.kb <= 40 && step !== 1}
-			/>
-		</svg>
-		{#if live}
-			<div class="mt-3 flex justify-center">
-				<button type="button" class="play" class:on={!off} onclick={toggle}>
-					{off ? tx.turnOn : tx.turnOff}
-				</button>
+	<button type="button" class="buildbtn" disabled={building} onclick={build}>
+		{building ? tx.building : tx.build}
+	</button>
+
+	<div class="panel">
+		<div class="cap">
+			<span>{tx.srcLabel}</span>
+			<span class="meta">{SRC.length} {tx.filesLabel.toLowerCase()}, {SRC_KB} KB</span>
+		</div>
+		<div class="files" class:going={building}>
+			{#each SRC as f, i (f.name)}
+				<span class="file {f.kind}" style="--d:{i * 60}ms">
+					<span class="fn">{f.name}</span>
+					<span class="kb">{f.kb} KB</span>
+				</span>
+			{/each}
+		</div>
+	</div>
+
+	<svg
+		class="arrow"
+		class:busy={building}
+		width="18"
+		height="18"
+		viewBox="0 0 24 24"
+		aria-hidden="true"
+		><path
+			d="M12 4v15m0 0-6-6m6 6 6-6"
+			stroke="currentColor"
+			stroke-width="2.2"
+			fill="none"
+			stroke-linecap="round"
+			stroke-linejoin="round"
+		/></svg
+	>
+
+	<div class="panel">
+		<div class="cap"><span>{tx.outLabel}</span></div>
+		{#if out}
+			<div class="outs">
+				{#each out as f (f.name)}
+					<div class="orow">
+						<span class="fn">{f.name}</span>
+						<span class="bar"><i class={f.kind} style="width:{barW(f.kb)}"></i></span>
+						<span class="kb">{f.kb} KB</span>
+					</div>
+				{/each}
 			</div>
+			<div class="stats">
+				<span><b>{SRC.length}</b> → <b class="good">{out.length}</b><em>{tx.filesLabel}</em></span>
+				<span><b>{SRC_KB}</b> → <b class="good">{outKb}</b><em>{tx.sizeLabel} (KB)</em></span>
+				<span
+					><b>{fmtS(loadTime(SRC.length, SRC_KB))}</b> →
+					<b class="good">{fmtS(loadTime(out.length, outKb))}</b><em>{tx.loadLabel}</em></span
+				>
+			</div>
+		{:else}
+			<p class="empty">{building ? tx.building : tx.outEmpty}</p>
 		{/if}
 	</div>
-{/snippet}
 
-<div class="flex w-full justify-center px-1 pb-28 md:pb-6">
-	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
+	<button type="button" class="peekbtn" class:on={peek} onclick={togglePeek}>{tx.peek}</button>
+	{#if peek}
+		<div class="peek">
+			<span class="pl">{tx.before}</span>
+			<pre>{BEFORE}</pre>
+			<span class="pl">{tx.after}</span>
+			<pre class="min">{AFTER}</pre>
+		</div>
+	{/if}
 </div>
 
 <style>
-	.lbl {
-		font-size: 11px;
+	.steps {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 6px;
+		width: min(94vw, 420px);
+	}
+	.step {
+		position: relative;
+		display: flex;
+		align-items: flex-start;
+		gap: 6px;
+		padding: 8px;
+		border-radius: 12px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		cursor: pointer;
+		transition:
+			border-color 0.2s ease,
+			background 0.2s ease;
+	}
+	.step.on {
+		border-color: var(--color-brand);
+		background: var(--color-brand-soft);
+	}
+	.step input {
+		position: absolute;
+		opacity: 0;
+		width: 1px;
+		height: 1px;
+	}
+	.step:has(input:focus-visible) {
+		outline: 2px solid var(--color-brand);
+		outline-offset: 2px;
+	}
+	.box {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 16px;
+		height: 16px;
+		margin-top: 1px;
+		border-radius: 5px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		color: #fff;
+	}
+	.on .box {
+		border-color: var(--color-brand);
+		background: var(--color-brand);
+	}
+	.txt {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+		font-size: 12.5px;
+		color: var(--color-ink);
+	}
+	.txt span {
+		font-size: 10.5px;
+		line-height: 1.25;
+		color: var(--color-muted);
+	}
+	.buildbtn {
+		border-radius: 12px;
+		background: var(--color-ink);
+		color: var(--color-paper);
+		padding: 10px 26px;
+		font-size: 14px;
 		font-weight: 700;
-		fill: var(--color-faint);
+		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.16);
 	}
-	.zone {
-		fill: var(--color-line);
-		opacity: 0.28;
-	}
-	.sheet {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-	}
-	.fold {
-		fill: none;
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-	}
-	.code {
-		fill: var(--color-faint);
+	.buildbtn:disabled {
 		opacity: 0.6;
 	}
-	.note {
-		fill: var(--color-grass);
-		opacity: 0.7;
+	.panel {
+		width: min(94vw, 420px);
+		border-radius: 14px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		overflow: hidden;
 	}
-	.sending {
-		animation: nudge 0.6s ease-in-out infinite;
-	}
-	.feed {
-		animation: feed var(--dur) ease-in-out infinite;
-	}
-	.machine {
-		fill: var(--color-card);
-		stroke: var(--color-ink);
-		stroke-width: 2.5;
-	}
-	.mouth {
-		fill: var(--color-ink);
-	}
-	.mlabel {
-		font-family: var(--font-display);
-		font-size: 14px;
+	.cap {
+		display: flex;
+		justify-content: space-between;
+		gap: 8px;
+		padding: 6px 10px;
+		border-bottom: 1px solid var(--color-line);
+		font-size: 11.5px;
 		font-weight: 600;
-		fill: var(--color-ink);
+		color: var(--color-muted);
 	}
-	.lamp {
-		fill: var(--color-line);
-		transition: fill 0.3s;
+	.meta {
+		color: var(--color-faint);
+		font-variant-numeric: tabular-nums;
 	}
-	.lamp.on {
-		fill: var(--color-amber);
+	.files {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 5px;
+		padding: 8px;
 	}
-	.job {
-		font-size: 10px;
-		font-weight: 700;
-		fill: var(--color-faint);
-	}
-	.job.on {
-		fill: var(--color-amber);
-	}
-	.asleep {
-		opacity: 0.4;
-	}
-	.pack {
-		transition: transform 0.6s ease-in-out;
-	}
-	.pack.squeezed {
-		transform: scale(0.62);
-	}
-	.strap {
-		fill: var(--color-amber);
-		opacity: 0.85;
-	}
-	.fname {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 10px;
-		font-weight: 700;
-		fill: var(--color-muted);
-	}
-	.mtext {
-		font-size: 12px;
-		font-weight: 700;
-		fill: var(--color-ink);
-	}
-	.track {
-		fill: var(--color-line);
-	}
-	.fillbar {
-		fill: var(--color-danger);
+	.file {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 5px;
+		padding: 3px 8px;
+		border-radius: 8px;
+		border: 1px solid var(--color-line);
+		background: var(--color-paper);
+		font-size: 10.5px;
 		transition:
-			width 0.6s ease-in-out,
-			fill 0.6s;
+			transform 0.5s ease var(--d),
+			opacity 0.5s ease var(--d);
 	}
-	.fillbar.light {
-		fill: var(--color-grass);
+	.files.going .file {
+		transform: translateY(14px) scale(0.85);
+		opacity: 0.35;
 	}
-	.play {
+	.fn {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-weight: 600;
+		color: var(--color-ink);
+	}
+	.file.html .fn {
+		color: var(--color-danger);
+	}
+	.file.css .fn {
+		color: var(--color-brand);
+	}
+	.file.js .fn {
+		color: var(--color-amber);
+	}
+	.kb {
+		font-size: 10px;
+		color: var(--color-faint);
+		font-variant-numeric: tabular-nums;
+	}
+	.arrow {
+		color: var(--color-faint);
+	}
+	.arrow.busy {
+		color: var(--color-brand);
+		animation: bob 0.6s ease-in-out infinite alternate;
+	}
+	@keyframes bob {
+		to {
+			transform: translateY(3px);
+		}
+	}
+	.outs {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 8px 10px;
+	}
+	.orow {
+		display: grid;
+		grid-template-columns: 82px 1fr 56px;
+		align-items: center;
+		gap: 8px;
+		font-size: 10.5px;
+		animation: in 0.35s ease;
+	}
+	.orow .kb {
+		text-align: right;
+	}
+	.bar {
+		height: 7px;
+		border-radius: 4px;
+		background: var(--color-paper);
+		overflow: hidden;
+	}
+	.bar i {
+		display: block;
+		height: 100%;
+		border-radius: 4px;
+	}
+	.bar i.html {
+		background: var(--color-danger);
+	}
+	.bar i.css {
+		background: var(--color-brand);
+	}
+	.bar i.js {
+		background: var(--color-amber);
+	}
+	.stats {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 4px;
+		padding: 8px 10px;
+		border-top: 1px solid var(--color-line);
+		background: var(--color-paper);
+		font-size: 11px;
+		color: var(--color-muted);
+		text-align: center;
+	}
+	.stats span {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	.stats em {
+		font-style: normal;
+		font-size: 10px;
+		color: var(--color-faint);
+	}
+	.stats b {
+		color: var(--color-muted);
+		font-variant-numeric: tabular-nums;
+	}
+	.stats b.good {
+		color: var(--color-grass);
+	}
+	.empty {
+		margin: 0;
+		padding: 14px 10px;
+		text-align: center;
+		font-size: 11.5px;
+		color: var(--color-faint);
+	}
+	.peekbtn {
 		border-radius: 999px;
 		border: 1px solid var(--color-line);
 		background: var(--color-card);
-		padding: 9px 18px;
-		font-size: 14px;
+		color: var(--color-muted);
+		padding: 5px 12px;
+		font-size: 11.5px;
 		font-weight: 600;
-		color: var(--color-ink);
-		box-shadow: 0 4px 14px rgba(22, 40, 60, 0.07);
 	}
-	.play.on {
-		border-color: var(--color-grass);
+	.peekbtn.on {
+		border-color: var(--color-ink);
+		color: var(--color-ink);
+	}
+	.peek {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		width: min(94vw, 420px);
+	}
+	.pl {
+		font-size: 10.5px;
+		font-weight: 700;
+		color: var(--color-faint);
+	}
+	pre {
+		margin: 0;
+		padding: 8px 10px;
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
+		background: var(--color-paper);
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 10.5px;
+		line-height: 1.5;
+		color: var(--color-ink);
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+	}
+	pre.min {
 		color: var(--color-grass);
 	}
-	@keyframes feed {
-		0% {
-			transform: translate(0, 0);
-			opacity: 1;
-		}
-		30% {
-			transform: translate(var(--dx), var(--dy)) scale(0.3);
+	@keyframes in {
+		from {
 			opacity: 0;
+			transform: translateY(-4px);
 		}
-		85% {
-			transform: translate(0, 0);
-			opacity: 0;
-		}
-		100% {
-			transform: translate(0, 0);
+		to {
 			opacity: 1;
-		}
-	}
-	@keyframes nudge {
-		0%,
-		100% {
-			transform: translateX(0);
-		}
-		50% {
-			transform: translateX(4px);
+			transform: none;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.feed,
-		.sending {
-			animation: none;
-		}
-		.lamp,
-		.pack,
-		.fillbar {
+		.file,
+		.step {
 			transition: none;
+		}
+		.files.going .file {
+			transform: none;
+		}
+		.arrow.busy,
+		.orow {
+			animation: none;
 		}
 	}
 </style>

@@ -3,89 +3,60 @@ import type { BruteForceText } from './types';
 export const id: BruteForceText = {
 	title: 'Brute force',
 	intro: [
-		'Kenalan sama mesin penebak. Dia berdiri di depan halaman login dan ngetik password satu per satu, aaaa, aaab, aaac, tanpa pernah capek. Menang dengan cara mencoba semua kemungkinan itu namanya serangan <b>brute force</b>.',
-		'Komputer itu cepat. Mesin yang kuat bisa mencoba sekitar <b>10 miliar</b> tebakan tiap detik. Password pendek kayak <b>kopi</b> kemungkinannya nggak sampai setengah juta, jadi langsung jebol sebelum kamu sempat kedip.',
-		'Ini rahasianya. Tiap tambahan satu huruf <b>mengalikan</b> kerjanya 26 kali, karena tiap tempat baru bisa diisi huruf apa aja. Lihat password kedua makin panjang, dan lihat waktunya melonjak.',
-		'Sekarang balapan. Mesin yang sama nyerang dua duanya sekaligus. kopi langsung kebuka, sementara <b>kopisusupagihari</b> (enam belas huruf biasa, tanpa trik) bakal bikin dia sibuk lebih dari seratus ribu tahun.',
-		'Terus gimana dengan password pintar kayak <b>P@ssw0rd</b>, yang hurufnya ditukar sama simbol? Tiap tahun daftar besar berisi password asli bocor dari situs yang dibobol, dan mesinnya nyoba favorit favorit itu duluan. Trik pintar juga ada di daftarnya. Memakai password bocor di situs lain itu namanya <b>credential stuffing</b>.',
-		'[ingat] <b>Panjang ngalahin pintar.</b> Pilih password panjang dari beberapa kata acak, bukan kalimat terkenal. Panjangnya yang kerja keras.',
-		'Situs juga bisa melawan, pakai <b>lockout</b>. Setelah beberapa kali salah, login nyuruh kamu nunggu, jadi mesinnya melambat dari miliaran tebakan jadi cuma segelintir per menit. Bahkan kopi sekarang butuh berbulan bulan.',
-		'[fyi] Kalau penyerang mencuri file passwordnya langsung, nggak ada lockout, mereka nebak di mesin sendiri dengan kecepatan penuh. Makanya situs yang baik nyimpen password pakai [[hashing|security/hashing]] yang lambat, dan [[MFA|security/mfa]] itu penting, password yang ketebak aja nggak cukup. Password manager bisa ngingetin yang panjang panjang buat kamu.',
-		'Mau ngerasain? Geser slidernya buat ngubah panjang password kedua dan lihat waktunya. Atau tonton aja mesinnya keringetan, itu juga boleh.'
+		'Bayangkan ada robot berdiri di halaman login nimbus.com, mengetik password demi password tanpa pernah capek. aaaa, aaab, aaac, terus dan terus. Itulah serangan <b>brute force</b>, menang dengan cara mencoba semua kemungkinan.',
+		'Komputer itu cepat. Satu bot, atau segerombolan komputer bajakan yang kerja bareng, bisa mencoba ribuan password tiap detik. Password pendek yang isinya cuma angka punya kemungkinan sedikit sekali, jadi jebolnya hampir seketika.',
+		'Ada versi yang lebih malas juga. Tiap tahun daftar raksasa berisi password asli bocor dari situs yang dibobol, dan orang terus memakai favorit yang sama (123456, password, qwerty). Penyerang mencoba itu duluan, atau mengambil email dan password yang bocor dari satu situs lalu mencobanya di situs lain. Namanya <b>credential stuffing</b>.',
+		'Pihak yang bertahan punya dua senjata besar. <b>Panjang</b>, karena tiap tambahan satu karakter melipatgandakan kemungkinannya. Dan <b>lockout</b> (atau rate limit), situsnya cuma mengizinkan beberapa kali salah sebelum menyuruh menunggu, jadi robotnya melambat sampai merayap.',
+		'[fyi] Kalau penyerang mencuri file passwordnya langsung, nggak ada lockout yang bisa memperlambat, dan dia menebak secara offline dengan kecepatan miliaran per detik. Makanya situs yang baik menyimpan password pakai [[hashing|security/hashing]] yang lambat, dan [[MFA|security/mfa]] jadi penting, password yang berhasil ditebak saja nggak cukup.',
+		'[ingat] Gunakan password panjang, acak, dan berbeda untuk tiap akun. Pembatasan percobaan login dan MFA menambah perlindungan.',
+		'Mesin penebak ini cuma menyerang login pura pura, jadi karang saja passwordnya (jangan yang asli). Mulai dari yang pendek, lalu bikin lebih panjang, lalu nyalakan lockout dan lihat jamnya.'
 	],
 	reactions: {
-		weak: 'Cukup pendek sampai mesinnya bisa beres dalam hitungan jam atau kurang. Tambah beberapa huruf lagi dan lihat yang terjadi.',
-		okay: 'Udah mendingan. Berhari hari atau bertahun tahun udah bikin penyerang kesal, dan tiap huruf tambahan mengalikannya 26 kali.',
+		leaked:
+			'Seketika. Password itu ada di daftar bocoran yang selalu dicoba duluan oleh penyerang, jadi mesinnya bahkan nggak perlu menebak, tinggal cari di daftar. Jangan pernah pakai password yang terkenal.',
+		leakedLock:
+			'Biarpun lockout menyala, password dari daftar bocoran tetap jebol di beberapa putaran pertama. Lockout memperlambat tebakan, tapi nggak bisa menyelamatkan password yang semua orang sudah tahu.',
+		fast: 'Beres sebelum kopimu dingin. Password pendek, atau yang isinya cuma satu jenis karakter, punya kombinasi terlalu sedikit. Tambah panjangnya dan jumlahnya meledak.',
+		medium:
+			'Lebih baik, mesinnya butuh waktu sekarang. Tapi penyerang yang sabar dengan lebih banyak komputer masih bisa sampai. Beberapa karakter lagi bakal membuatnya nggak terjangkau.',
 		strong:
-			'Nah, itu baru panjang. Ribuan tahun atau lebih, bahkan dengan 10 miliar tebakan per detik. Panjang ngalahin pintar, selalu.'
+			'Pada model perkiraan ini, panjang dan ruang karakter memperbesar jumlah tebakan. Password panjang tetap perlu unik. Kebocoran, pola yang mudah ditebak, dan serangan lain tidak tercakup dalam angka ini.',
+		lockOn:
+			'Lockout menyala. Setelah lima kali salah, nimbus.com menyuruh siapa pun menunggu 15 menit. Kamu hampir nggak akan merasakannya, tapi robotnya anjlok dari ribuan tebakan per detik jadi segelintir tiap seperempat jam.'
 	},
-	steps: [
-		{
-			tag: 'Penyerang',
-			title: 'Brute force',
-			body: 'Mencoba <b>semua</b> kemungkinan password, satu demi satu, sampai ada yang cocok.'
-		},
-		{
-			tag: 'Kecepatan',
-			title: 'Yang pendek cepat jebol',
-			body: 'Empat huruf berarti 26 × 26 × 26 × 26, nggak sampai setengah juta tebakan. Buat mesin itu <b>bukan apa apa</b>.'
-		},
-		{
-			tag: 'Panjang',
-			title: 'Tiap huruf mengalikan',
-			body: 'Satu huruf lagi, kerjanya <b>26 kali</b> lebih banyak. Beberapa huruf tambahan mengubah detik jadi berabad abad.'
-		},
-		{
-			tag: 'Balapan',
-			title: 'Pendek lawan panjang',
-			body: 'Mesin sama, kecepatan sama. Bedanya cuma <b>panjangnya</b>.'
-		},
-		{
-			tag: 'Daftar bocor',
-			title: 'Favorit dicoba duluan',
-			body: 'Password populer dan trik umum ada di <b>daftar yang bocor</b>. Mesinnya nyoba itu sebelum yang lain.'
-		},
-		{
-			tag: 'Biar nempel',
-			title: 'Panjang ngalahin pintar',
-			body: 'Beberapa <b>kata acak</b> berderet ngalahin password pendek penuh simbol mana pun.'
-		},
-		{
-			tag: 'Pertahanan',
-			title: 'Lockout',
-			body: 'Beberapa kali salah, terus <b>nunggu</b>. Miliaran tebakan per detik turun jadi segelintir per menit.'
-		},
-		{
-			tag: 'Sekilas',
-			title: 'File yang dicuri',
-			body: 'File password yang dicuri nggak punya lockout. <b>Hashing</b> yang lambat dan <b>MFA</b> yang melindungimu di situ.'
-		},
-		{
-			tag: 'Opsional',
-			title: 'Coba satu panjang',
-			body: 'Geser slidernya dan lihat berapa lama mesinnya butuh.'
-		}
-	],
+	passLabel: 'Password karanganmu',
+	passPlaceholder: 'coba 1234 dulu',
+	passHint: 'Karang saja, jangan ketik password asli di sini',
+	lockLabel: 'Kunci login 15 menit setelah 5 kali salah',
+	runBtn: 'Jalankan mesin penebak',
+	emptyPass: 'Ketik password dulu',
 	machineLabel: 'Mesin penebak',
-	speedFast: '10 miliar tebakan per detik',
-	speedLock: 'Kena lockout, 5 tebakan per menit',
-	listLabel: 'daftar bocor',
-	waitLabel: 'harap tunggu',
-	letters: '{n} huruf',
-	cracked: 'Jebol',
-	holding: 'Bertahan',
-	onList: 'ada di daftar',
+	targetLabel: 'Login nimbus.com',
+	lockedTag: 'terkunci, tunggu 15 menit',
+	kinds: { lower: 'a sampai z', upper: 'A sampai Z', digits: '0 sampai 9', symbols: 'simbol' },
+	lengthStat: '{n} karakter',
+	combosStat: 'kemungkinan password yang harus dicoba',
+	speedFast: '10.000 tebakan per detik',
+	speedLock: '5 tebakan tiap 15 menit',
+	resultLabel: 'Waktu untuk mencoba semuanya',
+	leakedTitle: 'Ada di daftar bocoran',
+	leakedSub: 'urutan ke {n}, dicoba paling awal',
+	verdicts: { leaked: 'bocor', fast: 'lemah', medium: 'lumayan', strong: 'kuat' },
 	units: {
-		instant: 'seketika',
-		seconds: 'sekitar {n} detik',
-		minutes: 'sekitar {n} menit',
-		hours: 'sekitar {n} jam',
-		days: 'sekitar {n} hari',
-		years: 'sekitar {n} tahun',
-		million: 'sekitar {n} juta tahun',
-		billion: 'sekitar {n} miliar tahun'
+		instant: 'kurang dari sedetik',
+		seconds: '{n} detik',
+		minutes: '{n} menit',
+		hours: '{n} jam',
+		days: '{n} hari',
+		years: '{n} tahun',
+		million: '{n} juta tahun',
+		billion: '{n} miliar tahun',
+		forever: 'lebih lama dari umur alam semesta'
 	},
-	numberLocale: 'id-ID',
-	rule: 'Panjang ngalahin pintar',
-	sliderLabel: 'Panjang password kedua'
+	historyLabel: 'Percobaanmu',
+	lockShort: 'lockout',
+	goals: [
+		'Temukan password yang nggak sanggup diselesaikan mesinnya',
+		'Jalankan mesinnya sekali dengan lockout menyala'
+	]
 };

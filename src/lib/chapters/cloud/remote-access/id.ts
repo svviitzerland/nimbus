@@ -7,7 +7,7 @@ export const id: RemoteAccessText = {
 		'Karena mesinnya nggak bisa kamu pegang, caranya masuk dari jauh, namanya <b>remote access</b>. Dari komputer di rumah, kamu nyambung lewat internet pakai alamat servernya, bisa berupa <b>IP</b> atau <b>hostname</b> (nama alamatnya) seperti nimbus.com.',
 		'Ada dua pintu yang umum. <b>SSH</b> buat server Linux, isinya terminal buat ngetik perintah. <b>RDP</b> buat server Windows, isinya layar desktop yang bisa kamu klik klik.',
 		'Ngetik password tiap kali memang bisa, tapi password bisa ditebak atau dicuri. Cara yang lebih aman itu <b>SSH key</b>, sepasang file yang saling cocok dan dibuat di laptopmu. <b>Public key</b> ditaruh di server, dan <b>private key</b> nggak pernah keluar dari laptopmu. Waktu nyambung, server ngecek apakah laptopmu punya kunci pasangannya, jadi nggak ada password yang lewat internet.',
-		'[ingat] Bayangin gembok dan satu satunya kunci. Public key itu gemboknya, kamu boleh pasang salinannya di semua server dan siapa pun boleh lihat. Private key itu satu satunya kunci yang bisa buka semuanya, jadi simpan di saku dan jangan pernah dipinjamkan.',
+		'[ingat] SSH membuka terminal dari jauh. RDP membawa tampilan desktopnya.',
 		'Server kamu sudah siap di data center. Coba masuk lewat SSH, lalu lewat RDP, dan lihat bedanya.'
 	],
 	reactions: {

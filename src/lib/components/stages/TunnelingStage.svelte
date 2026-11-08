@@ -202,7 +202,7 @@
 		stroke: var(--color-line);
 		stroke-width: 2;
 		stroke-linecap: round;
-		stroke-dasharray: 3 5;
+		stroke-dasharray: none;
 		transition: stroke 0.3s ease;
 	}
 	.seg.on {
@@ -221,7 +221,7 @@
 	.seg.dead {
 		stroke: #ece8e1;
 		animation: none;
-		stroke-dasharray: 2 7;
+		stroke-dasharray: none;
 	}
 	@keyframes flow {
 		to {

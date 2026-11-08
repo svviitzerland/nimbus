@@ -1,23 +1,25 @@
 import type { LessonText } from '../../types';
 
-/** One part of the side panel (title, one or two short sentences, an optional tag). */
-export type GuideStep = { title: string; body: string; tag?: string };
-
 export type BuildStep = 'bundle' | 'minify' | 'compress';
 
 export interface BuildToolsText extends LessonText {
-	/** Side panel parts, one per beat (the last beat reuses the last part). */
-	steps: GuideStep[];
+	/** Caption over the source files and over the output. */
 	srcLabel: string;
 	outLabel: string;
-	toolLabel: string;
-	/** Short names of the three jobs, shown under the machine. */
-	jobs: Record<BuildStep, string>;
-	/** The meter under the picture. {n} is a number. */
-	tripsTpl: string;
+	/** Name and one line meaning of each build step switch. */
+	steps: Record<BuildStep, { label: string; sub: string }>;
+	build: string;
+	building: string;
+	/** Result labels. */
+	filesLabel: string;
 	sizeLabel: string;
-	kbTpl: string;
-	/** The optional toggle on the last beat. */
-	turnOff: string;
-	turnOn: string;
+	loadLabel: string;
+	/** Template with {s}, seconds on a slow phone. */
+	loadValue: string;
+	/** Shown in the output before the first build. */
+	outEmpty: string;
+	/** Toggle that shows a slice of code before and after minify. */
+	peek: string;
+	before: string;
+	after: string;
 }

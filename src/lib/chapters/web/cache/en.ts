@@ -3,84 +3,52 @@ import type { CacheText } from './types';
 export const en: CacheText = {
 	title: 'Caching and Redis',
 	intro: [
-		'Opening a product page on nimbus.com looks simple, but behind it the app server asks the database for the name, the price, the photos, and the stock. A busy database can take most of a second to answer. Watch one visit.',
-		'Yet most visitors open the very same few pages, again and again. Every single visit makes the database do the whole job from scratch. Keep an eye on how many times it gets asked.',
-		'So we keep the answer the first time and reuse it. That is a <b>cache</b>. You will meet another one later in [[Caching and CDNs|traffic/cdn]]. A CDN keeps copies of files near the visitors, this cache keeps ready made answers right next to the app server.',
-		'A popular tool for it is <b>Redis</b>, a tiny database that lives in memory (RAM) instead of on disk. Reading from memory takes a millisecond or two, way faster than running a big query on disk.',
-		'The first visit is a <b>miss</b>. Redis does not have the answer yet, so the server asks the database the slow way and saves a copy in Redis on the way back.',
-		'Every visit after that is a <b>hit</b>, served straight from memory in a couple of milliseconds. The database does not even notice, and the counter under it stops climbing.',
-		'[ingat] A cache is a water bottle on your desk. The first time you are thirsty you walk to the kitchen (a miss). After that you just reach for the bottle (a hit). Miss once, hit many times.',
-		'[fyi] There is a catch. When the price changes in the database, Redis may still hold the old one, which is called <b>stale</b> data. Real apps clear the key when the data changes, or give every key an expiry time (a TTL). An old joke says the two hardest things in computer science are cache invalidation and naming things.',
-		'If you like, open the page a few times yourself, starting from an empty cache. Totally optional.'
+		'Opening a product page on nimbus.com looks simple, but behind it the server asks the database for the name, the price, the photos, the reviews, and the stock. That is a lot of queries, and a busy database can take most of a second to answer them all.',
+		'Yet most visitors open the very same few pages, again and again. Asking the database the same question a thousand times a minute is a lot of wasted work.',
+		'So we keep the answer the first time and reuse it. That is a <b>cache</b>, and you already met one in [[Caching and CDNs|traffic/cdn]]. A CDN keeps copies of files close to the visitors, this cache keeps ready made answers right next to the server.',
+		'<b>Redis</b> can store cached data in memory. Retrieving a saved result can reduce database work. Redis also offers disk persistence options.',
+		'The first visit is a <b>miss</b>. Redis does not have the answer yet, so the server asks the database and saves the answer in Redis on the way back. Every visit after that is a <b>hit</b>, served straight from memory.',
+		'[fyi] There is a catch. When the real price changes, the cache may still hold the old one, which is called <b>stale</b> data. An old joke says there are only two hard things in computer science, cache invalidation and naming things.',
+		'[ingat] A cache hit means the data was found in the cache. A cache miss means the app must retrieve it from the source. Cached data can become stale.',
+		'Your turn. Open a product page with the cache off and feel the wait. Then switch Redis on and open the same page twice.'
 	],
 	reactions: {
-		miss: 'A miss. Redis was empty, so the server went to the database the slow way and kept a copy. Open it again.',
-		hit: 'A hit, a couple of milliseconds, and the database never heard about it.'
+		slow: 'Feel that? Almost a second, every single time, because each visit makes the database do the whole job all over again. Switch the cache on.',
+		miss: 'A miss. Redis had nothing yet, so the server went to the database the slow way and saved the answer on the way back. Open the same page again.',
+		hit: 'A hit! Same page, a couple of milliseconds. The database did not even notice you. On a busy sale day, this is what keeps the database from melting.',
+		stale:
+			'Uh oh. The price changed in the database, but the page still shows the old one. Redis has no idea the truth moved. Clear that key from the cache.',
+		fresh:
+			'Fresh again. Clearing the key forced one more miss, and Redis now holds the new price. Real apps clear the key whenever the data changes, or give every key an expiry time (a TTL) so old answers fade away by themselves.'
 	},
-	panels: [
-		{
-			tag: 'One visit',
-			title: 'The slow way',
-			body: 'Your phone asks the <b>app server</b>, the server asks the <b>database</b>, and the answer travels all the way back.'
-		},
-		{
-			tag: 'Again and again',
-			title: 'Same question, same work',
-			body: 'Each visit to the same page asks the database the same thing. The counter under it keeps climbing.'
-		},
-		{
-			tag: 'Cache',
-			title: 'Keep the answer',
-			body: 'A <b>cache</b> is a place to store answers you already have, so you do not have to work them out again.'
-		},
-		{
-			tag: 'Redis',
-			title: 'Memory is fast',
-			body: 'Redis keeps everything in RAM, so an answer comes back in about a millisecond. The database keeps its data on disk, much slower to reach.'
-		},
-		{
-			tag: 'Miss',
-			title: 'Not there yet',
-			body: 'Redis is checked first. It is empty, so the server falls back to the database, then saves the answer under a <b>key</b>.'
-		},
-		{
-			tag: 'Hit',
-			title: 'Served from memory',
-			body: 'The key is there, so the answer comes straight back from Redis. The database is not asked at all.'
-		},
-		{
-			tag: 'Make it stick',
-			title: 'Miss once, hit many times',
-			body: 'The first visit pays the full price. Every visit after it gets the answer almost for free.'
-		},
-		{
-			tag: 'Stale',
-			title: 'An old copy',
-			body: 'The database has a new price, but Redis still serves the old one until the key is cleared or expires.'
-		},
-		{
-			tag: 'Try it',
-			title: 'Open the page',
-			body: 'The cache starts empty. Open the page and watch the first visit miss and the next ones hit.'
-		}
-	],
+	keyPrefix: 'product_',
 	locale: 'en-US',
 	currency: 'Rp',
-	keyName: 'product_1',
-	product: { name: 'Nimbus Tee', price: 89000, salePrice: 59000 },
-	serverLabel: 'App server',
+	products: [
+		{ name: 'Nimbus Tee', price: 89000 },
+		{ name: 'Cloud Cap', price: 65000 },
+		{ name: 'Nimbus Mug', price: 45000 }
+	],
+	openBtn: 'Open {name}',
+	cacheLabel: 'Redis cache',
+	cacheOn: 'on',
+	cacheOff: 'off',
+	youLabel: 'You',
+	appLabel: 'App server',
 	redisLabel: 'Redis',
 	redisSub: 'in memory',
 	dbLabel: 'Database',
 	dbSub: 'on disk',
 	emptyCache: 'empty',
-	asked: 'asked {n} times',
+	loading: 'loading',
+	idleScreen: 'Pick a product to open',
+	visitsLabel: 'Recent visits',
 	ms: 'ms',
 	hitTag: 'hit',
 	missTag: 'miss',
 	directTag: 'no cache',
 	staleTag: 'old price',
-	saleTag: 'on sale',
-	rule: 'Miss once, hit many times.',
-	open: 'Open the page'
+	saleBtn: 'Put {name} on sale in the database',
+	clearBtn: 'Clear {key} from Redis',
+	saleNote: 'The database now has a new price'
 };

@@ -6,7 +6,8 @@ export const en: VcCommandsText = {
 		'Picture writing an assignment and saving it as <i>final.doc</i>. Tomorrow you revise it, so <i>final_real.doc</i>. The day after, <i>final_fix2.doc</i>. It gets messy fast, and you are still nervous about overwriting the old one.',
 		'Git was made for exactly this. Every time you say save this version, Git takes a full <b>snapshot</b> of your file (its real name is a <b>commit</b>) with a short note. You still keep one file, yet every version is tucked away safely in the history.',
 		'Behind that Commit button are a few everyday commands. <b>git status</b> shows what changed, <b>git add</b> puts it in the <b>staging area</b> (a table where you pick what goes in the photo), then <b>git commit</b> takes the snapshot. Later, <b>git push</b> sends snapshots to an online place and <b>git pull</b> brings the newest ones back.',
-		'Try it yourself. Press Commit to snapshot the version, do it a few times, then open an old snapshot and see, nothing is ever lost.'
+		'Try it yourself. Press Commit to snapshot the version, do it a few times, then open an old snapshot and see, nothing is ever lost.',
+		'[ingat] A commit records a project state. History lets you compare and recover changes.'
 	],
 	reactions: {
 		firstCommit:

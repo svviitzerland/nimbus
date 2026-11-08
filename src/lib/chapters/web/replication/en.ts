@@ -57,7 +57,7 @@ export const en: ReplicationText = {
 			body: 'The <b>shard key</b> (here the first letter of the name) always sends a user to the same shard.'
 		},
 		{
-			tag: 'Make it stick',
+			tag: 'Remember it',
 			title: 'Photocopier and scissors',
 			body: '<b>Replication</b> copies the whole book. <b>Sharding</b> cuts it into volumes.'
 		},

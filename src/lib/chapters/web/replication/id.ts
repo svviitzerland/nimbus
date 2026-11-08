@@ -28,17 +28,17 @@ export const id: ReplicationText = {
 		},
 		{
 			tag: 'Primary',
-			title: 'Satu satunya yang menulis',
+			title: 'Penulisan melalui primary',
 			body: 'Semua tulisan masuk ke <b>primary</b>. Satu tempat buat tiap perubahan bikin datanya nggak saling bertentangan.'
 		},
 		{
 			tag: 'Replikasi',
-			title: 'Salinan yang ikut terus',
+			title: 'Replica menyalin perubahan',
 			body: 'Tiap <b>replica</b> mengulang setiap perubahan yang dibuat primary, sesaat kemudian.'
 		},
 		{
 			tag: 'Read replica',
-			title: 'Bagi bacaannya',
+			title: 'Distribusi permintaan baca',
 			body: 'Bacaan disebar ke para replica. Kalau bacaan naik lagi, tinggal tambah satu replica.'
 		},
 		{
@@ -48,17 +48,17 @@ export const id: ReplicationText = {
 		},
 		{
 			tag: 'Sharding',
-			title: 'Belah barisnya',
+			title: 'Pembagian data ke shard',
 			body: 'Tiap <b>shard</b> cuma menyimpan sebagian baris, jadi nggak ada mesin yang harus menyimpan semuanya.'
 		},
 		{
 			tag: 'Shard key',
-			title: 'Shard yang mana?',
+			title: 'Pemilihan shard',
 			body: '<b>Shard key</b> (di sini huruf pertama nama) selalu mengirim user ke shard yang sama.'
 		},
 		{
-			tag: 'Biar nempel',
-			title: 'Fotokopi dan gunting',
+			tag: 'Cara ingat',
+			title: 'Replikasi dan sharding',
 			body: '<b>Replikasi</b> menyalin seluruh buku. <b>Sharding</b> memotongnya jadi beberapa jilid.'
 		},
 		{

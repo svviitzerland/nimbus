@@ -4,12 +4,12 @@ export const id: RouterQueueText = {
 	title: 'Manajemen bandwidth',
 	intro: [
 		'Senin pagi. Sari lagi video call sama klien, Dewi baca email, dan Budi baru mulai download update game yang gede banget. Tiba tiba call Sari macet.',
-		'Jalur internet kantor dari ISP itu 20 Mbps (megabit per detik, seberapa banyak data yang muat lewat tiap detik), kayak jalan raya dengan jumlah lajur yang tetap. Download Budi buka banyak koneksi sekaligus dan ngambil hampir semua lajurnya. Kamu udah ketemu ini di [[bottleneck|trafficflow/bottleneck]].',
+		'Sambungan kantor memiliki kapasitas 20 Mbps, yaitu 20 megabit per detik. Unduhan Budi memakai sebagian besar kapasitas itu sehingga panggilan video terganggu. Ini contoh [[bottleneck|trafficflow/bottleneck]].',
 		'Sebelum benerin apa apa, cari tau dulu siapa pelakunya. <b>torch</b> nunjukin lalu lintas di sebuah port saat ini juga, yang paling gede di atas. Lihat terminalnya.',
 		'Solusinya <b>queue</b>. Simple queue di MikroTik bilang alamat ini paling banyak boleh pakai segini, namanya <b>max-limit</b>. Sisa yang nggak kepakai Budi jadi buat yang lain.',
 		'Lihat terminalnya ngasih Budi sebuah queue. <b>target</b> itu alamatnya, dan <b>max-limit=5M/10M</b> artinya maksimal 5 Mbps upload dan 10 Mbps download. Perhatikan batangnya.',
 		'Bagi jalur secara adil, atau ngasih prioritas ke lalu lintas tertentu, namanya <b>QoS</b> (quality of service). Konsepnya ada di [[Apa itu QoS|network/qos]]. Budi tetap bisa download cepat, cuma nggak bisa nenggelamin yang lain lagi.',
-		'[ingat] max-limit ditulis upload dulu baru download. Ingat aja “naik dulu baru turun”, kayak naik tangga dulu baru meluncur di perosotan. Dan queue itu rambu batas kecepatan buat satu alamat, bukan tembok.',
+		'[ingat] Pada simple queue ini, max-limit ditulis upload lalu download, dilihat dari perangkat target.',
 		'[fyi] Hampir semua RT RW net di Indonesia jalan pakai ini. Sepuluh rumah berbagi satu jalur, dan satu queue per rumah yang bikin download satu keluarga nggak ngerusak malam satu gang.',
 		'Giliran kamu. Cek queue Budi pakai <b>/queue simple print</b>.'
 	],
@@ -23,18 +23,18 @@ export const id: RouterQueueText = {
 	},
 	steps: [
 		{
-			title: 'Call yang macet',
+			title: 'Panggilan video terputus',
 			body: 'Tiga orang, satu jalur internet. Kalau satu orang ngambil semuanya, yang lain langsung kerasa.'
 		},
 		{
 			tag: 'Mbps',
-			title: 'Jalan dengan lajur',
+			title: 'Kapasitas sambungan',
 			body: 'Bandwidth itu jumlah lajur jalannya. <b>20 Mbps</b> itu seluruh jalan, dipakai bareng satu kantor.'
 		},
 		{
 			tag: 'torch',
-			title: 'Siapa yang pakai',
-			body: '<b>torch</b> itu intipan langsung ke satu port. <b>RX</b> itu yang diterima port itu, <b>TX</b> yang dikirim port itu.'
+			title: 'Melihat pemakaian bandwidth',
+			body: '<b>torch</b> itu intipan langsung ke satu port. <b>RX</b> yang masuk (download), <b>TX</b> yang keluar.'
 		},
 		{
 			tag: 'queue',
@@ -43,25 +43,25 @@ export const id: RouterQueueText = {
 		},
 		{
 			tag: 'max-limit',
-			title: 'Budi dapat batas',
+			title: 'Membatasi koneksi Budi',
 			body: '<b>5M/10M</b> artinya maksimal 5 Mbps upload dan 10 Mbps download buat 192.168.88.253.'
 		},
 		{
 			tag: 'QoS',
-			title: 'Adil, bukan lambat',
+			title: 'Membagi kapasitas jaringan',
 			body: 'Jalurnya nggak jadi lebih cepat. Cuma dibagi, jadi call Sari dapat 3 Mbps yang dia butuh.'
 		},
 		{
-			tag: 'Biar nempel',
-			title: 'Naik dulu baru turun',
+			tag: 'Cara ingat',
+			title: 'Urutan upload dan download',
 			body: 'Di <b>5M/10M</b>, angka kiri itu upload, angka kanan itu download.'
 		},
 		{
-			title: 'Satu queue per rumah',
+			title: 'Membatasi tiap pelanggan',
 			body: 'RT RW net dan warkop ngasih tiap pelanggan satu queue, biar jalurnya tetap adil di jam sibuk.'
 		},
 		{
-			title: 'Giliran kamu',
+			title: 'Atur batas bandwidth',
 			body: '<b>/queue simple</b> nampilin semua queue, berurutan, lengkap dengan target dan batasnya.'
 		}
 	],

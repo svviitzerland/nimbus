@@ -51,7 +51,7 @@ export const id: SqlCommandsText = {
 			body: 'Perubahan di antara <b>BEGIN</b> dan <b>COMMIT</b> disimpan barengan. Sebelum COMMIT, perubahannya belum final, dan ROLLBACK bisa membuangnya.'
 		},
 		{
-			tag: 'Biar nempel',
+			tag: 'Cara ingat',
 			title: 'Bentuk, isi, kunci, simpan',
 			body: 'DDL itu lemarinya, DML itu isinya, DCL itu kuncinya, dan TCL itu tombol selesai.'
 		},

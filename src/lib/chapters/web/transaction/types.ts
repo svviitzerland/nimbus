@@ -1,15 +1,6 @@
 import type { LessonText } from '../../types';
 
-export interface TransactionPanel {
-	tag?: string;
-	title: string;
-	/** May hold simple HTML like <b>. */
-	body: string;
-}
-
 export interface TransactionText extends LessonText {
-	/** One panel per scene of the guided visual (six scenes). */
-	panels: TransactionPanel[];
 	/** Table and column names as they appear in SQL. */
 	tableName: string;
 	nameCol: string;
@@ -17,22 +8,21 @@ export interface TransactionText extends LessonText {
 	/** The sender and the receiver. */
 	sender: string;
 	receiver: string;
+	/** Template with {who}, the label on an account card. */
+	accountOf: string;
 	currency: string; // shown before amounts, e.g. Rp
 	locale: string;
+	txLabel: string;
+	txOn: string;
+	txOff: string;
+	sendBtn: string; // template with {amount} and {who}
+	crashBtn: string;
 	serverLabel: string;
 	crashedTag: string;
 	backTag: string;
 	logLabel: string;
-	/** Shown in the log where the power went out. */
-	crashLine: string;
+	crashLine: string; // shown in the log where the power went out
 	totalLabel: string;
 	totalOk: string;
-	/** Template with {amount}. */
-	totalLost: string;
-	savedTag: string;
-	rule: string;
-	/** The optional switch on the last scene. */
-	txLabel: string;
-	txOn: string;
-	txOff: string;
+	totalLost: string; // template with {amount}
 }

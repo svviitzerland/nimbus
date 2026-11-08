@@ -14,12 +14,12 @@ export const en: HistoryText = {
 		'In 1958 and 1959, Jack Kilby and Robert Noyce each found a way to put many transistors on one small piece of material, the <b>microchip</b>. Today a chip the size of your fingernail holds billions of them.',
 		'Chips made computers small and cheap enough for a desk. In 1977 the Apple II arrived, then the IBM PC in 1981, and the <b>personal computer</b> moved into homes and schools.',
 		'Computers were already talking over the internet, and in 1991 Tim Berners-Lee at CERN (a big science lab in Europe) opened the first website to the world. The <b>World Wide Web</b> turned the network into pages anyone could visit with a click.',
-		'And in 2007 the iPhone showed the world what a <b>smartphone</b> could be. The phone in your pocket is millions of times faster than ENIAC, and it fits in one hand.',
-		'[ingat] Every step, <b>smaller and stronger</b>. Room, desk, pocket. ENIAC filled a room, the PC sat on a desk, and now a computer sits in your pocket.',
+		'A smartphone combines a computer, touchscreen, camera, and cellular connection in one device. The iPhone introduced in 2007 is one example of the shift to touch interfaces.',
+		'[ingat] <b>Room, desk, pocket.</b> ENIAC needed a room, a PC fits on a desk, and a smartphone fits in a pocket. Smaller components made new device shapes possible.',
 		'The machines changed a lot, yet inside, the parts still do the same jobs. Next, we will [[open one up|basics/hardware]] and see what is in there. Tap a dot on the timeline if you want to visit an era again.'
 	],
 	reactions: {
-		peek: 'Good idea, a second look helps it stick. Hop around as much as you like, then we move on and open up a laptop.'
+		peek: 'You can revisit this part anytime. After this journey, we will open a laptop and meet the parts inside it.'
 	},
 	eras: [
 		{
@@ -39,7 +39,7 @@ export const en: HistoryText = {
 		},
 		{
 			mark: '1936',
-			title: 'A machine for any rules',
+			title: 'Turing machine',
 			body: 'Turing described a machine with a long tape and a head that reads, writes, and moves, one rule at a time. A <b>universal</b> machine can follow the rules of any other machine. That is the idea of software.'
 		},
 		{
@@ -59,7 +59,7 @@ export const en: HistoryText = {
 		},
 		{
 			mark: '1952',
-			title: 'Talking in words',
+			title: 'Early compilers',
 			body: 'A <b>compiler</b> is a program that turns words people can read into the numbers a machine runs. Grace Hopper was one of the first to build one, and helped shape the COBOL language.'
 		},
 		{
@@ -84,7 +84,7 @@ export const en: HistoryText = {
 		},
 		{
 			mark: 'Today',
-			title: 'Smaller and stronger',
+			title: 'Computer size',
 			body: 'Rule of thumb, <b>room, desk, pocket</b>. Each new switch was smaller than the last, so more of them fit, and more switches means more power.'
 		}
 	],

@@ -2,6 +2,8 @@
 
 Read **[AGENTS.md](./AGENTS.md)**. It is the single source of truth for this project
 (architecture, folder layout, how to add chapters/lessons/languages, and the design rules).
+Also read [NIMBUS_EDITING_GUIDE.md](./NIMBUS_EDITING_GUIDE.md) before changing lessons, copy, or UI.
+Write repository documentation in English, retaining Indonesian only as quoted product text.
 
 Quick reminders for Claude:
 

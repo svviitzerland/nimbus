@@ -31,6 +31,8 @@
 		progress.markDone('capstone', 'crossroads');
 		path.cancelDetour();
 		path.setTrack(picked.id);
+		// entryUrl resolves the SvelteKit base path before returning.
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
 		goto(path.entryUrl(picked));
 	}
 </script>

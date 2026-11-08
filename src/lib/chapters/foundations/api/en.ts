@@ -7,7 +7,8 @@ export const en: ApiText = {
 		'The frontend holds no real data. The actual products, prices, and accounts live on a computer far away, the <b>backend</b>. The frontend just shows things, the backend keeps them.',
 		'The two connect through an <b>API</b>, a kind of waiter between them. The frontend asks for one thing, the API carries the request to the backend, the backend hands over the data, and it is brought back to the screen.',
 		'The data travels as plain text in a format called <b>JSON</b>, and most APIs answer in it. Each fact is a <b>key</b> and its <b>value</b>, wrapped in curly braces, like this cap from the nimbus.com shop. Its cousin <b>YAML</b> skips the braces and mostly lives in config files.',
-		'See it yourself. Your phone screen is still empty because it has not asked for anything. Tap to fetch the data and watch it travel back and forth through the API until the screen fills in.'
+		'See it yourself. Your phone screen is still empty because it has not asked for anything. Tap to fetch the data and watch it travel back and forth through the API until the screen fills in.',
+		'[ingat] An API defines how applications request and exchange data.'
 	],
 	reactions: {
 		fetch:

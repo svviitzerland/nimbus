@@ -3,84 +3,50 @@ import type { PwaText } from './types';
 export const id: PwaText = {
 	title: 'Apa itu PWA',
 	intro: [
-		'Ingat tarik ulur di [[native dan cross platform|web/mobile-apps]]? Situs menjangkau semua orang tanpa perlu dipasang, tapi belum terasa seperti aplikasi. Ini nimbus.com biasa di HP, dan semua filenya datang langsung dari server.',
-		'Sekarang lihat internetnya putus. Situs biasa tinggal di server, jadi tanpa koneksi browser sama sekali nggak punya apa apa buat ditampilkan.',
-		'<b>PWA</b>, singkatan dari Progressive Web App, membereskan dua masalah tadi. Dia tetap situs yang sama, tapi bisa nangkring di layar utama kayak aplikasi, terbuka penuh tanpa kolom alamat, dan tetap jalan waktu offline.',
-		'Bahan pertama adalah file kecil bernama <b>manifest</b>. Isinya memberi tahu HP nama aplikasinya, ikonnya, dan warnanya. Begitu HP menemukannya, dia menawarkan untuk memasang situs itu.',
-		'Bahan kedua adalah <b>service worker</b>, skrip kecil yang berdiri di antara halaman dan internet, kayak satpam di pintu. Di kunjungan pertama dia menyimpan file file penting ke dalam <b>cache</b>, kotak penyimpanan langsung di HP.',
-		'Ketuk pasang, dan nimbus.com dapat ikonnya sendiri di samping aplikasi lain. Tanpa toko aplikasi, tanpa menunggu disetujui.',
-		'Sekarang putus lagi internetnya dan buka aplikasinya. Tetap terbuka! Service worker menjawab dari cache, bukan dari server.',
-		'[ingat] Manifest itu KTP, service worker itu satpam yang bawa bekal. KTP bikin bisa dipasang, bekal bikin tetap jalan waktu offline.',
+		'Ingat tarik ulur di [[native dan cross platform|web/mobile-apps]]? Situs menjangkau semua orang tanpa perlu dipasang, tapi belum terasa seperti aplikasi. Jadi orang bertanya, gimana kalau situs bisa bertingkah kayak aplikasi?',
+		'Itulah <b>PWA</b>, singkatan dari Progressive Web App. Dia tetap situs biasa, nimbus.com yang sama, tapi bisa ditaruh di layar utama HP, terbuka penuh tanpa kolom alamat, dan tetap jalan waktu internet putus.',
+		'Bahan rahasia pertama adalah file kecil bernama <b>manifest</b>. Isinya memberi tahu HP nama aplikasinya, ikonnya, dan warnanya. Begitu HP menemukannya, dia menawarkan untuk memasang situs itu seperti aplikasi.',
+		'<b>Service worker</b> dapat menangani request aplikasi. Pada contoh ini, ia menyimpan file yang dibutuhkan ke cache dan menggunakannya ketika jaringan terputus. Perilaku offline perlu dibuat oleh developer.',
 		'[fyi] Waktu Twitter meluncurkan Twitter Lite sebagai PWA tahun 2017, ukurannya kurang dari 1 MB di HP, sementara aplikasi Android biasanya butuh berkali kali lipat. Starbucks dan Pinterest juga membuat PWA, supaya orang dengan sinyal lemah tetap bisa memesan dan scroll.',
-		'Kalau mau, matikan dan nyalakan internetnya, lalu lihat aplikasinya tetap terbuka. Ini opsional kok.'
+		'[ingat] Manifest mendeskripsikan aplikasi. Service worker dapat menangani request dan cache untuk fitur offline yang sudah disiapkan.',
+		'Yuk coba. Pertama lihat apa yang terjadi pada situs biasa waktu offline, lalu ubah nimbus.com jadi PWA, pasang, dan cabut internetnya lagi.'
 	],
 	reactions: {
-		offline:
-			'Masih ada! Nggak ada internet, tapi aplikasinya tetap terbuka, langsung dari cache di HP.',
-		online:
-			'Online lagi. Sekarang service worker bisa mengambil file baru dari server dan diam diam memperbarui cache.'
+		plainOffline:
+			'Halaman belum menyiapkan cache offline, sehingga tidak dapat dimuat tanpa internet. Nyalakan jaringan untuk menambahkan dukungan offline.',
+		manifest:
+			'Manifest sudah ada. HP sekarang tahu nama, ikon, dan warnanya, jadi muncul tawaran untuk memasang. Di HP beneran kamu bakal melihat Add to Home Screen.',
+		worker:
+			'Service worker mulai bertugas. Lihat kotak cache-nya terisi, dia diam diam menyimpan halaman, gaya, dan logo selagi kamu masih online.',
+		installed:
+			'Terpasang. nimbus.com sekarang punya ikon sendiri di samping aplikasi lainmu, tanpa lewat toko aplikasi. Sekarang cabut internetnya.',
+		offlineApp:
+			'Halaman terbuka ketika jaringan terputus karena service worker mengirim salinan dari cache. Hanya sumber daya yang sudah tersedia offline yang dapat digunakan.'
 	},
-	panels: [
-		{
-			tag: 'Situs biasa',
-			title: 'Langsung dari server',
-			body: 'Situs biasa meminta semua filenya ke server, setiap kali kamu membukanya.'
-		},
-		{
-			tag: 'Offline',
-			title: 'Nggak ada yang bisa ditampilkan',
-			body: 'Tanpa koneksi, tanpa file. Browser cuma bisa menampilkan halaman offline yang menyedihkan.'
-		},
-		{
-			tag: 'PWA',
-			title: 'Situs yang bertingkah kayak aplikasi',
-			body: 'Situs yang sama, alamat yang sama, tapi punya ikon sendiri di <b>layar utama</b> dan bisa dibuka waktu offline.'
-		},
-		{
-			tag: 'Bahan 1',
-			title: 'Manifest',
-			body: '<b>manifest.json</b> berisi nama, ikon, dan warna. Karena file inilah HP menawarkan untuk memasang.'
-		},
-		{
-			tag: 'Bahan 2',
-			title: 'Service worker',
-			body: 'Skrip yang berdiri di antara halaman dan internet. Dia menyalin halaman, gaya, dan logo ke dalam <b>cache</b>.'
-		},
-		{
-			tag: 'Pasang',
-			title: 'Masuk ke layar utama',
-			body: 'Berkat manifest, situsnya mendarat di samping aplikasi lain dan terbuka layar penuh.'
-		},
-		{
-			tag: 'Offline lagi',
-			title: 'Disajikan dari cache',
-			body: 'Service worker menangkap permintaannya dan menyerahkan salinan yang tersimpan. Server sama sekali nggak ditanya.'
-		},
-		{
-			tag: 'Biar nempel',
-			title: 'KTP dan satpam',
-			body: 'Manifest berarti bisa dipasang. Service worker berarti bisa offline. PWA butuh keduanya.'
-		},
-		{
-			tag: 'Coba',
-			title: 'Online atau nggak',
-			body: 'Waktu online, file bisa datang dari server. Waktu offline, file datang dari cache. Aplikasinya tetap terbuka.'
-		}
-	],
-	picture:
-		'Sebuah HP menampilkan nimbus.com, server tersambung lewat internet, file manifest, service worker yang berjaga di sambungan, dan kotak cache di HP.',
-	serverLabel: 'nimbus.com',
-	noInternet: 'Tidak ada internet',
-	installAsk: 'Pasang nimbus?',
-	installBtn: 'Pasang',
-	appName: 'nimbus',
-	tagline: 'Belajar teknologi dari nol',
-	fromCache: 'dari cache',
-	fromServer: 'dari server',
-	cacheLabel: 'Cache di HP',
-	workerLabel: 'service worker',
-	memo: { manifest: 'KTP', worker: 'satpam' },
-	rule: 'KTP buat dipasang, satpam buat offline',
+	steps: ['Situs biasa', 'Bahan PWA', 'Pasang', 'Offline'],
+	internetOn: 'online',
+	internetOff: 'offline',
 	offBtn: 'Matikan internet',
-	onBtn: 'Nyalakan internet lagi'
+	onBtn: 'Nyalakan internet lagi',
+	manifestBtn: 'Tambah manifest.json',
+	workerBtn: 'Tambah service worker',
+	installBtn: 'Pasang di layar utama',
+	offAgainBtn: 'Matikan internet',
+	openAppBtn: 'Buka aplikasi nimbus',
+	noInternet: 'Nggak ada internet',
+	installBanner: 'Pasang nimbus?',
+	fromCache: 'dari cache',
+	pageTagline: 'Belajar teknologi dari nol',
+	appName: 'nimbus',
+	cacheLabel: 'Cache di HP',
+	cacheEmpty: 'kosong, belum ada yang disimpan',
+	notes: {
+		plain: 'nimbus.com biasa, langsung dari server',
+		plainOffline: 'Tanpa internet, situs biasa nggak bisa dimuat',
+		addPieces: 'Beri nimbus.com dua bahan PWA',
+		install: 'Sekarang HP menawarkan untuk memasangnya',
+		goOffline: 'Sudah terpasang, sekarang putus internetnya',
+		openApp: 'Offline. Apakah aplikasinya masih bisa dibuka?',
+		done: 'Terbuka tanpa internet, dilayani oleh service worker'
+	}
 };

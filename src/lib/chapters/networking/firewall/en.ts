@@ -3,30 +3,30 @@ import type { FirewallText } from '../types';
 export const en: FirewallText = {
 	title: 'Firewalls',
 	intro: [
-		'A door that opens to the internet gets visited by everyone, good guests and snoops alike. Someone has to screen them out front.',
-		'The <b>firewall</b> is that security guard. It stands in front of the server holding a guest list, checking every arrival before they may enter.',
-		'You write the rules, and the safest rules start from <b>deny everything</b>, then allow only what is needed. Say, guests coming to view the web page are welcomed, everyone else is turned away.',
-		'[fyi] Firewalls are not only a cloud thing. In the cloud it is a set of rules you manage from a screen (AWS calls it a security group), in an office it lives on the router, like a [[MikroTik firewall filter|netlab/router-firewall]] or a [[Cisco access list|netlab/cisco-acl]], and even your laptop has one. Same idea every time, a guest list.',
-		'The guard is on duty in front of the server, guest list in hand. Send in a web guest, follow up with a snoop, and see who gets through.'
+		'Network-reachable services need to restrict incoming traffic. Access rules help determine which connections are allowed.',
+		'A <b>firewall</b> checks traffic against rules such as source, destination, protocol, and port. Traffic can be allowed or denied.',
+		'In this exercise, allow the traffic the site needs and deny the rest. Rules must suit the service so legitimate users can still access it.',
+		'[fyi] Traffic filtering can run on computers, routers, and cloud services. Examples include [[MikroTik firewalls|netlab/router-firewall]], [[Cisco ACLs|netlab/cisco-acl]], and AWS security groups. Their rule details differ.',
+		'Send web traffic and disallowed traffic. Observe the firewall’s decision for each request.',
+		'[ingat] A firewall checks traffic rules. Overly broad rules also admit unwanted traffic.'
 	],
 	reactions: {
-		allow:
-			'The web guest is on the list, so the guard opens the door. Your visitors never feel the check, yet it always happens.',
+		allow: 'The traffic matches an allow rule, so the firewall forwards it to the server.',
 		deny: 'The snoop is not on the list and gets turned away at the door, before ever touching the server. That is a firewall, deny first, allow only what is needed.'
 	},
 	guardLabel: 'Firewall',
-	guardSub: 'the guard at the door',
+	guardSub: 'Checks traffic against rules',
 	serverLabel: 'Server',
-	rulesTitle: 'Guest list',
-	ruleAllow: 'Web guests, welcome in',
-	ruleDeny: 'Everyone else, turn away',
-	guestWeb: 'Web guest',
-	guestBad: 'Snoop',
-	sendWeb: 'Send a web guest',
-	sendBad: 'Send a snoop',
+	rulesTitle: 'Traffic rules',
+	ruleAllow: 'Allow web traffic',
+	ruleDeny: 'Deny other traffic',
+	guestWeb: 'Web traffic',
+	guestBad: 'Blocked traffic',
+	sendWeb: 'Send web traffic',
+	sendBad: 'Send blocked traffic',
 	allowedTag: 'in',
 	deniedTag: 'denied',
-	noteIdle: 'The guard stands ready with the list',
-	noteAllow: 'On the list, shown right in',
-	noteDeny: 'Not on the list, stops right here'
+	noteIdle: 'The firewall is ready to check traffic',
+	noteAllow: 'Traffic matches an allow rule',
+	noteDeny: 'Traffic matches a deny rule'
 };

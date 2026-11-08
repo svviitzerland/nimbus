@@ -31,8 +31,8 @@ export const id: CodeBasicsText = {
 			body: 'Masukkan nilai baru, nilai lama hilang. Namanya tetap sama, jadi bagian program yang lain masih bisa menemukannya.'
 		},
 		{
-			tag: 'Biar nempel',
-			title: 'Toples berstiker',
+			tag: 'Cara ingat',
+			title: 'Nama dan nilai variabel',
 			body: 'Stiker itu <b>nama</b>, isinya itu <b>nilai</b>. Minta lewat stiker, dapat isinya.'
 		},
 		{
@@ -61,8 +61,8 @@ export const id: CodeBasicsText = {
 			body: 'Tulis namanya, taruh input di dalam kurung, dan seluruh resepnya jalan. Input beda, output juga beda.'
 		},
 		{
-			tag: 'Biar nempel',
-			title: 'Rice cooker',
+			tag: 'Cara ingat',
+			title: 'Input dan output fungsi',
 			body: 'Masuk beras dan air, pencet satu tombol, keluar nasi. Input, panggil, output.'
 		},
 		{

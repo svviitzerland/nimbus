@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { SvelteMap } from 'svelte/reactivity';
 	// Guided "watch" stage for replication and sharding. The nimbus.com app sits on top and sends
 	// little dots down to the databases, blue for reads and amber for writes. One busy database
 	// becomes a primary with two replicas (green dots copy every change), the reads move to the
@@ -103,7 +104,7 @@
 	});
 	/** The faint wires under the dots, one per distinct path. */
 	const wires = $derived.by(() => {
-		const seen = new Map<string, Pkt>();
+		const seen = new SvelteMap<string, Pkt>();
 		for (const p of packets) seen.set(`${p.a.x},${p.a.y},${p.b.x},${p.b.y}`, p);
 		return [...seen.entries()];
 	});

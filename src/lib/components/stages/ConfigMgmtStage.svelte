@@ -1,509 +1,497 @@
 <script lang="ts">
-	// A guided configuration management lesson. A window on the left, six servers stacked on the
-	// right with a wire to each. First the window types SSH commands into one server at a time
-	// (and makes a typo on the fourth), then it becomes an Ansible playbook and one command updates
-	// all six at once. On the last beat the learner may tap a server to change it by hand, and the
-	// playbook runs again and puts it back.
-	import { untrack } from 'svelte';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import { onDestroy } from 'svelte';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { ConfigMgmtText } from '$lib/chapters/devops/config-mgmt/types';
-	import { prefersReducedMotion, runSeq, type SeqStep } from './webguide/seq';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as ConfigMgmtText);
 
+	const N = 10;
+	const COMMAND = 'ansible-playbook update.yml';
+	// the manual run slips on this server (the third one you visit)
+	const TYPO_AT = 2;
+	// Ansible works on five servers at a time by default (its "forks" setting)
+	const FORKS = 5;
+
+	type St = 'v1' | 'v2' | 'typo' | 'busy';
+	let servers = $state<St[]>(Array(N).fill('v1'));
+	let nextManual = $state(0);
+	let minutes = $state(0);
+	let manualBusy = $state(false);
+	let running = $state(false);
+	let input = $state('');
+	let last = $state<'idle' | 'manual' | 'typo' | 'playbook' | 'again'>('idle');
+	let done = false;
+	type Line = { tone: 'cmd' | 'dim' | 'ok' | 'chg' | 'bad'; text: string };
+	let lines = $state<Line[]>([]);
+	let consoleEl: HTMLDivElement | undefined;
+	let timers: ReturnType<typeof setTimeout>[] = [];
+	const at = (ms: number, fn: () => void) => timers.push(setTimeout(fn, ms));
+	const log = (tone: Line['tone'], text: string) => (lines = [...lines, { tone, text }]);
+
 	$effect(() => {
-		untrack(() => {
-			onshow?.(true);
-			oncomplete?.();
+		void lines.length;
+		if (consoleEl) consoleEl.scrollTop = consoleEl.scrollHeight;
+	});
+
+	const host = (i: number) => `web${i + 1}`;
+
+	function manual() {
+		if (manualBusy || running || nextManual >= N) return;
+		const i = nextManual;
+		manualBusy = true;
+		servers[i] = 'busy';
+		at(650, () => {
+			const slip = i === TYPO_AT;
+			servers[i] = slip ? 'typo' : 'v2';
+			minutes += 5;
+			nextManual = i + 1;
+			manualBusy = false;
+			last = slip ? 'typo' : 'manual';
+			onstate?.(slip ? 'typo' : 'manual');
 		});
-	});
+	}
 
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const last = $derived(tx.steps.length - 1);
-	const step = $derived(Math.max(0, Math.min(peek ?? beat, last)));
+	function submit(e: SubmitEvent) {
+		e.preventDefault();
+		const cmd = input.trim().replace(/\s+/g, ' ');
+		if (!cmd || running || manualBusy) return;
+		input = '';
+		lines = [{ tone: 'cmd', text: `$ ${cmd}` }];
+		if (cmd.startsWith('ansible-playbook') && cmd.includes('update.yml')) play();
+		else log('bad', tx.unknown.replace('{cmd}', cmd.split(' ')[0]));
+	}
 
-	let reduce = $state(false);
-	$effect(() => {
-		reduce = prefersReducedMotion();
-	});
-
-	type Ver = 'v1' | 'v2' | 'bad' | 'drift';
-	const N = 6;
-	const SRV = Array.from({ length: N }, (_, k) => k);
-	const TYPO = 3;
-	const PLAYBOOK = [
-		'- name: Update nimbus.com',
-		'  hosts: web',
-		'  become: true',
-		'  tasks:',
-		'    - name: Install version 2',
-		'      apt:',
-		'        name: nimbus-app=2.0',
-		'    - name: Restart the app',
-		'      service:',
-		'        name: nimbus-app',
-		'        state: restarted'
-	];
-	const CMD = '$ ansible-playbook update.yml';
-
-	const sessLines = (k: number, typo: boolean) => {
-		const h = `web${k + 1}$`;
-		return typo
-			? [
-					`$ ssh web${k + 1}`,
-					`${h} sudo apt install nimbus-ap=2.0`,
-					'E: Unable to locate package nimbus-ap',
-					`${h} exit`
-				]
-			: [
-					`$ ssh web${k + 1}`,
-					`${h} sudo apt install nimbus-app=2.0`,
-					`${h} sudo systemctl restart nimbus-app`,
-					`${h} exit`
-				];
-	};
-	const recap = (changed: (k: number) => number, rows: number[]) => [
-		'PLAY RECAP',
-		...rows.map((k) => `web${k + 1} : ok=3  changed=${changed(k)}  failed=0`)
-	];
-
-	let ver = $state<Ver[]>(Array(N).fill('v1'));
-	let lit = $state<boolean[]>(Array(N).fill(false));
-	let ping = $state(0);
-	let sess = $state<string[]>([]);
-	let typed = $state(PLAYBOOK.length);
-	let term = $state<string[]>(['$']);
-	let pickRun = $state(0);
-	let picked = -1;
-
-	const mode = $derived(step === 0 ? 'idle' : step <= 2 ? 'manual' : 'book');
-	const all = (v: Ver) => Array<Ver>(N).fill(v);
-	const none = () => Array<boolean>(N).fill(false);
-	const MIXED: Ver[] = ['v2', 'v2', 'v2', 'bad', 'v1', 'v1'];
-
-	function manual(typo: boolean): SeqStep[] {
-		const seq: SeqStep[] = [
-			[
-				700,
-				() => {
-					ver = all('v1');
-					lit = none();
-					sess = [];
+	function play() {
+		running = true;
+		const again = servers.every((s) => s === 'v2');
+		log('dim', 'PLAY [web servers]');
+		log('dim', 'TASK [install nimbus app v2]');
+		let changed = 0;
+		const waves = Math.ceil(N / FORKS);
+		for (let w = 0; w < waves; w++) {
+			at(500 + w * 900, () => {
+				for (let i = w * FORKS; i < Math.min(N, (w + 1) * FORKS); i++) {
+					if (servers[i] !== 'v2') servers[i] = 'busy';
 				}
-			]
-		];
-		for (let k = 0; k < N; k++) {
-			const bad = typo && k === TYPO;
-			const lines = sessLines(k, bad);
-			seq.push([
-				500,
-				() => {
-					lit = SRV.map((j) => j === k);
-					sess = [];
+			});
+			at(1100 + w * 900, () => {
+				const ok: string[] = [];
+				const chg: string[] = [];
+				for (let i = w * FORKS; i < Math.min(N, (w + 1) * FORKS); i++) {
+					if (servers[i] === 'v2') ok.push(host(i));
+					else {
+						servers[i] = 'v2';
+						chg.push(host(i));
+						changed += 1;
+					}
 				}
-			]);
-			lines.forEach((_, n) =>
-				seq.push([n === 3 ? 500 : 650, () => (sess = lines.slice(0, n + 1))])
-			);
-			seq.push([
-				450,
-				() => {
-					const next = [...ver];
-					next[k] = bad ? 'bad' : 'v2';
-					ver = next;
-				}
-			]);
+				if (chg.length) log('chg', `changed: ${chg.join(' ')}`);
+				if (ok.length) log('ok', `ok: ${ok.join(' ')}`);
+			});
 		}
-		seq.push([2600, () => (lit = none())]);
-		return seq;
-	}
-
-	function book(start: Ver[], rows: number[], changed: (k: number) => number): SeqStep[] {
-		return [
-			[
-				1300,
-				() => {
-					ver = start;
-					lit = none();
-					term = ['$'];
-				}
-			],
-			[900, () => (term = [CMD])],
-			[1300, () => (lit = SRV.map(() => true))],
-			[
-				4200,
-				() => {
-					ver = all('v2');
-					ping += 1;
-					term = recap(changed, rows);
-				}
-			],
-			[400, () => (lit = none())]
-		];
-	}
-
-	function play(s: number, still: boolean, run: number): (() => void) | undefined {
-		lit = none();
-		sess = [];
-		typed = PLAYBOOK.length;
-		term = ['$'];
-		if (s === last && run > 0 && picked >= 0) {
-			const k = picked;
-			const start = ver.map((v, j) => (j === k ? 'drift' : 'v2')) as Ver[];
-			const rows = [k, (k + 1) % N];
-			const changed = (j: number) => (j === k ? 1 : 0);
-			if (still) {
-				ver = all('v2');
-				term = recap(changed, rows);
-				return;
+		at(1300 + waves * 900, () => {
+			log('ok', `PLAY RECAP  web1 to web${N}  changed=${changed}  failed=0`);
+			running = false;
+			nextManual = N;
+			last = again ? 'again' : 'playbook';
+			onstate?.(again ? 'again' : 'playbook');
+			if (!done) {
+				done = true;
+				oncomplete?.();
 			}
-			ver = start;
-			return runSeq(book(start, rows, changed));
-		}
-		if (s === 0) {
-			ver = all('v1');
-			return;
-		}
-		if (s <= 2) {
-			if (still) {
-				ver = s === 2 ? MIXED : ['v2', 'v2', 'v1', 'v1', 'v1', 'v1'];
-				sess = sessLines(s === 2 ? TYPO : 1, s === 2);
-				lit = SRV.map((j) => j === (s === 2 ? TYPO : 1));
-				return;
-			}
-			return runSeq(manual(s === 2), true);
-		}
-		if (s === 3) {
-			ver = MIXED;
-			if (still) return;
-			typed = 0;
-			return runSeq(PLAYBOOK.map((_, k) => [360, () => (typed = k + 1)] as SeqStep));
-		}
-		const rows = [0, 3];
-		if (s === 4) {
-			const changed = (k: number) => (MIXED[k] === 'v2' ? 0 : 2);
-			if (still) {
-				ver = all('v2');
-				term = recap(changed, rows);
-				return;
-			}
-			return runSeq(book(MIXED, rows, changed), true);
-		}
-		ver = all('v2');
-		if (s === 5 && !still)
-			return runSeq(
-				book(all('v2'), [0, 1], () => 0),
-				true
-			);
-		term = recap(() => 0, [0, 1]);
+		});
 	}
 
-	$effect(() => {
-		const s = step;
-		const still = reduce;
-		const run = pickRun;
-		return untrack(() => play(s, still, run));
-	});
+	const left = $derived(servers.filter((s) => s !== 'v2').length);
+	const note = $derived(
+		last === 'idle'
+			? tx.noteIdle
+			: last === 'manual'
+				? tx.noteManual.replace('{n}', String(left))
+				: last === 'typo'
+					? tx.noteTypo
+					: last === 'playbook'
+						? tx.notePlaybook
+						: tx.noteAgain
+	);
 
-	function tap(k: number) {
-		if (step !== last) return;
-		picked = k;
-		pickRun += 1;
-		onstate?.('drift');
-	}
-
-	const sy = (k: number) => 14 + k * 38;
-	const badge = (v: Ver) => (v === 'bad' ? tx.brokenTag : v === 'drift' ? tx.driftTag : v);
+	onDestroy(() => timers.forEach(clearTimeout));
 </script>
 
-{#snippet visual(i: number)}
-	<div class="vis">
-		<svg viewBox="0 0 460 250" class="scene" role="img" aria-label={tx.serversLabel}>
-			<!-- the window, a terminal or the playbook -->
-			<rect x="8" y="8" width="250" height="168" rx="10" class="win" />
-			<path d="M8 30V18a10 10 0 0 1 10 -10H248a10 10 0 0 1 10 10V30Z" class="bar" />
-			{#each [22, 34, 46] as x (x)}
-				<circle cx={x} cy="19" r="3.5" class="dot" />
-			{/each}
-			<text x="62" y="23" class="tab">{mode === 'book' ? 'update.yml' : tx.terminalTab}</text>
+<div class="wrap">
+	<p class="mission"><b>{tx.missionLabel}</b> {tx.mission}</p>
 
-			{#if mode === 'book'}
-				{#each PLAYBOOK.slice(0, typed) as l, n (n)}
-					<text x="20" y={47 + n * 11.8} class="mono" class:key={!l.includes(':') || n === 0}
-						>{l}</text
-					>
-				{/each}
-			{:else if mode === 'manual'}
-				{#each sess as l, n (n)}
-					<text
-						x="20"
-						y={50 + n * 16}
-						class="mono"
-						class:err={l.startsWith('E:')}
-						class:cmd={l.startsWith('$')}>{l}</text
-					>
-				{/each}
-			{:else}
-				<text x="20" y="50" class="mono cmd">$</text>
+	<!-- the control machine's terminal, where the playbook is run -->
+	<div class="term">
+		<div class="tbar">
+			<span class="tdot"></span><span class="tdot"></span><span class="tdot"></span>
+			<span class="ttitle">ansible@nimbus</span>
+		</div>
+		<div class="console" bind:this={consoleEl}>
+			{#if lines.length === 0}
+				<div class="ln dim"># update.yml is ready</div>
 			{/if}
-
-			<!-- the command terminal under the playbook -->
-			<rect x="8" y="184" width="250" height="58" rx="8" class="term" />
-			{#each term.slice(-3) as l, n (n + l)}
-				<text
-					x="18"
-					y={201 + n * 14}
-					class="mono t"
-					class:cmd={l.startsWith('$')}
-					class:head={l === 'PLAY RECAP'}
-					class:changed={/changed=[1-9]/.test(l)}>{l}</text
-				>
+			{#each lines as l, i (i)}
+				<div class="ln {l.tone}">{l.text}</div>
 			{/each}
-
-			<!-- one wire to each server -->
-			{#each SRV as k (k)}
-				<path d="M258 92C292 92 296 {sy(k) + 15} 330 {sy(k) + 15}" class="wire" class:on={lit[k]} />
-			{/each}
-
-			<!-- the servers -->
-			{#each SRV as k (k)}
-				{@const y = sy(k)}
-				{@const v = ver[k]}
-				<g
-					class="srv {v}"
-					class:tap={i === last}
-					role="button"
-					tabindex={i === last ? 0 : -1}
-					aria-disabled={i !== last}
-					aria-label="web{k + 1}"
-					onclick={() => tap(k)}
-					onkeydown={(e) => {
-						if (e.key === 'Enter' || e.key === ' ') {
-							e.preventDefault();
-							tap(k);
-						}
-					}}
-				>
-					<rect x="330" {y} width="78" height="30" rx="5" class="box" />
-					<circle cx="342" cy={y + 15} r="3.4" class="led" />
-					<text x="352" y={y + 19} class="name">web{k + 1}</text>
-					<line x1="388" y1={y + 11} x2="400" y2={y + 11} class="vent" />
-					<line x1="388" y1={y + 19} x2="400" y2={y + 19} class="vent" />
-					{#key ping}
-						{#if v === 'v2' && !reduce && ping > 0}
-							<rect
-								x="330"
-								{y}
-								width="78"
-								height="30"
-								rx="5"
-								class="ping"
-								style="animation-delay:{k * 0.05}s"
-							/>
-						{/if}
-					{/key}
-					<text x="414" y={y + 19} class="ver">{badge(v)}</text>
-				</g>
-			{/each}
-			{#if i === last}
-				<text x="330" y="249" class="hint">{tx.tapHint}</text>
-			{/if}
-		</svg>
+		</div>
+		<form class="prompt" onsubmit={submit}>
+			<span class="dollar">$</span>
+			<input
+				bind:value={input}
+				placeholder={tx.placeholder}
+				aria-label={tx.placeholder}
+				autocomplete="off"
+				autocapitalize="off"
+				spellcheck="false"
+				disabled={running}
+			/>
+		</form>
 	</div>
-{/snippet}
+	<button type="button" class="hintchip" disabled={running} onclick={() => (input = COMMAND)}>
+		<span>{tx.hintLabel}</span>
+		<code>{COMMAND}</code>
+	</button>
 
-<div class="stage">
-	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
+	<!-- the playbook itself (real YAML) -->
+	<div class="file">
+		<div class="fbar">update.yml</div>
+		<pre class="yaml"><span class="dash">- </span><span class="key">hosts</span>: web
+  <span class="key">tasks</span>:
+    <span class="dash">- </span><span class="key">name</span>: install nimbus app v2
+      <span class="key">apt</span>: name=nimbus-app state=latest</pre>
+	</div>
+
+	<!-- the ten servers -->
+	<div class="grid">
+		{#each servers as s, i (i)}
+			<div class="srv {s}">
+				<span class="lights"><i></i><i></i></span>
+				<span class="hname">{host(i)}</span>
+				<span class="ver"
+					>{s === 'v2'
+						? tx.newTag
+						: s === 'typo'
+							? tx.typoTag
+							: s === 'busy'
+								? '...'
+								: tx.oldTag}</span
+				>
+			</div>
+		{/each}
+	</div>
+
+	<div class="manual">
+		<button
+			type="button"
+			class="line"
+			disabled={manualBusy || running || nextManual >= N}
+			onclick={manual}
+		>
+			{nextManual >= N ? tx.manualDone : `${tx.manualBtn} (${host(nextManual)})`}
+		</button>
+		{#if minutes > 0}
+			<span class="mins">{tx.minutesTag.replace('{n}', String(minutes))}</span>
+		{/if}
+	</div>
+
+	<p class="note">{note}</p>
 </div>
 
 <style>
-	.stage {
+	.wrap {
 		display: flex;
-		width: 100%;
-		max-height: 100%;
-		justify-content: center;
-		overflow-x: hidden;
-		overflow-y: auto;
-		padding-bottom: 8px;
+		width: min(94vw, 420px);
+		flex-direction: column;
+		align-items: center;
+		gap: 9px;
 	}
-	@media (max-width: 767px) {
-		.stage {
-			padding-bottom: 7rem;
-		}
+	.mission {
+		margin: 0;
+		text-align: center;
+		font-size: 12px;
+		color: var(--color-ink);
 	}
-	.vis {
-		display: flex;
-		width: 100%;
-		justify-content: center;
-	}
-	.scene {
-		width: 100%;
-		max-width: 460px;
-		height: auto;
-		overflow: visible;
-	}
-	.win {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-	}
-	.bar {
-		fill: var(--color-paper);
-	}
-	.dot {
-		fill: var(--color-line);
-	}
-	.tab {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	.mission b {
+		margin-right: 4px;
+		border-radius: 6px;
+		background: var(--color-brand-soft);
+		padding: 1px 7px;
 		font-size: 10px;
-		font-weight: 700;
-		fill: var(--color-muted);
-	}
-	.mono {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 9.2px;
-		white-space: pre;
-		fill: var(--color-ink);
-	}
-	.mono.key {
-		fill: var(--color-brand);
-		font-weight: 700;
-	}
-	.mono.cmd {
-		fill: var(--color-brand);
-		font-weight: 700;
-	}
-	.mono.err {
-		fill: var(--color-danger);
-		font-weight: 700;
-	}
-	.term {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-	}
-	.t {
-		font-size: 8.8px;
-	}
-	.t.head {
-		fill: var(--color-muted);
-		font-weight: 700;
-	}
-	.t.changed {
-		fill: var(--color-amber);
-		font-weight: 700;
-	}
-
-	.wire {
-		fill: none;
-		stroke: var(--color-line);
-		stroke-width: 2;
-		transition: stroke 0.35s;
-	}
-	.wire.on {
-		stroke: var(--color-brand);
-	}
-
-	.box {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-		transition:
-			stroke 0.35s,
-			fill 0.35s;
-	}
-	.led {
-		fill: var(--color-faint);
-		transition: fill 0.35s;
-	}
-	.name {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 10px;
-		font-weight: 700;
-		fill: var(--color-ink);
-	}
-	.vent {
-		stroke: var(--color-line);
-		stroke-width: 2;
-		stroke-linecap: round;
-	}
-	.ver {
-		font-size: 10.5px;
 		font-weight: 800;
-		fill: var(--color-faint);
+		color: var(--color-brand);
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
 	}
-	.srv.v2 .led {
-		fill: var(--color-grass);
+
+	.term {
+		width: 100%;
+		overflow: hidden;
+		border-radius: 11px;
+		border: 1px solid #1d3547;
+		background: #10212f;
+		box-shadow: 0 10px 24px rgba(16, 33, 47, 0.2);
 	}
-	.srv.v2 .ver {
-		fill: var(--color-grass);
+	.tbar {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		border-bottom: 1px solid #1d3547;
+		background: #16293a;
+		padding: 5px 10px;
 	}
-	.srv.bad .box {
-		stroke: var(--color-danger);
-		fill: var(--color-danger-soft);
+	.tdot {
+		height: 7px;
+		width: 7px;
+		border-radius: 50%;
+		background: #2f4a5e;
 	}
-	.srv.bad .led,
-	.srv.bad .ver {
-		fill: var(--color-danger);
+	.ttitle {
+		margin-left: 4px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 9.5px;
+		font-weight: 700;
+		color: #8aa2b3;
 	}
-	.srv.drift .box {
-		stroke: var(--color-amber);
-		fill: var(--color-amber-soft);
+	.console {
+		height: 72px;
+		overflow-y: auto;
+		padding: 7px 11px 2px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 10.5px;
+		line-height: 1.6;
 	}
-	.srv.drift .led,
-	.srv.drift .ver {
-		fill: var(--color-amber);
+	.ln {
+		white-space: pre-wrap;
+		word-break: break-word;
 	}
-	.srv.tap {
-		cursor: pointer;
+	.ln.cmd {
+		color: #eaf1f6;
 	}
-	.srv.tap:hover .box,
-	.srv.tap:focus-visible .box {
-		stroke: var(--color-brand);
+	.ln.dim {
+		color: #5c7384;
 	}
-	.srv:focus {
+	.ln.ok {
+		color: #6fd39a;
+	}
+	.ln.chg {
+		color: #e0b65b;
+	}
+	.ln.bad {
+		color: #ef8b80;
+	}
+	.prompt {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		border-top: 1px solid #1d3547;
+		padding: 6px 11px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	}
+	.dollar {
+		color: #5bbd84;
+		font-weight: 700;
+	}
+	.prompt input {
+		min-width: 0;
+		flex: 1;
+		border: none;
+		background: transparent;
+		color: #eaf1f6;
+		font: inherit;
+		font-size: 12px;
 		outline: none;
 	}
-	.ping {
-		fill: none;
-		stroke: var(--color-grass);
-		stroke-width: 2;
-		transform-box: fill-box;
-		transform-origin: center;
-		animation: ping 0.9s ease-out both;
+	.prompt input::placeholder {
+		color: #5c7384;
 	}
-	@keyframes ping {
-		from {
-			opacity: 0.9;
-			transform: scale(1);
-		}
-		to {
-			opacity: 0;
-			transform: scale(1.18);
-		}
+	.hintchip {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		border-radius: 999px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 4px 11px;
+		font-size: 10.5px;
+		color: var(--color-faint);
 	}
-	.hint {
-		font-size: 10px;
+	.hintchip code {
+		font-size: 11px;
 		font-weight: 700;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-		fill: var(--color-brand);
+		color: var(--color-brand);
+	}
+	.hintchip:disabled {
+		opacity: 0.5;
+	}
+
+	.file {
+		width: 100%;
+		overflow: hidden;
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+	}
+	.fbar {
+		border-bottom: 1px solid var(--color-line);
+		background: var(--color-paper);
+		padding: 3px 10px;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 9.5px;
+		font-weight: 700;
+		color: var(--color-muted);
+	}
+	.yaml {
+		margin: 0;
+		padding: 6px 10px;
+		overflow-x: auto;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 10.5px;
+		line-height: 1.55;
+		color: var(--color-ink);
+	}
+	.key {
+		color: var(--color-brand);
+		font-weight: 700;
+	}
+	.dash {
+		color: var(--color-faint);
+	}
+
+	.grid {
+		display: grid;
+		width: 100%;
+		grid-template-columns: repeat(5, 1fr);
+		gap: 6px;
+	}
+	.srv {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+		border-radius: 9px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 5px 2px 4px;
+		transition:
+			border-color 0.3s ease,
+			background 0.3s ease;
+	}
+	.lights {
+		display: flex;
+		gap: 3px;
+	}
+	.lights i {
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		background: var(--color-muted);
+	}
+	.hname {
+		font-size: 9.5px;
+		font-weight: 700;
+		color: var(--color-ink);
+	}
+	.ver {
+		border-radius: 5px;
+		background: var(--color-paper);
+		padding: 0 6px;
+		font-size: 9px;
+		font-weight: 800;
+		color: var(--color-faint);
+	}
+	.srv.v2 {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
+	}
+	.srv.v2 .lights i {
+		background: var(--color-grass);
+	}
+	.srv.v2 .ver {
+		background: var(--color-grass);
+		color: #fff;
+	}
+	.srv.typo {
+		border-color: var(--color-danger);
+		background: var(--color-danger-soft);
+	}
+	.srv.typo .lights i {
+		background: var(--color-danger);
+	}
+	.srv.typo .ver {
+		background: var(--color-danger);
+		color: #fff;
+	}
+	.srv.busy {
+		border-color: var(--color-amber);
+	}
+	.srv.busy .lights i {
+		background: var(--color-amber);
+		animation: blink 0.5s ease-in-out infinite;
+	}
+	@keyframes blink {
+		50% {
+			opacity: 0.3;
+		}
+	}
+
+	.manual {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+	}
+	.line {
+		border-radius: 11px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-ink);
+		padding: 8px 14px;
+		font-size: 12px;
+		font-weight: 700;
+	}
+	.line:disabled {
+		opacity: 0.5;
+	}
+	.mins {
+		font-size: 11px;
+		font-weight: 800;
+		color: var(--color-amber);
+	}
+	.note {
+		min-height: 1.4em;
+		max-width: 340px;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.wire,
-		.box,
-		.led {
-			transition: none;
-		}
-		.ping {
+		.srv.busy .lights i {
 			animation: none;
-			opacity: 0;
+		}
+	}
+	@media (min-width: 768px) {
+		.wrap {
+			width: 480px;
+			gap: 11px;
+		}
+		.console {
+			height: 108px;
+			font-size: 11.5px;
+		}
+		.hname {
+			font-size: 11px;
+		}
+		.note {
+			font-size: 13.5px;
 		}
 	}
 </style>

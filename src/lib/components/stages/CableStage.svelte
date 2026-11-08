@@ -1,11 +1,8 @@
 <script module lang="ts">
 	// Static map geometry, built once for all instances. Keeping the heavy ~200KB string
 	// build at module scope means it runs at import, not on every navigation to this lesson.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	import cablesData from '$lib/data/cables.json';
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	import landingData from '$lib/data/landing-points.json';
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	import routesData from '$lib/data/routes.json';
 
 	// equirectangular, cropped 84N..56S to match WorldMap and RegionStage
@@ -13,9 +10,7 @@
 	const FLAT_H = 373.33;
 	const fx = (lon: number) => ((lon + 180) / 360) * FLAT_W;
 	const fy = (lat: number) => ((84 - lat) / 140) * FLAT_H;
-
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const cableLines = cablesData as any as number[][][];
+	const cableLines = cablesData as unknown as number[][][];
 	// One combined path for every cable (each line is its own M-subpath), so the stage
 	// mounts as a couple of DOM nodes instead of ~1900.
 	const cableD = cableLines
@@ -25,11 +20,9 @@
 		)
 		.join(' ');
 	// Same cables as a geometry, projected live onto the globe (drawn only when the globe is still).
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const CABLE_GEO = { type: 'MultiLineString', coordinates: cableLines } as any;
+	const CABLE_GEO = { type: 'MultiLineString' as const, coordinates: cableLines };
 	// All landing stations as one path of round-capped zero-length dots.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const landingD = (landingData as any as number[][])
+	const landingD = (landingData as unknown as number[][])
 		.filter(([, lat]) => lat <= 84 && lat >= -56)
 		.map(([lon, lat]) => `M${fx(lon).toFixed(1)} ${fy(lat).toFixed(1)}l0 0`)
 		.join('');
@@ -37,8 +30,7 @@
 	// Data routes [lon, lat] per destination, generated from the real cable graph (Dijkstra
 	// between corridor guide points) by scripts/generate-cables.mjs. Pre-flattened with
 	// cumulative lengths so the packet can be positioned by arc length while it animates.
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const ROUTES = routesData as any as Record<string, [number, number][]>;
+	const ROUTES = routesData as unknown as Record<string, [number, number][]>;
 	type RouteGeom = { flat: [number, number][]; cum: number[]; total: number };
 	const routeGeom: Record<string, RouteGeom> = {};
 	for (const [code, pts] of Object.entries(ROUTES)) {

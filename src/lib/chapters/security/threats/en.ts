@@ -3,116 +3,77 @@ import type { ThreatsText } from './types';
 export const en: ThreatsText = {
 	title: 'Threat modeling',
 	intro: [
-		'A smart burglar never fights the big lock on the front door. He checks the window, the back gate, and the spare key under the flower pot.',
-		"Attackers think the same way. <b>Threat modeling</b> means walking around your own system with an attacker's eyes, before a real attacker does, and fixing the weakest door first.",
-		'It boils down to four plain questions. What are we building? What can go wrong? What will we do about it? Did we do a good enough job? The security writer Adam Shostack made these four famous.',
-		'For nimbus.com the house looks like this. The front door is the login page. The window is old server software nobody updated. The back gate is a login given to a partner company. The key under the pot is a backup, a full copy of all the data.',
-		'Zoom in on that window. A <b>vulnerability</b> is a weakness, like a broken latch. An <b>exploit</b> is a trick that uses it, a <b>patch</b> is the fix. Known holes get a number on a public list, <b>CVE</b> (Heartbleed was CVE-2014-0160), and attackers read it too. An app never updated is an open window.',
-		'A real story. In 2013 the American store chain Target lost about 40 million card numbers. The attackers did not start at the front door. They first got in with the login of a small heating and air conditioning company that worked for Target.',
-		"From that back gate they crept through Target's network all the way to the cash registers in the stores, and quietly copied cards as customers paid. The lock on the front door was never even touched.",
-		'[ingat] <b>A house is only as safe as its weakest door.</b> Think like a burglar, then lock like an owner.',
-		'[fyi] Back in 1999 two Microsoft engineers, Loren Kohnfelder and Praerit Garg, wrote a checklist called <b>STRIDE</b>, six kinds of threats to hunt for (pretending to be someone, tampering, denying what you did, leaking, blocking, and grabbing more power). Teams around the world still use it.',
-		'Want to look around yourself? Tap any spot on the house to see what could go wrong there and how nimbus.com locks it.'
+		'The nimbus.com shop stores accounts, orders, and backups. Data moves between customer phones, servers, databases, and partner services. Each connection grants access worth reviewing.',
+		'<b>Threat modeling</b> maps what needs protection, how a system works, and what could go wrong. It helps select improvements before or during development.',
+		'Start with four questions. What are we building? What can go wrong? What will we do about it? Are the improvements sufficient? Use diagrams and evidence from the system.',
+		'A <b>vulnerability</b> is a security weakness. An <b>exploit</b> uses that weakness, while a <b>patch</b> fixes it. Some publicly disclosed vulnerabilities have a [[CVE|security/cve-cwe]] ID. Select a weak point in the system and inspect the control that can reduce its risk.',
+		'<b>STRIDE</b> groups threats. <b>Spoofing</b> uses a false identity, <b>tampering</b> changes data without permission, and <b>repudiation</b> denies actions when evidence is inadequate.',
+		'The remaining categories are <b>information disclosure</b>, exposing information, <b>denial of service</b>, making a service unavailable, and <b>elevation of privilege</b>, obtaining permissions beyond those granted.',
+		'[ingat] <b>Assets, data flows, threats, controls.</b> Record what needs protection, where data moves, what could go wrong, and the appropriate protections.',
+		'Mark parts of the map that need review. Read each threat and protection, including partner accounts and backups outside the shop page.'
 	],
 	reactions: {
-		door: 'The front door, the login page. Everyone attacks it first, so it usually has the best lock. Still, a bot guessing passwords all day will find the weak ones.',
-		window:
-			'The window, old software. Holes in old versions are public knowledge, and bots scan the whole internet for them every day. Updating is the cheapest lock there is.',
-		gate: 'The back gate, exactly how Target fell. Anyone who can log in to your system is part of your security, even the AC technician.',
-		pot: 'The key under the pot. Most people forget backups, yet a backup is a full copy of the data, so stealing it is as good as stealing the real thing.'
+		first:
+			'That part is on the review list. Continue through the connections between devices, accounts, and other services.',
+		vendor:
+			'Partner accounts can reach the parts of the system they are granted. Limit permissions and review their activity as you would internal accounts.',
+		backup:
+			'A backup contains copied data. Unauthorized access to it can expose that information too.',
+		compareAll:
+			'Every part of this example has been reviewed. Next, assign controls, owners, and a way to test the improvements.',
+		compareSome:
+			'The yellow parts are not yet marked. Select them to inspect threats missing from your list.'
 	},
-	steps: [
-		{
-			tag: 'The burglar',
-			title: 'He skips the big lock',
-			body: 'Attackers go where the defence is <b>weakest</b>, not where it is strongest.'
-		},
-		{
-			tag: 'The idea',
-			title: 'Threat modeling',
-			body: 'Look at your own system <b>through an attacker&#39;s eyes</b>, on purpose, before anyone else does.'
-		},
-		{
-			tag: 'The method',
-			title: 'Four questions',
-			body: 'What are we building? What can go wrong? What will we do about it? Did we do a good job?'
-		},
-		{
-			tag: 'nimbus.com',
-			title: 'The house is the system',
-			body: 'Door is the <b>login</b>, window is <b>old software</b>, gate is a <b>partner login</b>, the key is the <b>backup</b>.'
-		},
-		{
-			tag: 'The words',
-			title: 'Weakness, trick, fix',
-			body: 'A <b>vulnerability</b> is the weakness, an <b>exploit</b> uses it, a <b>patch</b> closes it. Each known one gets a <b>CVE</b> number.'
-		},
-		{
-			tag: 'Target, 2013',
-			title: 'In through the back gate',
-			body: 'The attackers used the login of a small <b>air conditioning company</b> that worked for Target.'
-		},
-		{
-			tag: 'Target, 2013',
-			title: 'To the registers',
-			body: 'Once inside they reached the <b>cash registers</b> and copied about 40 million cards.'
-		},
-		{
-			tag: 'Make it stick',
-			title: 'The weakest door',
-			body: 'Your security is only as good as its <b>weakest</b> spot. Find it before they do.'
-		},
-		{
-			tag: 'Good to know',
-			title: 'STRIDE',
-			body: 'Six kinds of threat to check, one per letter. A handy list when the four questions feel too open.'
-		},
-		{
-			tag: 'Optional',
-			title: 'Walk around',
-			body: 'Tap a spot on the house. Each one has a threat and a fix.'
-		}
-	],
 	spots: {
-		door: {
-			name: 'Front door',
-			place: 'login page',
-			threat: 'A bot guesses thousands of passwords a minute.',
-			fix: 'Limit attempts and add a second login step.'
+		phone: {
+			name: 'Customer phone',
+			threat: 'A fake login page tricks the customer into typing their password (phishing).',
+			fix: 'Add a second login step, so a stolen password alone is not enough.'
 		},
-		window: {
-			name: 'Window',
-			place: 'old software',
-			threat: 'A well known hole in software nobody updated.',
-			fix: 'Update often and switch off what nobody uses.'
+		wifi: {
+			name: 'Cafe WiFi',
+			threat: 'Someone on the same WiFi listens to the traffic going past.',
+			fix: 'Use HTTPS everywhere, so whatever travels is encrypted.'
 		},
-		gate: {
-			name: 'Back gate',
-			place: 'partner login',
-			threat: 'A partner with weaker security still has a login.',
-			fix: 'Give partners a tiny separate account and watch it.'
+		login: {
+			name: 'Login page',
+			threat: 'A bot guesses thousands of passwords every minute.',
+			fix: 'Limit the attempts and slow down repeated failures.'
 		},
-		pot: {
-			name: 'Key under the pot',
-			place: 'backup',
-			threat: 'A full copy of the data, guarded less carefully.',
-			fix: 'Encrypt backups and keep them locked away.'
+		server: {
+			name: 'Web server',
+			threat: 'An installed software version has an unpatched vulnerability.',
+			fix: 'Update often and close every port nobody uses.'
+		},
+		db: {
+			name: 'Database',
+			threat: 'Customer data copied out in one go.',
+			fix: 'Keep only password hashes and encrypt sensitive data.'
+		},
+		admin: {
+			name: 'Admin laptop',
+			threat: 'It holds the keys to everything, and sometimes sits unlocked on a desk.',
+			fix: 'Give each person only the access they need, and lock the screen.'
+		},
+		vendor: {
+			name: 'Partner account',
+			threat: 'A partner account is misused to access connected systems.',
+			fix: 'Give partners a separate, tiny account and watch what it does.'
+		},
+		backup: {
+			name: 'Backup drive',
+			threat: 'A full copy of the data, often guarded less carefully than the original.',
+			fix: 'Encrypt backups and store them somewhere locked.'
 		}
 	},
-	news: {
-		tag: 'Target, 2013',
-		head: 'About 40 million card numbers stolen, starting from a partner login'
-	},
-	registerLabel: 'cash registers',
-	cardsLabel: '40 million cards',
+	tapHint: 'Tap a spot on the map to mark it',
+	compareBtn: "Compare with Nim's list",
+	compareNeed: 'Mark {n} more to compare',
+	score: 'You found {n} of {total}',
+	missedLabel: 'Nim also found',
 	threatLabel: 'What could go wrong',
 	fixLabel: 'The fix',
-	tapHint: 'Tap a spot on the house',
-	vocab: {
-		vuln: 'vulnerability',
-		exploit: 'exploit',
-		patch: 'patch',
-		cve: 'CVE'
-	},
-	cveExample: 'CVE-2014-0160 is Heartbleed'
+	foundTag: 'yours',
+	missedTag: 'missed',
+	resetBtn: 'Start the map over'
 };

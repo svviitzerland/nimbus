@@ -185,3 +185,38 @@ Links verified June 2026.
   images.
 - **TeleGeography** cable data is shown with attribution in the Cable lesson.
 - **Provider logos** are trademarks of their owners and appear only to identify each provider.
+
+## Interactive learning audit, November 2026
+
+Coverage was checked against the primary roadmap diagrams for
+[Cyber Security](https://roadmap.sh/pdfs/roadmaps/cyber-security.pdf),
+[Frontend](https://roadmap.sh/pdfs/roadmaps/frontend.pdf),
+[DevOps](https://roadmap.sh/pdfs/roadmaps/devops.pdf), and
+[AI Engineer](https://roadmap.sh/pdfs/roadmaps/ai-engineer.pdf).
+The lesson sequence remains a Nimbus beginner sequence rather than a copy of the diagrams.
+
+- **Data centers.** AWS [What is a data center](https://aws.amazon.com/what-is/data-center/), for physical facilities, racks, power, cooling, and networking. Timing and heat in the lesson are explicitly simplified teaching values.
+- **Burp Suite.** PortSwigger [Working with HTTP messages in Repeater](https://portswigger.net/burp/documentation/desktop/tools/repeater/http-messages). The lesson reproduces capture, forward, edit, resend, and comparison locally.
+- **Object authorization.** OWASP [IDOR Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html), for server permission checks on each requested object.
+- **Forms.** MDN [Client side form validation](https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms/Form_validation), including why server validation remains necessary.
+- **HTTP.** MDN [Response status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status) and [Evolution of HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Evolution_of_HTTP), for status families and HTTP/3 transport. The text avoids blaming the learner for a 4xx response.
+- **Passwords.** OWASP [Password Storage](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html), for salts, costly password algorithms, and why a fast general purpose hash is only a demonstration.
+- **SSO.** OpenID Foundation [How OpenID Connect works](https://openid.net/developers/how-connect-works/), for the distinction between authentication and OAuth delegated authorization.
+- **Execution errors.** Python [Errors and Exceptions](https://docs.python.org/3/tutorial/errors.html), for syntax errors versus exceptions at execution time. The compiler experiment is labeled as two simplified execution strategies, not a universal timing rule.
+
+Private WiFi addresses and local neighbor discovery
+
+- [Apple, private WiFi addresses](https://support.apple.com/en-us/102509)
+- [IETF, ARP specification](https://www.rfc-editor.org/rfc/rfc826.html)
+
+### Security foundations and terminology, November 2026
+
+- **OWASP.** [About OWASP](https://owasp.org/about), [Top 10 2025](https://top10.owasp.org/2025/), [ASVS](https://asvs.owasp.org/), and [WSTG](https://owasp.org/projects/web-security-testing-guide). The lesson uses the 2025 category order and distinguishes awareness, verification requirements, and testing guidance.
+- **NIST.** [CSF 2.0](https://www.nist.gov/cyberframework) and [CSF FAQs](https://www.nist.gov/cyberframework/faqs). Govern, Identify, Protect, Detect, Respond, and Recover are concurrent functions, not a one time linear checklist. The exercise illustrates one incident inside that ongoing work.
+- **CVE and CWE.** MITRE [CWE FAQ](https://cwe.mitre.org/about/faq.html). The advisory in Nimbus is fictional and is explicitly not an assigned CVE.
+- **CVSS.** FIRST [v2 guide](https://www.first.org/cvss/v2/guide), [3.0 specification](https://www.first.org/cvss/v3.0/specification-document), [3.1 specification](https://www.first.org/cvss/v3.1/specification-document), [3.1 examples](https://www.first.org/cvss/v3.1/examples), [4.0 specification](https://www.first.org/cvss/v4.0/specification-document), and [4.0 examples](https://www.first.org/cvss/v4.0/examples). Three hypothetical cases are assessed independently under each version after the learner tests their impacts and access requirements. This is not an automatic vector conversion. The v2 and v3 Base equations follow FIRST; the v4 engine is the pinned BSD licensed Red Hat implementation documented in `src/lib/components/labs/vendor/README.md`. Tests include published score fixtures. [NVD severity bands](https://nvd.nist.gov/vuln-metrics/cvss) distinguish the v2 High maximum label from v3 and v4 Critical. Additional score groups are explained but not calculated.
+- **Prioritization.** FIRST [EPSS](https://www.first.org/epss/) and CISA's [KEV explanation](https://content.govdelivery.com/accounts/USDHSCISA/bulletins/42a9f71). EPSS forecasts exploitation of a published CVE in the wild over the next 30 days. KEV indicates evidence of exploitation. Exercise percentages are fictional, not live threat intelligence.
+- **CSRF and SSRF.** OWASP [CSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html) and [SSRF Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html). The exercises model cookie behavior, tokens, destination restrictions, and redirect checks locally.
+- **Threat modeling.** Microsoft [STRIDE threat categories](https://learn.microsoft.com/en-us/windows-hardware/drivers/driversecurity/threat-modeling-for-drivers).
+- **Ransomware recovery.** [CISA ransomware guide](https://www.cisa.gov/sites/default/files/publications/CISA_MS-ISAC_Ransomware%20Guide_S508C_.pdf) and [FBI cyber resiliency guidance](https://www.fbi.gov/investigate/cyber/ten-actions-to-improve-cyber-resiliency). Offline or immutable protection complements separate backup copies and restore testing.
+- **Serverless limits.** AWS [provisioned concurrency](https://docs.aws.amazon.com/lambda/latest/dg/provisioned-concurrency.html) and [Lambda pricing](https://aws.amazon.com/lambda/pricing/). An idle function is not a universal promise of a zero bill.

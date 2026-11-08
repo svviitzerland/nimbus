@@ -8,7 +8,7 @@ export const en: LoadBalancerText = {
 		'The fix is to put a <b>load balancer</b> in front of several identical servers. Its job is to spread requests across them, usually one after another (called round robin, though there are other ways, like picking the least busy server), so no single server gets flooded.',
 		'As a bonus, if one server dies the balancer stops sending to it and reroutes traffic to the ones still alive. Visitors never notice.',
 		'One catch. If a server remembers who you are in its own memory, your next click may land on a different server that has never met you, and suddenly you are logged out. So the servers keep no memory of their own (we call them <b>stateless</b>), and your session lives in a shared store like <b>Redis</b>, or in a token your browser carries.',
-		'[ingat] Think of a chain of coffee shops with a stamp card. If the stamps were only in one barista’s head, the next barista would not know you. Put the stamps on a card in your pocket (or in one shared book), and any barista can serve you.',
+		'[ingat] A load balancer distributes requests across servers that can serve them.',
 		'The flash sale is ready to go, and a single server is on duty. Let it fall first, then bring in a load balancer with a few servers and watch the load spread out evenly.'
 	],
 	reactions: {

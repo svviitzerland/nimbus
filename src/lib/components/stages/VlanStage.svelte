@@ -1,324 +1,415 @@
 <script lang="ts">
-	// Guided VLAN lesson. One office switch with five devices under it. The ports take on two
-	// colours (finance blue, guests orange) as Nim talks, and packets travel by themselves to show
-	// who can reach whom. The only (optional) play is painting one guest port blue on the last beat.
-	import { onMount } from 'svelte';
-	import Guide from '$lib/components/Guide.svelte';
-	import NgRouter from './netguide/NgRouter.svelte';
-	import NgLaptop from './netguide/NgLaptop.svelte';
-	import NgServer from './netguide/NgServer.svelte';
-	import { Traveller } from './netguide/traveller.svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { VlanText } from '$lib/chapters/network/vlan/types';
+	import MiniLaptop from './delivery/MiniLaptop.svelte';
+	import MiniServer from './delivery/MiniServer.svelte';
+	import MiniPhone from './delivery/MiniPhone.svelte';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as VlanText);
 
-	onMount(() => {
-		onshow?.(true);
-		oncomplete?.();
-	});
+	// VLAN ids and the palette token each one is painted with.
+	const VLANS = [1, 10, 20];
+	const COLOR: Record<number, string> = {
+		1: 'var(--color-faint)',
+		10: 'var(--color-brand)',
+		20: 'var(--color-amber)'
+	};
+	// Devices 0..2 are finance (top row), 3..5 are guests (bottom row).
+	// Like a real switch, odd ports sit on the top row and even ports on the bottom row.
+	const portOf = (d: number) => (d < 3 ? d * 2 + 1 : (d - 3) * 2 + 2);
+	const isFinance = (d: number) => d < 3;
 
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const last = $derived(tx.steps.length - 1);
-	const shown = $derived(Math.max(0, Math.min(peek ?? beat, last)));
+	let vlan = $state<number[]>([1, 1, 1, 1, 1, 1]); // per device, i.e. per port it uses
+	let picked = $state<number | null>(null);
+	let result = $state<{ a: number; b: number; ok: boolean } | null>(null);
+	let splitSaid = false;
+	let gotReach = false;
+	let gotBlocked = false;
+	let done = $state(false);
 
-	let painted = $state(false);
-	function togglePaint() {
-		painted = !painted;
-		onstate?.(painted ? 'joined' : 'left');
+	const satisfied = $derived(
+		vlan[0] === vlan[1] &&
+			vlan[1] === vlan[2] &&
+			vlan[3] === vlan[4] &&
+			vlan[4] === vlan[5] &&
+			vlan[0] !== vlan[3]
+	);
+
+	function cyclePort(d: number) {
+		const next = VLANS[(VLANS.indexOf(vlan[d]) + 1) % VLANS.length];
+		vlan[d] = next;
+		result = null;
+		if (!satisfied) {
+			gotReach = false;
+			gotBlocked = false;
+		} else if (!splitSaid) {
+			splitSaid = true;
+			onstate?.('split');
+		}
 	}
 
-	// Devices, left to right. Two finance laptops, the payroll server, two guest laptops.
-	const XS = [40, 104, 168, 236, 300];
-	const DEV_Y = 250;
-	const PORT_Y = 128;
-	const PAYROLL = 2;
-	const ROUTER = { x: 168, y: 40 };
-	const dev = (i: number) => ({ x: XS[i], y: DEV_Y - 26 });
-	const port = (i: number) => ({ x: XS[i], y: PORT_Y });
-
-	type Vlan = 'none' | 'fin' | 'guest';
-	const split = $derived(shown >= 2);
-	const vlanOf = (i: number): Vlan => {
-		if (!split) return 'none';
-		if (i === 3 && shown === last && painted) return 'fin';
-		return i <= PAYROLL ? 'fin' : 'guest';
-	};
-	const TONE: Record<Vlan, string> = {
-		none: 'var(--color-faint)',
-		fin: 'var(--color-brand)',
-		guest: 'var(--color-amber)'
-	};
-
-	type Pt = { x: number; y: number };
-	const plan = $derived.by(
-		(): { seq: Pt[]; from: number; outcome: 'ok' | 'leak' | 'blocked' | 'routed' } => {
-			const guestToPayroll = [dev(3), port(3), port(PAYROLL), dev(PAYROLL)];
-			const guestStops = [dev(3), port(3)];
-			const financeToPayroll = [dev(0), port(0), port(PAYROLL), dev(PAYROLL)];
-			if (shown === 0 || shown === 2) return { seq: [], from: 0, outcome: 'ok' };
-			if (shown === 1) return { seq: guestToPayroll, from: 3, outcome: 'leak' };
-			if (shown === 3 || shown === 7) return { seq: financeToPayroll, from: 0, outcome: 'ok' };
-			if (shown === 6)
-				return {
-					seq: [dev(3), port(3), ROUTER, port(PAYROLL), dev(PAYROLL)],
-					from: 3,
-					outcome: 'routed'
-				};
-			if (shown === last && painted) return { seq: guestToPayroll, from: 3, outcome: 'leak' };
-			return { seq: guestStops, from: 3, outcome: 'blocked' };
+	function tap(d: number) {
+		if (picked === null) {
+			picked = d;
+			result = null;
+			return;
 		}
-	);
+		if (picked === d) {
+			picked = null;
+			return;
+		}
+		const a = picked;
+		picked = null;
+		const same = vlan[a] === vlan[d];
+		const cross = isFinance(a) !== isFinance(d);
+		result = { a, b: d, ok: same };
+		let token = same ? (cross ? 'leak' : 'reach') : cross ? 'blocked' : 'oops';
+		if (satisfied) {
+			if (token === 'reach') gotReach = true;
+			if (token === 'blocked') gotBlocked = true;
+			if (gotReach && gotBlocked && !done) {
+				done = true;
+				token = 'done';
+				oncomplete?.();
+			}
+		}
+		onstate?.(token);
+	}
 
-	const tr = new Traveller();
-	$effect(() => {
-		const { seq } = plan;
-		tr.play(seq.length, { loop: true });
-		return () => tr.stop();
-	});
-	const pkt = $derived(plan.seq.length ? plan.seq[Math.min(tr.at, plan.seq.length - 1)] : null);
-	const blocked = $derived(plan.outcome === 'blocked' && tr.ended);
-	const arrived = $derived(plan.outcome !== 'blocked' && tr.ended && plan.seq.length > 0);
-	const atRouter = $derived(pkt === ROUTER);
-	const pktTone = $derived(TONE[vlanOf(plan.from)]);
-	const payrollTone = $derived(
-		arrived && plan.outcome === 'leak' ? 'var(--color-danger)' : 'var(--color-grass)'
+	function reset() {
+		vlan = [1, 1, 1, 1, 1, 1];
+		picked = null;
+		result = null;
+		gotReach = false;
+		gotBlocked = false;
+	}
+
+	const hint = $derived(
+		picked !== null ? tx.pickTarget.replace('{name}', tx.devices[picked]) : tx.pingHint
 	);
+	const vlanName = (v: number) => tx.vlans[VLANS.indexOf(v)];
+	const lit = (d: number) => result && (result.a === d || result.b === d);
 </script>
 
-<div class="stage">
-	<div class="actions">
-		{#if shown === last}
-			<button type="button" class="play" class:on={painted} onclick={togglePaint}>
-				{painted ? tx.unpaintBtn : tx.paintBtn}
-			</button>
+{#snippet device(d: number)}
+	<button
+		type="button"
+		class="dev"
+		class:picked={picked === d}
+		class:ok={lit(d) && result?.ok}
+		class:no={lit(d) && !result?.ok}
+		onclick={() => tap(d)}
+	>
+		{#if d === 2}
+			<MiniServer label={tx.devices[d]} active={!!(lit(d) && result?.ok)} />
+		{:else if d === 3 || d === 5}
+			<MiniPhone label={tx.devices[d]} />
+		{:else}
+			<MiniLaptop label={tx.devices[d]} led={lit(d) ? (result?.ok ? 'ok' : 'down') : 'off'} />
 		{/if}
+		<span class="vchip" style="--c:{COLOR[vlan[d]]}">{vlan[d]}</span>
+	</button>
+{/snippet}
+
+{#snippet port(d: number)}
+	<button
+		type="button"
+		class="port"
+		style="--c:{COLOR[vlan[d]]}"
+		aria-label={tx.portAria.replace('{n}', String(portOf(d))).replace('{vlan}', vlanName(vlan[d]))}
+		onclick={() => cyclePort(d)}>{portOf(d)}</button
+	>
+{/snippet}
+
+<div class="flex h-full w-full flex-col items-center justify-center gap-3">
+	<div class="goal" class:solved={done}>
+		<div>
+			<b>{tx.goalTitle}</b>
+			<span>{done ? tx.solvedNote : tx.goal}</span>
+		</div>
+		<button type="button" class="reset" onclick={reset}>{tx.resetBtn}</button>
 	</div>
 
-	<Guide steps={tx.steps} active={shown} onselect={(k) => (peek = k)}>
-		{#snippet visual()}
-			<svg viewBox="0 0 340 320" class="scene" role="img" aria-label={tx.title}>
-				<!-- the two coloured rooms, drawn softly behind the devices -->
-				<g class="rooms" class:on={split}>
-					<rect x="10" y="212" width="190" height="104" rx="16" class="room fin" />
-					<rect x="206" y="212" width="126" height="104" rx="16" class="room guest" />
-					<text x="105" y="308" text-anchor="middle" class="room-t fin">{tx.financeTag}</text>
-					<text x="269" y="308" text-anchor="middle" class="room-t guest">{tx.guestTag}</text>
-				</g>
+	<div class="rig">
+		<span class="grp">{tx.financeTag}</span>
+		<div class="row">
+			{#each [0, 1, 2] as d (d)}
+				<div class="col">
+					{@render device(d)}<span class="cable" style="--c:{COLOR[vlan[d]]}"></span>
+				</div>
+			{/each}
+		</div>
 
-				<!-- the router, only when traffic must cross between rooms -->
-				{#if shown === 6}
-					<g class="appear">
-						<!-- the uplink starts under the router's name, so the line never crosses the text -->
-						<line x1={ROUTER.x} y1={ROUTER.y + 36} x2={ROUTER.x} y2="94" class="cable" />
-						<NgRouter x={ROUTER.x} y={ROUTER.y} label={tx.routerLabel} lit={atRouter} />
-						{#if atRouter}
-							<g class="tag ok">
-								<rect x={ROUTER.x + 30} y={ROUTER.y - 10} width="58" height="18" rx="9" />
-								<text x={ROUTER.x + 59} y={ROUTER.y + 3} text-anchor="middle">{tx.checkedTag}</text>
-							</g>
-						{/if}
-					</g>
-				{/if}
+		<div class="switch">
+			<div class="ports">
+				{#each [0, 1, 2] as d (d)}{@render port(d)}{/each}
+			</div>
+			<span class="swlabel">{tx.switchLabel}</span>
+			<div class="ports">
+				{#each [3, 4, 5] as d (d)}{@render port(d)}{/each}
+			</div>
+		</div>
 
-				<!-- cables from each port down to its device -->
-				{#each XS as x, i (i)}
-					<line
-						x1={x}
-						y1={PORT_Y + 6}
-						x2={x}
-						y2={DEV_Y - (i === PAYROLL ? 24 : 18)}
-						class="cable"
-						style="stroke: {TONE[vlanOf(i)]}; transition-delay: {split ? i * 0.22 : 0}s"
-					/>
-				{/each}
+		<div class="row">
+			{#each [3, 4, 5] as d (d)}
+				<div class="col">
+					<span class="cable" style="--c:{COLOR[vlan[d]]}"></span>{@render device(d)}
+				</div>
+			{/each}
+		</div>
+		<span class="grp">{tx.guestTag}</span>
+	</div>
 
-				<!-- the switch -->
-				<rect x="18" y="94" width="304" height="50" rx="10" class="switch" />
-				<text x="32" y="111" class="sw-t">{tx.switchLabel}</text>
-				{#each XS as x, i (i)}
-					<rect
-						x={x - 9}
-						y={PORT_Y - 6}
-						width="18"
-						height="12"
-						rx="2.5"
-						class="port"
-						style="fill: {TONE[vlanOf(i)]}; transition-delay: {split ? i * 0.22 : 0}s"
-					/>
-				{/each}
-				{#if blocked}
-					<rect x="199" y="100" width="5" height="38" rx="2.5" class="wall" />
-				{/if}
+	<div class="legend">
+		{#each VLANS as v (v)}
+			<span><i style="background:{COLOR[v]}"></i>{vlanName(v)}</span>
+		{/each}
+	</div>
 
-				<!-- devices -->
-				{#each XS as x, i (i)}
-					{#if i === PAYROLL}
-						<NgServer {x} y={DEV_Y} label={tx.payrollLabel} lit={arrived} tone={payrollTone} />
-					{:else}
-						<NgLaptop
-							{x}
-							y={DEV_Y}
-							tone={TONE[vlanOf(i)]}
-							lit={plan.from === i && plan.seq.length > 0}
-						/>
-					{/if}
-				{/each}
-
-				<!-- the packet -->
-				{#if pkt}
-					<g
-						class="packet"
-						class:jump={tr.jump}
-						class:gone={tr.hidden}
-						style="transform: translate({pkt.x}px, {pkt.y - 14}px)"
-					>
-						<rect x="-9" y="-7" width="18" height="14" rx="3" style="fill: {pktTone}" />
-						{#if blocked}
-							<g class="tag bad">
-								<rect x="-30" y="-30" width="60" height="18" rx="9" />
-								<text y="-17" text-anchor="middle">{tx.blockedTag}</text>
-							</g>
-						{/if}
-					</g>
-				{/if}
-			</svg>
-		{/snippet}
-	</Guide>
+	{#if result}
+		<p class="res" class:no={!result.ok}>
+			{(result.ok ? tx.reachOk : tx.reachNo)
+				.replace('{a}', tx.devices[result.a])
+				.replace('{b}', tx.devices[result.b])}
+		</p>
+	{:else}
+		<p class="note">{hint}<br /><span class="sub">{tx.portHint}</span></p>
+	{/if}
 </div>
 
 <style>
-	.stage {
+	.goal {
 		display: flex;
-		width: 100%;
-		flex-direction: column;
 		align-items: center;
+		justify-content: space-between;
 		gap: 10px;
-		padding-bottom: 7rem;
-	}
-	@media (min-width: 768px) {
-		.stage {
-			padding-bottom: 1.5rem;
-		}
-	}
-	.actions {
-		display: flex;
-		min-height: 38px;
-		justify-content: center;
-	}
-	.play {
+		width: min(94vw, 340px);
+		border-radius: 13px;
 		border: 1px solid var(--color-line);
-		border-radius: 999px;
 		background: var(--color-card);
-		padding: 8px 16px;
-		font-size: 13px;
-		font-weight: 700;
+		padding: 8px 12px;
+		font-size: 11.5px;
 		color: var(--color-ink);
-		box-shadow: 0 6px 16px rgba(22, 40, 60, 0.08);
 	}
-	.play.on {
-		border-color: var(--color-brand);
-		color: var(--color-brand);
+	.goal div {
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
 	}
-	.scene {
-		width: 100%;
-		max-width: 400px;
-		overflow: visible;
-	}
-	.rooms {
-		opacity: 0;
-		transition: opacity 0.8s 0.9s;
-	}
-	.rooms.on {
-		opacity: 1;
-	}
-	.room.fin {
-		fill: var(--color-brand-soft);
-	}
-	.room.guest {
-		fill: var(--color-amber-soft);
-	}
-	.room-t {
-		font-size: 10px;
-		font-weight: 800;
-	}
-	.room-t.fin {
-		fill: var(--color-brand);
-	}
-	.room-t.guest {
-		fill: var(--color-amber);
-	}
-	.cable {
-		stroke: var(--color-faint);
-		stroke-width: 3;
-		stroke-linecap: round;
-		transition: stroke 0.5s;
-	}
-	.switch {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.6;
-	}
-	.sw-t {
-		fill: var(--color-muted);
-		font-size: 10px;
-		font-weight: 700;
-	}
-	.port {
-		transition: fill 0.5s;
-	}
-	.wall {
-		fill: var(--color-danger);
-	}
-	.appear {
-		animation: appear 0.5s ease both;
-	}
-	@keyframes appear {
-		from {
-			opacity: 0;
-		}
-	}
-	.tag text {
+	.goal b {
 		font-size: 9.5px;
 		font-weight: 800;
+		color: var(--color-faint);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
 	}
-	.tag.bad rect {
-		fill: var(--color-danger-soft);
+	.goal.solved {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
 	}
-	.tag.bad text {
-		fill: var(--color-danger);
+	.goal.solved b {
+		color: var(--color-grass);
 	}
-	.tag.ok rect {
-		fill: var(--color-grass-soft);
+	.reset {
+		flex: none;
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
+		background: var(--color-paper);
+		color: var(--color-ink);
+		padding: 5px 10px;
+		font-size: 11px;
+		font-weight: 600;
 	}
-	.tag.ok text {
-		fill: var(--color-grass);
+	.reset:hover {
+		border-color: var(--color-ink);
 	}
-	.packet {
+
+	.rig {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		width: min(94vw, 330px);
+	}
+	.grp {
+		font-size: 9.5px;
+		font-weight: 800;
+		color: var(--color-faint);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin: 2px 0;
+	}
+	.row {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		width: 100%;
+	}
+	.col {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	.cable {
+		width: 3px;
+		height: 14px;
+		border-radius: 2px;
+		background: var(--c);
+		transition: background 0.25s ease;
+	}
+	.dev {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		border-radius: 12px;
+		border: 1.5px solid transparent;
+		padding: 4px 6px;
 		transition:
-			transform 0.85s cubic-bezier(0.45, 0, 0.25, 1),
-			opacity 0.25s;
+			border-color 0.2s ease,
+			background 0.2s ease;
 	}
-	.packet.jump {
-		transition: opacity 0.25s;
+	.dev:hover {
+		border-color: var(--color-line);
 	}
-	.packet.gone {
-		opacity: 0;
+	.dev.picked {
+		border-color: var(--color-brand);
+		background: var(--color-brand-soft);
+	}
+	.dev.ok {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
+	}
+	.dev.no {
+		border-color: var(--color-danger);
+		background: var(--color-danger-soft);
+	}
+	.vchip {
+		position: absolute;
+		top: 2px;
+		right: 2px;
+		min-width: 18px;
+		border-radius: 999px;
+		background: var(--c);
+		color: #fff;
+		font-size: 8.5px;
+		font-weight: 800;
+		padding: 1px 4px;
+		transition: background 0.25s ease;
+	}
+	.switch {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 4px;
+		width: 100%;
+		border-radius: 12px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 6px 0;
+		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.07);
+	}
+	.ports {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		justify-items: center;
+	}
+	.port {
+		width: 30px;
+		height: 24px;
+		border-radius: 5px;
+		border: 2px solid var(--c);
+		background: color-mix(in srgb, var(--c) 18%, var(--color-card));
+		color: var(--color-ink);
+		font-size: 10.5px;
+		font-weight: 800;
+		transition:
+			border-color 0.25s ease,
+			background 0.25s ease,
+			transform 0.15s ease;
+	}
+	.port:hover {
+		transform: scale(1.1);
+	}
+	.swlabel {
+		text-align: center;
+		font-size: 9.5px;
+		font-weight: 800;
+		color: var(--color-muted);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.legend {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 4px 12px;
+		font-size: 10.5px;
+		color: var(--color-muted);
+	}
+	.legend span {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
+	}
+	.legend i {
+		width: 9px;
+		height: 9px;
+		border-radius: 3px;
+	}
+	.note,
+	.res {
+		min-height: 2.6em;
+		max-width: 340px;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.note .sub {
+		font-weight: 500;
+		color: var(--color-faint);
+	}
+	.res {
+		color: var(--color-grass);
+	}
+	.res.no {
+		color: var(--color-danger);
+	}
+	:global(.dark) .switch {
+		box-shadow: none;
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.rooms,
-		.cable,
 		.port,
-		.packet {
+		.dev,
+		.cable {
 			transition: none;
 		}
-		.appear {
-			animation: none;
+	}
+	@media (min-width: 768px) {
+		.goal,
+		.rig {
+			width: 440px;
+		}
+		.goal,
+		.note,
+		.res {
+			font-size: 14px;
+		}
+		.note,
+		.res {
+			max-width: 440px;
+		}
+		.port {
+			width: 36px;
+			height: 28px;
+			font-size: 12px;
+		}
+		.legend {
+			font-size: 12px;
 		}
 	}
 </style>

@@ -1,527 +1,524 @@
 <script lang="ts">
-	// Guided centralized logging lesson. Twenty web servers sit on top, a central log in the
-	// middle, and a log viewer below. Following the beats, one server writes its diary, a login
-	// hops slowly from server to server, then every line flows into the central log, a server
-	// vanishes but its lines stay, and a search for "error" finds web-14 by itself. On the last
-	// beat the learner may tap a search word.
-	import { untrack } from 'svelte';
-	import { fade } from 'svelte/transition';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
-	import type { LogQuery, LogsText } from '$lib/chapters/devops/logs/types';
-	import { prefersReducedMotion, runSeq, type SeqStep } from './webguide/seq';
+	import { SvelteSet } from 'svelte/reactivity';
+	import Terminal from '$lib/components/Terminal.svelte';
+	import type { LessonText } from '$lib/chapters/types';
+	import type { LogsText } from '$lib/chapters/devops/logs/types';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as LogsText);
 
-	$effect(() => {
-		untrack(() => {
-			onshow?.(true);
-			oncomplete?.();
-		});
-	});
-
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const last = $derived(tx.steps.length - 1);
-	const step = $derived(Math.max(0, Math.min(peek ?? beat, last)));
-
-	let reduce = $state(false);
-	$effect(() => {
-		reduce = prefersReducedMotion();
-	});
-
-	// ---- the log lines (real log output, so it stays in English in both languages) ----
-	type Line = { i: number; time: string; srv: number; level: string; msg: string; hay: string };
-	const N = 60;
-	const PATHS = ['/', '/cart', '/product/12', '/search', '/login', '/about'];
-	const SPECIAL: Record<number, [number, string, string]> = {
-		12: [9, 'ERROR', 'image resize failed'],
-		20: [6, 'WARN', 'slow /search 1300ms'],
-		33: [14, 'WARN', 'slow /checkout payment 2900ms'],
-		36: [14, 'WARN', 'slow /checkout payment 4800ms'],
-		39: [14, 'ERROR', '/checkout payment timeout 30s'],
-		41: [14, 'ERROR', '/checkout payment timeout 30s']
-	};
-	const BAD = 39;
-	const pad = (n: number) => String(n).padStart(2, '0');
-	function clock(i: number) {
-		const s = 13 * 3600 + 58 * 60 + 30 + i * 4;
-		return `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`;
-	}
-	const POOL: Line[] = Array.from({ length: N }, (_, i) => {
-		const sp = SPECIAL[i];
-		let srv = ((i * 7) % 20) + 1;
-		if (!sp && srv === 14) srv = 15;
-		const [s, level, msg] = sp ?? [
-			srv,
-			'INFO',
-			i % 9 === 4
-				? `GET /checkout 200 ${180 + ((i * 37) % 200)}ms`
-				: `GET ${PATHS[i % PATHS.length]} 200 ${20 + ((i * 53) % 90)}ms`
-		];
-		const time = clock(i);
-		const name = `web-${pad(s)}`;
-		return { i, time, srv: s, level, msg, hay: `${time} ${name} ${level} ${msg}`.toLowerCase() };
-	});
-	/** The diary of web-01 alone, for the very first beat. */
-	const SOLO: Line[] = POOL.filter((l) => l.level === 'INFO').map((l) => ({ ...l, srv: 1 }));
-	const ROWS = 7;
-	const GONE = 7;
-
-	// ---- what the picture shows ----
-	let off = $state(0); // where the live stream window starts
-	let hop = $state(0); // the server being logged in to, one by one
-	let query = $state('');
-	let pick = $state<LogQuery | null>(null);
-	let runId = $state(0);
-
-	const typing = (word: string, done?: () => void): SeqStep[] => [
-		[500, () => (query = '')],
-		...[...word].map((_, k): SeqStep => [260, () => (query = word.slice(0, k + 1))]),
-		[10, () => done?.()]
+	// ---- twenty web servers, four recent log lines each ----
+	type Level = 'INFO' | 'WARN' | 'ERROR';
+	type Log = { at: number; host: string; level: Level; msg: string };
+	const SERVERS = Array.from({ length: 20 }, (_, i) => `web-${String(i + 1).padStart(2, '0')}`);
+	const BAD = 'web-14';
+	const POOL = [
+		'GET / 200 8ms',
+		'GET /products 200 14ms',
+		'POST /cart 200 21ms',
+		'GET /img/logo.png 304 3ms',
+		'GET /products/42 200 11ms',
+		'POST /checkout 200 142ms',
+		'GET /search?q=shoes 200 37ms',
+		'POST /login 200 64ms'
 	];
+	const LOGS: Log[] = (() => {
+		const out: Log[] = [];
+		SERVERS.forEach((host, s) => {
+			for (let k = 0; k < 4; k++) {
+				// spread the lines over two minutes, starting at 14.01.00
+				const at = 60 + ((s * 7 + k * 31) % 120);
+				let level: Level = 'INFO';
+				let msg = POOL[(s * 3 + k) % POOL.length];
+				if (host === BAD && k === 2) {
+					level = 'ERROR';
+					msg = 'POST /checkout 500 payment API timeout after 30s';
+				} else if (host === 'web-05' && k === 1) {
+					level = 'WARN';
+					msg = 'slow query on orders table 820ms';
+				} else if (host === 'web-17' && k === 3) {
+					level = 'WARN';
+					msg = 'disk 81% full';
+				}
+				out.push({ at, host, level, msg });
+			}
+		});
+		return out.sort((a, b) => a.at - b.at);
+	})();
+	const stamp = (sec: number) =>
+		`14:${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
+	const lineOf = (l: Log) => `${stamp(l.at)} ${l.host} ${l.level} ${l.msg}`;
 
-	function play(s: number, p: LogQuery | null, still: boolean): (() => void) | undefined {
-		off = 0;
-		hop = 0;
-		query = '';
-		if (s === 0) {
-			if (still) return;
-			return runSeq([[1100, () => (off += 1)]], true);
-		}
-		if (s === 1) {
-			if (still) {
-				hop = 2;
-				return;
-			}
-			return runSeq([[1300, () => (hop = (hop + 1) % 20)]], true);
-		}
-		if (s === 2 || (s === last && !p)) {
-			if (still) {
-				off = 30;
-				return;
-			}
-			off = 20;
-			return runSeq([[900, () => (off = (off + 1) % N)]], true);
-		}
-		if (s === 3) return;
-		if (s === 4) {
-			if (still) {
-				query = 'error';
-				return;
-			}
-			return runSeq([...typing('error'), [3600, () => {}]], true);
-		}
-		if (s === last && p) {
-			if (still) {
-				query = p;
-				onstate?.(p);
-				return;
-			}
-			return runSeq(typing(p, () => onstate?.(p)));
-		}
-		query = 'error';
+	let mode = $state(0);
+
+	// ---- by hand, one login per server ----
+	const opened = new SvelteSet<string>();
+	let current = $state<string | null>(null);
+	let handFound = $state(false);
+	const MIN_PER_LOGIN = 2;
+
+	function login(host: string) {
+		current = host;
+		const first = !opened.has(host);
+		opened.add(host);
+		if (host === BAD && !handFound) {
+			handFound = true;
+			onstate?.('handFound');
+		} else if (first && opened.size === 3 && !handFound) onstate?.('peek');
 	}
-
-	$effect(() => {
-		const s = step;
-		const p = s === last ? pick : null;
-		const still = reduce;
-		void runId;
-		return untrack(() => play(s, p, still));
-	});
-
-	function search(q: LogQuery) {
-		pick = q;
-		peek = null;
-		runId += 1;
-	}
-
-	const solo = $derived(step === 0);
-	const hopping = $derived(step === 1);
-	const central = $derived(step >= 2);
-	const flowing = $derived(central && !reduce);
-	const gone = $derived(step === 3);
-	const found = $derived(
-		(step >= 5 && step < last) || (step === last && pick === 'error' && query === 'error')
+	const termLines = $derived(
+		current
+			? [
+					{ text: `ssh ${current}`, tone: 'cmd' as const },
+					{ text: 'tail /var/log/nimbus/app.log', tone: 'cmd' as const },
+					...LOGS.filter((l) => l.host === current).map((l) => ({
+						text: lineOf(l),
+						tone: 'out' as const
+					}))
+				]
+			: []
 	);
 
-	const rows = $derived.by((): Line[] => {
-		if (solo) return Array.from({ length: ROWS }, (_, k) => SOLO[(off + k) % SOLO.length]);
-		if (hopping) return POOL.filter((l) => l.srv === hop + 1).slice(0, ROWS);
-		if (query) return POOL.filter((l) => l.hay.includes(query)).slice(0, ROWS);
-		if (gone) {
-			const first = POOL.findIndex((l) => l.srv === GONE);
-			return POOL.slice(Math.max(0, first - 1), Math.max(0, first - 1) + ROWS);
-		}
-		return Array.from({ length: ROWS }, (_, k) => POOL[(off + k) % N]);
+	// ---- one central log for everyone ----
+	let query = $state('');
+	let searched = false;
+	let found = $state(false);
+	let done = false;
+	const results = $derived.by(() => {
+		const q = query.trim().toLowerCase();
+		if (!q) return LOGS;
+		return LOGS.filter((l) => lineOf(l).toLowerCase().includes(q));
 	});
+	const shownResults = $derived(results.slice(-8));
 
-	const title = $derived(
-		solo
-			? tx.serverLog.replace('{s}', 'web-01')
-			: hopping
-				? tx.serverLog.replace('{s}', `web-${pad(hop + 1)}`)
-				: tx.allLog
-	);
+	function typed() {
+		if (!searched && query.trim() && results.length < LOGS.length) {
+			searched = true;
+			onstate?.('search');
+		}
+	}
+	function quick(q: string) {
+		query = q;
+		typed();
+	}
+	function inspect(l: Log) {
+		if (l.level !== 'ERROR' || found) return;
+		found = true;
+		onstate?.('found');
+		if (!done) {
+			done = true;
+			oncomplete?.();
+		}
+	}
 
-	// ---- geometry ----
-	const col = (n: number) => 14 + ((n - 1) % 10) * 44;
-	const row = (n: number) => (n <= 10 ? 22 : 54);
+	const note = $derived.by(() => {
+		if (found) return tx.noteFound;
+		if (mode === 0) return handFound ? tx.noteHandFound : tx.noteHand;
+		return tx.noteCentral;
+	});
 </script>
 
-{#snippet visual(_: number)}
-	<div class="vis">
-		{#if step === last}
-			<div class="pick">
-				<span class="cap">{tx.pickLabel}</span>
-				<div class="chips">
-					{#each ['error', 'checkout', 'slow'] as const as k (k)}
-						<button type="button" class="chip" class:on={pick === k} onclick={() => search(k)}
-							>{k}</button
-						>
-					{/each}
-				</div>
-			</div>
-		{/if}
-
-		<svg
-			viewBox="0 0 460 304"
-			class="scene"
-			role="img"
-			aria-label="{tx.fleetLabel}, {tx.centralLabel}"
-		>
-			<text x="14" y="13" class="lbl">{tx.fleetLabel}</text>
-			{#if hopping}
-				<text x="446" y="13" text-anchor="end" class="hoptag"
-					>{tx.loginTag.replace('{n}', String(hop + 1))}</text
-				>
-			{/if}
-
-			<!-- twenty small servers -->
-			{#each Array.from({ length: 20 }, (_, k) => k + 1) as n (n)}
-				{@const x = col(n)}
-				{@const y = row(n)}
-				{@const isGone = gone && n === GONE}
-				{@const isBad = found && n === 14}
-				<g
-					class="srv"
-					class:dim={solo && n !== 1}
-					class:hop={hopping && n === hop + 1}
-					class:gone={isGone}
-					class:bad={isBad}
-				>
-					<rect {x} {y} width="38" height="26" rx="5" class="box" />
-					<circle cx={x + 8} cy={y + 13} r="2.6" class="led" />
-					<text x={x + 25} y={y + 16.5} text-anchor="middle" class="num">{pad(n)}</text>
-					{#if isGone}
-						<path d="M{x + 4} {y + 4}l30 18M{x + 34} {y + 4}l-30 18" class="cross" />
-					{/if}
-				</g>
-				{#if flowing && !isGone}
-					<circle
-						cx={x + 19}
-						cy="86"
-						r="2.4"
-						class="drop"
-						style="animation-delay:{((n * 0.37) % 2.2).toFixed(2)}s"
-					/>
-				{/if}
-			{/each}
-			{#if gone}
-				<text x={col(GONE) + 19} y="92" text-anchor="middle" class="gonetag">{tx.goneTag}</text>
-			{/if}
-			{#if found}
-				<text x={col(14) + 19} y="94" text-anchor="middle" class="badtag">{tx.foundTag}</text>
-			{/if}
-
-			<!-- the central log with its search box -->
-			{#if central}
-				<g in:fade={{ duration: 300 }}>
-					<rect x="14" y="104" width="432" height="32" rx="10" class="store" />
-					<text x="28" y="124" class="storelbl">{tx.centralLabel}</text>
-					<rect x="150" y="110" width="286" height="20" rx="10" class="field" />
-					<circle cx="164" cy="119" r="4.2" class="glass" />
-					<line x1="167" y1="122" x2="171" y2="126" class="glass" />
-					{#if query}
-						<text x="178" y="124" class="q">{query}</text>
-					{:else}
-						<text x="178" y="124" class="q ph">{tx.searchPlaceholder}</text>
-					{/if}
-				</g>
-			{/if}
-
-			<!-- the log viewer -->
-			<rect x="14" y="146" width="432" height="152" rx="10" class="viewer" />
-			<text x="26" y="164" class="vtitle">{title}</text>
-			{#if rows.length === 0}
-				<text x="26" y="190" class="row ph">{tx.noResults}</text>
-			{/if}
-			{#each rows as l, k (l.i)}
-				{@const y = 186 + k * 16}
-				<g
-					in:fade={{ duration: reduce ? 0 : 260 }}
-					class="row"
-					class:keep={gone && l.srv === GONE}
-					class:hit={found && l.i === BAD}
-				>
-					<rect x="18" y={y - 11} width="424" height="15" rx="4" class="rowbg" />
-					<text x="24" {y} class="t">{l.time}</text>
-					<text x="80" {y} class="s">web-{pad(l.srv)}</text>
-					<text x="126" {y} class="lv {l.level.toLowerCase()}">{l.level}</text>
-					<text x="166" {y} class="m">{l.msg}</text>
-				</g>
-			{/each}
-		</svg>
+<div class="wrap">
+	<div class="ticket">
+		<span class="tlabel">{tx.ticketLabel}</span>
+		<span class="ttext">{tx.ticket}</span>
 	</div>
-{/snippet}
 
-<div class="stage">
-	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
+	<div class="tabs" role="tablist">
+		{#each tx.modes as m, i (i)}
+			<button
+				type="button"
+				role="tab"
+				aria-selected={mode === i}
+				class:on={mode === i}
+				onclick={() => (mode = i)}>{m}</button
+			>
+		{/each}
+	</div>
+
+	{#if mode === 0}
+		<div class="fleet">
+			<div class="fhead">
+				<b>{tx.fleetLabel}</b>
+				<span class="cost"
+					>{tx.loginsTag
+						.replace('{n}', String(opened.size))
+						.replace('{m}', String(opened.size * MIN_PER_LOGIN))}</span
+				>
+			</div>
+			<div class="grid">
+				{#each SERVERS as host (host)}
+					<button
+						type="button"
+						class="srv"
+						class:seen={opened.has(host)}
+						class:cur={current === host}
+						class:bad={(handFound || found) && host === BAD}
+						onclick={() => login(host)}
+					>
+						<span class="leds"><i></i><i></i></span>
+						<span class="sname">{host}</span>
+					</button>
+				{/each}
+			</div>
+		</div>
+		{#if current}
+			<div class="term"><Terminal host={current} prompt="$" lines={termLines} /></div>
+		{:else}
+			<p class="hint">{tx.pickServer}</p>
+		{/if}
+	{:else}
+		<div class="search">
+			<label class="slabel" for="logq">{tx.searchLabel}</label>
+			<input
+				id="logq"
+				type="text"
+				autocomplete="off"
+				spellcheck="false"
+				placeholder={tx.searchPlaceholder}
+				bind:value={query}
+				oninput={typed}
+			/>
+			<div class="quick">
+				<span>{tx.quickLabel}</span>
+				{#each ['ERROR', 'checkout', '500'] as q (q)}
+					<button type="button" class="qchip" onclick={() => quick(q)}>{q}</button>
+				{/each}
+			</div>
+		</div>
+
+		<div class="results">
+			<div class="rhead">
+				<span
+					>{tx.resultsTag
+						.replace('{n}', String(results.length))
+						.replace('{t}', String(LOGS.length))}</span
+				>
+				{#if results.length > 0 && results.length < LOGS.length}<span class="tap">{tx.tapHint}</span
+					>{/if}
+			</div>
+			{#if shownResults.length === 0}
+				<p class="empty">{tx.noResults}</p>
+			{:else}
+				{#each shownResults as l (l.host + l.at + l.msg)}
+					<button
+						type="button"
+						class="row {l.level.toLowerCase()}"
+						class:hit={found && l.level === 'ERROR'}
+						onclick={() => inspect(l)}
+					>
+						<span class="ts">{stamp(l.at)}</span>
+						<span class="host">{l.host}</span>
+						<span class="lvl">{l.level}</span>
+						<span class="msg">{l.msg}</span>
+					</button>
+				{/each}
+			{/if}
+		</div>
+		{#if found}
+			<span class="foundtag">{tx.foundTag}</span>
+		{/if}
+	{/if}
+
+	<p class="note">{note}</p>
 </div>
 
 <style>
-	.stage {
+	.wrap {
 		display: flex;
-		width: 100%;
-		max-height: 100%;
-		justify-content: center;
-		overflow-x: hidden;
-		overflow-y: auto;
-		padding-bottom: 8px;
-	}
-	@media (max-width: 767px) {
-		.stage {
-			padding-bottom: 7rem;
-		}
-	}
-	.vis {
-		display: flex;
-		width: 100%;
+		width: min(94vw, 410px);
 		flex-direction: column;
 		align-items: center;
 		gap: 10px;
 	}
-	.scene {
+	.ticket {
+		display: flex;
 		width: 100%;
-		max-width: 460px;
-		height: auto;
-		overflow: visible;
+		flex-direction: column;
+		gap: 2px;
+		border-radius: 12px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 8px 12px;
 	}
-	.pick {
+	.tlabel {
+		font-size: 9.5px;
+		font-weight: 800;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--color-amber);
+	}
+	.ttext {
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-ink);
+	}
+	.tabs {
+		display: flex;
+		gap: 4px;
+		border-radius: 12px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 3px;
+	}
+	.tabs button {
+		border-radius: 9px;
+		padding: 6px 14px;
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--color-muted);
+	}
+	.tabs button.on {
+		background: var(--color-ink);
+		color: var(--color-paper);
+	}
+
+	.fleet {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		gap: 7px;
+	}
+	.fhead {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+	.fhead b {
+		font-size: 11.5px;
+		color: var(--color-ink);
+	}
+	.cost {
+		border-radius: 999px;
+		background: var(--color-amber-soft);
+		padding: 2px 9px;
+		font-size: 10.5px;
+		font-weight: 800;
+		color: var(--color-amber);
+		font-variant-numeric: tabular-nums;
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(5, 1fr);
+		gap: 5px;
+	}
+	.srv {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		gap: 6px;
-	}
-	.cap {
-		font-size: 11px;
-		font-weight: 700;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
-		color: var(--color-faint);
-	}
-	.chips {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 6px;
-	}
-	.chip {
+		gap: 3px;
+		border-radius: 8px;
 		border: 1px solid var(--color-line);
-		border-radius: 999px;
 		background: var(--color-card);
-		padding: 6px 14px;
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 12.5px;
-		font-weight: 600;
-		color: var(--color-brand);
+		padding: 5px 2px;
 		transition:
-			border-color 0.2s,
-			background 0.2s;
+			border-color 0.2s ease,
+			background 0.2s ease;
 	}
-	.chip:hover,
-	.chip.on {
+	.leds {
+		display: flex;
+		gap: 3px;
+	}
+	.leds i {
+		width: 14px;
+		height: 4px;
+		border-radius: 2px;
+		background: var(--color-line);
+	}
+	.srv.seen .leds i {
+		background: var(--color-grass);
+	}
+	.srv.cur {
 		border-color: var(--color-brand);
 		background: var(--color-brand-soft);
 	}
+	.srv.bad {
+		border-color: var(--color-danger);
+		background: var(--color-danger-soft);
+	}
+	.srv.bad .leds i {
+		background: var(--color-danger);
+	}
+	.sname {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 9.5px;
+		font-weight: 700;
+		color: var(--color-ink);
+	}
+	.term {
+		width: 100%;
+		font-size: 10.5px;
+	}
+	.hint {
+		font-size: 11.5px;
+		color: var(--color-faint);
+	}
 
-	.lbl {
+	.search {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		gap: 5px;
+	}
+	.slabel {
 		font-size: 10px;
 		font-weight: 800;
-		letter-spacing: 0.06em;
+		letter-spacing: 0.05em;
 		text-transform: uppercase;
-		fill: var(--color-faint);
+		color: var(--color-faint);
 	}
-	.hoptag {
-		font-size: 10.5px;
-		font-weight: 700;
-		fill: var(--color-amber);
-	}
-	.srv {
-		transition: opacity 0.4s;
-	}
-	.srv.dim {
-		opacity: 0.18;
-	}
-	.srv .box {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.4;
-		transition:
-			fill 0.3s,
-			stroke 0.3s;
-	}
-	.srv .led {
-		fill: var(--color-grass);
-	}
-	.srv .num {
+	.search input {
+		width: 100%;
+		border-radius: 10px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 8px 11px;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 9px;
-		font-weight: 700;
-		fill: var(--color-muted);
+		font-size: 13px;
+		color: var(--color-ink);
 	}
-	.srv.hop .box {
-		stroke: var(--color-amber);
-		fill: var(--color-amber-soft);
+	.search input:focus {
+		border-color: var(--color-brand);
+		outline: none;
+		box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 15%, transparent);
 	}
-	.srv.gone {
-		opacity: 0.4;
+	.quick {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 5px;
 	}
-	.srv.gone .led {
-		fill: var(--color-line);
+	.quick span {
+		font-size: 10.5px;
+		color: var(--color-faint);
 	}
-	.cross {
-		stroke: var(--color-faint);
-		stroke-width: 1.4;
-		stroke-linecap: round;
-	}
-	.srv.bad .box {
-		stroke: var(--color-danger);
-		fill: var(--color-danger-soft);
-	}
-	.srv.bad .led {
-		fill: var(--color-danger);
-	}
-	.gonetag,
-	.badtag {
-		font-size: 9px;
-		font-weight: 800;
-		fill: var(--color-faint);
-	}
-	.badtag {
-		fill: var(--color-danger);
-	}
-	.drop {
-		fill: var(--color-brand);
-		opacity: 0;
-		animation: drop 2.2s ease-in infinite;
-	}
-	@keyframes drop {
-		0% {
-			transform: translateY(-4px);
-			opacity: 0;
-		}
-		25% {
-			opacity: 0.9;
-		}
-		100% {
-			transform: translateY(16px);
-			opacity: 0;
-		}
-	}
-	.store {
-		fill: var(--color-brand-soft);
-		stroke: color-mix(in srgb, var(--color-brand) 40%, var(--color-line));
-		stroke-width: 1.4;
-	}
-	.storelbl {
-		font-size: 12px;
-		font-weight: 800;
-		fill: var(--color-brand);
-	}
-	.field {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-	}
-	.glass {
-		fill: none;
-		stroke: var(--color-muted);
-		stroke-width: 1.5;
-		stroke-linecap: round;
-	}
-	.q {
+	.qchip {
+		border-radius: 7px;
+		border: 1px solid var(--color-line);
+		background: var(--color-paper);
+		padding: 2px 8px;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-size: 11px;
 		font-weight: 700;
-		fill: var(--color-ink);
+		color: var(--color-ink);
 	}
-	.q.ph,
-	.row.ph {
-		font-weight: 500;
-		fill: var(--color-faint);
+	.results {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		gap: 2px;
+		overflow: hidden;
+		border-radius: 12px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 6px;
 	}
-	.viewer {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-		stroke-width: 1.4;
+	.rhead {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 4px;
+		padding: 0 4px 4px;
+		font-size: 10px;
+		font-weight: 700;
+		color: var(--color-faint);
 	}
-	.vtitle {
-		font-size: 10.5px;
-		font-weight: 800;
-		fill: var(--color-muted);
+	.rhead .tap {
+		color: var(--color-brand);
 	}
-	.row text {
+	.row {
+		display: grid;
+		grid-template-columns: auto auto auto 1fr;
+		gap: 6px;
+		align-items: baseline;
+		border-radius: 6px;
+		padding: 3px 5px;
+		text-align: left;
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 9.5px;
+		font-size: 10px;
+		color: var(--color-muted);
+		transition: background 0.15s ease;
 	}
-	.row.ph {
-		font-size: 10.5px;
+	.row:hover {
+		background: var(--color-paper);
 	}
-	.rowbg {
-		fill: transparent;
-		transition: fill 0.3s;
+	.ts {
+		color: var(--color-faint);
 	}
-	.row.keep .rowbg {
-		fill: var(--color-brand-soft);
-	}
-	.row.hit .rowbg {
-		fill: var(--color-danger-soft);
-	}
-	.t {
-		fill: var(--color-faint);
-	}
-	.s {
-		fill: var(--color-brand);
+	.host {
 		font-weight: 700;
+		color: var(--color-ink);
 	}
-	.lv {
-		font-weight: 700;
-		fill: var(--color-grass);
+	.lvl {
+		font-weight: 800;
+		color: var(--color-grass);
 	}
-	.lv.warn {
-		fill: var(--color-amber);
+	.row.warn .lvl {
+		color: var(--color-amber);
 	}
-	.lv.error {
-		fill: var(--color-danger);
+	.row.error .lvl,
+	.row.error .msg {
+		color: var(--color-danger);
 	}
-	.m {
-		fill: var(--color-ink);
+	.row.hit {
+		background: var(--color-danger-soft);
 	}
-
+	.msg {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.empty {
+		padding: 8px;
+		text-align: center;
+		font-size: 11px;
+		color: var(--color-faint);
+	}
+	.foundtag {
+		border-radius: 999px;
+		background: var(--color-danger);
+		padding: 2px 11px;
+		font-size: 11px;
+		font-weight: 800;
+		color: #fff;
+		animation: pop 0.3s ease both;
+	}
+	.note {
+		min-height: 1.4em;
+		max-width: 360px;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	@keyframes pop {
+		from {
+			transform: scale(0.6);
+			opacity: 0;
+		}
+	}
 	@media (prefers-reduced-motion: reduce) {
-		.drop {
+		.foundtag {
 			animation: none;
 		}
-		.srv,
-		.srv .box,
-		.rowbg,
-		.chip {
-			transition: none;
+	}
+	@media (min-width: 768px) {
+		.wrap {
+			width: 480px;
+		}
+		.row {
+			font-size: 11px;
+		}
+		.sname {
+			font-size: 10.5px;
+		}
+		.note {
+			font-size: 13.5px;
+			max-width: 440px;
 		}
 	}
 </style>

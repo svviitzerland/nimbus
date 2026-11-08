@@ -7,7 +7,8 @@ export const en: CdnText = {
 		'Yet much of a site is exactly the same for everyone, like images, the logo, and videos. Instead of everyone fetching them all the way from America, keep copies at a point near the visitors. That is called <b>caching</b>. The first time it is asked, that point fetches from the origin once, after that the copy stays there.',
 		'A <b>CDN</b> (Content Delivery Network) is that same caching spread worldwide, a network of points that hold copies across hundreds of cities. Visitors are automatically served by the nearest point, you never pick cities one by one.',
 		'The spread depends on the provider. Cloudflare sits in over 300 cities, AWS CloudFront has over 600 points, others differ again. Big cities are almost always covered, remote areas get served by the nearest point a bit farther away. And it has a price, a CDN is a paid service, so your bill goes up.',
-		'On this map the CDN is still off, so every visitor travels all the way to the origin. Click a few people and feel the lag, then switch the CDN on, click again, and watch the nearest green point deliver the copy.'
+		'On this map the CDN is still off, so every visitor travels all the way to the origin. Click a few people and feel the lag, then switch the CDN on, click again, and watch the nearest green point deliver the copy.',
+		'[ingat] A CDN brings content copies closer. A nearby cache reduces trips to the origin.'
 	],
 	reactions: {
 		origin:

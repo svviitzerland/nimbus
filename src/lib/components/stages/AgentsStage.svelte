@@ -1,771 +1,664 @@
 <script lang="ts">
-	// A guided "watch" stage. A little robot (the agent) sits inside its loop of think, act, and
-	// check, with a calendar app beside it and a permission card underneath. The beats play the
-	// story by themselves, a chatbot only answers with words, the agent thinks, calls the calendar
-	// tool, sees ten is taken, re plans to eleven, asks permission, and books it. The only optional
-	// play is allowing or denying the booking on the last beat.
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
+	import { onDestroy, tick } from 'svelte';
+	import type { LessonText } from '$lib/chapters/types';
 	import type { AgentsText } from '$lib/chapters/ai/agents/types';
-	import { phaseAt, sceneClock, wrap } from './webship/clock.svelte';
+	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: {
+		text: LessonText;
+		oncomplete?: () => void;
+		onstate?: (s: string) => void;
+	} = $props();
 	const tx = $derived(text as AgentsText);
 
-	type Scene = 'ask' | 'tools' | 'think' | 'act' | 'check' | 'permit' | 'done' | 'remember' | 'try';
-	const SCENES: Scene[] = [
-		'ask',
-		'tools',
-		'think',
-		'act',
-		'check',
-		'permit',
-		'done',
-		'remember',
-		'try'
-	];
-	const SCENE_OF_BEAT = [0, 1, 2, 3, 4, 5, 6, 7, 7, 8];
-	type Node = 'think' | 'act' | 'check';
-
-	let peek = $state<number | null>(null);
-	let decision = $state<'allow' | 'deny' | null>(null);
-
-	const fromBeat = $derived(SCENE_OF_BEAT[Math.min(beat, SCENE_OF_BEAT.length - 1)]);
-	const active = $derived(peek ?? fromBeat);
-	const scene = $derived(SCENES[active]);
-	const clock = sceneClock(() => [scene, decision]);
-	const t = $derived(clock.t);
-
-	$effect(() => {
-		onshow?.(true);
-		oncomplete?.();
-	});
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-
-	// the agent's thought bubble
-	const thought = $derived(
-		scene === 'think' && t > 500
-			? tx.think1
-			: scene === 'check' && t > 400
-				? tx.think2
-				: scene === 'permit'
-					? tx.think3
-					: ''
-	);
-	const thinking = $derived(scene === 'think' && t <= 500);
-
-	// the tool call travelling to the calendar and back
-	const trip = $derived(
-		phaseAt(
-			[
-				{ ph: 'wait', ms: 300 },
-				{ ph: 'go', ms: 1400 },
-				{ ph: 'back', ms: 1400 },
-				{ ph: 'hold', ms: 1 }
-			],
-			t,
-			false
-		)
-	);
-	const packet = $derived(
-		scene === 'act' && !clock.reduced && (trip.ph === 'go' || trip.ph === 'back')
-			? trip.ph === 'go'
-				? 147 + 53 * trip.p
-				: 200 - 53 * trip.p
-			: null
-	);
-	const callShown = $derived(scene === 'act' && trip.ph !== 'wait');
-	const resultShown = $derived(scene === 'act' && (trip.ph === 'back' || trip.ph === 'hold'));
-	const calBusy = $derived(scene === 'act' && trip.ph === 'go' && trip.p > 0.7);
-
-	// which step of the loop is in focus
-	const cycle = $derived(
-		phaseAt<Node>(
-			[
-				{ ph: 'think', ms: 900 },
-				{ ph: 'act', ms: 900 },
-				{ ph: 'check', ms: 900 }
-			],
-			t
-		).ph
-	);
-	const node = $derived<Node | 'all' | null>(
-		scene === 'think'
-			? 'think'
-			: scene === 'act'
-				? 'act'
-				: scene === 'check' || scene === 'permit'
-					? 'check'
-					: scene === 'remember'
-						? clock.reduced
-							? 'all'
-							: cycle
-						: scene === 'done'
-							? 'all'
-							: null
-	);
-	const nodeOn = (n: Node) => node === 'all' || node === n;
-
-	// the calendar and the booking
-	const flagged = $derived(scene === 'check' || scene === 'permit');
-	const booked = $derived(
-		(scene === 'done' && t > 1000) ||
-			scene === 'remember' ||
-			(scene === 'try' && decision === 'allow')
-	);
-	const showArm = $derived(active >= 1);
-
-	// the bottom area
-	type Bottom = 'chat' | 'chips' | 'dialog' | 'final' | 'none';
-	const bottom = $derived<Bottom>(
-		scene === 'ask'
-			? 'chat'
-			: scene === 'act'
-				? 'chips'
-				: scene === 'permit'
-					? 'dialog'
-					: scene === 'done'
-						? t > 1000
-							? 'final'
-							: 'dialog'
-						: scene === 'remember'
-							? 'final'
-							: scene === 'try'
-								? decision
-									? 'final'
-									: 'dialog'
-								: 'none'
-	);
-	const pressed = $derived(scene === 'done' && t > 300 && t <= 1000);
-	const finalText = $derived(scene === 'try' && decision === 'deny' ? tx.finalDeny : tx.finalAllow);
-
-	const LIT: Record<Scene, string[]> = {
-		ask: ['you', 'bottom'],
-		tools: ['agent', 'calendar'],
-		think: ['agent'],
-		act: ['agent', 'calendar', 'bottom'],
-		check: ['agent', 'calendar'],
-		permit: ['agent', 'bottom'],
-		done: ['calendar', 'bottom'],
-		remember: ['agent', 'calendar', 'bottom'],
-		try: ['calendar', 'bottom']
+	// ---- the agent's script. Tool calls and results are real code, so they stay untranslated. ----
+	type Tool = 'calendar' | 'email';
+	type Kind = 'think' | 'call' | 'result' | 'answer';
+	type Step = {
+		kind: Kind;
+		say?: 'think1' | 'think2' | 'finalAllow' | 'finalDeny'; // translated line
+		code?: string; // a tool call or the data a tool sent back
+		tool?: Tool;
+		token?: string; // what Nim reacts to
+		approval?: boolean; // the agent stops and asks before running this call
+		effect?: 'book' | 'sent';
 	};
-	const lit = (k: string) => LIT[scene].includes(k);
-
-	const HOURS = ['09:00', '10:00', '11:00', '12:00'];
-	const NODES: { id: Node; x: number; y: number; lx: number; ly: number }[] = [
-		{ id: 'think', x: 95, y: 123, lx: 95, ly: 115 },
-		{ id: 'act', x: 140, y: 201, lx: 140, ly: 221 },
-		{ id: 'check', x: 50, y: 201, lx: 50, ly: 221 }
+	const START: Step[] = [
+		{ kind: 'think', say: 'think1', token: 'think' },
+		{ kind: 'call', tool: 'calendar', code: 'calendar.check(day="Thu")', token: 'tool' },
+		{
+			kind: 'result',
+			tool: 'calendar',
+			code: '{"09:00": "free", "10:00": "Team sync", "11:00": "free"}',
+			token: 'result'
+		},
+		{ kind: 'think', say: 'think2', token: 'busy' },
+		{
+			kind: 'call',
+			tool: 'calendar',
+			code: 'calendar.book(day="Thu", time="11:00", with="Raka")',
+			token: 'ask',
+			approval: true
+		}
+	];
+	const ALLOWED: Step[] = [
+		{ kind: 'result', tool: 'calendar', code: '{"booked": true}', token: 'allow', effect: 'book' },
+		{
+			kind: 'call',
+			tool: 'email',
+			code: 'email.send(to="raka@nimbus.com", subject="Meeting Thu 11:00")',
+			token: 'email'
+		},
+		{ kind: 'result', tool: 'email', code: '{"sent": true}', effect: 'sent' },
+		{ kind: 'answer', say: 'finalAllow', token: 'done' }
+	];
+	const DENIED: Step[] = [
+		{ kind: 'result', tool: 'calendar', code: '{"error": "denied by user"}', token: 'deny' },
+		{ kind: 'answer', say: 'finalDeny', token: 'done_deny' }
 	];
 
-	function decide(d: 'allow' | 'deny') {
-		decision = d;
-		onstate?.(d);
+	let choice = $state<'allow' | 'deny' | null>(null);
+	let shown = $state(0); // how many steps of the script are in the log
+	let running = $state(false);
+	let booked = $state(false);
+	let sent = $state(false);
+
+	const script = $derived(
+		choice === 'allow' ? [...START, ...ALLOWED] : choice === 'deny' ? [...START, ...DENIED] : START
+	);
+	const log = $derived(script.slice(0, shown));
+	const last = $derived(log.at(-1));
+	const waiting = $derived(!!last?.approval && choice === null);
+	const finished = $derived(last?.kind === 'answer');
+	const activeTool = $derived(
+		last && (last.kind === 'call' || last.kind === 'result') && !finished ? last.tool : undefined
+	);
+	const calendarRead = $derived(shown >= 3);
+
+	const status = $derived.by(() => {
+		if (!last) return tx.status.idle;
+		if (finished) return tx.status.done;
+		if (waiting) return tx.status.waiting;
+		if (last.kind === 'think') return tx.status.thinking;
+		if (last.kind === 'call') {
+			const name = last.tool === 'email' ? tx.emailLabel : tx.calendarLabel;
+			return tx.status.calling.replace('{tool}', name.toLowerCase());
+		}
+		return tx.status.reading;
+	});
+	const thought = $derived(
+		[...log].reverse().find((s) => s.kind === 'think' || s.kind === 'answer')?.say
+	);
+
+	let completed = false;
+	let logEl = $state<HTMLOListElement>();
+
+	async function advance() {
+		if (waiting || finished || shown >= script.length) return false;
+		shown++;
+		const s = script[shown - 1];
+		if (s.effect === 'book') booked = true;
+		if (s.effect === 'sent') sent = true;
+		if (s.token) onstate?.(s.token);
+		if (s.kind === 'answer' && !completed) {
+			completed = true;
+			oncomplete?.();
+		}
+		await tick();
+		logEl?.scrollTo({ top: logEl.scrollHeight, behavior: reduced() ? 'auto' : 'smooth' });
+		return true;
 	}
+
+	function decide(c: 'allow' | 'deny') {
+		if (!waiting) return;
+		choice = c;
+		advance();
+		if (running) schedule();
+	}
+
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	let saidAuto = false;
+	function schedule() {
+		clearTimeout(timer);
+		timer = setTimeout(async () => {
+			const moved = await advance();
+			if (moved && !waiting && !finished) schedule();
+			else if (finished || !moved) running = false;
+		}, 1300);
+	}
+	function runAuto() {
+		if (running || waiting || finished) return;
+		running = true;
+		if (!saidAuto) {
+			saidAuto = true;
+			onstate?.('auto');
+		}
+		schedule();
+	}
+	function stepOnce() {
+		running = false;
+		clearTimeout(timer);
+		advance();
+	}
+
+	function reset() {
+		clearTimeout(timer);
+		running = false;
+		choice = null;
+		shown = 0;
+		booked = false;
+		sent = false;
+	}
+
+	onDestroy(() => clearTimeout(timer));
+
+	const reduced = () =>
+		typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 </script>
 
-{#snippet picture(_i: number)}
-	<div class="visual">
-		{#if scene === 'try'}
-			<div class="acts">
-				{#if decision}
-					<button type="button" class="act ghost" onclick={() => (decision = null)}>
-						{tx.again}
-					</button>
-				{:else}
-					<button type="button" class="act ghost" onclick={() => decide('deny')}>{tx.deny}</button>
-					<button type="button" class="act" onclick={() => decide('allow')}>{tx.allow}</button>
-				{/if}
-			</div>
+{#snippet toolIcon(t: Tool)}
+	<svg
+		width="16"
+		height="16"
+		viewBox="0 0 24 24"
+		fill="none"
+		stroke="currentColor"
+		stroke-width="1.9"
+		stroke-linecap="round"
+		stroke-linejoin="round"
+		aria-hidden="true"
+	>
+		{#if t === 'calendar'}
+			<rect x="3.5" y="5" width="17" height="15" rx="2.5" />
+			<path d="M3.5 10h17M8 3v4M16 3v4" />
+		{:else}
+			<rect x="3" y="5" width="18" height="14" rx="2.5" />
+			<path d="m3.5 7 8.5 6 8.5-6" />
 		{/if}
-		<svg viewBox="0 0 360 372" class="pic" role="img" aria-label={tx.picture}>
-			<!-- what you asked -->
-			<g class="part" class:dim={!lit('you')}>
-				<circle cx="18" cy="24" r="12" class="you" />
-				<circle cx="18" cy="20" r="4" class="youhead" />
-				<path d="M10 32 Q18 24 26 32" class="youbody" />
-				<g class="rise" class:still={clock.reduced || scene !== 'ask'}>
-					<rect x="38" y="8" width="314" height="32" rx="12" class="request" />
-					<text x="50" y="28" class="reqtext">{tx.goal}</text>
-				</g>
-			</g>
-
-			<!-- the agent inside its loop -->
-			<g class="part" class:dim={!lit('agent')}>
-				{#if thought}
-					{@const lines = wrap(thought, 32)}
-					<g class="rise" class:still={clock.reduced}>
-						<rect
-							x="8"
-							y="52"
-							width="176"
-							height={lines.length * 12 + 14}
-							rx="12"
-							class="thought"
-						/>
-						{#each lines as l, k (k)}
-							<text x="18" y={68 + k * 12} class="thinktext">{l}</text>
-						{/each}
-					</g>
-				{/if}
-				<circle cx="95" cy="175" r="52" class="ring" />
-				{#if (scene === 'remember' || scene === 'done') && !clock.reduced}
-					<circle r="3.5" class="spark">
-						<animateMotion
-							dur="2.7s"
-							repeatCount="indefinite"
-							path="M95 123 A52 52 0 1 1 94.9 123"
-						/>
-					</circle>
-				{/if}
-				{#each NODES as n (n.id)}
-					<circle cx={n.x} cy={n.y} r="6.5" class="node" class:on={nodeOn(n.id)} />
-					<text x={n.lx} y={n.ly} text-anchor="middle" class="nodelabel" class:on={nodeOn(n.id)}
-						>{tx.loop[n.id]}</text
-					>
-				{/each}
-				<!-- the robot -->
-				<path d="M95 158 V149" class="antenna" />
-				<circle cx="95" cy="147" r="3.2" class="bulb" class:blink={thinking && !clock.reduced} />
-				<rect x="73" y="158" width="44" height="34" rx="10" class="head" />
-				{#if thinking && !clock.reduced}
-					{#each [0, 1, 2] as k (k)}
-						<circle
-							cx={86 + k * 9}
-							cy="175"
-							r="2.6"
-							class="dot"
-							style="animation-delay:{k * 0.18}s"
-						/>
-					{/each}
-				{:else}
-					<circle cx="86" cy="173" r="3.5" class="eye" />
-					<circle cx="104" cy="173" r="3.5" class="eye" />
-					<path d="M89 183 Q95 186 101 183" class="mouth" />
-				{/if}
-				{#if scene === 'remember'}
-					<text x="95" y="244" text-anchor="middle" class="memo">{tx.memo}</text>
-				{/if}
-			</g>
-
-			<!-- the arm reaching to the tool -->
-			{#if showArm}
-				<g class="part" class:dim={!lit('agent') && !lit('calendar')}>
-					<path d="M117 178 H200" class="arm" class:reach={scene === 'tools' && !clock.reduced} />
-					<circle cx="200" cy="178" r="4" class="hand" />
-					{#if packet !== null}
-						<circle cx={packet} cy="178" r="4.5" class="packet" class:back={trip.ph === 'back'} />
-					{/if}
-				</g>
-			{/if}
-
-			<!-- the calendar tool -->
-			<g class="part" class:dim={!lit('calendar')}>
-				<rect x="200" y="52" width="152" height="178" rx="12" class="cal" class:busycal={calBusy} />
-				<path d="M200 80 H352" class="sep" />
-				<rect x="212" y="60" width="13" height="13" rx="3" class="calicon" />
-				<text x="231" y="71" class="caltitle">{tx.calendarLabel}</text>
-				<text x="342" y="71" text-anchor="end" class="day">{tx.day}</text>
-				{#each HOURS as h, k (h)}
-					{@const y = 88 + k * 34}
-					<text x="210" y={y + 17} class="hour">{h}</text>
-					{#if k === 1}
-						<rect
-							x="246"
-							{y}
-							width="98"
-							height="26"
-							rx="6"
-							class="slot sync"
-							class:flag={flagged}
-						/>
-						<text x="254" y={y + 17} class="slottext">{tx.teamSync}</text>
-					{:else if k === 2 && booked}
-						<g class="rise" class:still={clock.reduced}>
-							<rect x="246" {y} width="98" height="26" rx="6" class="slot raka" />
-							<text x="254" y={y + 17} class="slottext light">{tx.withRaka}</text>
-						</g>
-					{:else}
-						<rect
-							x="246"
-							{y}
-							width="98"
-							height="26"
-							rx="6"
-							class="slot free"
-							class:pick={k === 2 && flagged}
-						/>
-						<text x="254" y={y + 17} class="freetext">{tx.free}</text>
-					{/if}
-				{/each}
-			</g>
-
-			<!-- the bottom area, a chatbot reply, the tool call, the permission card, or the result -->
-			<g class="part" class:dim={!lit('bottom')}>
-				{#if bottom === 'chat'}
-					{@const lines = wrap(tx.chatOnly, 54)}
-					<g class="rise" class:still={clock.reduced}>
-						<text x="26" y="264" class="tag">{tx.chatbotLabel}</text>
-						<rect
-							x="24"
-							y="270"
-							width="312"
-							height={lines.length * 13 + 14}
-							rx="10"
-							class="bubble"
-						/>
-						{#each lines as l, k (k)}
-							<text x="34" y={286 + k * 13} class="bubbletext">{l}</text>
-						{/each}
-					</g>
-				{:else if bottom === 'chips'}
-					{#if callShown}
-						<g class="rise" class:still={clock.reduced}>
-							<rect x="40" y="262" width="280" height="26" rx="8" class="chip" />
-							<text x="52" y="279" class="code">{tx.call}</text>
-						</g>
-					{/if}
-					{#if resultShown}
-						<g class="rise" class:still={clock.reduced}>
-							<rect x="40" y="296" width="280" height="26" rx="8" class="chip ok" />
-							<text x="52" y="313" class="code ok">{tx.result}</text>
-						</g>
-					{/if}
-				{:else if bottom === 'dialog'}
-					<g class="rise" class:still={clock.reduced || scene === 'done'}>
-						<rect x="24" y="262" width="312" height="92" rx="14" class="dialog" />
-						<circle cx="46" cy="286" r="9" class="lock" />
-						<path d="M42 285 V282 Q46 277 50 282 V285" class="shackle" />
-						<text x="62" y="290" class="dq">{tx.approvalQ}</text>
-						<rect x="136" y="312" width="86" height="28" rx="14" class="deny" />
-						<text x="179" y="330" text-anchor="middle" class="denytext">{tx.deny}</text>
-						<rect
-							x="232"
-							y="312"
-							width="92"
-							height="28"
-							rx="14"
-							class="allow"
-							class:pressed
-							class:wait={scene === 'permit' && !clock.reduced}
-						/>
-						<text x="278" y="330" text-anchor="middle" class="allowtext">{tx.allow}</text>
-					</g>
-				{:else if bottom === 'final'}
-					{@const lines = wrap(finalText, 54)}
-					<g class="rise" class:still={clock.reduced || scene === 'remember'}>
-						<text x="26" y="264" class="tag agent">{tx.agentLabel}</text>
-						<rect
-							x="24"
-							y="270"
-							width="312"
-							height={lines.length * 13 + 14}
-							rx="10"
-							class="bubble"
-							class:good={finalText === tx.finalAllow}
-						/>
-						{#each lines as l, k (k)}
-							<text x="34" y={286 + k * 13} class="bubbletext">{l}</text>
-						{/each}
-					</g>
-				{/if}
-			</g>
-		</svg>
-		{#if scene === 'remember'}
-			<p class="rule">{tx.rule}</p>
-		{/if}
-	</div>
+	</svg>
 {/snippet}
 
 <div class="stage">
-	<Guide steps={tx.panels} {active} onselect={(i) => (peek = i)} visual={picture} />
+	<!-- controls up top, or the permission question when the agent asks -->
+	<div class="controls">
+		{#if waiting}
+			<div class="ask" role="alertdialog" aria-label={tx.approvalQ}>
+				<p>{tx.approvalQ}</p>
+				<div class="row">
+					<button type="button" class="yes" onclick={() => decide('allow')}>{tx.allow}</button>
+					<button type="button" class="no" onclick={() => decide('deny')}>{tx.deny}</button>
+				</div>
+			</div>
+		{:else}
+			<div class="row">
+				<CallToActionButton onclick={stepOnce} disabled={finished}>{tx.stepBtn}</CallToActionButton>
+				<button type="button" class="ghost" onclick={runAuto} disabled={finished || running}>
+					{running ? tx.running : tx.autoBtn}
+				</button>
+				<button type="button" class="reset" onclick={reset}>{tx.reset}</button>
+			</div>
+		{/if}
+	</div>
+
+	<!-- the request, the agent, and its tools -->
+	<div class="you">
+		<span class="lbl">{tx.youLabel}</span>
+		<span class="goal">{tx.goal}</span>
+	</div>
+	<span class="wire" class:on={shown > 0} aria-hidden="true"></span>
+
+	<div class="agent" class:busy={shown > 0 && !finished} class:done={finished}>
+		<span class="brain" aria-hidden="true">
+			<svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+				<circle cx="6" cy="7" r="2.2" fill="currentColor" />
+				<circle cx="6" cy="17" r="2.2" fill="currentColor" />
+				<circle cx="18" cy="12" r="2.6" fill="currentColor" />
+				<circle cx="12" cy="12" r="2.2" fill="currentColor" opacity="0.6" />
+				<path
+					d="M6 7l6 5M6 17l6-5M12 12h6"
+					stroke="currentColor"
+					stroke-width="1.4"
+					opacity="0.6"
+				/>
+			</svg>
+		</span>
+		<span class="ainfo">
+			<b>{tx.modelLabel}</b>
+			<span class="status">{status}</span>
+		</span>
+		{#if thought}
+			{#key thought}
+				<span class="thought">{tx[thought]}</span>
+			{/key}
+		{/if}
+	</div>
+
+	<div class="wires" aria-hidden="true">
+		<span class="wire" class:on={activeTool === 'calendar'}></span>
+		<span class="wire" class:on={activeTool === 'email'}></span>
+	</div>
+
+	<div class="tools">
+		<div class="tool" class:on={activeTool === 'calendar'}>
+			<span class="thead">{@render toolIcon('calendar')}{tx.calendarLabel}</span>
+			<span class="day">{tx.day}</span>
+			<ul class="slots">
+				<li class:read={calendarRead}><span>09:00</span>{tx.free}</li>
+				<li class="taken" class:read={calendarRead}><span>10:00</span>{tx.teamSync}</li>
+				<li class:read={calendarRead} class:booked>
+					<span>11:00</span>{booked ? tx.withRaka : tx.free}
+				</li>
+			</ul>
+		</div>
+		<div class="tool" class:on={activeTool === 'email'}>
+			<span class="thead">{@render toolIcon('email')}{tx.emailLabel}</span>
+			<span class="mail" class:sent>
+				{#if sent}<b aria-hidden="true">✓</b>{/if}
+				{sent ? tx.emailSent : tx.emailIdle}
+			</span>
+		</div>
+	</div>
+
+	<!-- the log, every step in order -->
+	<div class="logwrap">
+		<span class="lbl">
+			{tx.logLabel}
+			{#if shown > 0}<span class="n">{tx.stepCount.replace('{n}', String(shown))}</span>{/if}
+		</span>
+		<ol class="log" bind:this={logEl} aria-live="polite">
+			{#each log as s, k (k)}
+				<li class="entry {s.kind}" class:latest={k === shown - 1}>
+					<span class="kind">{tx.kinds[s.kind]}</span>
+					{#if s.code}
+						<code>{s.code}</code>
+					{:else if s.say}
+						<span class="say">{tx[s.say]}</span>
+					{/if}
+				</li>
+			{:else}
+				<li class="empty">{tx.logEmpty}</li>
+			{/each}
+		</ol>
+	</div>
 </div>
 
 <style>
 	.stage {
 		display: flex;
-		height: 100%;
-		width: 100%;
-		justify-content: center;
-		align-items: safe center;
-		overflow-y: auto;
-		overflow-x: hidden;
-		padding-bottom: 16px;
-	}
-	.visual {
-		display: flex;
 		width: 100%;
 		max-width: 440px;
 		flex-direction: column;
 		align-items: center;
-		gap: 10px;
+		margin: 0 auto;
 	}
-	.pic {
-		display: block;
-		width: 100%;
-		height: auto;
-		max-height: 62vh;
-	}
-	.acts {
+	.controls {
 		display: flex;
+		min-height: 48px;
+		width: 100%;
+		justify-content: center;
+		margin-bottom: 12px;
+	}
+	.row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
 		gap: 8px;
 	}
-	.act {
-		border: 1.5px solid var(--color-brand);
-		border-radius: 999px;
-		background: var(--color-brand);
+	.row :global(.cta) {
+		padding: 10px 18px;
+		font-size: 13px;
+	}
+	.ghost {
+		border-radius: 12px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 9px 14px;
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--color-ink);
+	}
+	.ghost:disabled {
+		opacity: 0.5;
+	}
+	.reset {
+		font-size: 13px;
+		font-weight: 600;
+		color: var(--color-muted);
+		padding: 6px 8px;
+	}
+	.reset:hover {
+		color: var(--color-ink);
+	}
+	.ask {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		border-radius: 14px;
+		border: 1.5px solid var(--color-amber);
+		background: var(--color-amber-soft);
+		padding: 10px 14px;
+		animation: pop 0.3s ease;
+	}
+	.ask p {
+		font-size: 12.5px;
+		font-weight: 600;
+		color: var(--color-ink);
+		text-align: center;
+	}
+	.yes,
+	.no {
+		border-radius: 10px;
 		padding: 7px 18px;
 		font-size: 13px;
 		font-weight: 700;
-		color: var(--color-card);
 	}
-	.act.ghost {
+	.yes {
+		background: var(--color-grass);
+		color: #fff;
+	}
+	.no {
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-danger);
+	}
+
+	.lbl {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 10.5px;
+		font-weight: 700;
+		color: var(--color-faint);
+		letter-spacing: 0.02em;
+	}
+	.lbl .n {
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+
+	/* request card */
+	.you {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 2px;
+		border-radius: 14px;
+		background: var(--color-brand);
+		padding: 7px 14px;
+		color: #fff;
+	}
+	.you .lbl {
+		color: rgba(255, 255, 255, 0.75);
+	}
+	.goal {
+		font-size: 12.5px;
+		font-weight: 600;
+		text-align: center;
+	}
+
+	/* connectors */
+	.wire {
+		display: block;
+		width: 2px;
+		height: 14px;
+		background: var(--color-line);
+		transition: background 0.3s ease;
+	}
+	.wire.on {
+		background: var(--color-brand);
+	}
+	.wires {
+		display: grid;
+		width: 100%;
+		grid-template-columns: 1fr 1fr;
+		justify-items: center;
+	}
+
+	/* the agent card */
+	.agent {
+		display: grid;
+		width: 100%;
+		grid-template-columns: auto 1fr;
+		align-items: center;
+		gap: 4px 10px;
+		border-radius: 16px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 9px 12px;
+		transition: border-color 0.3s ease;
+	}
+	.agent.busy {
+		border-color: var(--color-brand);
+	}
+	.agent.done {
+		border-color: var(--color-grass);
+	}
+	.brain {
+		display: grid;
+		place-items: center;
+		width: 34px;
+		height: 34px;
+		border-radius: 10px;
 		background: var(--color-brand-soft);
 		color: var(--color-brand);
 	}
-	.rule {
-		margin: 0;
-		text-align: center;
-		font-size: 14px;
-		font-weight: 700;
-		color: var(--color-grass);
+	.ainfo {
+		display: flex;
+		flex-direction: column;
+		font-size: 12.5px;
+		color: var(--color-ink);
 	}
-	.part {
-		transition: opacity 0.4s;
+	.status {
+		font-size: 11px;
+		color: var(--color-muted);
 	}
-	.part.dim {
-		opacity: 0.35;
-	}
-	.rise {
-		animation: rise 0.45s ease both;
-	}
-	.rise.still {
-		animation: none;
-	}
-	@keyframes rise {
-		from {
-			transform: translateY(8px);
-			opacity: 0;
-		}
-		to {
-			transform: none;
-			opacity: 1;
-		}
-	}
-	.you {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 1.5;
-	}
-	.youhead {
-		fill: var(--color-amber);
-	}
-	.youbody {
-		fill: none;
-		stroke: var(--color-amber);
-		stroke-width: 2.5;
-		stroke-linecap: round;
-	}
-	.request {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-	}
-	.reqtext {
-		fill: var(--color-ink);
-		font-size: 10px;
-		font-weight: 700;
+	.agent.busy .status {
+		color: var(--color-brand);
 	}
 	.thought {
-		fill: var(--color-card);
-		stroke: var(--color-brand);
-		stroke-opacity: 0.5;
-		stroke-width: 1.4;
-	}
-	.thinktext {
-		fill: var(--color-ink);
-		font-size: 8.6px;
-		font-weight: 600;
+		grid-column: 1 / -1;
+		border-radius: 10px;
+		background: var(--color-paper);
+		padding: 6px 9px;
+		font-size: 11.5px;
 		font-style: italic;
+		line-height: 1.4;
+		color: var(--color-muted);
+		animation: fadein 0.3s ease;
 	}
-	.ring {
-		fill: none;
-		stroke: var(--color-line);
-		stroke-width: 3;
+
+	/* tools */
+	.tools {
+		display: grid;
+		width: 100%;
+		grid-template-columns: 1fr 1fr;
+		gap: 8px;
 	}
-	.spark {
-		fill: var(--color-grass);
-	}
-	.node {
-		fill: var(--color-card);
-		stroke: var(--color-faint);
-		stroke-width: 2;
+	.tool {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		border-radius: 14px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 8px 10px;
 		transition:
-			fill 0.3s,
-			stroke 0.3s;
+			border-color 0.3s ease,
+			box-shadow 0.3s ease;
 	}
-	.node.on {
-		fill: var(--color-grass);
-		stroke: var(--color-grass);
+	.tool.on {
+		border-color: var(--color-brand);
+		box-shadow: 0 0 0 4px var(--color-brand-soft);
 	}
-	.nodelabel {
-		fill: var(--color-faint);
-		font-size: 9.5px;
-		font-weight: 800;
-		transition: fill 0.3s;
+	.thead {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		font-size: 12px;
+		font-weight: 700;
+		color: var(--color-ink);
 	}
-	.nodelabel.on {
-		fill: var(--color-grass);
-	}
-	.antenna {
-		stroke: var(--color-ink);
-		stroke-width: 2;
-	}
-	.bulb {
-		fill: var(--color-amber);
-	}
-	.bulb.blink {
-		animation: blink 0.8s ease-in-out infinite;
-	}
-	@keyframes blink {
-		50% {
-			opacity: 0.3;
-		}
-	}
-	.head {
-		fill: var(--color-card);
-		stroke: var(--color-ink);
-		stroke-width: 2;
-	}
-	.eye {
-		fill: var(--color-brand);
-	}
-	.mouth {
-		fill: none;
-		stroke: var(--color-ink);
-		stroke-width: 1.6;
-		stroke-linecap: round;
-	}
-	.dot {
-		fill: var(--color-brand);
-		animation: bob 0.9s ease-in-out infinite;
-	}
-	@keyframes bob {
-		50% {
-			transform: translateY(-3px);
-		}
-	}
-	.memo {
-		fill: var(--color-grass);
-		font-size: 11px;
-		font-weight: 800;
-	}
-	.arm {
-		fill: none;
-		stroke: var(--color-ink);
-		stroke-width: 3;
-		stroke-linecap: round;
-	}
-	.arm.reach {
-		transform-box: view-box;
-		transform-origin: 117px 178px;
-		animation: reach 0.9s ease-out both;
-	}
-	@keyframes reach {
-		from {
-			transform: scaleX(0);
-		}
-		to {
-			transform: none;
-		}
-	}
-	.hand {
-		fill: var(--color-ink);
-	}
-	.packet {
-		fill: var(--color-brand);
-	}
-	.packet.back {
-		fill: var(--color-grass);
-	}
-	.cal {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-		transition: stroke 0.3s;
-	}
-	.cal.busycal {
-		stroke: var(--color-brand);
-	}
-	.sep {
-		stroke: var(--color-line);
-		stroke-width: 1.2;
-	}
-	.calicon {
-		fill: var(--color-danger);
-	}
-	.caltitle {
-		fill: var(--color-ink);
-		font-size: 10px;
-		font-weight: 800;
+	.thead :global(svg) {
+		color: var(--color-brand);
 	}
 	.day {
-		fill: var(--color-muted);
+		font-size: 10.5px;
+		font-weight: 600;
+		color: var(--color-faint);
+	}
+	.slots {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+	}
+	.slots li {
+		display: flex;
+		gap: 6px;
+		border-radius: 7px;
+		padding: 2px 6px;
+		font-size: 10.5px;
+		color: var(--color-faint);
+		background: var(--color-paper);
+		transition: background 0.3s ease;
+	}
+	.slots li span {
+		font-weight: 700;
+		font-variant-numeric: tabular-nums;
+		color: var(--color-muted);
+	}
+	.slots li.read {
+		color: var(--color-muted);
+	}
+	.slots li.taken {
+		background: var(--color-danger-soft);
+		color: var(--color-danger);
+	}
+	.slots li.booked {
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+		font-weight: 700;
+		animation: pop 0.35s ease;
+	}
+	.mail {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		font-size: 11px;
+		color: var(--color-faint);
+	}
+	.mail.sent {
+		color: var(--color-grass);
+		font-weight: 700;
+		animation: pop 0.35s ease;
+	}
+
+	/* log */
+	.logwrap {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		gap: 5px;
+		margin-top: 12px;
+	}
+	.log {
+		display: flex;
+		max-height: 168px;
+		flex-direction: column;
+		gap: 4px;
+		overflow-y: auto;
+		border-radius: 14px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 8px;
+	}
+	.entry {
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+		border-left: 3px solid var(--color-line);
+		border-radius: 3px;
+		padding: 2px 8px;
+		opacity: 0.7;
+		animation: fadein 0.3s ease;
+	}
+	.entry.latest {
+		opacity: 1;
+	}
+	.entry.think {
+		border-left-color: var(--color-faint);
+	}
+	.entry.call {
+		border-left-color: var(--color-brand);
+	}
+	.entry.result {
+		border-left-color: var(--color-amber);
+	}
+	.entry.answer {
+		border-left-color: var(--color-grass);
+	}
+	.kind {
 		font-size: 9.5px;
 		font-weight: 700;
+		color: var(--color-faint);
+		letter-spacing: 0.03em;
 	}
-	.hour {
-		fill: var(--color-faint);
-		font-size: 8.5px;
-		font-weight: 700;
+	.entry code {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 10.5px;
+		color: var(--color-ink);
+		overflow-wrap: anywhere;
 	}
-	.slot {
-		stroke-width: 1.5;
-		transition: stroke 0.3s;
+	.say {
+		font-size: 11.5px;
+		line-height: 1.4;
+		color: var(--color-ink);
 	}
-	.slot.free {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
+	.empty {
+		font-size: 11.5px;
+		color: var(--color-faint);
+		text-align: center;
+		padding: 6px;
 	}
-	.slot.free.pick {
-		stroke: var(--color-grass);
-		fill: var(--color-grass-soft);
+
+	@keyframes fadein {
+		from {
+			opacity: 0;
+			transform: translateY(3px);
+		}
 	}
-	.slot.sync {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-	}
-	.slot.sync.flag {
-		stroke: var(--color-danger);
-		fill: var(--color-danger-soft);
-	}
-	.slot.raka {
-		fill: var(--color-grass);
-		stroke: var(--color-grass);
-	}
-	.slottext {
-		fill: var(--color-ink);
-		font-size: 9px;
-		font-weight: 800;
-	}
-	.slottext.light {
-		fill: var(--color-card);
-	}
-	.freetext {
-		fill: var(--color-faint);
-		font-size: 8.5px;
-		font-weight: 600;
-	}
-	.tag {
-		fill: var(--color-faint);
-		font-size: 8px;
-		font-weight: 800;
-		letter-spacing: 0.06em;
-		text-transform: uppercase;
-	}
-	.tag.agent {
-		fill: var(--color-brand);
-	}
-	.bubble {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-	}
-	.bubble.good {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		stroke-opacity: 0.5;
-	}
-	.bubbletext {
-		fill: var(--color-ink);
-		font-size: 9px;
-		font-weight: 600;
-	}
-	.chip {
-		fill: var(--color-brand-soft);
-		stroke: var(--color-brand);
-		stroke-opacity: 0.4;
-	}
-	.chip.ok {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-	}
-	.code {
-		fill: var(--color-brand);
-		font-family: var(--font-mono, ui-monospace, monospace);
-		font-size: 9px;
-		font-weight: 700;
-	}
-	.code.ok {
-		fill: var(--color-grass);
-	}
-	.dialog {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-	}
-	.lock {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-	}
-	.shackle {
-		fill: none;
-		stroke: var(--color-amber);
-		stroke-width: 1.6;
-	}
-	.dq {
-		fill: var(--color-ink);
-		font-size: 10px;
-		font-weight: 800;
-	}
-	.deny {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-	}
-	.denytext {
-		fill: var(--color-muted);
-		font-size: 10px;
-		font-weight: 700;
-	}
-	.allow {
-		fill: var(--color-brand);
-		transition: fill 0.2s;
-	}
-	.allow.wait {
-		animation: blink 1.6s ease-in-out infinite;
-	}
-	.allow.pressed {
-		fill: var(--color-grass);
-	}
-	.allowtext {
-		fill: var(--color-card);
-		font-size: 10px;
-		font-weight: 800;
-	}
-	@media (max-width: 767px) {
-		.stage {
-			padding-bottom: 7rem;
+	@keyframes pop {
+		from {
+			transform: scale(0.96);
+			opacity: 0.4;
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
-		.part,
-		.node,
-		.nodelabel,
-		.cal,
-		.slot,
-		.allow {
+		.ask,
+		.thought,
+		.entry,
+		.slots li.booked,
+		.mail.sent {
+			animation: none;
+		}
+		.wire,
+		.agent,
+		.tool,
+		.slots li {
 			transition: none;
 		}
-		.rise,
-		.bulb.blink,
-		.dot,
-		.arm.reach,
-		.allow.wait {
-			animation: none;
+	}
+	@media (min-width: 768px) {
+		.log {
+			max-height: 210px;
+		}
+		.goal {
+			font-size: 13.5px;
 		}
 	}
 </style>

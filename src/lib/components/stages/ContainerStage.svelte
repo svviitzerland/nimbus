@@ -280,7 +280,7 @@
 
 	{#if lastBeat && phase !== 'running'}
 		<CallToActionButton onclick={phase === 'built' ? run : build} disabled={phase === 'building'}>
-			{#snippet children()}{phase === 'built' ? tx.runLabel : tx.buildLabel}{/snippet}
+			{phase === 'built' ? tx.runLabel : tx.buildLabel}
 		</CallToActionButton>
 	{/if}
 </div>

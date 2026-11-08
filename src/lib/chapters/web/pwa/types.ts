@@ -1,35 +1,36 @@
 import type { LessonText } from '../../types';
 
-export interface PwaPanel {
-	tag?: string;
-	title: string;
-	/** May hold simple HTML like <b>. */
-	body: string;
-}
-
 export interface PwaText extends LessonText {
-	/** One panel per scene of the guided picture (nine scenes). */
-	panels: PwaPanel[];
-	/** Spoken description of the whole picture. */
-	picture: string;
-	/** Caption over the server. */
-	serverLabel: string;
+	/** The step row at the top. */
+	steps: string[];
+	/** Internet toggle. */
+	internetOn: string;
+	internetOff: string;
+	/** Buttons, in the order they show up. */
+	offBtn: string; // turn the internet off for the plain site
+	onBtn: string; // turn it back on
+	manifestBtn: string;
+	workerBtn: string;
+	installBtn: string;
+	offAgainBtn: string;
+	openAppBtn: string;
 	/** What the phone shows. */
 	noInternet: string;
-	installAsk: string;
-	installBtn: string;
-	appName: string;
-	tagline: string;
+	installBanner: string;
 	fromCache: string;
-	fromServer: string;
-	/** Captions for the cache box and the service worker. */
+	pageTagline: string;
+	appName: string;
+	/** The cache panel under the phone. */
 	cacheLabel: string;
-	workerLabel: string;
-	/** Memory trick tags over the two pieces. */
-	memo: { manifest: string; worker: string };
-	/** The rule of thumb line under the picture. */
-	rule: string;
-	/** The optional internet switch on the last beat. */
-	offBtn: string;
-	onBtn: string;
+	cacheEmpty: string;
+	/** Notes explaining the moment, one per step. */
+	notes: {
+		plain: string;
+		plainOffline: string;
+		addPieces: string;
+		install: string;
+		goOffline: string;
+		openApp: string;
+		done: string;
+	};
 }

@@ -56,7 +56,7 @@ export const en: PipesGrepText = {
 			body: '<b>cat access.log | grep 404 | wc -l</b> prints a single number, how many lines made it through.'
 		},
 		{
-			tag: 'Make it stick',
+			tag: 'Remember it',
 			title: 'The factory belt',
 			body: 'cat fills the belt, grep picks the red stickers, wc counts the boxes. The pipe is the belt.'
 		},

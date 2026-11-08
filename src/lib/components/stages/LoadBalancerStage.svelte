@@ -279,7 +279,7 @@
 
 				<!-- the servers, each holding the visitors currently on it -->
 				<div class="servers">
-					{#each servers as s, i (s.id)}
+					{#each servers as s (s.id)}
 						{@const st = stateOf(s.id, s.alive)}
 						{@const l = loads[s.id] ?? 0}
 						<div class="srv-col">

@@ -3,18 +3,19 @@ import type { LaptopServerText } from '../../types';
 export const id: LaptopServerText = {
 	title: 'Laptopmu juga bisa jadi server',
 	intro: [
-		'Ini rahasia kecil, server itu bukan barang ajaib. Laptop yang kamu pakai sekarang juga bisa jadi server. Jalankan aplikasimu di situ, dan komputer lain bisa membukanya.',
+		'Laptop juga bisa menjadi server. Jalankan aplikasi yang menerima request, lalu perangkat lain di jaringan dapat mengaksesnya jika alamat dan pengaturan aksesnya sesuai.',
 		'Di rumah itu gampang banget. Selama satu WiFi, HP temanmu bisa buka situs yang jalan di laptopmu. Developer kerja begini tiap hari, istilahnya jalan secara <b>local</b>, cuma di jaringan rumah sendiri.',
-		'Masalah muncul kalau situsnya mau dibuka orang seluruh dunia. Alamat <b>IP</b> rumahmu (nomor alamatnya di internet) itu pinjaman dari ISP, penyedia internetmu, dan bisa diganti kapan saja, jadi alamat situsmu ikut berubah. Laptop juga harus nyala 24 jam nonstop, dan jatah unggah internet rumah kecil, langsung keteteran begitu pengunjung ramai.',
-		'Di sini sudah ada laptopmu di rumah, dan HP temanmu nyambung di WiFi yang sama. Mulai dari situ, lalu buka laptopmu untuk internet dan lihat masalahnya datang satu per satu.'
+		'Untuk menerima pengunjung dari internet, kamu perlu mengatur akses jaringan dan menjaga aplikasi tetap aktif. IP rumah dapat berubah, koneksi unggah memiliki kapasitas terbatas, dan laptop yang tidur akan berhenti melayani.',
+		'Di sini sudah ada laptopmu di rumah, dan HP temanmu nyambung di WiFi yang sama. Mulai dari situ, lalu buka laptopmu untuk internet dan lihat masalahnya datang satu per satu.',
+		'[ingat] Laptop bisa melayani request. Menjadi server adalah pekerjaan, bukan bentuk kotaknya.'
 	],
 	reactions: {
 		lan: 'Lihat, jalan. Di WiFi yang sama, laptopmu beneran jadi server buat HP temanmu. Sesimpel itu.',
 		public:
-			'Sekarang orang dari mana mana bisa masuk ke laptopmu. Keren sebentar, sampai masalah masalahnya mulai datang. Datangkan saja satu per satu.',
+			'Laptop sekarang menerima request dari internet pada simulasi ini. Uji perubahan alamat IP, mode tidur, dan batas kecepatan unggah.',
 		ip: 'ISP baru saja mengganti IP rumahmu, dan alamat situsmu ikut berubah. Semua pengunjung yang pegang alamat lama langsung nyasar.',
 		sleep:
-			'Laptop ketutup, situs mati total. Server itu harus nyala terus menerus, dan laptop memang tidak dirancang buat itu.',
+			'Laptop masuk mode tidur dan aplikasi tidak melayani request. Server perlu tetap aktif selama layanannya diharapkan tersedia.',
 		slow: 'Jatah unggah internet rumah itu kecil. Begitu pengunjung ramai, semuanya kebagian lemot.'
 	},
 	laptopLabel: 'Laptopmu',
@@ -31,13 +32,13 @@ export const id: LaptopServerText = {
 	recover: 'Pulihkan',
 	statusLocal: 'Jalan di WiFi rumah',
 	statusOk: 'Situs jalan',
-	statusLost: 'Pengunjung nyasar',
+	statusLost: 'Alamat lama tidak terjangkau',
 	statusDown: 'Situs mati',
 	statusSlow: 'Situs lemot',
 	noteIdle: 'HP temanmu nyambung di WiFi yang sama',
 	noteLan: 'Satu WiFi, langsung kebuka. Berikutnya, buka untuk internet.',
-	notePublic: 'Dunia bisa mampir ke laptopmu, dan masalahnya tinggal menunggu.',
-	noteIp: 'Alamat berubah, pengunjung lama kehilangan jejak',
-	noteSleep: 'Tutup laptop sebentar saja, semua pengunjung terputus',
-	noteSlow: 'Unggahan rumah kecil, antrian numpuk'
+	notePublic: 'Situs kini dapat diakses dari internet. Coba gangguan di bawah.',
+	noteIp: 'IP berubah, alamat lama tidak dapat dipakai',
+	noteSleep: 'Laptop masuk mode sleep, layanan berhenti',
+	noteSlow: 'Kapasitas unggah terbatas, request mengantre'
 };

@@ -6,18 +6,15 @@ import { en } from './en';
 export const wifiSecurity: Lesson = {
 	id: 'wifi-security',
 	mood: 'thinking',
-	moods: [
-		'surprised',
-		'thinking',
-		'worried',
-		'thinking',
-		'idea',
-		'happy',
-		'wink',
-		'thinking',
-		'happy'
-	],
-	reactionMood: { open: 'worried', wpa2: 'thinking', wpa3: 'excited' },
+	moods: ['surprised', 'thinking', 'worried', 'thinking', 'idea', 'happy', 'wink', 'happy'],
+	reactionMood: {
+		open: 'worried',
+		wpa2weak: 'surprised',
+		wpa2: 'happy',
+		wpa3: 'excited',
+		guest: 'happy'
+	},
+	playable: true,
 	stage: WifiSecurityStage,
 	text: { id, en }
 };

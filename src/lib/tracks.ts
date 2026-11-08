@@ -94,13 +94,14 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		]
 	},
 	{
-		id: 'Cara Data Berjalan',
-		en: 'How Data Travels',
+		id: 'Alur Data di Jaringan',
+		en: 'Network Data Flow',
 		keys: [
 			'networking/layers',
 			'network/protocols',
 			'network/mac',
 			'network/subnet',
+			'network/arp',
 			'network/dhcp',
 			'network/nat',
 			'network/ipv6',
@@ -114,9 +115,11 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		keys: [
 			'web/http',
 			'web/browser',
+			'web/devtools',
 			'web/html',
 			'web/css',
 			'web/js',
+			'web/forms',
 			'web/dom',
 			'web/responsive',
 			'web/a11y',
@@ -127,7 +130,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 	{
 		id: 'Framework',
 		en: 'Frameworks',
-		keys: ['web/why-framework', 'web/components', 'web/rendering', 'web/build-tools']
+		keys: ['web/why-framework', 'web/components', 'web/rendering', 'web/build-tools', 'web/testing']
 	},
 	{
 		id: 'Backend dan API',
@@ -162,8 +165,8 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		]
 	},
 	{
-		id: 'Git dan Kerja Bareng',
-		en: 'Git and Teamwork',
+		id: 'Git dan Kolaborasi',
+		en: 'Git and Collaboration',
 		keys: [
 			'compute/version-control',
 			'compute/git-vs-github',
@@ -173,8 +176,8 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		]
 	},
 	{
-		id: 'Online kan Situsmu',
-		en: 'Put Your Site Online',
+		id: 'Deploy Situs',
+		en: 'Site Deployment',
 		keys: [
 			'foundations/laptop-server',
 			'foundations/tunneling',
@@ -193,7 +196,9 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'linux/linux-files',
 			'linux/permissions',
 			'linux/packages',
+			'linux/processes',
 			'linux/services',
+			'linux/pipes-grep',
 			'linux/shell-script'
 		]
 	},
@@ -201,6 +206,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		id: 'Cloud',
 		en: 'Cloud',
 		keys: [
+			'cloud/data-center',
 			'cloud/cloud',
 			'cloud/services',
 			'cloud/region',
@@ -265,6 +271,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		en: 'Security Basics',
 		keys: [
 			'security/cia',
+			'security/risk',
 			'security/threats',
 			'security/hat-colors',
 			'networking/iam',
@@ -290,6 +297,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 		en: 'Attacks and Defense',
 		keys: [
 			'security/sniffing',
+			'security/mitm',
 			'security/phishing',
 			'security/brute-force',
 			'security/web-attacks',
@@ -298,8 +306,29 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'security/hardening',
 			'security/ids',
 			'security/detection',
-			'security/incident',
+			'security/incident'
+		]
+	},
+	{
+		id: 'Rujukan dan Penilaian Keamanan',
+		en: 'Security References and Assessment',
+		keys: [
+			'security/owasp',
+			'security/nist',
+			'security/cve-cwe',
+			'security/cvss',
+			'security/vulnerability-management'
+		]
+	},
+	{
+		id: 'Lab Keamanan Web',
+		en: 'Web Security Lab',
+		keys: [
 			'security/pentest',
+			'security/burp-suite',
+			'security/access-control',
+			'security/csrf',
+			'security/ssrf',
 			'security/ctf'
 		]
 	},
@@ -317,6 +346,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'devops/config-mgmt',
 			'devops/kubernetes',
 			'devops/release',
+			'devops/secrets',
 			'devops/on-call',
 			'compute/cost'
 		]
@@ -332,6 +362,7 @@ const GENERAL: { id: string; en: string; keys: string[] }[] = [
 			'ai/supervised',
 			'ai/overfitting',
 			'ai/evaluation',
+			'ai/data-leakage',
 			'ai/inference'
 		]
 	},
@@ -401,6 +432,7 @@ const topicTracks: TrackDef[] = [
 		},
 		modules: [
 			'internet',
+			'net-essentials',
 			'net-basics',
 			'addressing',
 			'delivery',
@@ -423,8 +455,10 @@ const topicTracks: TrackDef[] = [
 		modules: [
 			'code',
 			'internet',
+			'net-essentials',
 			'web-how',
 			'frontend',
+			'web-debug',
 			'design',
 			'frameworks',
 			'backend',
@@ -468,13 +502,18 @@ const topicTracks: TrackDef[] = [
 			en: 'How attackers think, how data gets locked, and how to keep a system safe.'
 		},
 		modules: [
+			'code',
 			'internet',
 			'net-essentials',
+			'linux',
+			'web-security',
 			'sec-mindset',
 			'identity',
 			'crypto',
 			'attacks',
 			'defense',
+			'sec-frameworks',
+			'vulnerabilities',
 			'sec-practice'
 		]
 	},

@@ -7,7 +7,13 @@ export const scaling: Lesson = {
 	id: 'scaling',
 	mood: 'thinking',
 	moods: ['thinking', 'calm', 'idea', 'happy'],
-	reactionMood: { surge: 'worried', vertical: 'thinking', ceiling: 'worried', downgrade: 'worried', horizontal: 'excited' },
+	reactionMood: {
+		surge: 'worried',
+		vertical: 'thinking',
+		ceiling: 'worried',
+		downgrade: 'worried',
+		horizontal: 'excited'
+	},
 	stage: ScalingStage,
 	text: { id, en }
 };

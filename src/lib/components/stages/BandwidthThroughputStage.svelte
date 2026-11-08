@@ -77,7 +77,7 @@
 	</div>
 
 	<div class="viewers">
-		{#each Array(viewers) as _, i}
+		{#each Array(viewers) as _, i (i)}
 			{@const buf = i >= served}
 			<div class="vplayer" class:buffer={buf}>
 				<div class="thumb">
@@ -196,7 +196,7 @@
 		top: -5px;
 		bottom: -5px;
 		width: 0;
-		border-left: 2px dashed #16212b;
+		border-left: 2px solid #16212b;
 		transition: left 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 		z-index: 2;
 	}

@@ -1,3 +1,4 @@
+import { arp } from './arp';
 import type { Chapter } from '../types';
 import { lanWan } from './lan-wan';
 import { devices } from './devices';
@@ -37,6 +38,7 @@ export const networkChapter: Chapter = {
 		protocols,
 		mac,
 		subnet,
+		arp,
 		dhcp,
 		nat,
 		ipv6,

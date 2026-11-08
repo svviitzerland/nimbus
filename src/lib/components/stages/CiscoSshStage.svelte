@@ -27,7 +27,6 @@
 		beat?: number;
 		oncomplete?: () => void;
 		onstate?: (s: string) => void;
-		onlock?: (v: boolean) => void;
 		onshow?: (v: boolean) => void;
 	} = $props();
 	const tx = $derived(text as CiscoSshText);

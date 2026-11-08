@@ -5,12 +5,16 @@ import { en } from './en';
 
 export const relations: Lesson = {
 	id: 'relations',
-	mood: 'calm',
-	moods: ['calm', 'worried', 'idea', 'thinking', 'happy', 'wink', 'idea', 'wink', 'excited'],
+	mood: 'thinking',
+	moods: ['calm', 'worried', 'idea', 'thinking', 'calm', 'wink', 'happy'],
 	reactionMood: {
-		rename: 'excited',
-		back: 'happy'
+		customer: 'happy',
+		product: 'happy',
+		wrong: 'thinking',
+		follow: 'idea',
+		joined: 'excited'
 	},
+	playable: true,
 	stage: RelationsStage,
 	text: { id, en }
 };

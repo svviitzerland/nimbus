@@ -7,7 +7,8 @@ export const en: CableText = {
 		'Many people think it goes through satellites in the sky. In reality almost all data between continents, around 99%, travels through <b>fiber optic cables on the seabed</b>. The data is sent as pulses of light through glass as thin as a hair.',
 		'The thin lines on this map are real undersea cables that are live right now.',
 		'Each cable comes ashore at a spot called a <b>landing station</b> (those little dots). From there the data enters the land network, then reaches the data center.',
-		'Your users in Argentina are ready to send. Pick them a destination, then ride along as the data dives across.'
+		'Your users in Argentina are ready to send. Pick them a destination, then ride along as the data dives across.',
+		'[ingat] Much intercontinental internet traffic travels through undersea fiber as light.'
 	],
 	reactions: {
 		leaving: 'Your data leaves the phone, through the router and ISP, heading for the coast...',

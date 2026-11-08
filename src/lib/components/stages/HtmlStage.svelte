@@ -1,138 +1,134 @@
 <script lang="ts">
-	// A guided HTML lesson. The page builds itself tag by tag in the editor while the preview
-	// (a sandboxed iframe) grows next to it, following Nim's beats. On the last beat the editor
-	// becomes editable, so the learner may change one line and watch the page follow.
-	import { untrack } from 'svelte';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
-	import type { HtmlText } from '$lib/chapters/web/html/types';
-	import { prefersReducedMotion } from './webguide/seq';
+	import { SvelteSet } from 'svelte/reactivity';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	import { tick, onDestroy, untrack } from 'svelte';
+	import type { LessonText } from '$lib/chapters/types';
+	import type { HtmlText, HtmlMissionId } from '$lib/chapters/web/html/types';
+
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: {
+		text: LessonText;
+		oncomplete?: () => void;
+		onstate?: (s: string) => void;
+	} = $props();
 	const tx = $derived(text as HtmlText);
 
+	// The editor starts with plain text only, so the preview shows it squashed into one line.
+	let code = $state(untrack(() => tx.starter));
+	let lastStarter = untrack(() => tx.starter);
+	// Follow a language switch while the learner has not touched the starter text yet.
 	$effect(() => {
-		untrack(() => {
-			onshow?.(true);
-			oncomplete?.();
-		});
+		const s = tx.starter;
+		if (s === lastStarter) return;
+		if (code === lastStarter) code = s;
+		lastStarter = s;
 	});
 
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const last = $derived(tx.steps.length - 1);
-	const step = $derived(Math.max(0, Math.min(peek ?? beat, last)));
+	let ta = $state<HTMLTextAreaElement | null>(null);
+	let hl = $state<HTMLPreElement | null>(null);
 
-	let reduce = $state(false);
-	$effect(() => {
-		reduce = prefersReducedMotion();
-	});
+	// ---- Chips: insert a snippet at the cursor, or wrap the selected text in the tag ----
+	type ChipId = 'h1' | 'p' | 'button' | 'img' | 'a';
+	const CHIPS: ChipId[] = ['h1', 'p', 'button', 'img', 'a'];
+	const NIM_SRC = 'nim.png';
 
-	// ---- The four lines, and the beat on which each one gets its tag ----
-	// A fresh line was never part of the plain text file, it only appears once its beat comes.
-	type Line = { open: string; inner: string; close: string; at: number; fresh?: boolean };
-	const LINK_BEAT = 7;
-	const FORM_BEAT = 8;
-	const lines = $derived<Line[]>([
-		{ open: '<h1>', inner: tx.lines.heading, close: '</h1>', at: 2 },
-		{ open: '<p>', inner: tx.lines.paragraph, close: '</p>', at: 4 },
-		{ open: '<button>', inner: tx.lines.button, close: '</button>', at: 5 },
-		{ open: `<img src="nim.png" alt="${tx.lines.alt}">`, inner: '', close: '', at: 6, fresh: true },
-		{ open: '<a href="/about">', inner: tx.lines.link, close: '</a>', at: LINK_BEAT, fresh: true },
-		{
-			open: '<form method="post" action="/join">',
-			inner: `<input name="email" placeholder="${tx.lines.email}"><button>${tx.lines.join}</button>`,
-			close: '</form>',
-			at: FORM_BEAT,
-			fresh: true
+	function snippetFor(c: ChipId): { open: string; inner: string; close: string } {
+		const s = tx.snippets;
+		if (c === 'img') return { open: `<img src="${NIM_SRC}" alt="`, inner: s.alt, close: '">' };
+		if (c === 'a') return { open: '<a href="/blog">', inner: s.link, close: '</a>' };
+		const inner = c === 'h1' ? s.heading : c === 'p' ? s.paragraph : s.button;
+		return { open: `<${c}>`, inner, close: `</${c}>` };
+	}
+
+	// Until the learner has put the cursor somewhere, chips add to the end of the page.
+	let touched = false;
+
+	async function insert(c: ChipId) {
+		const el = ta;
+		const start = el && touched ? el.selectionStart : code.length;
+		const end = el && touched ? el.selectionEnd : code.length;
+		const sn = snippetFor(c);
+		const selected = code.slice(start, end);
+		const wrap = c !== 'img' && selected.trim().length > 0 && !selected.includes('\n');
+
+		let before = code.slice(0, start);
+		let after = code.slice(end);
+		let inner = wrap ? selected : sn.inner;
+		if (!wrap) {
+			// Drop a fresh snippet on its own line so the code stays tidy.
+			if (before.length && !before.endsWith('\n')) before += '\n';
+			if (after.length && !after.startsWith('\n')) after = '\n' + after;
 		}
-	]);
-	const fullCode = $derived(lines.map((l) => l.open + l.inner + l.close).join('\n'));
-
-	// How many tag characters have been typed on the current beat.
-	let typed = $state(999);
-	const typingLine = $derived(lines.findIndex((l) => l.at === step));
-	const tagLen = (l: Line) => l.open.length + l.close.length;
-	$effect(() => {
-		const k = typingLine;
-		const still = reduce;
-		return untrack(() => {
-			if (k < 0 || still) {
-				typed = 999;
-				return;
-			}
-			typed = 0;
-			const total = tagLen(lines[k]);
-			const t = setInterval(() => {
-				typed += 1;
-				if (typed >= total) clearInterval(t);
-			}, 75);
-			return () => clearInterval(t);
-		});
-	});
-
-	type View = { open: string; inner: string; close: string; plain: boolean; typing: boolean };
-	/** What each line looks like right now (null when it is not on the page yet). */
-	const view = $derived<(View | null)[]>(
-		lines.map((l, k) => {
-			const fresh = !!l.fresh;
-			if (step < l.at)
-				return fresh ? null : { open: '', inner: l.inner, close: '', plain: true, typing: false };
-			if (step > l.at || typed >= tagLen(l))
-				return { open: l.open, inner: l.inner, close: l.close, plain: false, typing: false };
-			// Typing now, the opening tag first, then the closing tag.
-			const o = Math.min(typed, l.open.length);
-			const c = Math.max(0, typed - l.open.length);
-			return {
-				open: l.open.slice(0, o),
-				inner: fresh && o < l.open.length ? '' : l.inner,
-				close: l.close.slice(0, c),
-				plain: false,
-				typing: k === typingLine
-			};
-		})
-	);
-	// The preview only takes lines whose tags are complete, so half typed tags never flash.
-	const watchCode = $derived(
-		lines
-			.map((l, k) => {
-				const v = view[k];
-				if (!v) return null;
-				if (v.typing) return l.fresh ? null : l.inner;
-				return v.open + v.inner + v.close;
-			})
-			.filter((s): s is string => s !== null)
-			.join('\n')
-	);
-
-	// ---- Optional editing on the last beat ----
-	const editable = $derived(step === last);
-	let code = $state('');
-	let started = false;
-	$effect(() => {
-		if (!editable) return;
-		untrack(() => {
-			if (!started) {
-				code = fullCode;
-				started = true;
-			}
-		});
-	});
-	let saidEdited = false;
-	function onInput() {
-		if (!saidEdited && code !== fullCode) {
-			saidEdited = true;
-			onstate?.('edited');
+		code = before + sn.open + inner + sn.close + after;
+		const selStart = before.length + sn.open.length;
+		const selEnd = selStart + inner.length;
+		await tick();
+		if (el) {
+			touched = true;
+			el.focus();
+			el.setSelectionRange(
+				wrap ? selEnd + sn.close.length : selStart,
+				wrap ? selEnd + sn.close.length : selEnd
+			);
 		}
 	}
+
 	function resetCode() {
-		code = fullCode;
+		code = tx.starter;
+		touched = false;
 	}
 
-	const PAIRED = ['h1', 'h2', 'h3', 'p', 'button', 'a', 'form'];
+	// ---- Mission checks: simple and forgiving, case insensitive, any order ----
+	function stripTags(s: string) {
+		return s.replace(/<[^>]*>/g, '').trim();
+	}
+	function hasPair(src: string, tag: string) {
+		const re = new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)<\\/${tag}\\s*>`, 'gi');
+		for (const m of src.matchAll(re)) if (stripTags(m[1]).length > 0) return true;
+		return false;
+	}
+	const clean = $derived(code.replace(/<!--[\s\S]*?(-->|$)/g, ''));
+	const done = $derived<Record<HtmlMissionId, boolean>>({
+		heading: hasPair(clean, 'h1'),
+		paragraph: hasPair(clean, 'p'),
+		button: hasPair(clean, 'button'),
+		image: /<img\b[^>]*\bsrc\s*=\s*["']?[^"'\s>]+/i.test(clean)
+	});
+	const hasLink = $derived(/<a\b[^>]*\bhref\s*=/i.test(clean) && hasPair(clean, 'a'));
+	const ORDER: HtmlMissionId[] = ['heading', 'paragraph', 'button', 'image'];
+	const current = $derived(ORDER.find((m) => !done[m]));
+	const allDone = $derived(ORDER.every((m) => done[m]));
+
+	const reported = new SvelteSet<string>();
+	let finished = false;
+	$effect(() => {
+		const d = done;
+		const fresh = ORDER.filter((m) => d[m] && !reported.has(m));
+		const linkFresh = hasLink && !reported.has('link');
+		if (!fresh.length && !linkFresh) {
+			if (ORDER.every((m) => d[m]) && !finished) finish();
+			return;
+		}
+		fresh.forEach((m) => reported.add(m));
+		if (linkFresh) reported.add('link');
+		if (ORDER.every((m) => d[m]) && !finished) {
+			finish();
+			return;
+		}
+		if (fresh.length) onstate?.(fresh[fresh.length - 1]);
+		else onstate?.('link');
+	});
+	function finish() {
+		finished = true;
+		onstate?.('done');
+		oncomplete?.();
+	}
+
+	// ---- Common mistake: a tag opened but never closed (checked after a short pause) ----
+	const PAIRED = ['h1', 'h2', 'h3', 'p', 'button', 'a'];
 	function findUnclosed(src: string): string | null {
 		for (const t of PAIRED) {
 			const opens = (src.match(new RegExp(`<${t}(\\s[^>]*)?>`, 'gi')) ?? []).length;
@@ -143,49 +139,48 @@
 	}
 	let unclosed = $state<string | null>(null);
 	let lastHinted: string | null = null;
+	let timer: ReturnType<typeof setTimeout> | undefined;
 	$effect(() => {
-		if (!editable) {
-			unclosed = null;
-			return;
-		}
-		const src = code;
-		return untrack(() => {
+		const src = clean;
+		clearTimeout(timer);
+		// Closing the tag clears the hint right away, a new mistake waits for a pause in typing.
+		untrack(() => {
 			if (unclosed && !findUnclosed(src)) {
 				unclosed = null;
 				lastHinted = null;
 			}
-			const t = setTimeout(() => {
-				const u = findUnclosed(src);
-				unclosed = u;
-				if (u && u !== lastHinted) {
-					lastHinted = u;
-					onstate?.('unclosed');
-				}
-				if (!u) lastHinted = null;
-			}, 1300);
-			return () => clearTimeout(t);
 		});
+		timer = setTimeout(() => {
+			const u = findUnclosed(src);
+			unclosed = u;
+			if (u && u !== lastHinted) {
+				lastHinted = u;
+				onstate?.('unclosed');
+			}
+			if (!u) lastHinted = null;
+		}, 1300);
 	});
+	onDestroy(() => clearTimeout(timer));
 	const hintText = $derived(
 		unclosed
 			? tx.unclosedHint.replace('{open}', `<${unclosed}>`).replace('{close}', `</${unclosed}>`)
 			: ''
 	);
 
-	// ---- Highlighting, tokens rendered as plain text spans, never as raw HTML ----
+	// ---- Highlighting: tokens rendered as plain text spans, never as raw HTML ----
 	type Tok = { k: 'txt' | 'pun' | 'tag' | 'att' | 'str'; v: string };
 	function tokenize(src: string): Tok[] {
 		const out: Tok[] = [];
-		const tagRe = /<\/?[a-zA-Z][a-zA-Z0-9]*[^<>]*>?|<\/?/g;
-		let lastI = 0;
+		const tagRe = /<\/?[a-zA-Z][a-zA-Z0-9]*[^<>]*>?/g;
+		let last = 0;
 		for (const m of src.matchAll(tagRe)) {
 			const i = m.index ?? 0;
-			if (i > lastI) out.push({ k: 'txt', v: src.slice(lastI, i) });
+			if (i > last) out.push({ k: 'txt', v: src.slice(last, i) });
 			const raw = m[0];
-			const head = /^(<\/?)([a-zA-Z][a-zA-Z0-9]*)?/.exec(raw);
+			const head = /^(<\/?)([a-zA-Z][a-zA-Z0-9]*)/.exec(raw);
 			if (head) {
 				out.push({ k: 'pun', v: head[1] });
-				if (head[2]) out.push({ k: 'tag', v: head[2] });
+				out.push({ k: 'tag', v: head[2] });
 				const rest = raw.slice(head[0].length);
 				const partRe = /(\s+)|("[^"]*"?|'[^']*'?)|(\/?>)|(=)|([^\s"'=>]+)/g;
 				for (const p of rest.matchAll(partRe)) {
@@ -195,15 +190,14 @@
 					else out.push({ k: 'att', v: p[0] });
 				}
 			} else out.push({ k: 'txt', v: raw });
-			lastI = i + raw.length;
+			last = i + raw.length;
 		}
-		if (lastI < src.length) out.push({ k: 'txt', v: src.slice(lastI) });
+		if (last < src.length) out.push({ k: 'txt', v: src.slice(last) });
+		// A trailing space keeps the last empty line tall enough to match the textarea.
+		out.push({ k: 'txt', v: ' ' });
 		return out;
 	}
-	const editTokens = $derived([...tokenize(code), { k: 'txt' as const, v: ' ' }]);
-
-	let ta = $state<HTMLTextAreaElement | null>(null);
-	let hl = $state<HTMLPreElement | null>(null);
+	const tokens = $derived(tokenize(code));
 	function syncScroll() {
 		if (hl && ta) {
 			hl.scrollTop = ta.scrollTop;
@@ -211,24 +205,21 @@
 		}
 	}
 
-	// ---- Preview, a sandboxed iframe (no scripts, no outside requests) ----
+	// ---- Preview: a sandboxed iframe (no scripts, no outside requests) ----
 	const NIM_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80"><path d="M30 70a22 22 0 0 1-3-43.8A28 28 0 0 1 81 20a20 20 0 0 1 11 50z" fill="#2e6fe0"/><circle cx="50" cy="44" r="5" fill="#fff"/><circle cx="72" cy="44" r="5" fill="#fff"/><circle cx="51" cy="45" r="2.4" fill="#16212b"/><circle cx="73" cy="45" r="2.4" fill="#16212b"/><path d="M53 56q8 6 16 0" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>`;
 	const NIM_DATA = `data:image/svg+xml,${encodeURIComponent(NIM_SVG)}`;
 	const BASE_CSS = [
 		'html{background:#fff;color:#16212b}',
 		'body{margin:12px;font:14px/1.45 system-ui,sans-serif;overflow-wrap:anywhere}',
-		'h1{font-size:1.4em;margin:.1em 0 .3em}',
+		'h1{font-size:1.6em;margin:.2em 0 .4em}',
 		'p{margin:.4em 0 .8em}',
-		'img{max-width:100%;height:auto;max-height:56px;display:block;margin:.4em 0}',
-		'form{display:flex;flex-wrap:wrap;gap:6px;margin:.5em 0}',
-		'input{font:inherit;padding:3px 8px;border:1px solid #c9cfd8;border-radius:6px;width:10em}',
+		'img{max-width:100%;height:auto;max-height:90px;display:block;margin:.4em 0}',
 		'a{color:#2e6fe0;pointer-events:none}',
 		'button{font:inherit;padding:4px 12px;margin:.2em 0}'
 	].join('');
-	const previewCode = $derived(editable ? code : watchCode);
 	const srcdoc = $derived.by(() => {
-		const body = previewCode
-			.replace(/<\/?(meta|base|link|script|iframe|object|embed|style)\b[^>]*>/gi, '')
+		const body = code
+			.replace(/<\/?(meta|base|link|script|iframe|object|embed)\b[^>]*>/gi, '')
 			.replace(/(<img\b[^>]*\bsrc\s*=\s*)(["']?)nim\.png\2/gi, `$1"${NIM_DATA}"`);
 		return (
 			'<!doctype html><html><head><meta charset="utf-8">' +
@@ -238,133 +229,253 @@
 	});
 </script>
 
-{#snippet seg(s: string, cls: string)}{#each tokenize(s) as t, n (n)}<span class="{t.k} {cls}"
-			>{t.v}</span
-		>{/each}{/snippet}
+<div class="wrap">
+	<div class="missions" aria-label={tx.missionsLabel}>
+		<p class="cap">{tx.missionsLabel}</p>
+		<ul>
+			{#each ORDER as m (m)}
+				<li class:ok={done[m]} class:cur={current === m}>
+					<span class="dot" aria-hidden="true">
+						{#if done[m]}
+							<svg viewBox="0 0 16 16"
+								><path
+									d="M3.5 8.5l3 3 6-6.5"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.2"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								/></svg
+							>
+						{/if}
+					</span>
+					<span>{tx.missions[m]}</span>
+				</li>
+			{/each}
+		</ul>
+	</div>
 
-{#snippet visual(i: number)}
-	<div class="vis">
-		<div class="pane editor" class:live={i === last}>
+	<div class="chips" role="group" aria-label={tx.chipsLabel}>
+		{#each CHIPS as c (c)}
+			<button
+				type="button"
+				class="chip"
+				class:want={(current === 'heading' && c === 'h1') ||
+					(current === 'paragraph' && c === 'p') ||
+					(current === 'button' && c === 'button') ||
+					(current === 'image' && c === 'img')}
+				onmousedown={(e) => e.preventDefault()}
+				onclick={() => insert(c)}>&lt;{c}&gt;</button
+			>
+		{/each}
+	</div>
+
+	<div class="work">
+		<div class="pane editor">
 			<div class="bar">
-				<span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+				<span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
 				<span class="fname">{tx.editorLabel}</span>
-				{#if i === last}
-					<span class="hintchip">{tx.editHint}</span>
-					<button type="button" class="reset" onclick={resetCode}>{tx.reset}</button>
-				{/if}
+				<button type="button" class="reset" onclick={resetCode}>{tx.reset}</button>
 			</div>
-			{#if i === last}
-				<div class="code edit">
-					<pre class="hl" bind:this={hl} aria-hidden="true">{#each editTokens as t, n (n)}<span
-								class={t.k}>{t.v}</span
-							>{/each}</pre>
-					<textarea
-						bind:this={ta}
-						bind:value={code}
-						oninput={onInput}
-						onscroll={syncScroll}
-						spellcheck="false"
-						autocapitalize="off"
-						autocomplete="off"
-						aria-label={tx.editorLabel}
-					></textarea>
-				</div>
-				{#if hintText}
-					<p class="hint" role="status">{hintText}</p>
-				{/if}
-			{:else}
-				<pre class="code watch" aria-label={tx.editorLabel}>{#each view as v, k (k)}{#if v}<span
-								class="ln"
-								class:cur={v.typing}
-								class:plain={v.plain}
-								>{@render seg(v.open, '')}{@render seg(v.inner, '')}{@render seg(
-									v.close,
-									i === 3 && k === 0 ? 'pulse' : ''
-								)}{#if v.typing}<span class="caret"></span>{/if}</span
-							>{'\n'}{/if}{/each}</pre>
+			<div class="code">
+				<pre class="hl" bind:this={hl} aria-hidden="true">{#each tokens as t, i (i)}<span
+							class={t.k}>{t.v}</span
+						>{/each}</pre>
+				<textarea
+					bind:this={ta}
+					bind:value={code}
+					onscroll={syncScroll}
+					onfocus={() => (touched = true)}
+					spellcheck="false"
+					autocapitalize="off"
+					autocomplete="off"
+					aria-label={tx.editorLabel}
+				></textarea>
+			</div>
+			{#if hintText}
+				<p class="hint" role="status">{hintText}</p>
 			{/if}
 		</div>
 
-		<div class="pane browser" class:ring={i === 1}>
+		<div class="pane browser">
 			<div class="addr">
-				<span class="led" class:on={i >= 6}></span>
+				<span class="led" class:on={allDone}></span>
 				<span class="url">{tx.previewLabel}</span>
 			</div>
 			<iframe title={tx.previewLabel} sandbox="" {srcdoc}></iframe>
-			{#if i === LINK_BEAT || i === FORM_BEAT}
-				{#key i}
-					<div class="trip" class:still={reduce}>
-						<span class="road"></span>
-						<span class="env" class:post={i === FORM_BEAT}
-							>{i === FORM_BEAT ? 'POST /join' : 'GET /about'}</span
-						>
-						<span class="srv">{tx.serverLabel}</span>
-					</div>
-				{/key}
-			{/if}
 		</div>
 	</div>
-{/snippet}
 
-<div class="stage">
-	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
+	{#if allDone}
+		<p class="win" role="status">{tx.allDone}</p>
+	{/if}
 </div>
 
 <style>
-	.stage {
+	.wrap {
 		display: flex;
-		width: 100%;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+		width: min(94vw, 720px);
+		max-width: 100%;
 		max-height: 100%;
-		justify-content: center;
-		overflow-x: hidden;
 		overflow-y: auto;
-		padding-bottom: 8px;
+		overflow-x: hidden;
+		padding-bottom: 6px;
 	}
-	@media (max-width: 767px) {
-		.stage {
-			padding-bottom: 7rem;
+
+	/* ---- Missions ---- */
+	.missions {
+		width: 100%;
+		max-width: 520px;
+	}
+	.cap {
+		margin: 0 0 6px;
+		text-align: center;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--color-faint);
+	}
+	.missions ul {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 6px;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+	.missions li {
+		display: flex;
+		align-items: center;
+		gap: 7px;
+		min-width: 0;
+		padding: 6px 9px;
+		border-radius: 10px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-muted);
+		font-size: 12px;
+		line-height: 1.3;
+		transition:
+			border-color 0.25s ease,
+			background 0.25s ease,
+			color 0.25s ease;
+	}
+	.missions li.cur {
+		border-color: var(--color-brand);
+		color: var(--color-ink);
+	}
+	.missions li.ok {
+		border-color: transparent;
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+	}
+	.dot {
+		flex: none;
+		display: grid;
+		place-items: center;
+		width: 16px;
+		height: 16px;
+		border-radius: 50%;
+		border: 1.5px solid var(--color-line);
+	}
+	.cur .dot {
+		border-color: var(--color-brand);
+	}
+	.ok .dot {
+		border-color: var(--color-grass);
+		background: var(--color-grass);
+		color: #fff;
+	}
+	.dot svg {
+		width: 11px;
+		height: 11px;
+	}
+
+	/* ---- Tag chips ---- */
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 6px;
+	}
+	.chip {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 13px;
+		font-weight: 600;
+		padding: 6px 11px;
+		border-radius: 999px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-brand);
+		transition:
+			transform 0.15s ease,
+			border-color 0.2s ease,
+			background 0.2s ease;
+	}
+	.chip:hover {
+		border-color: var(--color-brand);
+	}
+	.chip:active {
+		transform: scale(0.95);
+	}
+	.chip.want {
+		border-color: var(--color-brand);
+		background: var(--color-brand-soft);
+		animation: nudge 1.8s ease-in-out infinite;
+	}
+	@keyframes nudge {
+		0%,
+		100% {
+			box-shadow: 0 0 0 0 rgba(46, 111, 224, 0);
+		}
+		50% {
+			box-shadow: 0 0 0 4px rgba(46, 111, 224, 0.18);
 		}
 	}
-	.vis {
-		display: flex;
-		width: 100%;
-		max-width: 460px;
-		flex-direction: column;
+
+	/* ---- Editor and preview: stacked on phones, side by side when there is room ---- */
+	.work {
+		display: grid;
+		grid-template-columns: 1fr;
 		gap: 10px;
+		width: 100%;
+		max-width: 420px;
+	}
+	@media (min-width: 768px) {
+		.work {
+			grid-template-columns: 1fr 1fr;
+			max-width: 720px;
+		}
 	}
 	.pane {
-		display: flex;
 		min-width: 0;
+		display: flex;
 		flex-direction: column;
-		overflow: hidden;
-		border: 1px solid var(--color-line);
 		border-radius: 14px;
+		border: 1px solid var(--color-line);
 		background: var(--color-card);
+		overflow: hidden;
 		box-shadow: 0 8px 22px rgba(22, 40, 60, 0.07);
-		transition:
-			border-color 0.3s,
-			box-shadow 0.3s;
-	}
-	.pane.ring,
-	.editor.live {
-		border-color: var(--color-brand);
-		box-shadow: 0 0 0 3px var(--color-brand-soft);
 	}
 	.bar,
 	.addr {
 		display: flex;
 		align-items: center;
 		gap: 8px;
-		border-bottom: 1px solid var(--color-line);
 		padding: 7px 10px;
+		border-bottom: 1px solid var(--color-line);
 		font-size: 11.5px;
 		color: var(--color-muted);
 	}
-	.lights {
+	.dots {
 		display: inline-flex;
 		gap: 4px;
 	}
-	.lights i {
+	.dots i {
 		width: 7px;
 		height: 7px;
 		border-radius: 50%;
@@ -375,89 +486,39 @@
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 		font-weight: 600;
 	}
-	.hintchip {
-		border-radius: 999px;
-		background: var(--color-brand-soft);
-		padding: 2px 8px;
-		font-size: 10.5px;
-		font-weight: 700;
-		color: var(--color-brand);
-	}
 	.reset {
-		border-radius: 6px;
-		padding: 2px 6px;
 		font-size: 11px;
 		font-weight: 600;
 		color: var(--color-faint);
+		padding: 2px 6px;
+		border-radius: 6px;
 	}
 	.reset:hover {
-		background: var(--color-paper);
 		color: var(--color-ink);
+		background: var(--color-paper);
 	}
 
 	.code {
-		margin: 0;
-		background: var(--color-paper);
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 13px;
-		line-height: 1.6;
-		tab-size: 2;
-	}
-	.watch {
-		min-height: 118px;
-		padding: 10px 12px;
-		white-space: pre-wrap;
-		overflow-wrap: anywhere;
-		color: var(--color-ink);
-	}
-	.ln {
-		border-radius: 4px;
-		transition: background 0.3s;
-	}
-	.ln.cur {
-		background: var(--color-brand-soft);
-	}
-	.ln.plain .txt {
-		color: var(--color-muted);
-	}
-	.caret {
-		display: inline-block;
-		width: 1.5px;
-		height: 1em;
-		margin-left: 1px;
-		vertical-align: -2px;
-		background: var(--color-brand);
-		animation: caret 0.8s steps(2) infinite;
-	}
-	@keyframes caret {
-		50% {
-			opacity: 0;
-		}
-	}
-	.pulse {
-		border-radius: 3px;
-		background: var(--color-amber-soft);
-		animation: pulse 1.6s ease-in-out infinite;
-	}
-	@keyframes pulse {
-		50% {
-			background: transparent;
-		}
-	}
-
-	.edit {
 		position: relative;
-		height: 140px;
+		height: 150px;
+		background: var(--color-paper);
+	}
+	@media (min-width: 768px) {
+		.code {
+			height: 210px;
+		}
 	}
 	.hl,
 	textarea {
 		position: absolute;
 		inset: 0;
 		margin: 0;
-		border: 0;
 		padding: 10px 12px;
-		font: inherit;
-		line-height: inherit;
+		border: 0;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 13px;
+		line-height: 1.55;
+		tab-size: 2;
 		white-space: pre-wrap;
 		overflow-wrap: anywhere;
 		word-break: normal;
@@ -473,34 +534,35 @@
 	}
 	textarea {
 		resize: none;
-		outline: none;
 		background: transparent;
 		color: transparent;
 		caret-color: var(--color-ink);
+		outline: none;
 	}
 	textarea::selection {
 		background: rgba(46, 111, 224, 0.25);
 	}
-	.pun {
+	.hl .pun {
 		color: var(--color-faint);
 	}
-	.tag {
-		font-weight: 600;
+	.hl .tag {
 		color: var(--color-brand);
+		font-weight: 600;
 	}
-	.att {
+	.hl .att {
 		color: var(--color-amber);
 	}
-	.str {
+	.hl .str {
 		color: var(--color-grass);
 	}
+
 	.hint {
 		margin: 0;
+		padding: 7px 11px;
 		border-top: 1px solid var(--color-line);
 		background: var(--color-amber-soft);
-		padding: 7px 11px;
-		font-size: 12px;
 		color: var(--color-ink);
+		font-size: 12px;
 	}
 
 	.led {
@@ -516,94 +578,44 @@
 	}
 	.url {
 		flex: 1;
+		padding: 3px 10px;
 		border-radius: 999px;
 		background: var(--color-paper);
-		padding: 3px 10px;
-		font-weight: 600;
 		color: var(--color-ink);
+		font-weight: 600;
 	}
 	iframe {
 		display: block;
 		width: 100%;
-		height: 262px;
+		height: 170px;
 		border: 0;
 		background: #fff;
 	}
+	@media (min-width: 768px) {
+		iframe {
+			flex: 1;
+			height: auto;
+			min-height: 210px;
+		}
+	}
 
-	/* the little trip a link or a form starts, a request on its way to the server */
-	.trip {
-		position: relative;
-		display: flex;
-		align-items: center;
-		justify-content: flex-end;
-		height: 34px;
-		border-top: 1px solid var(--color-line);
-		padding: 0 10px;
-	}
-	.road {
-		position: absolute;
-		left: 12px;
-		right: 120px;
-		top: 50%;
-		height: 2px;
-		border-radius: 2px;
-		background: var(--color-line);
-	}
-	.env {
-		position: absolute;
-		top: 50%;
-		left: 10px;
-		transform: translateY(-50%);
-		border: 1.5px solid var(--color-brand);
-		border-radius: 6px;
-		background: var(--color-card);
-		padding: 1px 7px;
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 11px;
-		font-weight: 700;
-		color: var(--color-brand);
-		animation: ride 2.6s cubic-bezier(0.45, 0, 0.3, 1) infinite;
-	}
-	.env.post {
-		border-color: var(--color-grass);
+	.win {
+		margin: 0;
+		padding: 6px 14px;
+		border-radius: 999px;
+		background: var(--color-grass-soft);
 		color: var(--color-grass);
-	}
-	@keyframes ride {
-		0%,
-		12% {
-			left: 10px;
-			opacity: 0;
-		}
-		22% {
-			opacity: 1;
-		}
-		70% {
-			opacity: 1;
-		}
-		82%,
-		100% {
-			left: calc(100% - 210px);
-			opacity: 0;
-		}
-	}
-	.trip.still .env {
-		animation: none;
-		left: calc(50% - 90px);
-	}
-	.srv {
-		position: relative;
-		font-size: 11px;
+		font-size: 12.5px;
 		font-weight: 700;
-		color: var(--color-muted);
 	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.pane,
-		.ln,
+		.chip,
+		.missions li,
 		.led {
 			transition: none;
 		}
-		.caret,
-		.pulse {
+		.chip.want {
 			animation: none;
 		}
 	}

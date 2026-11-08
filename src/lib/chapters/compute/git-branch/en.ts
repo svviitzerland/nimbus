@@ -57,7 +57,7 @@ export const en: GitBranchText = {
 			body: 'The markers go, one title stays, then a commit. Main is clean again and the site follows.'
 		},
 		{
-			tag: 'Make it stick',
+			tag: 'Remember it',
 			title: 'The recipe photocopy',
 			body: 'A branch is the photocopy, a merge copies the scribbles back, a conflict is two scribbles on the same word.'
 		},

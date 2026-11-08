@@ -82,7 +82,7 @@
 						rx="3.5"
 						stroke="#5e6b76"
 						stroke-width="2"
-						stroke-dasharray="3.5 3"
+						stroke-dasharray="none"
 					/>
 				</svg>
 				<b>{tx.vpcLabel}</b>
@@ -211,7 +211,7 @@
 		top: 3px;
 		bottom: 0;
 		left: 50%;
-		border-left: 2px dashed #dcd6cb;
+		border-left: 2px solid #dcd6cb;
 		transform: translateX(-50%);
 	}
 	.trav {
@@ -270,7 +270,7 @@
 	.vpc {
 		width: 100%;
 		border-radius: 20px;
-		border: 1.5px dashed #b9c6d6;
+		border: 1.5px solid #b9c6d6;
 		background: #fff;
 		padding: 12px 14px 16px;
 		box-shadow: 0 12px 30px rgba(22, 40, 60, 0.07);

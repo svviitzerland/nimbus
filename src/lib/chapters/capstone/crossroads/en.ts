@@ -1,11 +1,12 @@
 import type { CrossroadsText } from '../types';
 
 export const en: CrossroadsText = {
-	title: 'Crossroads',
+	title: 'Choose a learning track',
 	intro: [
 		'You made it to the end of the From Zero track. Computers, the web, networks, the cloud, security, all the way to AI, you have had a taste of every one.',
 		'Now that you know the big map, pick the one you want to go deeper in. Every branch has more advanced lessons, and whatever you already finished stays ticked there.',
-		'Tap a branch to see what is inside, then step in when you are sure. No need to worry about picking wrong, you can switch branches any time from the menu.'
+		'Tap a branch to see what is inside, then step in when you are sure. No need to worry about picking wrong, you can switch branches any time from the menu.',
+		'[ingat] The foundations connect. Choose a track by the work you want to try next.'
 	],
 	reactions: {
 		network:

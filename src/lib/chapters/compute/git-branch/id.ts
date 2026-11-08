@@ -23,7 +23,7 @@ export const id: GitBranchText = {
 		},
 		{
 			tag: 'Branch',
-			title: 'Jalur salinan',
+			title: 'Branch baru',
 			body: 'Sebuah <b>branch</b> bercabang dari main. Perubahan di sana tidak menyentuh main sama sekali.'
 		},
 		{
@@ -57,8 +57,8 @@ export const id: GitBranchText = {
 			body: 'Tanda dihapus, satu judul disimpan, lalu commit. Main kembali bersih dan situsnya ikut berubah.'
 		},
 		{
-			tag: 'Biar nempel',
-			title: 'Fotokopi resep',
+			tag: 'Cara ingat',
+			title: 'Branch menyimpan perubahan terpisah',
 			body: 'Branch itu fotokopi, merge itu menyalin coretan ke aslinya, conflict itu dua coretan di kata yang sama.'
 		},
 		{

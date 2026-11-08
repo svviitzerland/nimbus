@@ -7,7 +7,8 @@ export const en: TunnelingText = {
 		'The idea goes like this. Your laptop connects out first, to a go between server owned by a third party (called a <b>relay</b>), most often one from <b>ngrok</b>. That outgoing connection becomes a private tunnel between your laptop and their server.',
 		'The third party then lends you a public address. Anyone who opens it gets forwarded through that tunnel all the way to your laptop. A changing home IP no longer matters, because your laptop is the one dialing out, so nobody has to find a way in.',
 		'It is perfect for demoing to a client or testing from your phone without uploading anything anywhere. But it stays a borrowed door. The address is random and changes every start, all traffic flows through someone else’s server, and the moment the laptop closes, it dies too.',
-		'Your laptop is on with the app running locally. Start the tunnel, have your friend drop by, then close the laptop and watch what happens.'
+		'Your laptop is on with the app running locally. Start the tunnel, have your friend drop by, then close the laptop and watch what happens.',
+		'[ingat] A tunnel provides a path to a local service. That service still runs on your computer.'
 	],
 	reactions: {
 		tunnel:
@@ -31,6 +32,6 @@ export const en: TunnelingText = {
 	tunnelOn: 'Tunnel up',
 	noteIdle: 'Your laptop cannot be reached from outside yet',
 	noteOn: 'The relay lends you a public address',
-	noteVisit: 'In through the relay, down the tunnel, all the way to your laptop',
-	noteClosed: 'The tunnel collapsed, and the borrowed address died with it'
+	noteVisit: 'The request passes through the relay to the laptop app',
+	noteClosed: 'The laptop is off; the app cannot be reached through the tunnel'
 };

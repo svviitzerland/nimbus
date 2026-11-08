@@ -6,21 +6,22 @@ import { en } from './en';
 export const phishing: Lesson = {
 	id: 'phishing',
 	mood: 'thinking',
-	moods: [
-		'calm',
-		'worried',
-		'thinking',
-		'idea',
-		'surprised',
-		'thinking',
-		'wink',
-		'calm',
-		'excited'
-	],
+	moods: ['calm', 'worried', 'thinking', 'idea', 'wink', 'excited'],
 	reactionMood: {
-		fake: 'worried',
-		real: 'happy'
+		peek: 'idea',
+		invoiceRight: 'happy',
+		invoiceWrong: 'wink',
+		lookalikeRight: 'excited',
+		lookalikeWrong: 'surprised',
+		resetRight: 'excited',
+		resetWrong: 'worried',
+		bossRight: 'happy',
+		bossWrong: 'worried',
+		signinRight: 'idea',
+		signinWrong: 'thinking',
+		done: 'excited'
 	},
+	playable: true,
 	stage: PhishingStage,
 	text: { id, en }
 };

@@ -3,66 +3,38 @@ import type { WiresharkText } from './types';
 export const en: WiresharkText = {
 	title: 'What is Wireshark',
 	intro: [
-		'Every time you open a page, dozens of tiny packets fly in and out of your laptop. You never see them, the browser hides all of that and just shows you the page.',
-		'<b>Wireshark</b> is a free app that lets you see them. It listens on your network card and writes down every packet that passes. That recording is called a <b>capture</b>. Watch the list fill up as nimbus.com loads.',
-		'Pick one packet and Wireshark unwraps it, like a parcel inside a parcel. Outside is the WiFi frame (laptop to router), inside that the IP packet (which address), then the port (which door), and in the middle the real content. These wrappings are the [[layers|networking/layers]].',
-		'Now look at the last packets, the page itself. The outer wrappings are still readable, but the content is locked. That is [[HTTPS|security/tls]] doing its job, even against a tool like this one.',
-		'[ingat] Wireshark is a traffic camera on the road. Every car gets recorded and every number plate is readable, but a locked trunk stays locked.',
-		'[fyi] You already have a tiny version of this. Open the Developer Tools in your browser and look at the Network tab, it lists every request a page makes. Wireshark goes deeper, down to every single packet.',
-		'If you are curious, tap any row in the capture to unwrap it.'
+		'Every time you open a page, dozens of packets fly in and out of your laptop. You never see them, the browser hides all of that and just shows you the page.',
+		'<b>Wireshark</b> is a free app that lets you see them. It listens on your network card and records every packet that passes, this is called a <b>capture</b>. Network engineers use it when they need to see what really happened, not what they think happened.',
+		'Remember the [[layers and packets|networking/layers]]? Each packet is a parcel wrapped in layers. Wireshark unwraps it for you, one layer per line, from the signal at the bottom to the message at the top.',
+		'[fyi] You have a tiny version of this already. Open the Developer Tools in your browser and look at the Network tab, it lists every request a page makes. Wireshark goes deeper, down to every single packet.',
+		'[ingat] Wireshark captures packets visible to an interface. Encryption limits what can be read without the appropriate keys.',
+		'Let us capture you opening nimbus.com. Start the capture, then tap the packets to open them up. Try a DNS one, a TCP one, and the encrypted data at the end.'
 	],
 	reactions: {
-		dns: 'A DNS packet. Your laptop asks where nimbus.com lives. It travels unlocked, so anyone on your network could see which site you are about to visit.',
-		tcp: 'Part of the TCP handshake. Your laptop and the server say hello three times (SYN, SYN ACK, ACK) before any real data moves.',
+		capture:
+			'Nine packets just to open one page, and this is the short version. Colours group them by kind. Tap any row to unwrap it layer by layer.',
+		dns: 'This one asks the router for the address of nimbus.com. It rides on UDP to door 53, with no lock at all, so anyone on your network could see which site you are about to visit.',
+		tcp: 'This is the TCP handshake, SYN, then SYN ACK, then ACK. Your laptop and the server say hello three times before any real data moves. Look at layer 4, door 443 is the secure web door.',
 		hello:
-			'The TLS hello. Here the two sides agree on a secret key. The name nimbus.com is still visible, everything after this gets locked.',
-		data: 'Application data, locked. Wireshark sees who sent it, where to and through which door, but the page itself is just noise.'
+			'The TLS hello. Your laptop and nimbus.com agree on a secret key here. The name nimbus.com is still visible, but from the next packet on, everything gets locked.',
+		data: 'Encrypted. Wireshark can still read the outer layers, who sent it, where to, which door, but the page itself is noise. That is [[HTTPS|security/tls]] protecting you, even from tools like this one.'
 	},
-	steps: [
-		{
-			title: 'Invisible traffic',
-			body: 'Loading one page takes many small packets going back and forth. The browser only shows you the result.'
-		},
-		{
-			tag: 'Capture',
-			title: 'Writing down every packet',
-			body: 'Wireshark lists each packet with a number, a protocol and a short summary. Colours group them by kind.'
-		},
-		{
-			title: 'A parcel in a parcel',
-			body: 'Each packet is wrapped in layers. Outside goes <b>who to who</b> on your WiFi, then the <b>IP address</b>, then the <b>port</b>, and the content sits in the middle.'
-		},
-		{
-			title: 'Locked content',
-			body: 'With HTTPS the middle is encrypted. Wireshark still sees the outside (who talked to whom, and how much), but not the page.'
-		},
-		{
-			tag: 'Make it stick',
-			title: 'Plates yes, trunk no',
-			body: 'Addresses on the outside are always readable. Content inside HTTPS is not.'
-		}
-	],
+	captureBtn: 'Start capture',
+	againBtn: 'Capture again',
 	capturing: 'Capturing on WiFi',
+	captured: '{n} packets captured',
+	filterLabel: 'Show',
+	filterAll: 'All',
 	colNo: 'No.',
 	colProto: 'Protocol',
 	colInfo: 'Info',
-	layerNames: { frame: 'WiFi frame', ip: 'IP packet', port: 'Port', content: 'Content' },
-	lockedLabel: 'locked',
-	packetTitle: 'Packet {n}',
-	contents: [
-		'Where is nimbus.com?',
-		'nimbus.com is at 76.76.21.21',
-		'SYN, can we talk?',
-		'SYN ACK, sure',
-		'ACK, great',
-		'Hello, I want nimbus.com',
-		'Here is my certificate',
-		'',
-		''
-	],
+	idleHint: 'Nothing captured yet',
+	pickHint: 'Tap a packet to unwrap its layers',
+	layerLabel: 'Layer {n}',
+	layerNames: { 1: 'Physical', 2: 'Data Link', 3: 'Network', 4: 'Transport', 7: 'Application' },
 	packetNotes: [
-		'Your laptop asks the router where nimbus.com lives.',
-		'The answer comes back, nimbus.com lives at 76.76.21.21.',
+		'The laptop requests the IP address for nimbus.com through DNS.',
+		'The DNS response in this example contains 76.76.21.21.',
 		'Handshake, step one. Your laptop knocks on door 443 of the server.',
 		'Handshake, step two. The server knocks back.',
 		'Handshake, step three. The connection is open.',

@@ -3,108 +3,51 @@ import type { MfaText } from './types';
 export const id: MfaText = {
 	title: 'Apa itu MFA',
 	intro: [
-		'Bayangkan ada orang yang sudah tahu password nimbus.com kamu. Mungkin [[bocor dari toko yang ceroboh|security/hashing]], mungkin kamu nggak sengaja mengetiknya di halaman palsu. Udah tamat?',
-		'Kalau pintunya cuma dikunci password, sayangnya iya. Lihat. Dia mengetiknya, situsnya mengecek, dan sejauh yang nimbus.com tahu, dia itu kamu.',
-		'Kecuali ada kunci kedua. <b>MFA</b> (multi factor authentication) minta bukti kedua yang jenisnya beda. Sesuatu yang kamu <b>tahu</b> (password), sesuatu yang kamu <b>pegang</b> (HP atau kunci kecil), atau sesuatu yang ada <b>di dirimu</b> (sidik jari atau wajah).',
-		'Sebenarnya kamu udah sering pakai. Di ATM, kartunya itu yang kamu pegang dan PIN itu yang kamu tahu. Maling yang cuma punya salah satunya pulang tanpa uang. Itu MFA dari jauh sebelum ada internet.',
-		'Di internet, bukti keduanya biasanya kode enam digit dari <b>aplikasi authenticator</b> di HP kamu. Kodenya ganti tiap 30 detik, jadi kode lama nggak ada gunanya.',
-		'Sekarang penyerangnya coba lagi dengan MFA nyala. Passwordnya benar, tapi situsnya minta kode juga. Kodenya ada di HP kamu, dan HP kamu ada di kantongmu. Nebak enam digit itu peluangnya satu banding sejuta, jadi dia mentok.',
-		'[ingat] <b>Yang kamu tahu plus yang kamu pegang.</b> Password doang itu kunci yang bisa digandakan siapa aja. Tambah HP kamu, dan maling harus merogoh kantongmu juga.',
-		'Ini terbukti. Tahun 2018 Google cerita bahwa sejak awal 2017, waktu mereka membagikan kunci keamanan fisik ke lebih dari 85 ribu karyawannya, nggak ada satu pun akun kerja mereka yang dibobol lewat phishing.',
-		'[fyi] Tapi MFA bukan sihir. Tahun 2022 penyerang yang punya password seorang kontraktor Uber terus mengirim permintaan persetujuan login ke HP orang itu, lalu mengirim pesan pura pura jadi tim IT, sampai akhirnya dia memencet setuju. Jangan pernah menyetujui login yang bukan kamu sendiri yang mulai.',
-		'Giliranmu, kalau mau. Kali ini kamu yang login. Lihat HPnya dan ketik enam digit yang tampil sekarang.'
+		'Bayangkan ada orang yang sudah tahu password kamu. Mungkin [[bocor dari toko ceroboh|security/hashing]], mungkin kamu nggak sengaja mengetiknya di halaman palsu. Apa berarti tamat?',
+		'Belum, kalau ada kunci kedua. <b>MFA</b> (multi factor authentication) meminta bukti kedua dari jenis yang berbeda. Sesuatu yang kamu <b>tahu</b> (password), sesuatu yang kamu <b>punya</b> (HP atau kunci kecil), atau sesuatu yang ada <b>di dirimu</b> (sidik jari atau wajah).',
+		'Kamu sebenarnya sudah sering pakai. Di ATM, kartunya adalah sesuatu yang kamu punya dan PIN adalah sesuatu yang kamu tahu. Maling yang cuma pegang salah satunya pulang tanpa uang. Itu MFA jauh sebelum ada internet.',
+		'Di internet, bukti keduanya biasanya kode enam digit dari <b>aplikasi authenticator</b> yang berganti tiap 30 detik, atau <b>security key</b> kecil berbentuk USB yang tinggal kamu sentuh.',
+		'Dan ini terbukti. Tahun 2018 Google bercerita bahwa sejak awal 2017, waktu mereka membagikan security key ke lebih dari 85 ribu karyawannya, nggak ada satu pun akun kerja mereka yang berhasil diambil alih lewat phishing.',
+		'[fyi] MFA masih bisa disalahgunakan, misalnya ketika pengguna menyetujui permintaan login yang tidak ia mulai. Periksa asal permintaan. Jenis faktor juga berbeda kekuatannya, passkey dapat melindungi dari phishing lebih baik daripada kode yang bisa diketik di situs palsu.',
+		'[ingat] Dua bukti dari jenis berbeda. MFA memperkuat login, tetapi kode dan persetujuan masih bisa dipancing lewat phishing. Jangan setujui login yang tidak kamu mulai.',
+		'Yuk lihat langsung. Seorang penyerang sudah memegang password nimbus.com kamu. Perhatikan apa yang terjadi waktu MFA mati, lalu waktu MFA nyala.'
 	],
 	reactions: {
-		you: 'Selamat datang lagi. Kamu punya dua duanya, password di kepala dan HP di tangan. Cuma itu yang diminta MFA, dan itu menghentikan sebagian besar serangan password curian.',
+		noMfa:
+			'Gampang banget. Kalau pintunya cuma dijaga password, siapa pun yang pegang password itu dianggap kamu oleh nimbus.com. Nyalakan MFA lalu biarkan dia coba lagi.',
+		stuck:
+			'Mentok. Passwordnya benar, tapi kodenya ada di HP kamu, dan HP kamu ada di sakumu. Menebak enam digit itu peluangnya satu banding sejuta, lagi pula kodenya berganti tiap 30 detik. Sekarang kamu yang login.',
 		wrongCode:
-			'Bukan yang itu. Lihat HPnya dan ketik enam digit yang tampil sekarang. Kalau lingkarannya hampir habis, tunggu kode barunya.'
+			'Bukan yang itu. Lihat aplikasi di HP kamu, lalu ketik enam digit yang tampil sekarang.',
+		you: 'Selamat datang kembali. Kamu punya dua duanya, password di kepala dan HP di tangan. Cuma itu yang diminta MFA, dan itu sudah cukup buat menghentikan kebanyakan serangan pakai password curian.'
 	},
-	steps: [
-		{
-			tag: 'Masalahnya',
-			title: 'Password dicuri',
-			body: 'Password bisa bocor, ketebak, atau diketik di halaman palsu. Cepat atau lambat, orang lain bisa <b>tahu</b> punyamu.'
-		},
-		{
-			tag: 'MFA mati',
-			title: 'Cuma satu kunci',
-			body: 'Situsnya cuma mengecek password. Siapa pun yang mengetiknya <b>dianggap kamu</b>.'
-		},
-		{
-			tag: 'Idenya',
-			title: 'Tiga jenis bukti',
-			body: 'Yang kamu <b>tahu</b>, yang kamu <b>pegang</b>, yang ada <b>di dirimu</b>. MFA minta dua yang jenisnya beda.'
-		},
-		{
-			tag: 'Sehari hari',
-			title: 'ATM',
-			body: '<b>Kartu</b> itu yang kamu pegang, <b>PIN</b> itu yang kamu tahu. Satu doang, maling nggak dapat apa apa.'
-		},
-		{
-			tag: 'Pegang',
-			title: 'Aplikasi authenticator',
-			body: 'Kode enam digit yang dibuat di HP kamu. Gantinya tiap <b>30 detik</b> dan nggak pernah dikirim ke mana mana.'
-		},
-		{
-			tag: 'MFA nyala',
-			title: 'Mentok di kunci kedua',
-			body: 'Password benar, kode nggak ada. Beberapa kali salah tebak, situsnya <b>memblokir</b> loginnya.'
-		},
-		{
-			tag: 'Biar nempel',
-			title: 'Tahu plus pegang',
-			body: 'Sesuatu di <b>kepala</b> plus sesuatu di <b>tangan</b>. Maling jarang punya dua duanya.'
-		},
-		{
-			tag: 'Google, 2018',
-			title: 'Kunci keamanan',
-			body: 'Kunci USB kecil yang ditempel buat login. Lebih dari 85 ribu karyawan, nol akun jebol karena phishing.'
-		},
-		{
-			tag: 'Uber, 2022',
-			title: 'Banjir permintaan',
-			body: 'Permintaan demi permintaan sampai ada yang memencet setuju karena capek. <b>Tolak</b> login yang bukan kamu yang mulai.'
-		},
-		{
-			tag: 'Opsional',
-			title: 'Login sendiri',
-			body: 'Ketik kode dari HP ke kotak login di atas. Dua kunci, satu per satu.'
-		}
-	],
-	attackerLabel: 'Penyerang, jauh di sana',
-	youLabel: 'Kamu',
+	attackerLabel: 'Penyerang',
+	attackerSub: 'jauh di sana',
+	stolenChip: 'pegang password kamu',
 	phoneLabel: 'HP kamu',
-	stolenChip: 'tahu passwordmu',
 	appName: 'Authenticator',
-	appAccount: 'nimbus.com',
+	appAccount: 'nimbus.com, akun kamu',
+	secondsLeft: '{n} dtk',
 	mfaOffChip: 'MFA mati',
 	mfaOnChip: 'MFA nyala',
 	loginTitle: 'Login nimbus.com',
-	emailValue: 'kamu@nimbus.com',
+	emailField: 'email',
+	passwordField: 'password',
 	codeField: 'kode',
-	loginBtn: 'Masuk',
-	factors: {
-		know: { name: 'tahu', ex: 'password' },
-		have: { name: 'pegang', ex: 'HP' },
-		are: { name: 'dirimu', ex: 'sidik jari' }
-	},
-	atm: { know: 'PIN', have: 'kartu ATM' },
-	keyLabel: 'kunci keamanan',
-	approvePrompt: 'Setujui login?',
-	approveYes: 'Setuju',
-	approveNo: 'Tolak',
+	attackBtn: 'Penyerang login',
+	mfaOnBtn: 'Nyalakan MFA',
+	attackAgainBtn: 'Penyerang coba lagi',
+	codePrompt: 'Giliranmu. Ketik kode dari HP kamu',
+	submitBtn: 'Masuk',
 	status: {
-		idle: 'Password sudah diketik',
+		idle: 'Halaman login sudah terbuka di laptopnya',
 		checking: 'Mengecek password',
 		taken: 'Berhasil masuk. Akunnya jadi milik dia',
-		askCode: 'Password benar. Sekarang kodenya',
+		askCode: 'Password benar. Sekarang kode dari HP',
 		guessing: 'Menebak {code}',
-		locked: 'Kebanyakan salah, diblokir',
-		push: 'Mengirim permintaan login ke HP kamu',
-		yourTurn: 'Ketik kode dari HP kamu',
+		locked: 'Terlalu banyak kode salah, login diblokir',
+		yourTurn: 'Tertutup buat dia, terbuka buat kamu',
 		wrong: 'Kodenya nggak cocok',
-		welcome: 'Selamat datang, ini beneran kamu'
-	},
-	codeHint: 'Kode dari HP kamu',
-	submitBtn: 'Masuk'
+		welcome: 'Selamat datang kembali, ini memang kamu'
+	}
 };

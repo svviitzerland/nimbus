@@ -6,55 +6,24 @@ const ham = (text: string) => ({ text, spam: false });
 export const id: InferenceText = {
 	title: 'Training dan inference',
 	intro: [
-		'Model punya dua momen yang sangat berbeda dalam hidupnya. Pertama dia belajar, lalu dia bekerja. Dua momen itu punya nama, <b>training</b> dan <b>inference</b>.',
-		'<b>Training</b> itu masa belajarnya. Komputer membaca banyak contoh (di sini, email yang sudah ditandai spam atau biasa) berulang ulang, sambil menyesuaikan dirinya sedikit demi sedikit. Untuk model besar, ribuan komputer bisa sibuk berminggu minggu.',
-		'Hasilnya adalah <b>model</b>, pada dasarnya sebuah file berisi angka angka. File itu dipindah ke server, dan sejak itu dia membeku. Dia nggak belajar hal baru lagi selama bekerja.',
-		'<b>Inference</b> itu masa kerjanya. Seseorang mengirim pertanyaan, model berjalan sekali dan menjawab, selesai. Satu jawaban cuma butuh sepersekian detik.',
-		'Dan dia nggak pernah capek. Model beku yang sama bisa menjawab jutaan orang sehari, satu jawaban cepat demi satu jawaban cepat.',
-		'[ingat] Masak sekali, sajikan berkali kali. Training itu masak sepanci besar, lama dan mahal. Inference itu menyendok sepiring, cepat, dan bisa diulang terus.',
-		'[fyi] Setiap kali kamu ngobrol dengan aplikasi AI, kamu sedang melakukan inference. Trainingnya sudah terjadi berbulan bulan sebelumnya di chip khusus bernama [[GPU|ai/gpu]]. Aplikasi yang memakai model milik orang lain membayar sedikit untuk setiap jawaban, lewat [[API|ai/ai-api]].',
-		'Kalau mau, ketuk salah satu email di bawah dan kirim sendiri ke modelnya. Jawabannya balik sebelum kamu sempat berkedip.'
+		'Model dipakai dalam dua proses, <b>training</b> untuk menyesuaikan parameter dan <b>inference</b> untuk menghasilkan prediksi.',
+		'<b>Training</b> menyesuaikan parameter model berdasarkan data latihan. Waktu dan biaya bergantung pada model, data, serta perangkat yang dipakai.',
+		'Hasil training adalah model dengan parameter yang sudah disesuaikan. Pada contoh ini parameternya tetap selama inference. Memperbaruinya memerlukan training lagi.',
+		'<b>Inference</b> memakai model untuk memproses input baru. Filter spam pada contoh ini membaca kata dalam email lalu menghasilkan prediksi spam atau bukan.',
+		'[fyi] Aplikasi dapat memakai model yang dijalankan sendiri atau melalui [[API AI|ai/ai-api]]. Biaya inference bergantung pada perangkat, model, dan jumlah pemakaian.',
+		'[ingat] Training menyesuaikan parameter model. Inference memakai model untuk menghasilkan prediksi atau keluaran baru.',
+		'Latih filter spam, pasang modelnya di server simulasi, lalu coba beberapa email. Bandingkan proses training dengan inference.'
 	],
 	reactions: {
-		ask: 'Dijawab dalam kurang dari satu milidetik! Dia nggak mempelajari hal baru, dia cuma mencocokkan kata katanya dengan yang sudah dia pelajari. Itulah inference.'
+		training:
+			'Filter menghitung kata yang muncul pada email spam dan bukan spam. Waktu dan biaya yang ditampilkan adalah ilustrasi latihan.',
+		trained:
+			'Training selesai. Model menyimpan hasil hitungan kata untuk dipakai saat memprediksi email baru.',
+		ask: 'Prediksi dibuat memakai model yang sudah dilatih. Input ini tidak mengubah parameter model.',
+		typed:
+			'Kalimatmu sendiri, yang belum pernah dia lihat, dan tetap dijawab seketika. Dia cuma kenal kata dari training, jadi kata yang belum pernah dia temui dianggap nggak ada artinya.',
+		rush: 'Banyak request inference menggunakan model yang sama. Total biaya tetap bertambah seiring pemakaian.'
 	},
-	panels: [
-		{
-			tag: 'Dua momen',
-			title: 'Belajar dulu, baru kerja',
-			body: 'Bagian atas tempat model belajar, bagian bawah tempat dia bekerja untuk orang orang. Keduanya terjadi di waktu berbeda, sering di mesin yang berbeda juga.'
-		},
-		{
-			tag: 'Training',
-			title: 'Belajar yang lama',
-			body: 'Contoh contoh mengalir ke mesin, dan model menyesuaikan diri setelah tiap contoh. Batangnya sengaja pelan, training sungguhan butuh berhari hari sampai berminggu minggu.'
-		},
-		{
-			tag: 'Modelnya',
-			title: 'File angka yang membeku',
-			body: 'Semua hasil belajar itu jadi satu file. File itu disalin ke server, dan mulai sekarang dia cuma menjawab, nggak belajar.'
-		},
-		{
-			tag: 'Inference',
-			title: 'Satu pertanyaan, satu jawaban cepat',
-			body: 'HP mengirim email ke server, model mencocokkan kata katanya dengan yang sudah dia pelajari, lalu menjawab spam atau bukan dalam kurang dari satu milidetik.'
-		},
-		{
-			tag: 'Skala besar',
-			title: 'Lagi dan lagi',
-			body: 'Tiap jawaban kecil, tapi jumlahnya jutaan. Makanya perusahaan juga peduli biaya inference, bukan cuma training.'
-		},
-		{
-			tag: 'Biar nempel',
-			title: 'Masak sekali, sajikan berkali kali',
-			body: 'Training terjadi sekali (atau sesekali, untuk versi baru) dan lama. Inference terjadi di setiap pertanyaan dan cepat.'
-		},
-		{
-			tag: 'Coba',
-			title: 'Tanya modelnya',
-			body: 'Ketuk sebuah email. Model belum pernah melihatnya, tapi tetap menjawab seketika dari yang sudah dia pelajari.'
-		}
-	],
 	examples: [
 		spam('menangkan hp gratis sekarang'),
 		ham('rapatnya pindah ke hari senin'),
@@ -79,25 +48,32 @@ export const id: InferenceText = {
 		'klik link ini untuk menang',
 		'makan malam bareng tim nanti'
 	],
-	trainTitle: 'Training, cukup sekali',
-	inferTitle: 'Inference, tiap pertanyaan',
+	trainTitle: 'Training, melatih model',
+	trainBtn: 'Latih modelnya',
 	reading: 'Membaca contoh {n} dari {total}',
-	day: 'Hari ke {n} komputer bekerja',
+	days: 'Komputer sibuk',
+	daysValue: '{n} hari',
+	cost: 'Tagihan sejauh ini',
+	costValue: '{n} juta dolar',
+	decimal: ',',
+	scaleNote: 'Meteran ini untuk model besar dengan ukuran sungguhan',
+	trainedOnce: 'Dilatih sekali, {days} hari dan {cost}',
 	modelFile: 'model spam',
-	frozen: 'membeku',
+	modelInfo: '{n} kata dipelajari',
+	frozen: 'membeku, nggak belajar',
 	you: 'Kamu',
 	server: 'Server',
+	inferTitle: 'Inference, menggunakan model',
+	askHint: 'Ketuk sebuah email atau ketik sendiri',
+	placeholder: 'Ketik isi email',
+	askBtn: 'Tanya',
 	spam: 'spam',
 	ham: 'bukan spam',
-	spamTag: 'spam',
-	hamTag: 'biasa',
 	fast: 'kurang dari 1 ms',
-	answered: '{n} dijawab',
-	sep: '.',
-	longBar: 'Training',
-	shortBar: 'Satu jawaban',
-	longTime: 'berminggu minggu',
-	shortTime: 'sekejap',
-	rule: 'Masak sekali, sajikan berkali kali',
-	askHint: 'Ketuk email untuk bertanya ke model'
+	ms: '{n} ms',
+	answered: '{n} pertanyaan dijawab',
+	rushBtn: 'Kirim 1.000 sekaligus',
+	rushDone: '1.000 jawaban dalam {time}',
+	spamTag: 'spam',
+	hamTag: 'biasa'
 };

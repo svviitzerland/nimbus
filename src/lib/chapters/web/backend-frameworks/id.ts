@@ -3,78 +3,54 @@ import type { BackendFrameworksText } from './types';
 export const id: BackendFrameworksText = {
 	title: 'Framework backend',
 	intro: [
-		'Ingat pesanan tadi? Buat backend, pesanan itu datang sebagai request <b>POST /orders</b>. Potongan kode yang menangani satu alamat kayak gitu namanya <b>endpoint</b>.',
-		'Endpoint kecil ini aja kerjaannya banyak. Arahkan request ke kode yang tepat, baca isi formulirnya, cek angkanya masuk akal.',
-		'Habis itu tolak request palsu, simpan ke database, lalu kirim jawaban balik. Lihat jumlah barisnya naik terus.',
-		'Semua toko di internet butuh kerjaan yang sama, berulang ulang. Jadi orang orang membungkusnya jadi satu perkakas siap pakai yang namanya <b>framework</b>. Kamu tinggal nulis bagian yang khas tokomu.',
-		'Tiap bahasa punya andalannya sendiri. <b>Laravel</b> buat PHP, <b>Express</b> buat JavaScript, <b>Django</b> buat Python, dan <b>Spring</b> buat Java. Beda nama, idenya sama.',
-		'[ingat] Framework itu kerangka kerja. Kerangka rumahnya sudah berdiri, kamu tinggal ngisi perabotnya.',
+		'Ingat pesanan tadi? Buat backend, pesanan itu datang sebagai request <b>POST /orders</b>, dan harus ada kode yang menanganinya. Potongan kode itu namanya <b>endpoint</b>.',
+		'Satu endpoint kecil ini aja kerjaannya banyak. Lihat alamat mana yang dituju, baca isi formulirnya, cek angkanya masuk akal, tolak request palsu, simpan ke database, terus kirim jawaban balik.',
+		'Semua toko di internet butuh kerjaan yang sama, berulang ulang. Jadi orang orang membungkus bagian yang membosankan dan rawan itu jadi satu perkakas siap pakai yang namanya <b>framework</b>. Kamu tinggal nulis bagian yang khas tokomu.',
+		'Tiap bahasa pemrograman punya andalannya sendiri. <b>Laravel</b> buat PHP, <b>Express</b> buat JavaScript, <b>Django</b> buat Python, dan <b>Spring</b> buat Java. Beda nama, idenya sama.',
 		'[fyi] Kata yang sama, dunia yang beda. Frontend juga punya framework (misalnya React atau Svelte), dan masalah yang diselesaikan beda, yaitu membangun tampilan. Selengkapnya di [[framework frontend|web/why-framework]].',
-		'Mau ngerasain bedanya? Ambil frameworknya dan lihat semua kerjaan itu balik ke pundakmu.'
+		'[ingat] Framework menyediakan struktur dan fitur umum seperti routing. Logika aplikasi dan konfigurasi keamanannya tetap perlu ditulis dan diuji.',
+		'Pertama tulis endpoint pesanan ini secara manual, satu per satu, dan lihat kodenya menumpuk. Habis itu pilih framework dan lihat seberapa banyak yang langsung hilang.'
 	],
 	reactions: {
+		route:
+			'Routing beres. Kodenya sekarang ngecek method dan alamatnya, jadi cuma POST /orders yang masuk ke sini. Toko beneran punya ratusan yang kayak gini.',
+		read: 'Formulirnya datang sebagai teks mentah dalam potongan kecil, jadi kamu harus ngumpulin dan mengambil isinya sendiri. Ribet kan?',
+		validate:
+			'Jangan pernah percaya sama data yang masuk. Bisa aja ada yang pesan minus lima topi. Ngecek tiap isian itu kerjaan membosankan yang gampang kelupaan.',
+		security:
+			'Yang ini menolak request palsu (serangannya namanya CSRF), waktu situs lain mengakali browsermu supaya memesan atas namamu. Kalau lupa, nggak ada yang sadar, sampai ada yang memanfaatkannya.',
+		db: 'Ngobrol sama database artinya buka koneksi, nulis query, dan ingat menutupnya lagi. Salah sedikit, data bisa bocor atau servernya pelan pelan kehabisan tenaga.',
+		respond: 'Akhirnya jawabannya dikirim balik. Fiuh, semua itu cuma buat satu endpoint.',
 		byhand:
-			'Semua kerjaan balik ke kamu, dan jumlah barisnya melonjak. Bayangkan harus begini juga buat login, keranjang, pencarian, dan pembayaran.',
-		framework:
-			'Frameworknya balik, dan sebagian besar kode langsung diambil alih olehnya. Yang tersisa cuma bagian yang khas tokomu.'
+			'Enam kerjaan ditulis manual semua, dan lihat jumlah barisnya. Sekarang bayangkan harus begini juga buat login, keranjang, pencarian, dan pembayaran. Yuk pilih framework.',
+		laravel:
+			'Laravel (PHP). Routing, baca formulir, validasi, perlindungan CSRF, dan bantuan database semuanya sudah ada. Yang tersisa kebanyakan logika tokomu sendiri.',
+		express:
+			'Express (JavaScript) itu yang minimalis. Dia mengurus routing dan jawaban, lalu sisanya kamu tambah sendiri pakai paket kecil. Lebih ringan, tapi kamu yang lebih banyak memilih.',
+		django:
+			'Django (Python) terkenal karena perlengkapannya komplet. Formulir, validasi, CSRF, dan lapisan database (namanya ORM) sudah ada di dalam kotaknya.',
+		spring:
+			'Spring (Java) itu yang besar, banyak dipakai bank dan perusahaan besar. Beberapa anotasi (kata yang diawali @) langsung mengatur routing, validasi, dan penyimpanan.'
 	},
-	steps: [
-		{
-			title: 'Endpoint',
-			body: 'Kode yang menjawab <b>satu alamat</b>, misalnya POST /orders. Toko beneran punya ratusan.'
-		},
-		{
-			title: 'Kerjaan',
-			body: '<b>Routing</b> mengarahkan request ke kode yang tepat. Lalu formulirnya dibaca dan <b>dicek</b>, biar nggak ada yang pesan minus lima topi.'
-		},
-		{
-			title: 'Kerjaan lagi',
-			body: 'Menolak <b>request palsu</b>, ngobrol sama <b>database</b>, mengirim <b>jawaban</b>. Membosankan, dan gampang salah.'
-		},
-		{
-			title: 'Framework',
-			body: 'Perkakas siap pakai yang <b>mengerjakan kerjaan umum</b> buat kamu. Kodemu tinggal bagian yang bikin tokomu beda.'
-		},
-		{
-			title: 'Yang populer',
-			body: 'Laravel (PHP), Express (JavaScript), Django (Python), Spring (Java). Pilih yang cocok sama <b>bahasamu</b>.'
-		},
-		{
-			title: 'Kerangka rumah',
-			tag: 'Biar nempel',
-			body: 'Framework itu <b>kerangka rumah</b>, kamu tinggal ngisi perabotnya.'
-		},
-		{
-			title: 'Framework frontend',
-			tag: 'Catatan',
-			body: 'React dan Svelte membangun <b>yang kamu lihat</b>. Framework backend mengurus <b>yang nggak kelihatan</b>.'
-		},
-		{
-			title: 'Hasil sama, kode sedikit',
-			body: 'Dua duanya sama sama menyimpan pesanan. Bedanya, pakai framework <b>kodenya jauh lebih sedikit</b> buat ditulis dan dijaga.'
-		}
-	],
-	fileName: 'endpoint pesanan',
-	requestTag: 'POST /orders',
-	emptyHint: 'belum ada kode',
-	lines: '{n} baris',
+	byHand: 'Manual',
+	choresLabel: 'Kerjaan buat POST /orders',
+	writeHint: 'Pencet satu kerjaan buat menulis kodenya',
 	chores: {
-		route: { label: 'Routing', lines: 24 },
-		read: { label: 'Baca formulir', lines: 36 },
-		check: { label: 'Cek input', lines: 42 },
-		guard: { label: 'Tolak request palsu', lines: 38 },
-		db: { label: 'Simpan ke database', lines: 52 },
-		reply: { label: 'Kirim jawaban', lines: 22 }
+		route: 'Routing',
+		read: 'Baca formulir',
+		validate: 'Validasi input',
+		security: 'Tolak request palsu',
+		db: 'Simpan ke database',
+		respond: 'Kirim jawaban'
 	},
-	ready: 'siap',
-	yourCode: 'Logika tokomu',
-	yourLines: 18,
-	frameworks: [
-		{ name: 'Laravel', lang: 'PHP' },
-		{ name: 'Express', lang: 'JavaScript' },
-		{ name: 'Django', lang: 'Python' },
-		{ name: 'Spring', lang: 'Java' }
-	],
-	byHandBtn: 'Tulis semuanya manual',
-	frameworkBtn: 'Pakai framework'
+	lines: '{n} baris',
+	built: 'sudah ada',
+	addon: 'tambah paket',
+	todo: 'belum ditulis',
+	frameworks: {
+		laravel: { lang: 'PHP', blurb: 'Komplet, disukai tim kecil' },
+		express: { lang: 'JavaScript', blurb: 'Intinya kecil, tambah sesuai butuh' },
+		django: { lang: 'Python', blurb: 'Komplet, dapat halaman admin gratis' },
+		spring: { lang: 'Java', blurb: 'Besar dan kokoh, umum di perusahaan besar' }
+	}
 };

@@ -4,14 +4,15 @@ export const en: ServerlessText = {
 	title: 'Serverless',
 	intro: [
 		'Sometimes you only need a snippet of code that runs occasionally, sending OTP emails (one time codes), resizing photos, receiving payment notices (webhooks). On a normal server it stays on 24 hours with the meter always running, while the actual work is occasional.',
-		'The <b>serverless</b> architecture fixes that. Follow the flow. A request reaches the provider’s gate, the provider lights up a tiny sandbox in a blink, your function runs inside it, done, the box is shut down immediately. When it is quiet, the cost is truly zero.',
-		'That sandbox is not magic. AWS Lambda boots a micro VM called <b>Firecracker</b>, Google Cloud uses <b>gVisor</b>. Both start in a fraction of a second, which is why providers dare to start from zero.',
-		'The user’s phone is waiting beside that flow. Send a request and watch the function wake, work, then sleep again. This is only the surface, a later chapter dives much deeper into the serverless world.'
+		'With <b>serverless</b>, the provider manages servers and execution environments. In this function example, a request triggers code to run. Capacity can grow with demand.',
+		'A function runs in an isolated environment. Providers may use lightweight VMs or other sandbox technologies and may reuse ready environments. Preparing a new environment adds time, called a <b>cold start</b>.',
+		'The user’s phone is waiting beside that flow. Send a request and watch the function wake, work, then sleep again. This is only the surface, a later chapter dives much deeper into the serverless world.',
+		'[ingat] Serverless reduces server management work. Servers still run behind the service.'
 	],
 	reactions: {
 		invoked:
-			'Blink and you missed it. The function woke up only because it was called, worked briefly, done. No server for you to babysit, and the meter only counts calls.',
-		zero: 'And the moment it goes quiet, it sleeps back to zero. No silent bill running overnight. That is the charm of serverless.'
+			'The request triggers a function and its result returns to the user. Function service pricing commonly considers request count, execution time, and resources used.',
+		zero: 'No function is running in this example. Real charges depend on the service and configuration, including reserved capacity, storage, and data transfer.'
 	},
 	fnLabel: 'sendOTP function',
 	sleepTag: 'asleep, zero cost',

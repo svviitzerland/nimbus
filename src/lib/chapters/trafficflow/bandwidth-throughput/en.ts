@@ -5,7 +5,8 @@ export const en: BandwidthThroughputText = {
 	intro: [
 		'Imagine you put a video on your server, and it goes viral. Many people watch at once. This is where two terms, bandwidth and throughput, start to matter.',
 		'<b>Bandwidth</b> is the capacity of the road from your server to the internet, the ceiling. <b>Throughput</b> is the data actually delivered each second.',
-		'Add viewers one by one until some start buffering, then upgrade the bandwidth.'
+		'Add viewers one by one until some start buffering, then upgrade the bandwidth.',
+		'[ingat] Bandwidth is a connection’s capacity. Throughput is the amount of data successfully transferred per second.'
 	],
 	reactions: {
 		full: 'There, too many viewers for your bandwidth. Throughput hits the ceiling, so some videos start <b>buffering</b>. Exactly what happens when a video suddenly gets popular.',

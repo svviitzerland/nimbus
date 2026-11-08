@@ -1,11 +1,20 @@
 import type { LessonText } from '../../types';
 
 export interface ConfigMgmtText extends LessonText {
-	/** The side panel, one entry per beat (a small tag, a title, a short plain explanation). */
-	steps: { tag: string; title: string; body: string }[];
-	terminalTab: string; // window title while typing by hand
-	serversLabel: string; // caption over the column of servers
-	brokenTag: string; // badge on the server that got a typo
-	driftTag: string; // badge on a server someone changed by hand
-	tapHint: string; // caption over the servers on the last beat
+	missionLabel: string; // heading over the goal
+	mission: string; // what every server needs
+	manualBtn: string; // log into the next server by hand
+	manualDone: string; // shown on the button when no server is left
+	minutesTag: string; // template with {n}, time spent by hand
+	typoTag: string; // the server that got a typo
+	oldTag: string; // the server still runs the old version
+	newTag: string; // the server runs the new version
+	hintLabel: string; // caption before the tappable command
+	placeholder: string; // input placeholder
+	unknown: string; // template with {cmd}, shown for an unknown command
+	noteIdle: string;
+	noteManual: string; // template with {n}, servers left by hand
+	noteTypo: string;
+	notePlaybook: string;
+	noteAgain: string;
 }

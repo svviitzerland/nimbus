@@ -6,8 +6,17 @@ import { en } from './en';
 export const imageGen: Lesson = {
 	id: 'image-gen',
 	mood: 'thinking',
-	moods: ['surprised', 'thinking', 'idea', 'thinking', 'happy', 'idea', 'wink', 'idea', 'happy'],
-	reactionMood: { reprompt: 'excited' },
+	moods: ['surprised', 'thinking', 'idea', 'thinking', 'idea', 'wink', 'excited'],
+	reactionMood: {
+		prompt: 'happy',
+		step: 'thinking',
+		shapes: 'surprised',
+		details: 'happy',
+		clean: 'excited',
+		seed: 'idea',
+		reprompt: 'wink'
+	},
+	playable: true,
 	stage: ImageGenStage,
 	text: { id, en }
 };

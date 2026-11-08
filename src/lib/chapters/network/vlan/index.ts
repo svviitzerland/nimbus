@@ -6,11 +6,16 @@ import { en } from './en';
 export const vlan: Lesson = {
 	id: 'vlan',
 	mood: 'thinking',
-	moods: ['calm', 'worried', 'idea', 'happy', 'happy', 'wink', 'thinking', 'idea', 'happy'],
+	moods: ['worried', 'thinking', 'idea', 'idea', 'wink', 'happy'],
 	reactionMood: {
-		joined: 'worried',
-		left: 'happy'
+		leak: 'worried',
+		reach: 'happy',
+		split: 'idea',
+		blocked: 'happy',
+		oops: 'surprised',
+		done: 'excited'
 	},
+	playable: true,
 	stage: VlanStage,
 	text: { id, en }
 };

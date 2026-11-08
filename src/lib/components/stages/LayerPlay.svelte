@@ -7,7 +7,6 @@
 	let { tx, beat }: { tx: LayersText; beat: number } = $props();
 
 	const arrived = $derived(beat === 7);
-	const sealed = $derived(beat >= 1 && !arrived);
 	const cipher = '9f3a 2c8e 1b4d';
 	const req = $derived(tx.layers[0].chip);
 </script>
@@ -729,7 +728,7 @@
 		color: #fff;
 	}
 	.wc.shed {
-		border-style: dashed;
+		border-style: solid;
 		opacity: 0.5;
 	}
 	.wc.shed b {

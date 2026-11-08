@@ -3,58 +3,25 @@ import type { OverfittingText } from './types';
 export const en: OverfittingText = {
 	title: 'Overfitting',
 	intro: [
-		'Remember the house prices from [[before|ai/predict]]? A model learns from examples, the way a student learns from a practice exam. These nine houses are its practice questions, each one a size and a price.',
-		'First the model may only draw a straight line. It is too stiff to follow how prices calm down for big houses, so it misses even its own practice houses. That is called <b>underfitting</b>, the model is too simple.',
-		'Now give it a little freedom to bend. The curve follows the real trend (prices go up, then level off) and simply ignores the small random bumps. This is the sweet spot.',
-		'But what if we keep giving it more freedom? Watch. The curve twists itself through every single house, and the practice score climbs all the way to 100.',
-		'Time for the real exam. The green houses were hidden the whole time, the model never studied them. Between the practice houses the curve swings wildly, so its guesses for the new ones are way off. That is <b>overfitting</b>.',
-		'[ingat] Overfitting is memorising the practice exam. A perfect score on questions you have seen, lost on the ones you have not. So a model is always judged by the real exam, never by the practice one.',
+		'Picture a student who memorises every answer in the practice book, word for word. Practice test, a perfect score. Then the real exam asks the same ideas with new numbers, and the student is lost.',
+		'Models can do exactly that. When a model learns its examples too well, random little quirks included, it is called <b>overfitting</b>. It looks brilliant on the examples it studied and stumbles on anything new.',
+		'The opposite happens too. A model that is too simple misses the real pattern, even on its own examples. That is <b>underfitting</b>. The goal sits in between, a model that catches the pattern and ignores the noise.',
+		'That is why people hide some examples away before training, called the <b>test set</b>. The model never studies them, so they work like the real exam. The examples it does study are the <b>training set</b>.',
 		'[fyi] Big chatbots can fall into this too. If a famous quiz leaks into their training data, they can recite the answers without really getting the ideas, so researchers keep their best test questions secret.',
-		'Want to feel it yourself? Slide the curve from stiff to wiggly and watch both scores. Totally optional, the houses will wait.'
+		'[ingat] Overfitting occurs when a model fits training data too closely and performs poorly on new data. Compare training and validation results.',
+		'Here are the house prices from [[before|ai/predict]], except my line can bend now. Slide it from stiff to wiggly and watch the practice score, then bring in houses it has never seen.'
 	],
 	reactions: {
+		practice:
+			'A perfect practice score! The curve now passes through every single house. Sounds great, but did it learn prices or just memorise these nine? Bring in the new houses and find out.',
+		reveal:
+			'These houses were hidden during training. The red lines show how far off the curve is for each one. The new houses score is the one that really counts.',
 		under:
-			'Too stiff again. A straight line misses on the practice houses and the new ones alike. That is underfitting.',
-		fit: 'Sweet spot! A gentle bend follows the trend and shrugs off the noise, so it does best on houses it never saw.',
-		over: 'Practice score up, real exam down. The curve memorised every practice house, quirks and all. That is overfitting.'
+			'Too stiff. A straight line cannot follow the way prices level off for big houses, so it misses on practice and on new houses alike. That is underfitting.',
+		fit: 'Sweet spot! A gentle bend follows the real trend and shrugs off the noise, so it does best on houses it never saw.',
+		over: 'Practice score up, new houses score down. The curve twists itself through every practice house, quirks and all, and swings wildly in the gaps. That is overfitting.',
+		done: 'You found both ends! More flexible is not always better. Real teams choose a model by its test score, never its practice score, and they gather more data when they can, which calms the wiggles down.'
 	},
-	panels: [
-		{
-			tag: 'Training set',
-			title: 'The practice questions',
-			body: 'Each little house is one example the model studies, its size along the bottom and its price going up. Together they are called the <b>training set</b>.'
-		},
-		{
-			tag: 'Too simple',
-			title: 'A straight line',
-			body: 'A line cannot bend, so it cuts through the middle and misses on both ends. A model this simple is <b>underfitting</b>.'
-		},
-		{
-			tag: 'Just right',
-			title: 'A gentle bend',
-			body: 'The curve follows the overall shape and ignores the little bumps. Those bumps are <b>noise</b>, random wobbles that every real dataset has.'
-		},
-		{
-			tag: 'Too much freedom',
-			title: 'Hitting every dot',
-			body: 'With enough bends the curve can pass through every practice house. The practice score says 100, which looks perfect, but watch the gaps between houses.'
-		},
-		{
-			tag: 'Test set',
-			title: 'The real exam',
-			body: 'The green houses were kept aside, people call them the <b>test set</b>. The red lines show how far each guess is off. This is the score that counts.'
-		},
-		{
-			tag: 'Make it stick',
-			title: 'Memorising the practice exam',
-			body: 'Great on what it has seen, poor on what it has not. Teams pick a model by its real exam score, and more data usually calms the wiggles down.'
-		},
-		{
-			tag: 'Try it',
-			title: 'Bend it yourself',
-			body: 'Slide from stiff to wiggly. The practice score only ever goes up, while the real exam score rises first and then falls.'
-		}
-	],
 	xAxis: 'Size (m²)',
 	yAxis: 'Price',
 	bend: 'How bendy the curve is',
@@ -66,11 +33,11 @@ export const en: OverfittingText = {
 		mid: 'Getting twisty',
 		over: 'Memorising'
 	},
-	trainScore: 'Practice exam',
-	testScore: 'Real exam',
-	hidden: 'not yet',
+	trainScore: 'Practice houses',
+	testScore: 'New houses',
+	hidden: 'hidden',
+	revealBtn: 'Bring in new houses',
 	legendTrain: 'studied',
 	legendTest: 'never seen',
-	rule: 'Judge it by the real exam, never the practice one',
 	chartLabel: 'House prices with a fitted curve'
 };

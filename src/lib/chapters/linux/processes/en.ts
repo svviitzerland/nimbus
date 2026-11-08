@@ -64,7 +64,7 @@ export const en: ProcessesText = {
 			body: 'A job in the <b>foreground</b> holds the terminal. Add <b>&</b> to send it to the <b>background</b>, check it with <b>jobs</b>, and call it back with <b>fg</b>.'
 		},
 		{
-			tag: 'Make it stick',
+			tag: 'Remember it',
 			title: 'The busy kitchen',
 			body: 'Dish, process. Order number, PID. Order board, ps. Smoking pan, top. Off the fire, kill.'
 		},

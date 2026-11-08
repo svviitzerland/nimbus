@@ -3,85 +3,61 @@ import type { SqlText } from './types';
 export const en: SqlText = {
 	title: 'What is SQL',
 	intro: [
-		'The shop on nimbus.com has to remember every product it sells. It keeps them in a <b>database</b>, a program whose only job is to store data safely and find it again. Inside, the products sit in a <b>table</b>. Watch it fill up.',
-		'A table looks just like a spreadsheet. Every product is one <b>row</b>, and every <b>column</b> holds one fact about it, its name, its price, and how many are left in stock. But a table only helps if you can ask it questions.',
-		'That is what <b>SQL</b> is for (Structured Query Language, many people say it like "sequel"). It is a language for talking to a database. You write one short sentence called a <b>query</b>, and the database answers. The simplest query asks for everything.',
-		'Usually you do not need every column. The word after <b>SELECT</b> says which columns you want back, and <b>FROM</b> says which table to look in. Name and price, please, nothing else.',
-		'Now a real question. Which products are sold out? <b>WHERE</b> adds a test, and the database checks it on every single row, one by one. Only the rows that pass come back.',
-		'Last, <b>ORDER BY</b> sorts whatever is left. Products under 50000, cheapest first. The database always filters first and sorts after, so it never wastes time sorting rows it will throw away.',
-		'Sometimes you want a summary, not rows. Here is the <b>orders</b> table, so how many orders came from each city? <b>GROUP BY</b> puts rows with the same city in one pile, <b>COUNT</b> counts each pile, and <b>SUM</b> adds up its totals. This is called <b>aggregation</b>.',
-		'[ingat] Read a query top to bottom like a little shopping trip. SELECT says <b>what</b> you want, FROM says <b>where</b> it is, WHERE says <b>which ones</b>. What, where, which.',
-		'[fyi] SQL was born at IBM in the 1970s and it is still everywhere. MySQL, PostgreSQL, and SQLite (the one quietly living inside your phone) all speak it, each with a small accent of its own. You will meet the other family of databases in [[SQL or NoSQL|resilience/database]].',
-		'If you are curious, ask the table another question and watch the query write itself again. Totally optional, the shop is happy either way.'
+		'You already know that an SQL database keeps data in neat tables of rows and columns (remember [[SQL or NoSQL|resilience/database]]). But a table is only useful if you can ask it questions.',
+		'That is what <b>SQL</b> is for (Structured Query Language, many people say it like "sequel"). It is a language for talking to a database. You write one short sentence called a <b>query</b>, and the database answers with the rows that fit.',
+		'The shop on nimbus.com keeps its goods in a table called <b>products</b>. Every product is one row, and every column holds one fact about it, its name, its category, its price, and how many are left in stock.',
+		'A query reads almost like English. <b>SELECT</b> says which columns you want, <b>FROM</b> says which table, <b>WHERE</b> keeps only the rows that pass a test, and <b>ORDER BY</b> sorts whatever is left.',
+		'[fyi] SQL was born at IBM in the 1970s and it is still everywhere today. MySQL, PostgreSQL, and SQLite (the one quietly living inside your phone) all speak it, each with its own small accent.',
+		'Use <b>aggregation</b> to summarize multiple rows. In the orders table, <b>GROUP BY city</b> groups orders by city. <b>COUNT(*)</b> counts orders and <b>SUM(total)</b> adds their values. Open the summary example below and run its query to compare the original rows with the result.',
+		'[ingat] SELECT chooses columns, FROM specifies the table, WHERE filters rows, and ORDER BY sorts results.',
+		'Your turn. The shop owner has four questions. Snap the blocks together into a query, run it, and see whether the answer fits.'
 	],
 	reactions: {
-		all: 'Everything, every column and every row. Handy for a quick peek, but on a real table with millions of rows you rarely want it all at once.',
-		pick: 'Only name and price came back. Asking for less also means less data travelling to the server, so pages stay quick.',
-		out: 'Two products with nothing left. WHERE checked all six rows and kept only those two. Time to restock.',
+		all: 'There is the whole table. <b>SELECT *</b> means every column, the star is short for "all of them". Great for a quick peek, but on a real table with millions of rows you rarely want everything at once.',
+		pick: 'Neater, right? Only the columns you asked for came back. Asking for less also means less data travelling from the database to the server, which keeps pages quick.',
+		out: 'Found them, the products with nothing left. <b>WHERE</b> checks every single row and keeps only the ones that pass the test. Time to restock those two.',
 		cheap:
-			'WHERE threw out the pricey ones first, then ORDER BY lined up the rest from cheapest. Filter first, sort after.'
+			'Logically, <b>WHERE</b> selects matching rows, then <b>ORDER BY</b> sets their output order. A database may choose different execution strategies to produce the same result.',
+		miss: 'The query ran fine, a database never complains about a valid question. It simply answered a different question than the ones on the list. Have another look at the blocks.',
+		done: 'Four questions, four answers, and you never dug through the rows by hand. Every product page on nimbus.com runs a little query like these behind the scenes, many times a second.'
 	},
-	panels: [
-		{
-			tag: 'Table',
-			title: 'Rows and columns',
-			body: 'Each <b>row</b> is one product. Each <b>column</b> is one fact. Every row has the same columns, so the table stays neat.'
-		},
-		{
-			tag: 'Query',
-			title: 'Give me everything',
-			body: 'The star after <b>SELECT</b> means every column. <b>FROM</b> names the table. With no test, every row comes back.'
-		},
-		{
-			tag: 'SELECT',
-			title: 'Pick the columns',
-			body: 'Only the columns listed after SELECT come back. The others stay in the table, untouched.'
-		},
-		{
-			tag: 'WHERE',
-			title: 'Keep the rows that pass',
-			body: 'The database runs the test on each row in turn. Rows that pass light up, the rest are left out of the answer.'
-		},
-		{
-			tag: 'ORDER BY',
-			title: 'Sort what is left',
-			body: 'After the filter, the leftover rows are lined up. Here by price, from cheapest to priciest.'
-		},
-		{
-			tag: 'GROUP BY',
-			title: 'Piles and summaries',
-			body: 'Rows with the same city land in one pile. <b>COUNT(*)</b> says how many rows each pile has, <b>SUM(total)</b> adds up the money. One answer row per city.'
-		},
-		{
-			tag: 'Make it stick',
-			title: 'What, where, which',
-			body: 'SELECT is what, FROM is where, WHERE is which ones, and ORDER BY is in what order. Four words, almost every query you will ever read.'
-		},
-		{
-			tag: 'Try it',
-			title: 'Ask another question',
-			body: 'Each tap asks the table a new question. The query writes itself and the matching rows light up.'
-		}
-	],
 	tableName: 'products',
-	columns: { name: 'name', price: 'price', stock: 'stock' },
+	columns: { name: 'name', category: 'category', price: 'price', stock: 'stock' },
 	products: [
-		{ name: 'Nimbus Tee', price: 89000, stock: 12 },
-		{ name: 'Cloud Cap', price: 65000, stock: 0 },
-		{ name: 'Nim Sticker', price: 15000, stock: 140 },
-		{ name: 'Nimbus Mug', price: 45000, stock: 30 },
-		{ name: 'Cloud Hoodie', price: 189000, stock: 0 },
-		{ name: 'Tote Bag', price: 39000, stock: 8 }
+		{ name: 'Nimbus Tee', category: 'shirt', price: 89000, stock: 12 },
+		{ name: 'Cloud Cap', category: 'hat', price: 65000, stock: 0 },
+		{ name: 'Nim Sticker', category: 'sticker', price: 15000, stock: 140 },
+		{ name: 'Nimbus Mug', category: 'mug', price: 45000, stock: 30 },
+		{ name: 'Cloud Hoodie', category: 'shirt', price: 189000, stock: 0 },
+		{ name: 'Tote Bag', category: 'bag', price: 39000, stock: 8 }
 	],
-	questions: {
-		all: 'Show me the whole table',
+	shirtCategory: 'shirt',
+	missionsLabel: "The shop owner's questions",
+	missions: {
+		all: 'Show the whole products table',
 		pick: 'Just the name and price of every product',
-		out: 'Which products are sold out?',
-		cheap: 'Products under 50000, cheapest first',
-		group: 'How many orders per city, and how much in total?'
+		out: 'Which products are out of stock?',
+		cheap: 'Products under 50000, cheapest first'
 	},
-	ordersTable: 'orders',
-	orderColumns: { city: 'city', total: 'total' },
+	selectLabel: 'which columns',
+	whereLabel: 'which rows',
+	orderLabel: 'in what order',
+	allColumns: 'all',
+	noFilter: 'every row',
+	noOrder: 'as stored',
+	cheapFirst: 'cheapest first',
+	priceyFirst: 'priciest first',
+	alphabetical: 'A to Z',
+	run: 'Run the query',
+	queryLabel: 'query.sql',
+	resultLabel: 'Result',
+	rowsCount: '{n} rows',
+	emptyResult: 'No rows match this query',
+	allDone: 'All four questions answered',
+	groupLabel: 'Summarize orders by city',
+	tableLabel: 'Order rows',
+	groupResult: 'GROUP BY result',
+	groupRun: 'Run GROUP BY',
 	orders: [
 		{ city: 'Jakarta', total: 120000 },
 		{ city: 'Bandung', total: 89000 },
@@ -89,12 +65,5 @@ export const en: SqlText = {
 		{ city: 'Surabaya', total: 65000 },
 		{ city: 'Bandung', total: 39000 },
 		{ city: 'Jakarta', total: 15000 }
-	],
-	resultLabel: 'The answer, one row per city',
-	questionLabel: 'The question',
-	fileName: 'query.sql',
-	rowsBack: '{n} rows came back',
-	clauseTags: { select: 'what', from: 'where', where: 'which ones', order: 'in what order' },
-	rule: 'SELECT is what, FROM is where, WHERE is which ones.',
-	another: 'Ask another question'
+	]
 };

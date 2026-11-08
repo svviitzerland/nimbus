@@ -5,15 +5,22 @@ import { en } from './en';
 
 export const devices: Lesson = {
 	id: 'devices',
-	mood: 'calm',
-	moods: ['calm', 'idea', 'happy', 'happy', 'wink', 'idea', 'thinking', 'excited'],
+	mood: 'thinking',
+	moods: ['calm', 'idea', 'thinking', 'happy', 'wink', 'excited'],
 	reactionMood: {
+		modem: 'idea',
+		router: 'happy',
+		switch: 'happy',
+		ap: 'wink',
+		wrong: 'thinking',
+		built: 'excited',
 		noModem: 'worried',
 		noRouter: 'sad',
 		noSwitch: 'surprised',
 		noAp: 'thinking',
 		fixed: 'happy'
 	},
+	playable: true,
 	stage: DevicesStage,
 	text: { id, en }
 };

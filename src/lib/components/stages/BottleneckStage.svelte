@@ -143,7 +143,7 @@
 		</div>
 		<div class="backend">
 			<div class="qline">
-				{#each Array(visitors) as _, i}
+				{#each Array(visitors) as _, i (i)}
 					{@const served = i >= visitors - capacity}
 					<span class="person" class:served class:wait={!served}>
 						<span class="ph"></span><span class="pb"></span>

@@ -1,11 +1,12 @@
 import type { CrossroadsText } from '../types';
 
 export const id: CrossroadsText = {
-	title: 'Persimpangan',
+	title: 'Pilih jalur lanjutan',
 	intro: [
 		'Sampai juga di ujung jalur Dari Nol. Komputer, web, jaringan, cloud, keamanan, sampai AI, semuanya sudah kamu cicipi satu per satu.',
 		'Sekarang kamu sudah tahu peta besarnya, jadi tinggal pilih mau mendalami yang mana. Tiap cabang punya pelajaran lanjutan yang lebih dalam, dan yang sudah kamu selesaikan tetap tercentang di sana.',
-		'Ketuk satu cabang buat lihat isinya, lalu masuk kalau sudah mantap. Nggak usah takut salah pilih, kamu bisa pindah cabang kapan saja dari menu.'
+		'Ketuk satu cabang buat lihat isinya, lalu masuk kalau sudah mantap. Nggak usah takut salah pilih, kamu bisa pindah cabang kapan saja dari menu.',
+		'[ingat] Dasarnya saling terhubung. Pilih jalur dari pekerjaan yang ingin kamu coba berikutnya.'
 	],
 	reactions: {
 		network:

@@ -254,14 +254,21 @@
 		return () => clearInterval(t);
 	});
 
+	// A scene can have fewer commands than the previous one. Clamp reads before the
+	// reset effect runs so rapid navigation never indexes a phase from the old scene.
+	const visiblePhase = $derived(Math.min(phase, Math.max(0, plan.phases.length - 1)));
 	const lines = $derived.by(() => {
 		const ph = plan.phases;
 		if (!ph.length) return [];
-		const done = plan.stack ? ph.slice(0, phase).map((p) => ({ text: p.code, done: true })) : [];
-		return [...done, { text: ph[phase].code.slice(0, typed), done: false }];
+		const done = plan.stack
+			? ph.slice(0, visiblePhase).map((p) => ({ text: p.code, done: true }))
+			: [];
+		return [...done, { text: ph[visiblePhase].code.slice(0, typed), done: false }];
 	});
-	const typing = $derived(plan.phases.length > 0 && typed < (plan.phases[phase]?.code.length ?? 0));
-	const fam = $derived(plan.phases[phase]?.fam ?? null);
+	const typing = $derived(
+		plan.phases.length > 0 && typed < (plan.phases[visiblePhase]?.code.length ?? 0)
+	);
+	const fam = $derived(plan.phases[visiblePhase]?.fam ?? null);
 	const onFamily = (f: SqlFamily) => {
 		if (scene === 0 || scene === 7) return reduced || turn === FAMILIES.indexOf(f) + 1;
 		if (scene === 8) return f === fam;

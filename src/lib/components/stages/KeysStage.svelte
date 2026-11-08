@@ -1,867 +1,864 @@
 <script lang="ts">
-	// The story of secret keys, told as a short illustrated tale that follows Nim's beats. Caesar's
-	// sliding letters, Enigma with a framed photo of Alan Turing, a road where a shared key gets
-	// copied by an eavesdropper, the padlock that fixes it, RSA primes, and Clifford Cocks. Every
-	// scene plays by itself. The only optional play is switching the road mode on the last beat.
-	import { untrack } from 'svelte';
-	import { fade } from 'svelte/transition';
-	import Guide from '$lib/components/Guide.svelte';
-	import Padlock from './crypto/Padlock.svelte';
-	import Key from './crypto/Key.svelte';
-	import Person from './crypto/Person.svelte';
-	import { prefersReducedMotion, runSeq, type SeqStep } from './webguide/seq';
-	import type { StageProps } from '$lib/chapters/types';
-	import type { KeysMode, KeysText } from '$lib/chapters/security/keys/types';
+	import { onDestroy } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
+	import Browser from '$lib/components/Browser.svelte';
+	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
+	import type { LessonText } from '$lib/chapters/types';
+	import type { KeysText } from '$lib/chapters/security/keys/types';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as KeysText);
 
-	// Watch first, play optional, so the stage is visible from the start and Next never locks.
-	$effect(() => {
-		untrack(() => {
-			onshow?.(true);
-			oncomplete?.();
-		});
+	// Three acts. 0 = one shared key, 1 = padlock and private key, 2 = primes.
+	let act = $state(0);
+	const actDone = $state([false, false, false]);
+
+	// Acts 0 and 1 are two sends each.
+	// step 0 idle, 1 first item on the road, 2 landed, 3 second item on the road, 4 landed.
+	let step = $state(0);
+	let mid = $state(false); // the travelling item has passed the eavesdropper
+	let timers: ReturnType<typeof setTimeout>[] = [];
+	let auto: ReturnType<typeof setInterval> | undefined;
+	let autoRunning = $state(false); // Nim is trying primes by itself
+	let completed = false;
+
+	function reduced() {
+		return (
+			typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches
+		);
+	}
+	function clearAll() {
+		timers.forEach(clearTimeout);
+		timers = [];
+		stopAuto();
+	}
+	function stopAuto() {
+		if (auto) clearInterval(auto);
+		auto = undefined;
+		autoRunning = false;
+	}
+
+	function send(token: string) {
+		const half = reduced() ? 250 : 1000;
+		step += 1;
+		mid = false;
+		timers.push(setTimeout(() => (mid = true), half));
+		timers.push(
+			setTimeout(() => {
+				step += 1;
+				mid = false;
+				onstate?.(token);
+				if (step === 4) actDone[act] = true;
+			}, half * 2)
+		);
+	}
+
+	function nextAct() {
+		clearAll();
+		act += 1;
+		step = 0;
+		mid = false;
+	}
+
+	const flying = $derived(act < 2 && (step === 1 || step === 3));
+	const copied = $derived(step >= 2 || (step === 1 && mid));
+	const reached = $derived(step === 4 || (step === 3 && mid));
+	const note = $derived.by(() => {
+		if (flying) return ' ';
+		if (step === 0) return act === 0 ? tx.sym.noteIdle : tx.asym.noteIdle;
+		if (step === 2) return act === 0 ? tx.sym.noteKey : tx.asym.noteLock;
+		return act === 0 ? tx.sym.noteRead : tx.asym.noteSafe;
 	});
 
-	let reduce = $state(false);
-	$effect(() => {
-		reduce = prefersReducedMotion();
-	});
+	// Act 2, the prime race.
+	const primes = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61];
+	const targets = [15, 221, 3233];
+	let multiplied = $state(false);
+	let round = $state(0);
+	const tried = new SvelteSet<number>();
+	let found = $state<number | null>(null);
+	const triesPer = $state<number[]>([]);
+	const finished = $derived(triesPer.length === targets.length);
+	const n = $derived(targets[round]);
 
-	let peek = $state<number | null>(null);
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
-	const last = $derived(tx.steps.length - 1);
-	const step = $derived(Math.max(0, Math.min(peek ?? beat, last)));
-
-	type Scene = 'caesar' | 'sym' | 'enigma' | 'road' | 'split' | 'rule' | 'rsa' | 'cocks';
-	const SCENES: Scene[] = [
-		'caesar',
-		'sym',
-		'enigma',
-		'road',
-		'split',
-		'road',
-		'rule',
-		'rsa',
-		'cocks',
-		'road'
-	];
-	const sceneOf = (s: number): Scene => SCENES[Math.min(s, SCENES.length - 1)];
-
-	// the optional switch on the last beat
-	let choice = $state<KeysMode>('padlock');
-	let runId = $state(0);
-	function pick(m: KeysMode) {
-		choice = m;
-		runId += 1;
-		onstate?.(m);
+	function multiply() {
+		multiplied = true;
+		onstate?.('multiply');
 	}
-	const mode = $derived<KeysMode>(step === 3 ? 'shared' : step === 5 ? 'padlock' : choice);
-
-	// road scene state
-	const YOU = 44;
-	const FRIEND = 316;
-	const MID = 180;
-	type Item = 'key' | 'padlock' | 'box' | null;
-	let item = $state<Item>(null);
-	let pos = $state(YOU);
-	let snap = $state(true);
-	let snoopHas = $state<'key' | 'padlock' | null>(null);
-	let tag = $state('');
-	let tagBad = $state(false);
-	let snoopRead = $state(false);
-	let friendKey = $state(false);
-	let shut = $state(false);
-	let friendOpen = $state(false);
-
-	function reset() {
-		item = null;
-		snap = true;
-		snoopHas = null;
-		tag = '';
-		tagBad = false;
-		snoopRead = false;
-		friendKey = false;
-		shut = false;
-		friendOpen = false;
-	}
-
-	function sharedSeq(): SeqStep[] {
-		return [
-			[
-				120,
-				() => {
-					reset();
-					item = 'key';
-					pos = YOU;
-				}
-			],
-			[1400, () => ((snap = false), (pos = MID))],
-			[
-				1300,
-				() => {
-					snoopHas = 'key';
-					tag = tx.tags.copiedKey;
-					tagBad = true;
-				}
-			],
-			[1400, () => (pos = FRIEND)],
-			[
-				900,
-				() => {
-					friendKey = true;
-					snap = true;
-					item = 'box';
-					shut = true;
-					pos = YOU;
-				}
-			],
-			[120, () => (snap = false)],
-			[1400, () => (pos = MID)],
-			[
-				1700,
-				() => {
-					snoopRead = true;
-					tag = tx.tags.read;
-				}
-			],
-			[1400, () => (pos = FRIEND)],
-			[3200, () => (friendOpen = true)]
-		];
-	}
-	function padlockSeq(): SeqStep[] {
-		return [
-			[
-				120,
-				() => {
-					reset();
-					item = 'padlock';
-					pos = FRIEND;
-				}
-			],
-			[1400, () => ((snap = false), (pos = MID))],
-			[
-				1300,
-				() => {
-					snoopHas = 'padlock';
-					tag = tx.tags.copiedLock;
-				}
-			],
-			[1400, () => (pos = YOU)],
-			[1000, () => (item = 'box')],
-			[1100, () => (shut = true)],
-			[1400, () => (pos = MID)],
-			[
-				1700,
-				() => {
-					tag = tx.tags.stuck;
-					tagBad = false;
-				}
-			],
-			[1400, () => (pos = FRIEND)],
-			[3200, () => (friendOpen = true)]
-		];
-	}
-	function roadStill(m: KeysMode) {
-		reset();
-		item = 'box';
-		shut = true;
-		pos = FRIEND;
-		friendOpen = true;
-		if (m === 'shared') {
-			snoopHas = 'key';
-			friendKey = true;
-			snoopRead = true;
-			tag = tx.tags.read;
-			tagBad = true;
-		} else {
-			snoopHas = 'padlock';
-			tag = tx.tags.stuck;
-		}
-	}
-
-	// the small loops of the other scenes
-	let symShut = $state(false);
-	let symSide = $state<0 | 1>(0);
-	let ruleOpen = $state(true);
-	let ruleKey = $state(false);
-	const PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53];
-	let trial = $state(0);
-
-	function play(sc: Scene, m: KeysMode, still: boolean): (() => void) | undefined {
-		if (sc === 'road') {
-			if (still) {
-				roadStill(m);
-				return;
+	function attempt(p: number) {
+		if (found !== null || tried.has(p)) return;
+		tried.add(p);
+		if (n % p === 0) {
+			found = p;
+			triesPer.push(tried.size);
+			stopAuto();
+			onstate?.(`factor${round + 1}`);
+			if (round === targets.length - 1 && !completed) {
+				completed = true;
+				actDone[2] = true;
+				oncomplete?.();
 			}
-			return runSeq(m === 'shared' ? sharedSeq() : padlockSeq(), true);
 		}
-		if (sc === 'sym') {
-			if (still) {
-				symShut = true;
-				symSide = 0;
-				return;
-			}
-			return runSeq(
-				[
-					[1200, () => ((symSide = 0), (symShut = false))],
-					[1800, () => (symShut = true)],
-					[1200, () => (symSide = 1)],
-					[1800, () => (symShut = false)]
-				],
-				true
-			);
-		}
-		if (sc === 'rule') {
-			if (still) {
-				ruleOpen = false;
-				ruleKey = false;
-				return;
-			}
-			return runSeq(
-				[
-					[1300, () => ((ruleOpen = true), (ruleKey = false))],
-					[1800, () => (ruleOpen = false)],
-					[900, () => (ruleKey = true)],
-					[1800, () => (ruleOpen = true)]
-				],
-				true
-			);
-		}
-		if (sc === 'rsa') {
-			if (still) {
-				trial = PRIMES.length - 1;
-				return;
-			}
-			return runSeq(
-				PRIMES.map((_, k): SeqStep => [k === PRIMES.length - 1 ? 3600 : 420, () => (trial = k)]),
-				true
-			);
-		}
-		return;
 	}
-
-	$effect(() => {
-		const sc = sceneOf(step);
-		const m = mode;
-		const still = reduce;
-		void runId;
-		return untrack(() => play(sc, m, still));
-	});
-
-	const found = $derived(trial === PRIMES.length - 1);
-	const CAESAR = [
-		['H', 'K'],
-		['E', 'H'],
-		['L', 'O'],
-		['L', 'O'],
-		['O', 'R']
-	];
-	// Split a caption into two lines at the space nearest its middle, so a long one stays inside
-	// the picture at the right edge.
-	function twoLines(str: string): string[] {
-		if (str.length <= 18) return [str];
-		const mid = str.length / 2;
-		let best = -1;
-		for (let k = 0; k < str.length; k++)
-			if (str[k] === ' ' && (best < 0 || Math.abs(k - mid) < Math.abs(best - mid))) best = k;
-		return best < 0 ? [str] : [str.slice(0, best), str.slice(best + 1)];
+	function nextRound() {
+		round += 1;
+		tried.clear();
+		found = null;
 	}
+	function letNimTry() {
+		if (auto || found !== null) return;
+		autoRunning = true;
+		auto = setInterval(
+			() => {
+				const p = primes.find((q) => !tried.has(q));
+				if (p === undefined || found !== null) {
+					stopAuto();
+					return;
+				}
+				attempt(p);
+			},
+			reduced() ? 60 : 260
+		);
+	}
+	const triesText = (k: number) =>
+		k === 1 ? tx.rsa.triesOne : tx.rsa.tries.replace('{n}', String(k));
+	// Just a sense of scale, a real RSA modulus is about 617 digits long and this is only its opening stretch.
+	const bigNumber =
+		'251959084756578934940271832400483985714292821262040320277771378360436620207075955562640185258807';
+
+	onDestroy(clearAll);
 </script>
 
-{#snippet road()}
-	<svg
-		viewBox="0 0 360 230"
-		class="art"
-		role="img"
-		aria-label="{tx.youLabel}, {tx.friendLabel}, {tx.snooperLabel}"
-	>
-		<line x1="66" y1="64" x2="294" y2="64" class="road" />
-		<line x1={MID} y1="68" x2={MID} y2="128" class="tap" />
-
-		<Person x={YOU} y={70} label={tx.youLabel} />
-		<Person x={FRIEND} y={70} label={tx.friendLabel} tone="var(--color-grass)" />
-		<Person x={MID} y={164} label={tx.snooperLabel} sneaky />
-
-		<!-- what each side holds -->
-		{#if mode === 'shared'}
-			<Key x={YOU + 2} y={22} />
-			{#if friendKey}<g in:fade={{ duration: 200 }}><Key x={FRIEND - 2} y={22} /></g>{/if}
-		{:else}
-			<Key x={FRIEND - 2} y={22} tone="var(--color-grass)" />
-			<text x={FRIEND} y="10" class="tiny">{tx.privateKey}</text>
-		{/if}
-
-		<!-- the eavesdropper's copy and what came of it -->
-		{#if snoopHas === 'key'}
-			<g in:fade={{ duration: 200 }}><Key x={MID + 40} y={150} /></g>
-		{:else if snoopHas === 'padlock'}
-			<g in:fade={{ duration: 200 }}><Padlock x={MID + 40} y={150} open /></g>
-		{/if}
-		{#if tag}
-			<text x={MID - 30} y="142" class="tag" class:bad={tagBad} text-anchor="end">{tag}</text>
-		{/if}
-		{#if snoopRead}
-			<g in:fade={{ duration: 200 }}>
-				<rect x={MID + 12} y="96" width="84" height="22" rx="6" class="note bad" />
-				<text x={MID + 54} y="111" class="note-text">{tx.message}</text>
-			</g>
-		{/if}
-		{#if friendOpen}
-			<g in:fade={{ duration: 200 }}>
-				<rect x={FRIEND - 120} y="8" width="84" height="22" rx="6" class="note" />
-				<text x={FRIEND - 78} y="23" class="note-text">{tx.message}</text>
-			</g>
-		{/if}
-
-		<!-- the thing travelling down the road -->
-		{#if item}
-			<g class="mover" class:snap={snap || reduce} style="transform: translate({pos}px, 50px)">
-				{#if item === 'key'}
-					<Key x={0} y={0} />
-				{:else if item === 'padlock'}
-					<Padlock x={0} y={0} open />
-				{:else}
-					<rect x="-18" y="-10" width="36" height="24" rx="4" class="box" />
-					<line x1="-18" y1="-2" x2="18" y2="-2" class="box-line" />
-					<Padlock
-						x={0}
-						y={0}
-						size={0.75}
-						open={!shut || friendOpen}
-						tone={mode === 'shared' ? 'var(--color-amber)' : 'var(--color-brand)'}
-					/>
-				{/if}
-			</g>
-		{/if}
+{#snippet keyIcon(size: number)}
+	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		<circle cx="8" cy="8" r="4.5" stroke="var(--color-amber)" stroke-width="2.6" />
+		<path
+			d="M11 11.5 20 20m-3.5.5V17"
+			stroke="var(--color-amber)"
+			stroke-width="2.6"
+			stroke-linecap="round"
+		/>
 	</svg>
 {/snippet}
 
-{#snippet visual(i: number)}
-	{@const sc = sceneOf(i)}
-	<div class="vis">
-		{#if i === last}
-			<div class="modes" role="group" aria-label={tx.modes.label}>
-				<span class="cap">{tx.modes.label}</span>
-				<div class="chips">
-					<button
-						type="button"
-						class="chip"
-						class:on={choice === 'shared'}
-						onclick={() => pick('shared')}>{tx.modes.shared}</button
-					>
-					<button
-						type="button"
-						class="chip"
-						class:on={choice === 'padlock'}
-						onclick={() => pick('padlock')}>{tx.modes.padlock}</button
-					>
-				</div>
-			</div>
-		{/if}
-
-		{#key sc === 'road' ? 'road' : i}
-			<div class="scene" in:fade={{ duration: reduce ? 0 : 260 }}>
-				{#if sc === 'caesar'}
-					<svg viewBox="0 0 360 230" class="art" role="img" aria-label="HELLO, KHOOR">
-						<rect x="56" y="30" width="248" height="170" rx="10" class="parch" />
-						<text x="180" y="60" class="year">A → D, B → E</text>
-						{#each CAESAR as [a, b], k (k)}
-							<text x={100 + k * 40} y="104" class="big">{a}</text>
-							<text x={100 + k * 40} y="132" class="shift">+3</text>
-							<text
-								x={100 + k * 40}
-								y="172"
-								class="big brand reveal"
-								style="animation-delay:{k * 0.45}s">{b}</text
-							>
-						{/each}
-					</svg>
-				{:else if sc === 'sym'}
-					<svg viewBox="0 0 360 230" class="art" role="img" aria-label={tx.sharedKey}>
-						<Person x={50} y={120} label={tx.youLabel} />
-						<Person x={310} y={120} label={tx.friendLabel} tone="var(--color-grass)" />
-						<circle cx="100" cy="92" r="20" class="halo" class:on={symSide === 0} />
-						<circle cx="260" cy="92" r="20" class="halo" class:on={symSide === 1} />
-						<Key x={100} y={92} />
-						<Key x={260} y={92} />
-						<rect x="148" y="104" width="64" height="44" rx="6" class="box" />
-						<line x1="148" y1="118" x2="212" y2="118" class="box-line" />
-						<Padlock x={180} y={124} open={!symShut} tone="var(--color-amber)" />
-						<text x="180" y="190" class="caption">{tx.sharedKey}</text>
-					</svg>
-				{:else if sc === 'enigma'}
-					<div class="with-photo">
-						<!-- the real machine (public domain photo), next to the man who helped break it -->
-						<figure class="frame wide">
-							<img
-								src="/images/people/enigma.jpg"
-								alt={tx.enigma.alt}
-								width="500"
-								height="667"
-								loading="lazy"
-								decoding="async"
-							/>
-							<figcaption>{tx.enigma.caption}</figcaption>
-						</figure>
-						<figure class="frame">
-							<img
-								src="/images/people/alan-turing.jpg"
-								alt={tx.turing.alt}
-								width="500"
-								height="681"
-								loading="lazy"
-								decoding="async"
-							/>
-							<figcaption>{tx.turing.caption}</figcaption>
-						</figure>
-					</div>
-				{:else if sc === 'road'}
-					{@render road()}
-				{:else if sc === 'split'}
-					<svg
-						viewBox="0 0 360 230"
-						class="art"
-						role="img"
-						aria-label="{tx.publicKey}, {tx.privateKey}"
-					>
-						<text x="180" y="40" class="year">1976</text>
-						<g class="whole"><Key x={180} y={110} size={1.6} /></g>
-						<g class="half left"><Padlock x={110} y={110} size={1.8} open /></g>
-						<g class="half right"><Key x={250} y={110} size={1.6} tone="var(--color-grass)" /></g>
-						<text x="110" y="170" class="caption">{tx.publicKey}</text>
-						<text x="250" y="170" class="caption">{tx.privateKey}</text>
-					</svg>
-				{:else if sc === 'rule'}
-					<svg
-						viewBox="0 0 360 230"
-						class="art"
-						role="img"
-						aria-label="{tx.rule.anyone}, {tx.rule.only}"
-					>
-						<Person x={40} y={110} tone="var(--color-brand)" />
-						<Person x={78} y={124} tone="var(--color-amber)" />
-						<Person x={116} y={110} tone="var(--color-muted)" />
-						<Padlock x={190} y={112} size={2.6} open={ruleOpen} />
-						<g class="slide" class:near={ruleKey && !reduce}>
-							<Key x={300} y={124} size={1.7} tone="var(--color-grass)" />
-						</g>
-						<text x="78" y="186" class="caption">{tx.rule.anyone}</text>
-						<text x="296" y="186" class="caption">
-							{#each twoLines(tx.rule.only) as ln, k (k)}
-								<tspan x="296" dy={k ? 15 : 0}>{ln}</tspan>
-							{/each}
-						</text>
-					</svg>
-				{:else if sc === 'rsa'}
-					<svg viewBox="0 0 360 230" class="art" role="img" aria-label="61 × 53 = 3233">
-						<text x="180" y="62" class="big mono">61 × 53 = 3233</text>
-						<text x="180" y="86" class="caption good">{tx.rsa.easy}</text>
-						<line x1="80" y1="108" x2="280" y2="108" class="ln faint" />
-						<text x="180" y="150" class="big mono">
-							3233 ÷ {PRIMES[trial]}
-							<tspan class={found ? 'good' : 'bad'}>{found ? '= 61 ✓' : '✗'}</tspan>
-						</text>
-						<text x="180" y="176" class="caption"
-							>{tx.rsa.tries.replace('{n}', String(trial + 1))}</text
-						>
-						<text x="180" y="204" class="caption warn">{tx.rsa.hard}</text>
-					</svg>
-				{:else}
-					<svg viewBox="0 0 360 230" class="art" role="img" aria-label="1973, 1997">
-						<path d="M120 62 H160 L170 72 H240 V156 H120 Z" class="folder" />
-						<g transform="rotate(-10 180 112)">
-							<rect x="134" y="98" width="92" height="28" rx="4" class="stamp" />
-							<text x="180" y="117" class="stamp-text">{tx.secret}</text>
-						</g>
-						<line x1="70" y1="196" x2="290" y2="196" class="road" />
-						<line x1="70" y1="196" x2="290" y2="196" class="road lit" />
-						<circle cx="70" cy="196" r="6" class="dot" />
-						<circle cx="290" cy="196" r="6" class="dot" />
-						<text x="70" y="220" class="year small">1973</text>
-						<text x="290" y="220" class="year small">1997</text>
-						<Padlock x={180} y={186} size={0.8} tone="var(--color-danger)" />
-					</svg>
-				{/if}
-			</div>
-		{/key}
-	</div>
+{#snippet padlock(size: number, open: boolean, color: string)}
+	<svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		<rect x="5" y="10.5" width="14" height="9.5" rx="2.5" stroke={color} stroke-width="2.4" />
+		<path
+			d={open ? 'M8.5 10.5V6a3.5 3.5 0 0 1 7 0v.5' : 'M8.5 10.5V7.5a3.5 3.5 0 0 1 7 0v3'}
+			stroke={color}
+			stroke-width="2.4"
+			stroke-linecap="round"
+		/>
+	</svg>
 {/snippet}
 
-<div class="stage">
-	<Guide steps={tx.steps} active={step} onselect={(k) => (peek = k)} {visual} />
+<div class="wrap">
+	<!-- which act we are in -->
+	<ol class="acts" aria-label={tx.actLabel.replace('{n}', String(act + 1))}>
+		{#each tx.acts as name, i (i)}
+			<li class:on={act === i} class:done={actDone[i]}>
+				<span class="num">{actDone[i] ? '✓' : i + 1}</span>
+				<span class="aname">{name}</span>
+			</li>
+		{/each}
+	</ol>
+
+	<!-- the action for this act, kept up top and clear of Nim -->
+	<div class="btns">
+		{#if act < 2 && actDone[act]}
+			<CallToActionButton onclick={nextAct}>
+				{tx.nextAct}
+			</CallToActionButton>
+		{:else if act === 0}
+			<CallToActionButton onclick={() => send('symKey')} disabled={step !== 0}>
+				{tx.sym.sendKey}
+			</CallToActionButton>
+			<CallToActionButton onclick={() => send('symRead')} disabled={step !== 2}>
+				{tx.sym.sendBox}
+			</CallToActionButton>
+		{:else if act === 1}
+			<CallToActionButton onclick={() => send('padlock')} disabled={step !== 0}>
+				{tx.asym.askLock}
+			</CallToActionButton>
+			<CallToActionButton onclick={() => send('sealed')} disabled={step !== 2}>
+				{tx.asym.sendBox}
+			</CallToActionButton>
+		{:else if !multiplied}
+			<CallToActionButton onclick={multiply}>
+				{tx.rsa.multiplyBtn}
+			</CallToActionButton>
+		{:else if found !== null && !finished}
+			<CallToActionButton onclick={nextRound}>
+				{tx.rsa.nextBtn}
+			</CallToActionButton>
+		{:else if round === targets.length - 1 && !finished}
+			<CallToActionButton onclick={letNimTry} disabled={autoRunning}>
+				{tx.rsa.autoBtn}
+			</CallToActionButton>
+		{/if}
+	</div>
+
+	{#if act < 2}
+		<div class="scene">
+			<!-- you -->
+			<div class="actor">
+				<div class="shrink"><Browser phase="loaded" /></div>
+				<span class="alabel">{tx.youLabel}</span>
+				<div class="hold">
+					{#if act === 0}
+						{@render keyIcon(13)}
+					{:else if step === 2}
+						<span class="pop">{@render padlock(14, true, 'var(--color-grass)')}</span>
+					{/if}
+				</div>
+			</div>
+
+			<!-- the road, with someone listening in the middle -->
+			<div class="road">
+				<div class="wire"></div>
+				<div class="snoop" class:grin={act === 0 && reached}>
+					<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+						<circle cx="12" cy="8" r="4" fill="var(--color-faint)" />
+						<path d="M4 21a8 8 0 0 1 16 0Z" fill="var(--color-faint)" />
+					</svg>
+					<span class="slabel">{tx.snooperLabel}</span>
+					{#if copied}
+						<span class="stag pop">
+							{#if act === 0}
+								{@render keyIcon(10)}{tx.sym.copiedTag}
+							{:else}
+								{@render padlock(10, true, 'var(--color-grass)')}{tx.asym.copiedTag}
+							{/if}
+						</span>
+					{/if}
+					{#if reached}
+						{#if act === 0}
+							<span class="stag bad pop">{tx.sym.readTag}, {tx.message}</span>
+						{:else}
+							<span class="stag pop">{tx.asym.stuckTag}</span>
+						{/if}
+					{/if}
+				</div>
+
+				{#if flying}
+					{#key `${act}${step}${mid}`}
+						<div class="chip" class:half={mid} class:back={act === 1 && step === 1}>
+							{#if step === 1 && act === 0}
+								{@render keyIcon(11)}{tx.keyChip}
+							{:else if step === 1}
+								{@render padlock(11, true, 'var(--color-grass)')}{tx.padlockChip}
+							{:else}
+								<span class="sealed">
+									{@render padlock(10, false, '#fff')}{act === 0 ? tx.cipher : tx.boxChip}
+								</span>
+							{/if}
+						</div>
+					{/key}
+				{/if}
+			</div>
+
+			<!-- the friend at nimbus.com -->
+			<div class="actor">
+				<div class="shrink" class:got={step === 4}><Browser phase="loaded" /></div>
+				<span class="alabel">{tx.friendLabel}</span>
+				<span class="asub">{tx.friendSub}</span>
+				<div class="hold">
+					{#if act === 1}
+						<span class="priv">{@render keyIcon(12)}{tx.privateKey}</span>
+					{:else if step >= 2}
+						<span class="pop">{@render keyIcon(13)}</span>
+					{/if}
+				</div>
+				{#if step === 4}
+					<span class="opened pop">{tx.message}</span>
+				{/if}
+			</div>
+		</div>
+
+		<p class="note">{note}</p>
+	{:else}
+		<div class="rsa">
+			{#if multiplied}
+				<p class="eq pop">
+					61 × 53 = <b>3233</b>
+					<span class="fast">{tx.rsa.instant}</span>
+				</p>
+			{/if}
+
+			{#if multiplied && !finished}
+				<p class="prompt">{tx.rsa.prompt.replace('{n}', String(n))}</p>
+				<p class="target">
+					{#if found !== null}
+						<span class="pop">{n} = {found} × {n / found}</span>
+					{:else}
+						{n} = ? × ?
+					{/if}
+				</p>
+				<div class="grid" role="group" aria-label={tx.rsa.pickHint}>
+					{#each primes as p (p)}
+						<button
+							type="button"
+							class="prime"
+							class:miss={tried.has(p) && found !== p}
+							class:hit={found === p || (found !== null && n / found === p)}
+							disabled={found !== null || tried.has(p) || autoRunning}
+							onclick={() => attempt(p)}>{p}</button
+						>
+					{/each}
+				</div>
+				<p class="count">
+					{tried.size ? triesText(tried.size) : tx.rsa.pickHint}
+				</p>
+			{/if}
+
+			{#if finished}
+				<div class="effort pop">
+					<p class="ehead">{tx.rsa.effortLabel}</p>
+					{#each targets as t, i (t)}
+						<div class="erow">
+							<span class="elabel">{t}</span>
+							<span class="track">
+								<span class="fill" style="width:{Math.max(8, (triesPer[i] / 18) * 100)}%"></span>
+							</span>
+							<span class="eval">{triesText(triesPer[i])}</span>
+						</div>
+					{/each}
+					<div class="erow">
+						<span class="elabel">RSA</span>
+						<span class="track"><span class="fill huge"></span></span>
+					</div>
+					<p class="forever">{tx.rsa.forever}</p>
+				</div>
+				<div class="real pop">
+					<p class="ehead">{tx.rsa.realLabel}</p>
+					<p class="digits">{bigNumber}</p>
+					<p class="rsub">{tx.rsa.realDigits}</p>
+				</div>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <style>
-	.stage {
-		display: flex;
-		width: 100%;
-		max-height: 100%;
-		justify-content: center;
-		overflow-x: hidden;
-		overflow-y: auto;
-		padding-bottom: 8px;
-	}
-	@media (max-width: 767px) {
-		.stage {
-			padding-bottom: 7rem;
-		}
-	}
-	.vis {
+	.wrap {
 		display: flex;
 		width: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 10px;
+		gap: 12px;
 	}
-	.scene {
-		display: flex;
-		width: 100%;
-		justify-content: center;
-	}
-	.art {
-		width: 100%;
-		max-width: 420px;
-		height: auto;
-		overflow: visible;
-	}
-	.with-photo {
-		display: flex;
-		width: 100%;
-		align-items: center;
-		justify-content: center;
-		gap: 10px;
-	}
-	.frame {
-		margin: 0;
-		width: 100px;
-		flex: none;
-		transform: rotate(2.5deg);
-		border: 1px solid var(--color-line);
-		border-radius: 6px;
-		background: var(--color-card);
-		padding: 5px 5px 6px;
-		box-shadow: 0 8px 20px rgba(22, 40, 60, 0.12);
-	}
-	.frame.wide {
-		width: 150px;
-		transform: rotate(-2deg);
-	}
-	.frame img {
-		display: block;
-		width: 100%;
-		height: auto;
-		border-radius: 3px;
-		filter: grayscale(0.15);
-	}
-	figcaption {
-		margin-top: 4px;
-		font-size: 9.5px;
-		line-height: 1.3;
-		text-align: center;
-		color: var(--color-muted);
-	}
-	@media (max-width: 767px) {
-		.frame {
-			width: 80px;
-		}
-		.frame.wide {
-			width: 116px;
-		}
-	}
-
-	.modes {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 6px;
-	}
-	.cap {
-		font-size: 11px;
-		font-weight: 700;
-		color: var(--color-muted);
-	}
-	.chips {
+	.acts {
 		display: flex;
 		flex-wrap: wrap;
 		justify-content: center;
 		gap: 6px;
 	}
-	.chip {
-		border: 1px solid var(--color-line);
+	.acts li {
+		display: inline-flex;
+		align-items: center;
+		gap: 5px;
 		border-radius: 999px;
+		border: 1px solid var(--color-line);
 		background: var(--color-card);
-		padding: 6px 14px;
-		font-size: 12.5px;
+		padding: 3px 10px 3px 4px;
+		font-size: 11px;
 		font-weight: 600;
-		color: var(--color-ink);
+		color: var(--color-faint);
 		transition:
-			border-color 0.2s,
-			background 0.2s;
+			color 0.2s,
+			border-color 0.2s;
 	}
-	.chip:hover {
+	.acts li.on {
 		border-color: var(--color-brand);
+		color: var(--color-ink);
 	}
-	.chip.on {
-		border-color: var(--color-brand);
-		background: var(--color-brand-soft);
-		color: var(--color-brand);
+	.num {
+		display: inline-grid;
+		place-items: center;
+		width: 17px;
+		height: 17px;
+		border-radius: 50%;
+		background: var(--color-line);
+		color: var(--color-muted);
+		font-size: 9.5px;
+		font-weight: 800;
+	}
+	.acts li.on .num {
+		background: var(--color-brand);
+		color: #fff;
+	}
+	.acts li.done .num {
+		background: var(--color-grass);
+		color: #fff;
+	}
+	.btns {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 10px;
+		min-height: 46px;
+	}
+	.btns :global(.cta) {
+		padding: 10px 18px;
+		font-size: 13px;
 	}
 
-	/* drawing */
+	/* acts 1 and 2, the road */
+	.scene {
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		gap: 4px;
+		width: min(94vw, 380px);
+	}
+	.actor {
+		display: flex;
+		width: 84px;
+		flex: none;
+		flex-direction: column;
+		align-items: center;
+		gap: 3px;
+	}
+	.shrink {
+		width: 79px;
+		height: 125px;
+		overflow: visible;
+	}
+	.shrink > :global(.phone) {
+		max-width: none;
+		transform: scale(0.5);
+		transform-origin: top left;
+		transition: border-color 0.3s;
+	}
+	.shrink.got > :global(.phone) {
+		border-color: var(--color-grass);
+	}
+	.alabel {
+		font-size: 10.5px;
+		font-weight: 700;
+		color: var(--color-muted);
+		white-space: nowrap;
+	}
+	.asub {
+		margin-top: -3px;
+		font-size: 9px;
+		font-weight: 600;
+		color: var(--color-faint);
+	}
+	.hold {
+		display: flex;
+		min-height: 16px;
+		align-items: center;
+		justify-content: center;
+	}
+	.priv {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		border-radius: 999px;
+		background: var(--color-amber-soft);
+		color: var(--color-amber);
+		font-size: 8.5px;
+		font-weight: 800;
+		padding: 2px 6px;
+		white-space: nowrap;
+	}
+	.opened {
+		border-radius: 6px;
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+		font-size: 9px;
+		font-weight: 800;
+		padding: 2px 6px;
+		white-space: nowrap;
+	}
 	.road {
-		stroke: var(--color-line);
-		stroke-width: 4;
-		stroke-linecap: round;
+		position: relative;
+		flex: 1;
+		min-width: 0;
+		height: 140px;
 	}
-	.road.lit {
-		stroke: var(--color-danger);
-		opacity: 0.35;
+	.wire {
+		position: absolute;
+		top: 42%;
+		left: 0;
+		right: 0;
+		height: 2px;
+		border-radius: 2px;
+		background: var(--color-line);
 	}
-	.tap {
-		stroke: var(--color-line);
-		stroke-width: 2;
+	.snoop {
+		position: absolute;
+		top: calc(42% + 10px);
+		left: 50%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 3px;
+		line-height: 1;
+		transform: translateX(-50%);
+		transition: transform 0.2s ease;
 	}
-	.ln {
-		fill: none;
-		stroke: var(--color-muted);
-		stroke-width: 2;
-		stroke-linecap: round;
+	.snoop.grin {
+		transform: translateX(-50%) scale(1.1);
 	}
-	.ln.faint {
-		stroke: var(--color-line);
+	.slabel {
+		font-size: 8.5px;
+		font-weight: 700;
+		color: var(--color-faint);
+		white-space: nowrap;
 	}
-	.mover {
-		transition: transform 1.3s ease-in-out;
+	.stag {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		border-radius: 999px;
+		background: var(--color-paper);
+		border: 1px solid var(--color-line);
+		color: var(--color-muted);
+		font-size: 8px;
+		font-weight: 800;
+		padding: 2px 6px;
+		white-space: nowrap;
 	}
-	.mover.snap {
-		transition: none;
+	.stag.bad {
+		border-color: var(--color-danger);
+		background: var(--color-danger);
+		color: #fff;
 	}
-	.box {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 2;
+	.chip {
+		position: absolute;
+		top: calc(42% - 24px);
+		left: 0;
+		z-index: 2;
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		border-radius: 999px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-ink);
+		font-size: 9px;
+		font-weight: 800;
+		padding: 2px 8px;
+		white-space: nowrap;
+		animation: go1 1s linear forwards;
 	}
-	.box-line {
-		stroke: var(--color-amber);
-		stroke-width: 1.5;
+	.chip.half {
+		animation: go2 1s linear forwards;
+	}
+	.chip.back {
+		animation: back1 1s linear forwards;
+	}
+	.chip.back.half {
+		animation: back2 1s linear forwards;
+	}
+	.sealed {
+		display: inline-flex;
+		align-items: center;
+		gap: 3px;
+		margin: -2px -8px;
+		border-radius: 999px;
+		background: var(--color-ink);
+		color: var(--color-paper);
+		padding: 2px 8px;
+	}
+	@keyframes go1 {
+		from {
+			left: 0;
+			opacity: 0;
+		}
+		20% {
+			opacity: 1;
+		}
+		to {
+			left: 34%;
+		}
+	}
+	@keyframes go2 {
+		from {
+			left: 34%;
+		}
+		to {
+			left: 68%;
+		}
+	}
+	@keyframes back1 {
+		from {
+			left: 68%;
+			opacity: 0;
+		}
+		20% {
+			opacity: 1;
+		}
+		to {
+			left: 34%;
+		}
+	}
+	@keyframes back2 {
+		from {
+			left: 34%;
+		}
+		to {
+			left: 0;
+		}
+	}
+	.pop {
+		display: inline-flex;
+		align-items: center;
+		animation: popin 0.25s ease;
+	}
+	@keyframes popin {
+		from {
+			transform: scale(0.5);
+			opacity: 0;
+		}
+		to {
+			transform: scale(1);
+			opacity: 1;
+		}
 	}
 	.note {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		stroke-width: 1.5;
-	}
-	.note.bad {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-	}
-	.note-text {
-		font-size: 11px;
-		font-weight: 700;
-		fill: var(--color-ink);
-		text-anchor: middle;
-	}
-	.tag {
-		font-size: 11px;
-		font-weight: 700;
-		fill: var(--color-grass);
-	}
-	.tag.bad {
-		fill: var(--color-danger);
-	}
-	.tiny {
-		font-size: 9.5px;
-		font-weight: 700;
-		fill: var(--color-grass);
-		text-anchor: middle;
-	}
-	.caption {
+		min-height: 2.6em;
+		max-width: 330px;
+		text-align: center;
 		font-size: 12px;
-		font-weight: 700;
-		fill: var(--color-muted);
-		text-anchor: middle;
-	}
-	.caption.good,
-	.good {
-		fill: var(--color-grass);
-	}
-	.bad {
-		fill: var(--color-danger);
-	}
-	.caption.warn {
-		fill: var(--color-amber);
-	}
-	.year {
-		font-size: 14px;
-		font-weight: 700;
-		fill: var(--color-faint);
-		text-anchor: middle;
-		font-family: var(--font-mono, ui-monospace, monospace);
-	}
-	.year.small {
-		font-size: 12px;
-	}
-	.parch {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 2;
-	}
-	.big {
-		font-family: var(--font-mono, ui-monospace, monospace);
-		font-size: 26px;
-		font-weight: 700;
-		fill: var(--color-ink);
-		text-anchor: middle;
-	}
-	.big.mono {
-		font-size: 22px;
-	}
-	.big.brand {
-		fill: var(--color-brand);
-	}
-	.shift {
-		font-size: 11px;
-		font-weight: 700;
-		fill: var(--color-amber);
-		text-anchor: middle;
-	}
-	.halo {
-		fill: var(--color-amber-soft);
-		opacity: 0;
-		transition: opacity 0.3s;
-	}
-	.halo.on {
-		opacity: 1;
-	}
-	.slide {
-		transition: transform 0.8s ease;
-	}
-	.slide.near {
-		transform: translateX(-58px);
-	}
-	.folder {
-		fill: var(--color-amber-soft);
-		stroke: var(--color-amber);
-		stroke-width: 2;
-		stroke-linejoin: round;
-	}
-	.stamp {
-		fill: none;
-		stroke: var(--color-danger);
-		stroke-width: 2.5;
-	}
-	.stamp-text {
-		font-size: 15px;
-		font-weight: 800;
-		letter-spacing: 0.12em;
-		fill: var(--color-danger);
-		text-anchor: middle;
-	}
-	.dot {
-		fill: var(--color-card);
-		stroke: var(--color-muted);
-		stroke-width: 2;
+		font-weight: 600;
+		color: var(--color-muted);
 	}
 
-	@media (prefers-reduced-motion: no-preference) {
-		.reveal {
-			opacity: 0;
-			animation: reveal 5s ease infinite;
-		}
-		.whole {
-			animation: whole 5s ease-in-out infinite;
-		}
-		.half.left {
-			animation: left 5s ease-in-out infinite;
-		}
-		.half.right {
-			animation: right 5s ease-in-out infinite;
+	/* act 3, the primes */
+	.rsa {
+		display: flex;
+		width: min(94vw, 360px);
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+	}
+	.eq {
+		gap: 8px;
+		font-family: var(--font-display);
+		font-size: 22px;
+		color: var(--color-ink);
+	}
+	.eq b {
+		font-weight: 600;
+	}
+	.fast {
+		border-radius: 999px;
+		background: var(--color-grass-soft);
+		color: var(--color-grass);
+		font-family: var(--font-sans);
+		font-size: 10px;
+		font-weight: 800;
+		padding: 2px 8px;
+	}
+	.prompt {
+		text-align: center;
+		font-size: 12.5px;
+		font-weight: 600;
+		color: var(--color-muted);
+	}
+	.target {
+		font-family: var(--font-display);
+		font-size: 26px;
+		color: var(--color-ink);
+	}
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(6, minmax(0, 1fr));
+		gap: 6px;
+		width: 100%;
+		max-width: 300px;
+	}
+	.prime {
+		height: 32px;
+		border-radius: 9px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		color: var(--color-ink);
+		font-size: 13px;
+		font-weight: 700;
+		transition:
+			background 0.2s,
+			color 0.2s,
+			opacity 0.2s;
+	}
+	.prime:enabled:hover {
+		border-color: var(--color-brand);
+	}
+	.prime.miss {
+		opacity: 0.35;
+		text-decoration: line-through;
+	}
+	.prime.hit {
+		border-color: var(--color-grass);
+		background: var(--color-grass);
+		color: #fff;
+		opacity: 1;
+	}
+	.prime:disabled:not(.miss):not(.hit) {
+		opacity: 0.7;
+	}
+	.count {
+		min-height: 1.4em;
+		font-size: 11.5px;
+		font-weight: 600;
+		color: var(--color-faint);
+	}
+	.effort,
+	.real {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		gap: 6px;
+		border-radius: 14px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 10px 12px;
+	}
+	.ehead {
+		font-size: 10.5px;
+		font-weight: 800;
+		color: var(--color-muted);
+	}
+	.erow {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+	}
+	.elabel {
+		width: 34px;
+		flex: none;
+		font-size: 11px;
+		font-weight: 700;
+		color: var(--color-ink);
+	}
+	.track {
+		position: relative;
+		flex: 1;
+		height: 8px;
+		overflow: hidden;
+		border-radius: 999px;
+		background: var(--color-paper);
+	}
+	.fill {
+		position: absolute;
+		inset: 0 auto 0 0;
+		border-radius: 999px;
+		background: var(--color-brand);
+		animation: grow 0.6s ease;
+	}
+	.fill.huge {
+		width: 100%;
+		background: var(--color-danger);
+		animation: grow 1.4s ease;
+	}
+	@keyframes grow {
+		from {
+			width: 0;
 		}
 	}
+	.eval {
+		width: 64px;
+		flex: none;
+		text-align: right;
+		font-size: 10px;
+		font-weight: 600;
+		color: var(--color-faint);
+	}
+	.forever {
+		text-align: right;
+		font-size: 10px;
+		font-weight: 800;
+		color: var(--color-danger);
+	}
+	.digits {
+		overflow-wrap: anywhere;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 10px;
+		line-height: 1.45;
+		color: var(--color-ink);
+	}
+	.rsub {
+		font-size: 10px;
+		font-weight: 600;
+		color: var(--color-faint);
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.whole {
-			opacity: 0;
-		}
-		.halo,
-		.slide {
-			transition: none;
-		}
-	}
-	@keyframes reveal {
-		0%,
-		10% {
-			opacity: 0;
-		}
-		25%,
-		85% {
-			opacity: 1;
-		}
-		100% {
-			opacity: 0;
+		.chip,
+		.pop,
+		.fill,
+		.fill.huge {
+			animation-duration: 0.01s;
 		}
 	}
-	@keyframes spin {
-		to {
-			transform: rotate(360deg);
+	@media (min-width: 768px) {
+		.wrap {
+			gap: 16px;
 		}
-	}
-	@keyframes lamp {
-		0%,
-		70%,
-		100% {
-			fill: var(--color-line);
+		.acts li {
+			font-size: 12.5px;
 		}
-		80% {
-			fill: var(--color-amber);
+		.btns :global(.cta) {
+			padding: 12px 22px;
+			font-size: 14px;
 		}
-	}
-	@keyframes whole {
-		0%,
-		25% {
-			opacity: 1;
+		.scene {
+			width: 560px;
+			gap: 10px;
 		}
-		40%,
-		90% {
-			opacity: 0;
+		.actor {
+			width: 116px;
 		}
-		100% {
-			opacity: 1;
+		.shrink {
+			width: 107px;
+			height: 170px;
 		}
-	}
-	@keyframes left {
-		0%,
-		25% {
-			opacity: 0;
-			transform: translateX(70px);
+		.shrink > :global(.phone) {
+			transform: scale(0.68);
 		}
-		45%,
-		90% {
-			opacity: 1;
-			transform: translateX(0);
+		.road {
+			height: 180px;
 		}
-		100% {
-			opacity: 0;
-			transform: translateX(70px);
+		.alabel {
+			font-size: 12px;
 		}
-	}
-	@keyframes right {
-		0%,
-		25% {
-			opacity: 0;
-			transform: translateX(-70px);
+		.asub,
+		.slabel,
+		.priv,
+		.opened {
+			font-size: 10.5px;
 		}
-		45%,
-		90% {
-			opacity: 1;
-			transform: translateX(0);
+		.chip,
+		.stag {
+			font-size: 10.5px;
 		}
-		100% {
-			opacity: 0;
-			transform: translateX(-70px);
+		.note {
+			max-width: 460px;
+			font-size: 14px;
+		}
+		.rsa {
+			width: 420px;
+		}
+		.eq {
+			font-size: 26px;
+		}
+		.target {
+			font-size: 32px;
+		}
+		.prime {
+			height: 38px;
+			font-size: 14px;
+		}
+		.grid {
+			max-width: 360px;
 		}
 	}
 </style>

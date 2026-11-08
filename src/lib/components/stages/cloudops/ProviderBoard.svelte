@@ -50,10 +50,7 @@
 	const phase = $derived(PHASES[Math.min(step, PHASES.length - 1)]);
 	const onLast = $derived(beat >= tx.intro.length - 1);
 
-	let reduce = $state(false);
-	$effect(() => {
-		reduce = prefersReducedMotion();
-	});
+	let reduce = $derived(prefersReducedMotion());
 
 	// ---- the watch part ----
 	let flipOn = $state(true);

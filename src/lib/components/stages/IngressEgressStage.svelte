@@ -64,7 +64,7 @@
 			{/if}
 			{#key flyKey}
 				{#if dir}
-					{#each [0, 1, 2] as i}
+					{#each [0, 1, 2] as i, eachIndex1701 (eachIndex1701)}
 						<span class="photo {dir}" style="animation-delay:{i * 0.16}s">
 							<svg viewBox="0 0 24 24" aria-hidden="true">
 								<rect x="3" y="5" width="18" height="14" rx="2.5" fill="currentColor" />
@@ -202,7 +202,7 @@
 		left: 0;
 		right: 0;
 		top: 50%;
-		border-top: 2px dashed #e3ddd3;
+		border-top: 2px solid #e3ddd3;
 	}
 	.tag {
 		position: absolute;

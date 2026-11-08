@@ -3,78 +3,71 @@ import type { SniffingText } from './types';
 export const en: SniffingText = {
 	title: 'Sniffing and MITM',
 	intro: [
-		'You sit down in a café, order a coffee, and join the free WiFi. Handy! But that WiFi is one shared room. Your laptop, the stranger at the next table, and everyone else talk through the same air.',
-		'Radio waves do not care who they are meant for. Anyone nearby with a free app can quietly record every little packet of data flying past. That is called <b>sniffing</b>, like a dog sniffing every smell in the room.',
-		'Watch Sari log in to nimbus.com over plain <b>HTTP</b>. Her login travels like a postcard, so the snooper reads the name and the password exactly as she typed them.',
-		'Now the same login over <b>HTTPS</b>. Everything is scrambled before it leaves the laptop, like a sealed envelope. The snooper still records it, but only gets noise. How that lock is built lives in [[SSL and TLS|security/tls]].',
-		"A sneakier snooper does not just listen. They start a fake hotspot with a name like the café's, so everything passes through <b>their</b> laptop first. That is a <b>man in the middle</b> attack. HTTPS still holds, the browser checks who is really answering and warns you if it is not nimbus.com.",
-		'[ingat] <b>No padlock, no password.</b> Before you type anything secret, look for the little lock next to the address. No lock, no typing.',
-		'[fyi] Same tool, different world. Network engineers record traffic on purpose to fix problems, with tools like [[Wireshark|network/wireshark]]. The tool is the same, what matters is whose network it is. On public WiFi a [[VPN|network/vpn]] adds one more lock on top.',
-		'Want to see it again? Switch between HTTP and HTTPS and watch what the snooper gets. Or just enjoy your coffee, that works too.'
+		'When data crosses a network, devices along its path can observe traffic. Here we compare what is visible when the browser uses HTTP and HTTPS.',
+		'<b>Sniffing</b> captures network packets for inspection. What can be captured depends on the device’s position, network settings, and encryption. Sharing WiFi does not automatically expose every conversation.',
+		'If an HTTP request is captured, its contents can be read as plain text. The example carries a username and password from a simulated login form.',
+		'<b>HTTPS</b> protects HTTP communication with TLS. A network observer can see some connection metadata, but encryption protects request contents. Learn how verification works in [[TLS|security/tls]].',
+		'An attacker controlling the communication path may also try to modify messages or impersonate the server. This is <b>MITM</b>, man in the middle. Explore it further in [[MITM|security/mitm]].',
+		'[fyi] Same word, different world. Recording traffic is not only an attacker trick. Network engineers do it on purpose to fix problems, with tools like [[Wireshark|network/wireshark]]. The tool is the same, what matters is whose traffic it is and whether they said yes.',
+		'[ingat] <b>Visible packets do not necessarily mean readable contents.</b> Check HTTPS and the site address. Encryption protects transit but does not establish that a site owner is trustworthy.',
+		'Everything here happens in a pretend café, nobody real gets hurt. Log in to nimbus.com over HTTP, then over HTTPS, and watch what the snooper at the next table gets.'
 	],
 	reactions: {
-		http: 'Postcard mode. The snooper reads <b>sari</b> and <b>kopi123</b> in plain text. Anyone on this WiFi with a free app could do the same.',
+		http: 'The HTTP request was captured in this simulated network. Its username and password are readable because the request contents are not encrypted.',
 		https:
-			'Envelope mode. The snooper can tell Sari visited nimbus.com, but every word inside is scrambled noise. That is HTTPS doing its job.'
+			'TLS protects the request contents. Observers can still see metadata such as the destination IP address and traffic size. Domain visibility also depends on DNS and TLS settings.',
+		real: 'You selected the network named by the cafe staff. Try the second hotspot to compare its path in the simulation.',
+		twin: "You just joined the snooper's own hotspot. It looks like the café WiFi, but now every packet passes through their laptop before reaching the internet. They are not only listening anymore, they are standing in the middle.",
+		mitmHttp:
+			'Look at your screen. The snooper slipped a fake box into the page asking for your card number. Over plain HTTP your phone has no way to notice the page was changed along the way.',
+		mitmHttps:
+			'The browser rejects an untrusted certificate and does not forward the application request. Investigate the warning before sending data.'
 	},
-	steps: [
-		{
-			tag: 'The café',
-			title: 'Shared WiFi',
-			body: 'Public WiFi is one <b>shared room</b>. Everyone in the café talks through the same box and the same air.'
-		},
-		{
-			tag: 'Listening',
-			title: 'Sniffing',
-			body: 'Quietly <b>recording</b> the packets that fly past. It needs no break in, only being nearby.'
-		},
-		{
-			tag: 'Postcard',
-			title: 'Plain HTTP',
-			body: 'Data travels as <b>readable text</b>. Whoever records it can read the password word for word.'
-		},
-		{
-			tag: 'Envelope',
-			title: 'HTTPS',
-			body: 'Data is <b>scrambled</b> before it leaves. Only nimbus.com has the key to open it again.'
-		},
-		{
-			tag: 'In the middle',
-			title: 'Man in the middle',
-			body: 'A fake hotspot puts the snooper <b>on the path</b>. HTTPS still holds, and the browser warns if someone pretends to be nimbus.com.'
-		},
-		{
-			tag: 'Make it stick',
-			title: 'No padlock, no password',
-			body: 'Look for the <b>lock</b> next to the address before typing anything secret.'
-		},
-		{
-			tag: 'Side note',
-			title: 'Same tool, other hands',
-			body: 'Engineers record traffic on <b>their own</b> network to fix problems. Permission makes the difference.'
-		},
-		{
-			tag: 'Optional',
-			title: 'Try both',
-			body: "Flip between HTTP and HTTPS and look at the snooper's screen."
-		}
-	],
-	youLabel: "Sari's laptop",
-	routerLabel: 'Café WiFi',
+	acts: ['Sniffing', 'Man in the middle'],
+	actLabel: 'Act {n}',
+	nextAct: 'On to the next act',
+	youLabel: 'You',
 	serverLabel: 'nimbus.com',
+	routerLabel: 'Café WiFi',
 	snooperLabel: 'Snooper at the next table',
-	twinLabel: 'Fake hotspot',
-	engineerLabel: 'Engineer, own network',
-	notSecure: 'Not secure',
+	twinLabel: "Snooper's hotspot",
+	sendHttp: 'Log in over HTTP',
+	sendHttps: 'Log in over HTTPS',
+	loginTitle: 'Log in',
+	userLabel: 'Username',
+	passLabel: 'Password',
 	loginBtn: 'Log in',
-	snoop: {
-		title: 'Captured',
-		waiting: 'Waiting',
-		recording: 'Recording packets',
-		readable: 'readable',
-		noise: 'scrambled'
+	loggedIn: 'Welcome back, Sari',
+	captureTitle: 'Captured packets',
+	captureEmpty: 'Waiting for something to fly past',
+	readableTag: 'readable',
+	scrambledTag: 'scrambled',
+	pickWifi: 'Pick a WiFi network',
+	wifiReal: 'Nimbus Cafe',
+	wifiTwin: 'Nimbus Cafe Free',
+	strongSignal: 'strongest signal',
+	openHttp: 'Open nimbus.com over HTTP',
+	openHttps: 'Open nimbus.com over HTTPS',
+	blankPage: 'Not connected yet',
+	pageWelcome: 'Welcome to nimbus.com',
+	tamperedTitle: 'Security check',
+	tamperedBody: 'Enter your card number to continue',
+	tamperedTag: 'added by the snooper',
+	warnTitle: 'Your connection is not private',
+	warnBody: 'Someone may be pretending to be nimbus.com',
+	warnBack: 'Back to safety',
+	capture: {
+		swapped: 'page changed, card box slipped in',
+		refused: 'fake certificate, browser said no'
 	},
-	rule: 'No padlock, no password',
-	pickLabel: 'Send the login over',
-	modes: { http: 'HTTP', https: 'HTTPS' }
+	notes: {
+		idle: 'Compare request contents over HTTP and HTTPS',
+		http: 'HTTP login data is unencrypted and readable in this capture',
+		https: 'Over HTTPS the login flies past as a sealed envelope',
+		pick: 'Two networks with almost the same name. Which one is the café?',
+		real: 'The real café WiFi, the one the staff told you about',
+		twin: 'Now every packet stops at the snooper first',
+		mitmHttp: 'The page arrived, but not the page nimbus.com sent',
+		mitmHttps: 'Certificate verification fails, application request blocked'
+	}
 };

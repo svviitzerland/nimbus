@@ -6,22 +6,17 @@ import { en } from './en';
 export const signature: Lesson = {
 	id: 'signature',
 	mood: 'thinking',
-	moods: [
-		'thinking',
-		'calm',
-		'idea',
-		'wink',
-		'surprised',
-		'calm',
-		'happy',
-		'worried',
-		'idea',
-		'happy'
-	],
+	moods: ['thinking', 'calm', 'idea', 'thinking', 'calm', 'happy', 'wink', 'excited'],
 	reactionMood: {
-		clean: 'happy',
-		tampered: 'surprised'
+		fingerprint: 'idea',
+		signed: 'happy',
+		verified: 'excited',
+		edit: 'wink',
+		untouched: 'thinking',
+		tampered: 'surprised',
+		forged: 'happy'
 	},
+	playable: true,
 	stage: SignatureStage,
 	text: { id, en }
 };

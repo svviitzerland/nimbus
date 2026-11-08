@@ -6,10 +6,10 @@ export const id: ShellScriptText = {
 		'Tiap malam kamu nyimpen salinan nimbus.com, jaga jaga. Lihat Nim ngerjain pakai tangan. Bikin folder backups, terus bungkus seluruh situs jadi satu file pakai <b>tar</b> (mirip bikin file zip). Sekarang bayangin ngetik itu tiap malam.',
 		'Komputer suka kerjaan membosankan, jadi kita serahin aja. <b>Shell script</b> itu file teks biasa isinya perintah, persis yang biasa kamu ketik. Nim nampilin backup.sh pakai <b>cat</b>, dan kartunya nulis dirinya sendiri.',
 		'Baris paling pertama itu spesial. <b>#!/bin/bash</b> (orang nyebutnya shebang) ngasih tau Linux program mana yang harus baca file ini. Di sini bash, shell yang sama tempat kamu ngetik.',
-		'Baris kedua bikin <b>variabel</b>, kotak bernama buat nyimpen nilai. DAY nyimpen tanggal hari ini, dan di bawahnya <b>$DAY</b> nuangin isinya ke nama file. Jadi tiap malam backupnya dapat nama baru, nggak ada yang ketimpa.',
-		'Script itu program, jadi dia butuh saklar run, persis kayak di [[Permission dan sudo|linux/permissions]]. Nim ngetik <b>chmod +x backup.sh</b>, dan kartunya bilang boleh jalan.',
-		'Sekarang <b>./backup.sh</b>. Bash baca barisnya dari atas ke bawah, persis kayak resep di [[Program dan algoritma|basics/program]], dan satu kotak baru mendarat di rak. Satu perintah pendek ngerjain semua ketikan tadi.',
-		'[ingat] Script itu resep buat terminal. Tulis sekali, <b>chmod +x</b> sekali, terus <b>./</b> jalanin sesering yang kamu mau. Gampangnya, tulis, izinin, jalan.',
+		'Variabel <b>DAY</b> menyimpan tanggal, lalu <b>$DAY</b> dipakai pada nama file backup. Tanggal yang berbeda menghasilkan nama berbeda. Jika dijalankan dua kali pada tanggal yang sama, script ini bisa menimpa file sebelumnya.',
+		'Agar script dapat dieksekusi langsung, beri izin eksekusi memakai <b>chmod +x backup.sh</b>. Pengaturan ini dibahas di [[Permission dan sudo|linux/permissions]].',
+		'Jalankan <b>./backup.sh</b>. Bash menjalankan perintah dalam script sehingga folder dan arsip backup dibuat tanpa mengetik ulang setiap baris.',
+		'[ingat] Tulis perintah dalam file. Dengan shebang dan izin eksekusi yang sesuai, jalankan script memakai ./nama-file.',
 		'[fyi] Pasangin script sama <b>cron</b>, jam wekernya Linux, dan dia jalan jam 2 pagi waktu kamu tidur. Begitulah server beneran ngerjain [[backup|devops/backup]] tiap malam.',
 		'Giliranmu. Udah malam berikutnya nih. Ketik <b>./backup.sh</b> dan lihat kotak baru dengan tanggal baru mendarat di rak.'
 	],
@@ -19,8 +19,8 @@ export const id: ShellScriptText = {
 			'Itu juga bisa. <b>bash backup.sh</b> nyuruh bash baca filenya, jadi malah nggak butuh saklar run.',
 		chmod: 'Saklar run sudah nyala. Sekarang <b>./backup.sh</b> bisa jalanin dia.',
 		chmodOff:
-			'Kamu nyabut saklar runnya, jadi ./backup.sh bakal ditolak. Pasang lagi pakai <b>chmod +x backup.sh</b>.',
-		read: 'Itu seluruh scriptnya, lima baris biasa. Nggak ada sulap, cuma perintah yang tadinya kamu ketik sendiri.',
+			'Kamu nyabut saklar run nya, jadi ./backup.sh bakal ditolak. Pasang lagi pakai <b>chmod +x backup.sh</b>.',
+		read: 'File ini berisi urutan perintah backup. Shell membaca dan menjalankan perintah tersebut ketika script dipanggil.',
 		runDenied:
 			'Permission denied, scriptnya belum punya saklar run. Kasih pakai <b>chmod +x backup.sh</b>.',
 		missing:
@@ -31,7 +31,7 @@ export const id: ShellScriptText = {
 	panels: [
 		{
 			tag: 'Manual',
-			title: 'Baris yang sama tiap malam',
+			title: 'Mengulang perintah yang sama',
 			body: '<b>mkdir</b> bikin folder, <b>tar</b> bungkus banyak file jadi satu. Sekali sih oke, tiap malam capek, dan gampang salah ketik tengah malam.'
 		},
 		{
@@ -41,37 +41,37 @@ export const id: ShellScriptText = {
 		},
 		{
 			tag: 'Shebang',
-			title: 'Siapa yang baca file ini',
+			title: 'Menentukan interpreter',
 			body: '<b>#!/bin/bash</b> ditaruh di baris satu. Dia nyebut program yang jalanin sisanya, di sini bash.'
 		},
 		{
 			tag: 'Variabel',
-			title: 'Kotak bernama',
+			title: 'Variabel DAY',
 			body: '<b>DAY=</b> nyimpen nilai, <b>$DAY</b> makai nilainya. <b>$(date +%F)</b> jalanin date dan masukin jawabannya, kayak 2026 11 03.'
 		},
 		{
 			tag: 'chmod +x',
-			title: 'Boleh jalan',
+			title: 'Memberi izin eksekusi',
 			body: 'Tanpa saklar run, Linux nolak jalanin filenya. Satu chmod dan dia dianggap program.'
 		},
 		{
 			tag: './backup.sh',
-			title: 'Dari atas ke bawah',
+			title: 'Menjalankan script',
 			body: '<b>./</b> artinya file yang ada di sini. Bash baca tiap baris berurutan, dan sorotannya ikut jalan.'
 		},
 		{
-			tag: 'Biar nempel',
-			title: 'Tulis, izinin, jalan',
+			tag: 'Cara ingat',
+			title: 'Membuat dan menjalankan script',
 			body: 'Tulis resepnya sekali, kasih saklar run sekali, lalu satu baris pendek ngerjain semuanya.'
 		},
 		{
 			tag: 'Info',
-			title: 'Biar jalan sendiri',
+			title: 'Menjadwalkan script',
 			body: '<b>cron</b> nyalain perintah sesuai jadwal, tiap malam, tiap jam, tiap Senin. Script dan cron itu pasangan.'
 		},
 		{
 			tag: 'Giliranmu',
-			title: 'Backup malam ini',
+			title: 'Jalankan backup',
 			body: 'Ketik <b>./backup.sh</b> lalu tekan Enter. Tiap jalan itu malam baru, jadi tiap jalan nambah satu kotak.'
 		}
 	],
@@ -87,6 +87,6 @@ export const id: ShellScriptText = {
 	byHand: 'Malam ini, pakai tangan',
 	runnableChip: 'boleh jalan',
 	emptyShelf: 'masih kosong',
-	rule: 'Tulis sekali, chmod +x sekali, ./ selamanya.',
+	rule: 'chmod +x memberi izin eksekusi. ./backup.sh menjalankan script dari folder saat ini.',
 	nightLine: '# malam berikutnya, {day}'
 };

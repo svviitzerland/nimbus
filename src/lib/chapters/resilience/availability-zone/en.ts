@@ -8,7 +8,7 @@ export const en: AZText = {
 		'Hardware fails too, a single disk or server can die at any time, but that is usually handled by spare parts (redundancy) inside the data center.',
 		'The bigger danger is when a whole data center building falls. The question is, how does your site stay up when that happens?',
 		'Big services make a promise called an <b>SLA</b> (Service Level Agreement), how much of the year they stay up, the <b>uptime</b>. 99.9% sounds perfect, yet it still allows about 8.8 hours down a year. 99.99% allows only about 53 minutes. A single building can never promise that.',
-		'[ingat] Every extra 9 cuts the downtime by ten. Two nines is about 3.6 days a year, three nines about 8.8 hours, four nines about 53 minutes, five nines about 5 minutes. People call it "chasing nines".',
+		'[ingat] A region chooses an area; zones separate failure locations within it.',
 		'The answer is, a <b>region</b> is not a single building. Inside it are several <b>Availability Zones</b> (AZ), separate data centers set kilometers apart, each with its own power and network. So if one AZ runs into trouble, the others keep running.',
 		'The map is open with two regions on it. Step into one, spread your servers across several AZs, then trigger an outage yourself.'
 	],
@@ -35,14 +35,6 @@ export const en: AZText = {
 	activeZones: 'Active AZs',
 	regions: { virginia: 'Virginia', singapore: 'Singapore' },
 	strikeLabel: 'Middle East',
-	slaTitle: 'Allowed downtime per year',
-	sla: [
-		{ pct: '99%', down: 'about 3.6 days' },
-		{ pct: '99.9%', down: 'about 8.8 hours' },
-		{ pct: '99.99%', down: 'about 53 minutes' },
-		{ pct: '99.999%', down: 'about 5 minutes' }
-	],
-	slaRule: 'One more 9, ten times less downtime',
 	news: [
 		{
 			src: 'CNBC, 2026',
@@ -89,5 +81,13 @@ export const en: AZText = {
 			head: "Japan's quake, blackouts and fuel shortages strain data centers",
 			url: 'https://www.datacenterdynamics.com/en/news/the-after-effect-of-the-japanese-earthquake/'
 		}
-	]
+	],
+	slaTitle: 'Allowed downtime per year',
+	sla: [
+		{ pct: '99%', down: 'about 3.6 days' },
+		{ pct: '99.9%', down: 'about 8.8 hours' },
+		{ pct: '99.99%', down: 'about 53 minutes' },
+		{ pct: '99.999%', down: 'about 5 minutes' }
+	],
+	slaRule: 'One more 9, ten times less downtime'
 };

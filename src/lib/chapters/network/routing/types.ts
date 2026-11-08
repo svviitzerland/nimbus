@@ -1,20 +1,30 @@
 import type { LessonText } from '../../types';
 
 export interface RoutingText extends LessonText {
-	/** One side panel step per beat, in the same order as `intro`. */
-	steps: { title: string; body: string; tag?: string }[];
-	laptopLabel: string; // you, the sender
-	homeRouter: string; // the router at home
-	ispRouter: string; // the ISP's router, the one with the big signpost
-	nextRouter: string; // the router near the nimbus.com server
-	otherLabel: string; // the cloud of other networks
-	serverLabel: string; // nimbus.com
+	laptopLabel: string; // the sender, your office laptop
+	routerA: string; // the router whose table the learner edits
+	routerB: string;
+	routerC: string;
+	knowsB: string; // tiny caption under Router B, what its table knows
+	knowsC: string; // tiny caption under Router C
+	serverLabel: string; // the nimbus.com server
 	serverSub: string; // its address
-	packetTo: string; // the address label shown on the packet
-	signNimbus: string; // signpost arm towards nimbus.com
-	signOther: string; // signpost arm towards other networks
-	signDefault: string; // the home router's one arm, the default route
-	droppedTag: string; // badge where a packet is dropped
-	knockBtn: string; // optional play, knocks the signpost over
-	fixBtn: string; // puts it back
+	filesLabel: string; // the other server, behind Router C
+	packetChip: string; // label on the travelling packet
+	tableTitle: string; // template with {name}, heading over the editable table
+	destCol: string; // column heading, destination
+	hopCol: string; // column heading, next hop
+	destValue: string; // the destination network, a real looking prefix
+	emptyRow: string; // shown while the table has no route
+	pickHop: string; // prompt over the next hop chips
+	viaB: string;
+	viaC: string;
+	deleteBtn: string;
+	sendBtn: string;
+	noteIdle: string;
+	noteDelivered: string;
+	noteNoRoute: string; // template with {name}
+	noteWrong: string; // template with {name}
+	lostTag: string; // badge where a packet is dropped
+	okTag: string; // badge when the packet arrives
 }

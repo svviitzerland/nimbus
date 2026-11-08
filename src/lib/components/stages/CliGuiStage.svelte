@@ -338,7 +338,7 @@
 							>
 						</div>
 						<div class="wfiles">
-							{#each tx.files as f}
+							{#each tx.files as f, eachIndex9164 (eachIndex9164)}
 								<div class="fcard">
 									<span class="fico">
 										<svg viewBox="0 0 36 44" aria-hidden="true"
@@ -392,7 +392,7 @@
 						<span class="thost">{tx.promptUser}</span>
 					</div>
 					<div class="tbody" bind:this={bodyEl}>
-						{#each history as l}
+						{#each history as l, eachIndex10693 (eachIndex10693)}
 							<div class="ln {l.tone}">
 								{#if l.tone === 'cmd'}<span class="pr">{l.prompt}</span>{/if}{l.text}
 							</div>
@@ -893,7 +893,7 @@
 		align-items: center;
 		gap: 7px;
 		border-radius: 10px;
-		border: 1px dashed #b9c8d4;
+		border: 1px solid #b9c8d4;
 		background: #f2f6fa;
 		color: #5c6b77;
 		font-size: 11.5px;

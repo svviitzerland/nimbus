@@ -3,8 +3,10 @@
 	import { fade, fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { lang, t, setLang } from '$lib/i18n';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import GitHubLink from '$lib/components/GitHubLink.svelte';
 	import Nim from '$lib/components/Nim.svelte';
 	import TrackPicker from '$lib/components/TrackPicker.svelte';
 	import { path } from '$lib/path.svelte';
@@ -41,7 +43,7 @@
 		path.cancelDetour();
 		const r = path.firstOpen(track);
 		// The view transition in the root layout glides Nim from here to the lesson corner.
-		if (r) goto(`/${r.chapterId}/${r.lessonId}`);
+		if (r) goto(resolve('/[chapter]/[lesson]', { chapter: r.chapterId, lesson: r.lessonId }));
 	}
 	function onKey(e: KeyboardEvent) {
 		if (e.code === 'Space' && !isLast) {
@@ -129,6 +131,7 @@
 			Nimbus
 		</span>
 		<div class="flex items-center gap-2">
+			<GitHubLink />
 			<ThemeToggle />
 			<div
 				class="flex items-center gap-0.5 rounded-full border border-line p-0.5 text-[11px] font-bold backdrop-blur"
@@ -175,12 +178,10 @@
 				<span class="tail" aria-hidden="true"></span>
 				<p class="who">Nim</p>
 				<div class="stack">
-					<!-- the longest line sets the height, so the bubble never jumps between lines -->
-					{#each isLast ? [] : lines as l, k (k)}
-						<p class="say sizer" aria-hidden="true">{@html l}</p>
-					{/each}
 					{#key shown}
 						<p class="say live" class:all={reduced} use:speak aria-live="polite">
+							<!-- Curated lesson markup, never learner input. -->
+							<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 							{@html lines[shown]}
 						</p>
 					{/key}
@@ -312,9 +313,6 @@
 	}
 	.compact .say {
 		font-size: 15px;
-	}
-	.sizer {
-		visibility: hidden;
 	}
 	.live :global(.w) {
 		opacity: 0;

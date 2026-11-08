@@ -3,68 +3,46 @@ import type { IpAddressText } from './types';
 export const en: IpAddressText = {
 	title: 'IP addresses',
 	intro: [
-		'Every device that joins a network gets an <b>IP address</b>. It is four numbers joined by dots, like 192.168.1.5, and it tells data where to go.',
-		'Think of a letter. Without an address on the envelope, the postman has no idea where to take it. Data travels in small pieces called <b>packets</b>, and every packet carries the address it is heading for.',
-		'Inside your home, the router hands an address to every phone and laptop that joins the WiFi. These usually start with 192.168 and are called <b>private addresses</b>, because they only mean something inside your home.',
-		'Your home as a whole has one more address, the <b>public address</b>. Your internet provider gives it to the router, and it is the only one the rest of the internet can see.',
-		'[ingat] An IP address is a house address. The public address is the house number on the street, and the private addresses are the room numbers inside. The postman only knows the street, the router knows the rooms.',
-		'That is why your neighbour can also have a laptop at 192.168.1.5. Two houses can both have a room number 5, and nobody outside ever uses room numbers to find you.',
-		'[fyi] The cloud works the same way. A [[VPC|networking/vpc]] gives your servers private addresses, and only the ones that greet visitors get a public one. A site like nimbus.com has a public address too, and [[DNS|networking/dns]] turns the name into that number.',
-		'Want to try it yourself? Send a letter from the internet, once to a room number and once to the house number, and see where each one ends up.'
+		'Every device that joins a network gets an <b>IP address</b>, four numbers joined by dots, like 192.168.1.5. Think of it as a house number. Data needs it to know where to go.',
+		'At home, your router hands these numbers out to every phone and laptop that joins the WiFi. They usually start with 192.168, and they are called <b>private addresses</b>, because they only mean something inside your home.',
+		'Your neighbour probably has a laptop at 192.168.1.5 too. That is fine, just like two different streets can both have a house number 5. Nobody outside ever uses these numbers to find you.',
+		'The router itself has two faces. Inside, it has a private address. Outside, your internet provider gives it a <b>public address</b>, the one the whole internet can see. Every device in your home goes out through that one door.',
+		'[fyi] The cloud has the same idea. A [[VPC|networking/vpc]] gives your servers private addresses, and only the ones that greet visitors get a public one. A site like nimbus.com has a public address too, and [[DNS|networking/dns]] turns its name into that number.',
+		'[ingat] An IP address identifies an interface on a network. Private addresses are used within private networks and are not routed directly on the public internet.',
+		'Here is a home with a phone, a laptop, and a router. Tap each one to look up its address, then let a stranger on the internet try to knock on them.'
 	],
 	reactions: {
-		lost: 'Lost on the way. Millions of homes use the same 192.168 room numbers, so out on the internet that address points at nobody. Private addresses cannot be reached from outside.',
+		phone:
+			'Your phone is 192.168.1.7. The router handed it that number the moment it joined the WiFi, and it might get a different one tomorrow.',
+		laptop:
+			'The laptop is 192.168.1.5, a neighbour of the phone. Both start with 192.168.1, which tells you they live in the same home network.',
+		router:
+			'The router wears two numbers. Inside it is 192.168.1.1, the door every device knocks on to get out. Outside it is 36.85.120.14, given by your internet provider, and that is the one the world sees.',
+		lost: 'The knock went nowhere. Millions of homes use 192.168 numbers, so out on the internet that address points at nobody in particular. Private addresses simply cannot be reached from outside.',
 		public:
-			'Delivered! The letter found the house by its public address, and the router carried it to the right room. Deciding what is allowed in is the job of [[NAT|network/nat]] and the [[firewall|networking/firewall]].'
+			'This time it landed, right on your router. The public address is the only one a stranger can find. What the router lets in after that is the job of [[NAT|network/nat]] and the [[firewall|networking/firewall]].'
 	},
-	steps: [
-		{
-			title: 'IP address',
-			body: 'Four numbers joined by dots, each between 0 and 255. Every device on a network has one, so data knows where to go.'
-		},
-		{
-			title: 'Packets',
-			body: 'Data is cut into small pieces called <b>packets</b>. Each one carries the address it is going to, just like an envelope.'
-		},
-		{
-			title: 'Private address',
-			body: 'Handed out by your router, usually starting with <b>192.168</b>. It only works inside your home.'
-		},
-		{
-			title: 'Public address',
-			body: 'One per home, given to your router by your internet provider. This is the number the rest of the internet sees.'
-		},
-		{
-			tag: 'Make it stick',
-			title: 'House and rooms',
-			body: 'The public address is the <b>house number</b> on the street. Private addresses are the <b>room numbers</b> inside.'
-		},
-		{
-			title: 'Reused everywhere',
-			body: 'Almost every home reuses the same 192.168 numbers. That is fine, because they never leave the house.'
-		},
-		{
-			tag: 'FYI',
-			title: 'Same idea in the cloud',
-			body: 'Cloud networks give servers private addresses too, and only the servers facing visitors get a public one.'
-		},
-		{
-			tag: 'Try it',
-			title: 'Send a letter',
-			body: 'Pick an address above. A room number gets lost outside, while the house number reaches the router, which knows the rooms.'
-		}
-	],
-	internetLabel: 'Internet',
-	neighbourLabel: 'Next door',
+	internetLabel: 'The internet',
+	strangerLabel: 'A stranger',
+	houseLabel: 'Your home',
+	phoneLabel: 'Phone',
+	laptopLabel: 'Laptop',
+	routerLabel: 'Router',
 	ips: {
 		phone: '192.168.1.7',
 		laptop: '192.168.1.5',
 		routerIn: '192.168.1.1',
 		routerOut: '36.85.120.14'
 	},
-	streetTag: 'house number',
-	roomTag: 'room numbers',
-	sendLabel: 'Send a letter to',
+	insideTag: 'inside',
+	outsideTag: 'outside',
+	privateTag: 'private',
+	publicTag: 'public',
+	tapHint: 'Tap the phone, the laptop, and the router',
+	knockPrompt: 'Pick an address for the stranger to knock on',
+	knockLabel: 'The stranger knocks on',
+	lostNote: 'Nobody on the internet answers to {ip}',
+	hitNote: '{ip} leads straight to your router',
 	lostTag: 'nobody here',
-	hitTag: 'delivered'
+	hitTag: 'knock knock'
 };

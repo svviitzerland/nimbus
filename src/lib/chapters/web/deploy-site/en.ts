@@ -3,84 +3,49 @@ import type { DeploySiteText } from './types';
 export const en: DeploySiteText = {
 	title: 'Deploying a site',
 	intro: [
-		'Right now nimbus.com lives on your laptop, like in [[the laptop as a server|foundations/laptop-server]]. Watch what happens when the lid closes. The site vanishes for everyone, because the only computer serving it just went to sleep.',
-		'<b>Deploying</b> means putting your site on a computer that never sleeps, a <b>server</b> in a data centre, so anyone can open it at any hour, even while you are fast asleep.',
-		'You already know the first move from the Git lessons. You <b>push</b> your commits to a repository on GitHub (the online copy from [[Git is not GitHub|compute/git-vs-github]]). Watch the little package leave your laptop.',
-		'A <b>host</b> is the company whose servers keep your site online. It watches your repository, spots the new commit, and runs a <b>build</b>. A build turns the code you wrote into the final, tidy files a browser can read.',
-		'Then the host serves those files at nimbus.com. Open it on any phone, anywhere, and the new headline is already there. You never touched the server yourself.',
-		'[ingat] Push, build, live. You only do the first word, the host does the other two. Three words, and a change on your laptop lands on every phone.',
-		'Hosts come in two kinds. A <b>platform</b> like Vercel, Netlify, or Cloudflare Pages does every step by itself. A <b>VPS</b> (virtual private server) is a rented computer where you log in and type each step yourself. More control, more chores.',
-		'One more thing for your own site, the little lock. Visitors expect <b>HTTPS</b>, and for that the server needs a <b>certificate</b>, a digital ID card that proves it really is nimbus.com. <b>Let’s Encrypt</b> hands them out for free, and most hosts set one up for you by themselves.',
-		'[fyi] Push, build, live is a tiny [[CI/CD|compute/cicd]] pipeline. Bigger teams add automatic tests in the middle, so a broken change gets stopped before it ever reaches a phone.',
-		'Want to watch it once more? Push a new headline and follow it all the way to the phone. Totally optional.'
+		'So far nimbus.com has lived on your laptop. Remember [[the laptop as a server|foundations/laptop-server]]? The moment the lid closes or the WiFi drops, the site is gone for everyone.',
+		'<b>Deploying</b> means moving your site onto a computer that never sleeps, a server, so anyone can open it at any hour. Every change you make later gets deployed again, sometimes many times a day.',
+		'The old way was copying files to the server by hand, one by one. Forget a single file and half the site breaks. Today you simply <b>push</b> your code to a repository (the shared folder from [[version control|compute/version-control]]), and the host takes it from there.',
+		'First the host runs a <b>build</b>, turning your source code into the final files a browser reads, small and tidy. Then it serves those files at your address. Push, build, live.',
+		'There are two kinds of host. A <b>platform</b> like Vercel, Netlify, or Cloudflare Pages does every step for you. A <b>VPS</b> (virtual private server) is a rented computer in a data centre where you do every step yourself. More control, more chores.',
+		'To serve nimbus.com over <b>HTTPS</b>, the server needs a TLS certificate matching the domain. A certificate authority such as <b>Let’s Encrypt</b> checks domain control before issuing it. Platforms usually manage installation and renewal; on a VPS you need to configure them. See [[TLS|security/tls]] for the flow.',
+		'[fyi] That push, build, and go live chain is a tiny [[CI/CD|compute/cicd]] pipeline. Big teams just add tests and checks in the middle.',
+		'[ingat] On a configured platform, a push can trigger a build and deployment. On a VPS, set up your own deployment process or run the steps manually.',
+		'Your turn. Change the headline of nimbus.com, pick a host, push, and watch it show up on a phone.'
 	],
 	reactions: {
-		push: 'There it goes. One push from your laptop, and moments later the new headline is on the phone. Nobody copied a single file by hand.'
+		platform:
+			'Live! You only pushed. The platform noticed the new commit, built the site, and put it online at nimbus.com. That is why most small sites start here.',
+		vpsWait:
+			'Pushed, and then nothing. A VPS does not watch your repository. Log in to the server and do each step yourself, top to bottom.',
+		vps: 'Live, the hands on way. You logged in, pulled the code, built it, and restarted the web server. Same result, more work, but you control every piece of that machine.',
+		both: 'Now you have done both. A platform is quick and calm, a VPS gives you the whole machine to shape. Plenty of teams start on a platform and move to their own servers as they grow.'
 	},
-	panels: [
-		{
-			tag: 'On your laptop',
-			title: 'Lid closed, site gone',
-			body: 'A site served from your own laptop only lives while that laptop is awake and online.'
-		},
-		{
-			tag: 'Server',
-			title: 'A computer that never sleeps',
-			body: 'A <b>server</b> sits in a data centre with steady power and internet, switched on day and night.'
-		},
-		{
-			tag: 'Step 1',
-			title: 'Push',
-			body: '<b>git push</b> sends your new commit from the laptop to the repository on GitHub. Your part ends right here.'
-		},
-		{
-			tag: 'Step 2',
-			title: 'Build',
-			body: 'The host notices the new commit and runs a <b>build</b>, packing your source code into small files that are ready for browsers.'
-		},
-		{
-			tag: 'Step 3',
-			title: 'Live',
-			body: 'The host serves the fresh files at <b>nimbus.com</b>. Every visitor gets the new version the next time they open it.'
-		},
-		{
-			tag: 'Make it stick',
-			title: 'Push, build, live',
-			body: 'You push, the host builds, the world sees it. The same three steps, every single time.'
-		},
-		{
-			tag: 'Hosts',
-			title: 'Platform or VPS',
-			body: 'A <b>platform</b> runs the steps for you. On a <b>VPS</b> you log in and type them yourself, like the commands on that little screen.'
-		},
-		{
-			tag: 'HTTPS',
-			title: 'A free certificate',
-			body: 'The host asks <b>Let’s Encrypt</b> for a certificate, and a lock appears next to nimbus.com. It even renews itself before it runs out.'
-		},
-		{
-			tag: 'Pipeline',
-			title: 'Tests in the middle',
-			body: 'A <b>pipeline</b> is a chain of automatic steps. With tests in it, a broken change never gets past the checkpoint.'
-		},
-		{
-			tag: 'Try it',
-			title: 'Your own push',
-			body: 'Each push runs the whole chain again. Real teams do this many times a day.'
-		}
+	headlineLabel: 'Your new headline',
+	startHeadline: 'Coming soon',
+	newHeadline: 'Hello from nimbus.com',
+	hostLabel: 'Host',
+	hosts: {
+		platform: { name: 'Platform', sub: 'Vercel, Netlify' },
+		vps: { name: 'Your own VPS', sub: 'a rented server' }
+	},
+	pushBtn: 'Push the change',
+	vpsSteps: [
+		'Log in to the server',
+		'Pull the new code',
+		'Build the site',
+		'Restart the web server'
 	],
-	picture:
-		'A laptop pushes code to GitHub, a host server builds it, and a phone shows the live site.',
-	labels: { laptop: 'Your laptop', repo: 'GitHub', host: 'Host', phone: 'Any phone' },
-	arrows: { push: 'push', build: 'build', live: 'live', tests: 'tests' },
-	headlines: ['Coming soon', 'Hello, world', 'Now on phones', 'Learn from zero'],
-	unreachable: 'Site not found',
-	alwaysOn: 'on 24/7',
+	vpsHint: 'Your turn, run each step in order',
+	laptopLabel: 'Your laptop',
+	serverLabel: 'Host',
+	phoneLabel: 'Anyone, anywhere',
+	idleNote: 'nimbus.com still shows the old headline',
+	buildingNote: 'The host is building your site',
+	vpsNote: 'The code reached GitHub, but the server has not moved',
+	liveNote: 'Live at nimbus.com, for everyone',
 	updated: 'just updated',
-	hosts: { platform: 'Platform, by itself', vps: 'VPS, by hand' },
-	vpsCommands: ['$ ssh nimbus.com', '$ git pull', '$ npm run build', '$ nginx -s reload'],
-	cert: { title: 'Let’s Encrypt', sub: 'free certificate' },
-	rule: 'Push, build, live',
-	pushBtn: 'Push a new headline',
-	pushing: 'On its way'
+	certLabel: 'HTTPS uses a TLS certificate',
+	certNote:
+		'Let’s Encrypt can issue a certificate after domain control is verified. Renewal needs to be configured.'
 };

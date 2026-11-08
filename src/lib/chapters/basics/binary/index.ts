@@ -6,20 +6,17 @@ import { en } from './en';
 export const binary: Lesson = {
 	id: 'binary',
 	mood: 'thinking',
-	moods: [
-		'calm',
-		'idea',
-		'wink',
-		'thinking',
-		'happy',
-		'wink',
-		'surprised',
-		'idea',
-		'thinking',
-		'wink',
-		'excited'
-	],
-	reactionMood: { flip: 'surprised', letter: 'excited' },
+	moods: ['calm', 'idea', 'thinking', 'idea', 'wink', 'surprised', 'excited'],
+	reactionMood: {
+		letter: 'excited',
+		word: 'happy',
+		char: 'happy',
+		chat: 'calm',
+		photo: 'surprised',
+		song: 'thinking',
+		movie: 'surprised'
+	},
+	playable: true,
 	stage: BinaryStage,
 	text: { id, en }
 };

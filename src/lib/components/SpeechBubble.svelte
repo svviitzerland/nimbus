@@ -4,6 +4,7 @@
 	import { cubicOut } from 'svelte/easing';
 	import Nim from './Nim.svelte';
 	import { t, lang } from '$lib/i18n';
+	import { lessonUi } from '$lib/lesson-ui';
 	import { renderTerms, resolveTerm, type ResolvedTerm } from '$lib/terms';
 	import { path } from '$lib/path.svelte';
 	import { progress } from '$lib/progress.svelte';
@@ -12,12 +13,13 @@
 
 	let {
 		nim,
-		lines = [],
 		mood = 'calm',
 		canNext = false,
 		canBack = false,
 		final = false,
 		aside = false,
+		reacting = false,
+		onresume,
 		onnext,
 		onback,
 		onjump,
@@ -25,17 +27,13 @@
 		steps = 0
 	}: {
 		nim: string;
-		/**
-		 * Every line this lesson can show (beats and reactions). The dock reserves room for the
-		 * longest one, so its height stays the same for the whole lesson and the stage above it
-		 * never jumps when a line is longer or shorter.
-		 */
-		lines?: string[];
 		mood?: Mood;
 		canNext?: boolean;
 		canBack?: boolean;
 		final?: boolean;
 		aside?: boolean;
+		reacting?: boolean;
+		onresume?: () => void;
 		onnext?: () => void;
 		onback?: () => void;
 		/** Jump to another lesson from a cross link chip. Without it, lesson chips cannot jump. */
@@ -62,14 +60,6 @@
 	const isFyi = $derived(cur.kind === 'fyi');
 	const isMemo = $derived(cur.kind === 'memo');
 	const html = $derived(renderTerms(cur.body, $lang));
-	// invisible copies of every line, stacked in one grid cell, give the dock its fixed height
-	const sizers = $derived(
-		[...new Set([...lines, nim])].map((l) => {
-			const p = parse(l);
-			return { kind: p.kind, html: renderTerms(p.body, $lang) };
-		})
-	);
-
 	// The dock can fold down to a slim bar (Nim, one line, and Next) to give the stage more room.
 	let collapsed = $state(false);
 	function toggle() {
@@ -201,7 +191,7 @@
 <div class="dock-wrap">
 	<!-- The dialogue dock. It sits in the page flow under the stage (never on top of it), like the
 	     dialogue box in a game. Nim stands on the left, the speech bubble points at Nim, and the
-	     controls sit inside the bubble. Its height is fixed for the whole lesson. -->
+	     controls sit inside the bubble. Its height follows the current message. -->
 	<section
 		class="dock"
 		class:collapsed
@@ -226,6 +216,9 @@
 		</button>
 
 		<div class="bubble">
+			<svg class="cloud-crown" viewBox="0 0 110 28" aria-hidden="true">
+				<path d="M0 28C7 28 8 18 19 18C19 5 35 1 44 10C57-3 77 2 81 16C94 10 105 17 110 28" />
+			</svg>
 			<span class="tail" aria-hidden="true"></span>
 			<div class="line">
 				<div class="meta">
@@ -243,12 +236,11 @@
 					{/if}
 				</div>
 				{#if collapsed}
+					<!-- Curated lesson markup, never learner input. -->
+					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 					<p class="text clamp">{@render tag(cur.kind)}{@html html}</p>
 				{:else}
 					<div class="stack" class:more bind:this={stackEl} onscroll={measure}>
-						{#each sizers as s, k (k)}
-							<p class="text sizer" aria-hidden="true" inert>{@render tag(s.kind)}{@html s.html}</p>
-						{/each}
 						{#key nim}
 							<p
 								use:termClicks
@@ -257,6 +249,8 @@
 								class:all={revealAll || reduced}
 								aria-live="polite"
 							>
+								<!-- Curated lesson markup, never learner input. -->
+								<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 								{@render tag(cur.kind)}{@html html}
 							</p>
 						{/key}
@@ -264,6 +258,9 @@
 				{/if}
 			</div>
 
+			{#if reacting && !collapsed}
+				<button class="resume" onclick={onresume}>{lessonUi[$lang].resume}</button>
+			{/if}
 			<div class="controls">
 				{#if canBack && !collapsed}
 					<button onclick={onback} class="back">{$t.back}</button>
@@ -404,13 +401,13 @@
 	.bubble {
 		position: relative;
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
+		grid-template-columns: minmax(0, 1fr);
 		align-items: center;
 		gap: 4px 18px;
 		border: 1px solid var(--color-line);
-		border-radius: 22px;
+		border-radius: 30px 38px 30px 18px;
 		background: var(--color-card);
-		padding: 12px 14px 14px 20px;
+		padding: 14px 20px 12px;
 		box-shadow:
 			0 1px 0 color-mix(in srgb, var(--color-line) 60%, transparent),
 			0 14px 34px rgba(22, 40, 60, 0.1);
@@ -418,19 +415,27 @@
 			border-color 0.3s,
 			box-shadow 0.3s;
 	}
-	/* a soft accent stripe on the left edge, amber for FYI, green for a memory trick */
-	.bubble::before {
-		content: '';
+	.cloud-crown {
 		position: absolute;
-		left: -1px;
-		top: 16px;
-		bottom: 16px;
-		width: 3px;
-		border-radius: 0 3px 3px 0;
-		background: var(--accent);
-		opacity: 0.85;
-		transition: background 0.3s;
+		right: 28px;
+		top: -24px;
+		width: 110px;
+		height: 28px;
+		fill: var(--color-card);
+		stroke: var(--color-line);
+		stroke-width: 1;
+		overflow: visible;
+		pointer-events: none;
 	}
+	.resume {
+		justify-self: start;
+		padding: 4px 0;
+		font-size: 12px;
+		color: var(--color-brand);
+		text-decoration: underline;
+		text-underline-offset: 3px;
+	}
+
 	.dock.turn .bubble {
 		border-color: color-mix(in srgb, var(--color-brand) 35%, var(--color-line));
 	}
@@ -495,11 +500,10 @@
 		font-size: 11px;
 		color: var(--color-faint);
 	}
-	/* every possible line sits in the same grid cell, the invisible ones set the height */
+	/* Only the current message determines the height. */
 	.stack {
-		display: grid;
-		margin-top: 4px;
-		max-height: calc(1.6em * 6);
+		margin-top: 6px;
+		max-height: min(25dvh, 190px);
 		overflow-y: auto;
 		overscroll-behavior: contain;
 		scrollbar-width: thin;
@@ -507,22 +511,16 @@
 	.stack.more {
 		mask-image: linear-gradient(to bottom, #000 calc(100% - 2.2em), transparent);
 	}
-	.stack > .text {
-		grid-area: 1 / 1;
-	}
 	.text {
 		margin: 0;
 		font-size: 15px;
-		line-height: 1.6;
+		line-height: 1.65;
+		text-wrap: pretty;
+		overflow-wrap: anywhere;
 		color: color-mix(in srgb, var(--color-ink) 92%, transparent);
 	}
 	.stack {
 		font-size: 15px;
-	}
-	.sizer {
-		visibility: hidden;
-		pointer-events: none;
-		user-select: none;
 	}
 	.live {
 		cursor: default;
@@ -557,6 +555,7 @@
 	}
 	.controls {
 		display: flex;
+		justify-content: flex-end;
 		align-items: center;
 		gap: 6px;
 	}
@@ -609,8 +608,8 @@
 	}
 	.fold {
 		display: flex;
-		height: 30px;
-		width: 30px;
+		height: 44px;
+		width: 44px;
 		align-items: center;
 		justify-content: center;
 		border-radius: 999px;
@@ -673,7 +672,7 @@
 			font-size: 14px;
 		}
 		.stack {
-			max-height: calc(1.6em * 7);
+			max-height: min(23dvh, 165px);
 		}
 		.count {
 			display: none;
@@ -724,7 +723,7 @@
 		font: inherit;
 		font-weight: 700;
 		color: var(--tc);
-		text-decoration: underline dotted var(--tc);
+		text-decoration: underline solid var(--tc);
 		text-underline-offset: 2px;
 		cursor: pointer;
 		transition: background 0.15s;
@@ -780,8 +779,7 @@
 		padding: 4px 11px;
 		font-size: 10.5px;
 		font-weight: 800;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
+		letter-spacing: 0;
 		color: var(--tc);
 	}
 	.term-soon .dot {
@@ -862,14 +860,13 @@
 		vertical-align: 1px;
 		margin-right: 8px;
 		border-radius: 999px;
-		background: var(--color-grass);
-		color: #fff;
-		font-size: 10px;
-		font-weight: 800;
-		letter-spacing: 0.08em;
-		text-transform: uppercase;
+		background: color-mix(in srgb, var(--color-grass) 12%, var(--color-card));
+		color: var(--color-grass);
+		font-size: 11px;
+		font-weight: 650;
+		letter-spacing: 0;
 		padding: 3px 9px 3px 7px;
-		animation: fyi-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.5) both;
+		animation: none;
 	}
 	.memo-tag svg {
 		width: 11px;
@@ -883,19 +880,19 @@
 		vertical-align: 1px;
 		margin-right: 8px;
 		border-radius: 999px;
-		background: linear-gradient(135deg, #f3b94e, #dd9e36);
-		color: #fff;
+		background: color-mix(in srgb, var(--color-amber) 14%, var(--color-card));
+		color: var(--color-amber);
 		font-size: 10px;
 		font-weight: 800;
 		letter-spacing: 0.1em;
 		padding: 3px 9px 3px 7px;
-		box-shadow: 0 3px 9px rgba(221, 158, 54, 0.42);
+		box-shadow: none;
 		animation: fyi-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.5) both;
 	}
 	.fyi-tag svg {
 		width: 11px;
 		height: 11px;
-		animation: fyi-twinkle 1.8s ease-in-out infinite;
+		animation: none;
 	}
 	@keyframes fyi-pop {
 		from {

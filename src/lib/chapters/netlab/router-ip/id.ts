@@ -4,14 +4,14 @@ export const id: RouterIpText = {
 	title: 'IP address dan DHCP server',
 	intro: [
 		'Tiga karyawan baru barusan nyolok laptopnya ke switch kantor. Kabelnya aman, lampunya kedip kedip, tapi coba lihat alamat di bawah tiap laptop. Masih kosong.',
-		'Tiap perangkat di jaringan butuh <b>IP address</b> sendiri, kayak nomor rumah, kalau nggak, balasan buat dia nggak bakal nyampe. Di sini belum ada yang bagi alamat, jadi tiap laptop nyerah dan bikin sendiri, <b>169.254.x.x</b>, alamat darurat yang nggak bisa dipakai keluar ke mana mana.',
-		'Ngetik alamat satu satu di tiap laptop masih oke buat tiga orang, tapi nggak buat tiga puluh. Makanya jaringan pakai <b>DHCP</b>, layanan yang bagi bagi alamat sendiri, mirip resepsionis yang ngasih badge bernomor ke tiap tamu. Konsepnya ada di [[Apa itu DHCP|network/dhcp]].',
-		'DHCP server di MikroTik butuh tiga bagian. Pertama <b>pool</b>, kotak badge yang boleh dibagi. Lihat terminalnya, 192.168.88.10 sampai .254, nomor kecil sengaja dikosongin buat perangkat kayak printer.',
-		'Kedua, info <b>network</b>, kertas sambutan yang ikut dikasih bareng badge. Gateway kamu (jalan keluar) itu router di 192.168.88.1, dan tanya ke 8.8.8.8 kalau mau cari alamat sebuah nama.',
-		'Ketiga, <b>server</b>nya sendiri, si resepsionis, jaga di ether2 tempat kantor nyambung. Begitu dia mulai, laptop laptop nanya lagi, dan kali ini ada yang jawab.',
-		'[ingat] Pool itu kotak badge, network itu kertas sambutan, server itu resepsionisnya. Nggak ada resepsionis, nggak ada yang dapat badge. Terus kalau lihat 169.254, artinya nggak ada yang jawab.',
+		'Tiap interface membutuhkan alamat IP untuk berkomunikasi melalui IP. Tanpa jawaban DHCP, laptop pada contoh ini memilih alamat link local <b>169.254.x.x</b>. Alamat ini hanya berlaku pada sambungan lokal dan tidak menyediakan akses internet.',
+		'<b>DHCP</b> membagikan konfigurasi IP secara otomatis agar tiap laptop tidak perlu diatur satu per satu. Lihat juga [[DHCP|network/dhcp]] untuk alur permintaannya.',
+		'MikroTik memakai <b>pool</b> untuk menentukan alamat yang boleh dibagikan. Pada contoh ini rentangnya 192.168.88.10 sampai 192.168.88.254. Alamat di luar rentang disisakan untuk konfigurasi manual.',
+		'Pengaturan <b>network</b> menentukan gateway dan DNS yang diterima klien. Di sini gateway adalah 192.168.88.1 dan DNS server adalah 8.8.8.8.',
+		'<b>DHCP server</b> diaktifkan pada ether2, interface yang terhubung ke kantor. Saat klien meminta konfigurasi, server memberi alamat dari pool beserta gateway dan DNS.',
+		'[ingat] Pool menentukan rentang alamat. Network menentukan gateway dan DNS. DHCP server membagikan konfigurasi kepada klien.',
 		'[fyi] Router WiFi di rumahmu juga ngelakuin hal yang sama, makanya HP langsung dapat alamat begitu nyambung. Jaringan di cloud kayak [[VPC|networking/vpc]] juga gitu, cuma servernya nggak kelihatan.',
-		'Giliran kamu. Buka buku catatan si resepsionis pakai <b>/ip dhcp-server lease print</b> dan lihat siapa dapat badge yang mana.'
+		'Jalankan <b>/ip dhcp-server lease print</b> untuk melihat alamat yang dipinjamkan kepada tiap perangkat.'
 	],
 	reactions: {
 		leases:
@@ -22,45 +22,45 @@ export const id: RouterIpText = {
 	},
 	steps: [
 		{
-			title: 'Nyolok, tapi belum ada alamat',
+			title: 'Terhubung tanpa alamat IP',
 			body: 'Kabel ngasih laptop jalan. Tapi dia tetap butuh <b>alamat</b> sebelum ada yang bisa ngirim sesuatu ke dia.'
 		},
 		{
 			tag: '169.254.x.x',
-			title: 'Nggak ada yang jawab',
+			title: 'DHCP belum menjawab',
 			body: 'Kalau laptop minta alamat dan nggak dapat jawaban, dia ambil alamat <b>169.254</b> sendiri. Artinya cuma satu, dia nyerah.'
 		},
 		{
 			tag: 'DHCP',
-			title: 'Si resepsionis',
+			title: 'Pembagian alamat otomatis',
 			body: '<b>DHCP server</b> ngasih alamat ke tiap perangkat baru, plus gateway dan DNS yang dipakai, tanpa ada yang ngetik.'
 		},
 		{
 			tag: 'ip pool',
-			title: 'Kotak badge',
+			title: 'Rentang alamat IP',
 			body: '<b>Pool</b> itu rentang alamat yang boleh dibagi. Harus ada di dalam jaringan kantor dan nggak kena .1 punya router.'
 		},
 		{
 			tag: 'dhcp-server network',
-			title: 'Kertas sambutan',
-			body: '<b>gateway</b> itu jalan keluar (si router), <b>dns-server</b> itu tempat nanya alamat nama kayak nimbus.com.'
+			title: 'Gateway dan DNS untuk klien',
+			body: '<b>gateway</b> menentukan router untuk tujuan di luar subnet. <b>dns-server</b> menentukan server pencarian nama domain.'
 		},
 		{
 			tag: 'dhcp-server',
-			title: 'Loket dibuka',
+			title: 'Mengaktifkan DHCP server',
 			body: 'Servernya dengerin di <b>ether2</b>, bagi alamat dari pool, dan nyatat tiap pembagian sebagai <b>lease</b>.'
 		},
 		{
-			tag: 'Biar nempel',
-			title: 'Badge, kertas, resepsionis',
-			body: 'Pool, network, server. Lupa resepsionisnya, nggak ada yang dapat badge.'
+			tag: 'Cara ingat',
+			title: 'Tiga konfigurasi DHCP',
+			body: 'Pool menyediakan alamat, network menyediakan konfigurasi klien, dan DHCP server melayani permintaannya.'
 		},
 		{
-			title: 'Di mana mana sama',
+			title: 'DHCP pada jaringan lain',
 			body: 'WiFi rumah, hotspot HP, sampai jaringan cloud, semuanya bagi alamat pakai DHCP.'
 		},
 		{
-			title: 'Giliran kamu',
+			title: 'Konfigurasikan DHCP',
 			body: '<b>Lease</b> itu satu kali pembagian, alamat yang dipinjamkan ke satu perangkat untuk sementara.'
 		}
 	],

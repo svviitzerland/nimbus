@@ -1,564 +1,598 @@
 <script lang="ts">
-	// A guided "watch" stage in two parts. First the Nimbus helper answers about the free plan,
-	// one sentence true and one made up, and the real help page catches the made up one. Then the
-	// helper is asked to summarise a review that hides an order in white text, the order hijacks
-	// it, and three layers of defense stop it. The only optional play, on the last beat, switches
-	// the defenses off and on.
-	import { untrack } from 'svelte';
-	import Guide from '$lib/components/Guide.svelte';
-	import type { StageProps } from '$lib/chapters/types';
-	import type { AiSafetyText } from '$lib/chapters/ai/ai-safety/types';
-	import { sceneClock, wrap } from './webship/clock.svelte';
+	import { onDestroy } from 'svelte';
+	import type { LessonText } from '$lib/chapters/types';
+	import type { AiSafetyDefense, AiSafetyText } from '$lib/chapters/ai/ai-safety/types';
+	import CallToActionButton from '$lib/components/CallToActionButton.svelte';
 
-	let { text, beat = 0, oncomplete, onstate, onshow }: StageProps = $props();
+	let {
+		text,
+		oncomplete,
+		onstate
+	}: { text: LessonText; oncomplete?: () => void; onstate?: (s: string) => void } = $props();
 	const tx = $derived(text as AiSafetyText);
 
-	type Scene = 'sure' | 'made' | 'check' | 'remember' | 'inject' | 'hidden' | 'layers' | 'try';
-	const SCENES: Scene[] = [
-		'sure',
-		'made',
-		'check',
-		'remember',
-		'inject',
-		'hidden',
-		'layers',
-		'try'
-	];
-	const SCENE_OF_BEAT = [0, 1, 2, 3, 4, 5, 6, 6, 7];
+	const FAKE = 2; // the made up sentence in the bot's answer
+	const REAL: AiSafetyDefense[] = ['mark', 'strip', 'limit']; // the decoy is not one of them
 
-	let peek = $state<number | null>(null);
-	let defenses = $state(true);
+	let act = $state<0 | 1>(0);
 
-	const fromBeat = $derived(SCENE_OF_BEAT[Math.min(beat, SCENE_OF_BEAT.length - 1)]);
-	const active = $derived(peek ?? fromBeat);
-	const scene = $derived(SCENES[active]);
-	const part2 = $derived(active >= 4);
-	const clock = sceneClock(() => [scene, defenses]);
-	const t = $derived(clock.t);
+	// act one
+	let tapped = $state<number[]>([]);
+	const caught = $derived(tapped.includes(FAKE));
+	function tapClaim(i: number) {
+		if (caught || tapped.includes(i)) return;
+		tapped = [...tapped, i];
+		onstate?.(i === FAKE ? 'caught' : 'checked');
+	}
 
-	$effect(() => {
-		untrack(() => {
-			onshow?.(true);
-			oncomplete?.();
-		});
-	});
-	$effect(() => {
-		void beat;
-		peek = null;
-	});
+	// act two
+	let revealed = $state(false);
+	let saidReveal = false;
+	let on = $state<AiSafetyDefense[]>([]);
+	let running = $state(false);
+	let reply = $state<'none' | 'hijacked' | 'safe'>('none');
+	let completed = false;
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	onDestroy(() => clearTimeout(timer));
 
-	// ---- the layers ----
-	const shieldsUp = $derived(
-		scene === 'layers'
-			? Math.max(0, Math.min(3, Math.floor((t - 400) / 700) + 1))
-			: scene === 'try' && defenses
-				? 3
-				: 0
-	);
-	const revealed = $derived(
-		(scene === 'hidden' && t > 1300) || scene === 'layers' || scene === 'try'
-	);
-	const scanning = $derived(scene === 'hidden' && t < 1300 && !clock.reduced);
-
-	// ---- the chat ----
-	type Tone = 'plain' | 'warn' | 'bad' | 'good';
-	type Bub = {
-		who: 'you' | 'bot';
-		text: string;
-		typing?: boolean;
-		attach?: string;
-		tone?: Tone;
-		mark?: 'ok' | 'no';
-	};
-	const bubbles = $derived.by((): Bub[] => {
-		const out: Bub[] = [];
-		if (!part2) {
-			if (scene === 'sure' && t < 300) return out;
-			out.push({ who: 'you', text: tx.question });
-			if (scene === 'sure' && t < 1600) {
-				out.push({ who: 'bot', text: '', typing: true });
-				return out;
-			}
-			const okMark = scene === 'remember' || (scene === 'check' && t > 900);
-			const noMark = scene === 'remember' || (scene === 'check' && t > 1900);
-			out.push({ who: 'bot', text: tx.claimTrue, mark: okMark ? 'ok' : undefined });
-			if (scene === 'sure' && t < 2400) return out;
-			out.push({
-				who: 'bot',
-				text: tx.claimFake,
-				tone: noMark ? 'bad' : scene === 'made' ? 'warn' : 'plain',
-				mark: noMark ? 'no' : undefined
-			});
-			return out;
+	function toggleReveal() {
+		revealed = !revealed;
+		if (revealed && !saidReveal) {
+			saidReveal = true;
+			onstate?.('revealed');
 		}
-		out.push({ who: 'you', text: tx.ask, attach: tx.fileName });
-		const wait =
-			scene === 'inject' ? Infinity : scene === 'hidden' ? 2000 : scene === 'layers' ? 2700 : 1400;
-		if (t < wait) {
-			if (scene !== 'inject' || t > 600) out.push({ who: 'bot', text: '', typing: true });
-			return out;
-		}
-		const safe = scene === 'layers' || (scene === 'try' && defenses);
-		out.push({
-			who: 'bot',
-			text: safe ? tx.safeReply : tx.hijacked,
-			tone: safe ? 'good' : 'bad'
-		});
-		return out;
-	});
+	}
+	function toggleDefense(id: AiSafetyDefense) {
+		if (running) return;
+		on = on.includes(id) ? on.filter((d) => d !== id) : [...on, id];
+	}
+	const reduced = () =>
+		typeof matchMedia !== 'undefined' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-	const laid = $derived.by(() => {
-		let y = 46;
-		return bubbles.map((b) => {
-			const lines = b.typing ? [] : wrap(b.text, 32);
-			const longest = Math.max(...lines.map((l) => l.length), 0);
-			const w = b.typing ? 44 : Math.min(172, longest * 4.25 + 18);
-			const h = b.typing ? 22 : lines.length * 10.5 + 10 + (b.attach ? 20 : 0);
-			const x = b.who === 'you' ? 204 - w : 16;
-			const out = { ...b, lines, x, y, w, h };
-			y += h + 8;
-			return out;
-		});
-	});
-
-	// ---- the document on the right ----
-	const src1 = $derived(wrap(tx.sourceLines[0], 25));
-	const src2 = $derived(wrap(tx.sourceLines[1], 25));
-	const src2Y = $derived(64 + src1.length * 10 + 10);
-	const okLit = $derived(scene === 'remember' || (scene === 'check' && t > 900));
-	const noLit = $derived(scene === 'remember' || (scene === 'check' && t > 1900));
-
-	const reviewLines = $derived(wrap(tx.review, 25));
-	const hiddenLines = $derived(wrap(tx.hidden, 25));
-	const hiddenY = $derived(64 + reviewLines.length * 10 + 14);
-
-	const SHIELDS = [244, 288, 332];
-
-	function toggle() {
-		defenses = !defenses;
-		onstate?.(defenses ? 'on' : 'off');
+	function run() {
+		if (running) return;
+		running = true;
+		reply = 'none';
+		timer = setTimeout(
+			() => {
+				running = false;
+				const real = on.filter((d) => REAL.includes(d)).length;
+				if (real >= 2) {
+					reply = 'safe';
+					onstate?.('safe');
+					if (!completed) {
+						completed = true;
+						oncomplete?.();
+					}
+					return;
+				}
+				reply = 'hijacked';
+				if (real === 1) onstate?.('onelayer');
+				else if (on.includes('caps')) onstate?.('decoy');
+				else onstate?.(saidReveal ? 'nodefense' : 'hijacked');
+			},
+			reduced() ? 0 : 900
+		);
 	}
 </script>
 
-{#snippet picture(_i: number)}
-	<div class="visual">
-		{#if scene === 'try'}
-			<button type="button" class="act" onclick={toggle}>
-				{defenses ? tx.offBtn : tx.onBtn}
-			</button>
-		{/if}
-		<svg viewBox="0 0 360 330" class="pic" role="img" aria-label={tx.picture}>
-			<!-- the chat window -->
-			<rect x="8" y="8" width="206" height="316" rx="14" class="window" />
-			<path d="M8 36 H214" class="sep" />
-			<circle cx="22" cy="22" r="3.5" class="online" />
-			<text x="31" y="25.5" class="botname">{tx.botName}</text>
-
-			{#each laid as b, k (k + b.who + b.text)}
-				<g class="pop">
-					<rect
-						x={b.x}
-						y={b.y}
-						width={b.w}
-						height={b.h}
-						rx="8"
-						class="bub {b.who}"
-						class:warn={b.tone === 'warn'}
-						class:bad={b.tone === 'bad'}
-						class:good={b.tone === 'good'}
-					/>
-					{#if b.typing}
-						{#each [0, 1, 2] as d (d)}
-							<circle
-								cx={b.x + 13 + d * 9}
-								cy={b.y + 11}
-								r="2.4"
-								class="dot"
-								style="animation-delay:{d * 0.18}s"
-							/>
-						{/each}
-					{:else}
-						{#if b.attach}
-							<rect x={b.x + 6} y={b.y + 6} width="74" height="15" rx="4" class="attach" />
-							<path d="M{b.x + 11} {b.y + 9} h5 l3 3 v6 h-8 Z" class="attachicon" />
-							<text x={b.x + 24} y={b.y + 16.5} class="attachtext">{b.attach}</text>
-						{/if}
-						{#each b.lines as l, j (j)}
-							<text x={b.x + 8} y={b.y + 15 + j * 10.5 + (b.attach ? 20 : 0)} class="bt {b.who}"
-								>{l}</text
-							>
-						{/each}
-					{/if}
-					{#if b.mark}
-						<g transform="translate({b.x + b.w + 10} {b.y + 12})"
-							><g class="pop">
-								<circle r="7" class="mark {b.mark}" />
-								{#if b.mark === 'ok'}
-									<path d="M-3.2 0.2 L-0.8 2.6 L3.4 -2.4" class="markline" />
-								{:else}
-									<path d="M-2.8 -2.8 L2.8 2.8 M2.8 -2.8 L-2.8 2.8" class="markline" />
-								{/if}
-							</g></g
-						>
-					{/if}
-				</g>
-			{/each}
-
-			<!-- the document -->
-			{#if !part2}
-				<g class="doc" class:faded={scene === 'sure' || scene === 'made'}>
-					<path d="M222 26 H342 L354 38 V230 H222 Z" class="paper" />
-					<path d="M342 26 V38 H354" class="fold" />
-					<text x="230" y="46" class="doctitle">{tx.sourceTitle}</text>
-					<path d="M230 52 H346" class="sep" />
-					{#if okLit}
-						<rect x="226" y="56" width="124" height={src1.length * 10 + 6} rx="4" class="hl ok" />
-					{/if}
-					{#each src1 as l, k (k)}
-						<text x="230" y={66 + k * 10} class="doctext">{l}</text>
-					{/each}
-					{#if noLit}
-						<rect
-							x="226"
-							y={src2Y - 8}
-							width="124"
-							height={src2.length * 10 + 6}
-							rx="4"
-							class="hl no"
-						/>
-					{/if}
-					{#each src2 as l, k (k)}
-						<text x="230" y={src2Y + 2 + k * 10} class="doctext">{l}</text>
-					{/each}
-				</g>
-				{#if scene === 'remember'}
-					<g transform="translate(288 276) rotate(-8)"
-						><g class="pop">
-							<rect x="-58" y="-16" width="116" height="32" rx="6" class="stamp" />
-							<text y="5" text-anchor="middle" class="stamptext">{tx.memo}</text>
-						</g></g
-					>
-				{/if}
-			{:else}
-				{#if shieldsUp > 0}
-					<rect x="217" y="21" width="142" height="215" rx="10" class="fence pop" />
-				{/if}
-				<g class="doc">
-					<path d="M222 26 H342 L354 38 V230 H222 Z" class="paper" />
-					<path d="M342 26 V38 H354" class="fold" />
-					<text x="230" y="46" class="doctitle">{tx.fileName}</text>
-					<path d="M230 52 H346" class="sep" />
-					{#each reviewLines as l, k (k)}
-						<text x="230" y={66 + k * 10} class="doctext">{l}</text>
-					{/each}
-					{#if revealed}
-						<rect
-							x="226"
-							y={hiddenY - 8}
-							width="124"
-							height={hiddenLines.length * 10 + 6}
-							rx="4"
-							class="hl no pop"
-						/>
-						<text x="350" y={hiddenY - 12} text-anchor="end" class="hiddentag">{tx.hiddenTag}</text>
-					{/if}
-					{#each hiddenLines as l, k (k)}
-						<text x="230" y={hiddenY + 2 + k * 10} class="hiddentext" class:shown={revealed}
-							>{l}</text
-						>
-					{/each}
-					{#if scanning}
-						<rect x="224" y={40 + (t / 1300) * 180} width="128" height="12" class="scan" />
-					{/if}
-				</g>
-				{#each SHIELDS as cx, k (cx)}
-					{@const on = k < shieldsUp}
-					<g transform="translate({cx} 262)" class="shield" class:on>
-						<path d="M0 -16 L13 -11 V0 Q13 11 0 17 Q-13 11 -13 0 V-11 Z" class="shieldbody" />
-						{#if on}
-							<path d="M-4.5 0 L-1.2 3.4 L5 -3.6" class="shieldtick" />
-						{/if}
-						{#each wrap(tx.shields[k], 7) as l, j (j)}
-							<text y={31 + j * 9.5} text-anchor="middle" class="shieldlabel">{l}</text>
-						{/each}
-					</g>
-				{/each}
-			{/if}
-		</svg>
-		{#if scene === 'remember'}
-			<p class="rule">{tx.rule}</p>
-		{/if}
-	</div>
+{#snippet botIcon()}
+	<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+		<rect x="4" y="7" width="16" height="12" rx="4" stroke="currentColor" stroke-width="2" />
+		<path d="M12 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+		<circle cx="9.5" cy="13" r="1.4" fill="currentColor" />
+		<circle cx="14.5" cy="13" r="1.4" fill="currentColor" />
+	</svg>
 {/snippet}
 
 <div class="stage">
-	<Guide steps={tx.panels} {active} onselect={(i) => (peek = i)} visual={picture} />
+	<div class="tabs" role="tablist">
+		{#each tx.acts as name, i (i)}
+			<button
+				type="button"
+				role="tab"
+				class="tab"
+				class:on={act === i}
+				aria-selected={act === i}
+				disabled={i === 1 && !caught}
+				onclick={() => (act = i as 0 | 1)}
+			>
+				<span class="num">{i + 1}</span>{name}
+			</button>
+		{/each}
+	</div>
+
+	{#if act === 0}
+		<div class="actions">
+			{#if caught}
+				<CallToActionButton onclick={() => (act = 1)}>{tx.nextAct}</CallToActionButton>
+			{:else}
+				<p class="hint">{tx.tapHint}</p>
+			{/if}
+		</div>
+
+		<div class="chat">
+			<div class="msg you">
+				<span class="who">{tx.you}</span>
+				<p>{tx.question}</p>
+			</div>
+			<div class="msg bot">
+				<span class="who">{@render botIcon()}{tx.bot}</span>
+				<div class="claims">
+					{#each tx.claims as c, i (i)}
+						{@const done = tapped.includes(i)}
+						<button
+							type="button"
+							class="claim"
+							class:ok={done && i !== FAKE}
+							class:fake={done && i === FAKE}
+							disabled={caught && !done}
+							aria-pressed={done}
+							onclick={() => tapClaim(i)}
+						>
+							{c}
+							{#if done}
+								<span class="tag">{i === FAKE ? tx.fakeTag : tx.okTag}</span>
+							{/if}
+						</button>
+					{/each}
+				</div>
+			</div>
+		</div>
+
+		<div class="doc source">
+			<span class="dtitle">{tx.sourceTitle}</span>
+			<ul>
+				{#each tx.sourceLines as l, i (i)}
+					<li class:hit={caught && i === 2}>{l}</li>
+				{/each}
+			</ul>
+		</div>
+	{:else}
+		<div class="actions">
+			<div class="arow">
+				<CallToActionButton onclick={run} disabled={running}>
+					{running ? tx.thinking : tx.runBtn}
+				</CallToActionButton>
+				<button type="button" class="ghost" aria-pressed={revealed} onclick={toggleReveal}>
+					{revealed ? tx.hideBtn : tx.revealBtn}
+				</button>
+			</div>
+			<div class="defs">
+				<span class="cap">{tx.defensesTitle}</span>
+				<div class="dgrid">
+					{#each tx.defenses as d (d.id)}
+						<button
+							type="button"
+							class="def"
+							class:on={on.includes(d.id)}
+							aria-pressed={on.includes(d.id)}
+							disabled={running}
+							onclick={() => toggleDefense(d.id)}
+						>
+							<span class="box" aria-hidden="true">{on.includes(d.id) ? '✓' : ''}</span>
+							<span class="dtxt"><b>{d.name}</b><small>{d.sub}</small></span>
+						</button>
+					{/each}
+				</div>
+			</div>
+		</div>
+
+		<div class="doc file">
+			<span class="dtitle">{tx.docTitle}</span>
+			{#each tx.docLines as l, i (i)}
+				<p>{l}</p>
+			{/each}
+			<p
+				class="hidden"
+				class:shown={revealed}
+				class:stripped={revealed && on.includes('strip')}
+				aria-hidden={!revealed}
+			>
+				{#if revealed}<span class="htag">{tx.hiddenTag}</span>{/if}{tx.docHidden}
+			</p>
+		</div>
+
+		<div class="chat">
+			<div class="msg you">
+				<span class="who">{tx.you}</span>
+				<p>{tx.task}</p>
+			</div>
+			{#if running}
+				<div class="msg bot">
+					<span class="who">{@render botIcon()}{tx.bot}</span>
+					<p class="dots" aria-label={tx.thinking}><i></i><i></i><i></i></p>
+				</div>
+			{:else if reply !== 'none'}
+				<div class="msg bot" class:bad={reply === 'hijacked'} class:good={reply === 'safe'}>
+					<span class="who"
+						>{@render botIcon()}{tx.bot}
+						<span class="rtag">{reply === 'safe' ? tx.safeTag : tx.hijackedTag}</span></span
+					>
+					<p>{reply === 'safe' ? tx.safeReply : tx.hijackedReply}</p>
+				</div>
+			{/if}
+		</div>
+	{/if}
 </div>
 
 <style>
 	.stage {
 		display: flex;
-		height: 100%;
 		width: 100%;
-		justify-content: center;
-		align-items: safe center;
-		overflow-y: auto;
-		overflow-x: hidden;
-		padding-bottom: 16px;
-	}
-	.visual {
-		display: flex;
-		width: 100%;
-		max-width: 440px;
 		flex-direction: column;
 		align-items: center;
-		gap: 10px;
+		gap: 12px;
 	}
-	.pic {
-		display: block;
-		width: 100%;
-		height: auto;
-		max-height: 60vh;
-	}
-	.act {
-		border: 1.5px solid var(--color-brand);
-		border-radius: 999px;
-		background: var(--color-brand-soft);
-		padding: 7px 16px;
-		font-size: 13px;
+	.cap {
+		font-size: 10.5px;
 		font-weight: 700;
+		letter-spacing: 0.02em;
+		color: var(--color-faint);
+	}
+
+	/* tabs */
+	.tabs {
+		display: flex;
+		gap: 4px;
+		border-radius: 13px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 3px;
+	}
+	.tab {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		border-radius: 10px;
+		padding: 6px 12px;
+		font-size: 12px;
+		font-weight: 600;
+		color: var(--color-muted);
+		transition:
+			background 0.2s ease,
+			color 0.2s ease;
+	}
+	.tab.on {
+		background: var(--color-brand-soft);
 		color: var(--color-brand);
 	}
-	.rule {
-		margin: 0;
-		text-align: center;
-		font-size: 14px;
-		font-weight: 700;
-		color: var(--color-grass);
+	.tab:disabled {
+		opacity: 0.45;
 	}
-	.window {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-	}
-	.sep {
-		stroke: var(--color-line);
-		stroke-width: 1;
-	}
-	.online {
-		fill: var(--color-grass);
-	}
-	.botname {
-		fill: var(--color-ink);
+	.num {
+		display: grid;
+		place-items: center;
+		width: 17px;
+		height: 17px;
+		border-radius: 50%;
+		background: var(--color-paper);
 		font-size: 10px;
 		font-weight: 800;
 	}
-	.bub {
-		transition:
-			fill 0.3s,
-			stroke 0.3s;
+
+	/* actions */
+	.actions {
+		display: flex;
+		width: min(94vw, 440px);
+		min-height: 44px;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
 	}
-	.bub.you {
-		fill: var(--color-brand);
+	.actions :global(.cta) {
+		padding: 10px 18px;
+		font-size: 13px;
 	}
-	.bub.bot {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.2;
+	.arow {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
 	}
-	.bub.bot.warn {
-		stroke: var(--color-amber);
-		stroke-width: 2;
-		animation: throb 1.4s ease-in-out infinite;
-	}
-	.bub.bot.bad {
-		fill: var(--color-danger-soft);
-		stroke: var(--color-danger);
-		stroke-width: 1.6;
-	}
-	.bub.bot.good {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		stroke-width: 1.6;
-	}
-	@keyframes throb {
-		50% {
-			stroke-width: 3.5;
-		}
-	}
-	.bt {
-		font-size: 8px;
-	}
-	.bt.you {
-		fill: var(--color-card);
+	.ghost {
+		border-radius: 12px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 9px 14px;
+		font-size: 12.5px;
 		font-weight: 600;
+		color: var(--color-ink);
 	}
-	.bt.bot {
-		fill: var(--color-ink);
+	.ghost[aria-pressed='true'] {
+		border-color: var(--color-danger);
+		color: var(--color-danger);
 	}
-	.dot {
-		fill: var(--color-faint);
-		animation: hop 1s ease-in-out infinite;
+	.hint {
+		font-size: 12.5px;
+		font-weight: 600;
+		color: var(--color-muted);
+		text-align: center;
 	}
-	@keyframes hop {
-		30% {
-			transform: translateY(-2.5px);
+	.defs {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		align-items: center;
+		gap: 5px;
+	}
+	.dgrid {
+		display: grid;
+		width: 100%;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 6px;
+	}
+	.def {
+		display: flex;
+		align-items: flex-start;
+		gap: 7px;
+		border-radius: 12px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		padding: 7px 9px;
+		text-align: left;
+		transition:
+			border-color 0.2s ease,
+			background 0.2s ease;
+	}
+	.def.on {
+		border-color: var(--color-brand);
+		background: var(--color-brand-soft);
+	}
+	.box {
+		display: grid;
+		flex: none;
+		place-items: center;
+		width: 16px;
+		height: 16px;
+		margin-top: 1px;
+		border-radius: 5px;
+		border: 1.5px solid var(--color-line);
+		background: var(--color-card);
+		font-size: 10px;
+		font-weight: 800;
+		color: var(--color-brand);
+	}
+	.def.on .box {
+		border-color: var(--color-brand);
+	}
+	.dtxt {
+		display: flex;
+		min-width: 0;
+		flex-direction: column;
+		line-height: 1.2;
+	}
+	.dtxt b {
+		font-size: 11.5px;
+		color: var(--color-ink);
+	}
+	.dtxt small {
+		font-size: 9.5px;
+		color: var(--color-faint);
+	}
+
+	/* chat */
+	.chat {
+		display: flex;
+		width: min(94vw, 440px);
+		flex-direction: column;
+		gap: 8px;
+	}
+	.msg {
+		display: flex;
+		max-width: 88%;
+		flex-direction: column;
+		gap: 4px;
+		border-radius: 16px;
+		padding: 8px 12px 10px;
+		font-size: 12.5px;
+		line-height: 1.45;
+		animation: rise 0.3s ease backwards;
+	}
+	.msg.you {
+		align-self: flex-end;
+		border-bottom-right-radius: 5px;
+		background: var(--color-brand);
+		color: #fff;
+	}
+	.msg.you .who {
+		color: rgba(255, 255, 255, 0.75);
+	}
+	.msg.bot {
+		align-self: flex-start;
+		border: 1px solid var(--color-line);
+		border-bottom-left-radius: 5px;
+		background: var(--color-card);
+		color: var(--color-ink);
+	}
+	.msg.bot.bad {
+		border-color: var(--color-danger);
+		background: var(--color-danger-soft);
+	}
+	.msg.bot.good {
+		border-color: var(--color-grass);
+		background: var(--color-grass-soft);
+	}
+	.who {
+		display: flex;
+		align-items: center;
+		gap: 5px;
+		font-size: 10px;
+		font-weight: 700;
+		color: var(--color-faint);
+	}
+	.rtag {
+		border-radius: 999px;
+		padding: 1px 7px;
+		font-size: 9.5px;
+		color: #fff;
+		background: var(--color-danger);
+	}
+	.good .rtag {
+		background: var(--color-grass);
+	}
+	.claims {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+	}
+	.claim {
+		border-radius: 9px;
+		border: 1.5px solid transparent;
+		padding: 4px 6px;
+		margin: 0 -6px;
+		text-align: left;
+		font-size: 12.5px;
+		line-height: 1.45;
+		color: var(--color-ink);
+		transition:
+			background 0.2s ease,
+			border-color 0.2s ease;
+	}
+	.claim:not(:disabled):not(.ok):not(.fake):hover {
+		background: var(--color-paper);
+		border-color: var(--color-line);
+	}
+	.claim:disabled {
+		opacity: 0.75;
+	}
+	.claim.ok {
+		background: var(--color-grass-soft);
+	}
+	.claim.fake {
+		border-color: var(--color-danger);
+		background: var(--color-danger-soft);
+	}
+	.tag {
+		display: inline-block;
+		margin-left: 4px;
+		border-radius: 999px;
+		padding: 0 7px;
+		font-size: 9.5px;
+		font-weight: 700;
+		color: #fff;
+		background: var(--color-grass);
+		vertical-align: 1px;
+	}
+	.fake .tag {
+		background: var(--color-danger);
+	}
+	.dots {
+		display: flex;
+		gap: 4px;
+		padding: 4px 0;
+	}
+	.dots i {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: var(--color-faint);
+		animation: blink 1s ease-in-out infinite;
+	}
+	.dots i:nth-child(2) {
+		animation-delay: 0.15s;
+	}
+	.dots i:nth-child(3) {
+		animation-delay: 0.3s;
+	}
+	@keyframes blink {
+		50% {
+			opacity: 0.25;
 		}
 	}
-	.attach {
-		fill: var(--color-card);
-		opacity: 0.9;
-	}
-	.attachicon {
-		fill: none;
-		stroke: var(--color-brand);
-		stroke-width: 1.1;
-		stroke-linejoin: round;
-	}
-	.attachtext {
-		fill: var(--color-brand);
-		font-size: 7.5px;
-		font-weight: 700;
-	}
-	.mark.ok {
-		fill: var(--color-grass);
-	}
-	.mark.no {
-		fill: var(--color-danger);
-	}
-	.markline {
-		fill: none;
-		stroke: var(--color-card);
-		stroke-width: 1.8;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-	.doc {
-		transition: opacity 0.4s;
-	}
-	.doc.faded {
-		opacity: 0.25;
-	}
-	.paper {
-		fill: var(--color-card);
-		stroke: var(--color-line);
-		stroke-width: 1.5;
-		stroke-linejoin: round;
-	}
-	.fold {
-		fill: var(--color-paper);
-		stroke: var(--color-line);
-		stroke-width: 1.2;
-		stroke-linejoin: round;
-	}
-	.doctitle {
-		fill: var(--color-brand);
-		font-size: 8.5px;
-		font-weight: 800;
-	}
-	.doctext {
-		fill: var(--color-ink);
-		font-size: 7.5px;
-	}
-	.hl.ok {
-		fill: var(--color-grass-soft);
-	}
-	.hl.no {
-		fill: var(--color-danger-soft);
-	}
-	.hiddentext {
-		fill: var(--color-card);
-		font-size: 7.5px;
-		transition: fill 0.4s;
-	}
-	.hiddentext.shown {
-		fill: var(--color-danger);
-		font-weight: 700;
-	}
-	.hiddentag {
-		fill: var(--color-danger);
-		font-size: 7px;
-		font-weight: 800;
-	}
-	.scan {
-		fill: var(--color-brand);
-		opacity: 0.18;
-	}
-	.fence {
-		fill: none;
-		stroke: var(--color-grass);
-		stroke-width: 2;
-	}
-	.shield {
-		opacity: 0.45;
-		transition: opacity 0.4s;
-	}
-	.shield.on {
-		opacity: 1;
-	}
-	.shieldbody {
-		fill: var(--color-paper);
-		stroke: var(--color-faint);
-		stroke-width: 1.5;
-		stroke-linejoin: round;
-	}
-	.shield.on .shieldbody {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		animation: pop 0.4s ease both;
-	}
-	.shieldtick {
-		fill: none;
-		stroke: var(--color-grass);
-		stroke-width: 2;
-		stroke-linecap: round;
-		stroke-linejoin: round;
-	}
-	.shieldlabel {
-		fill: var(--color-muted);
-		font-size: 7.5px;
-		font-weight: 700;
-	}
-	.stamp {
-		fill: var(--color-grass-soft);
-		stroke: var(--color-grass);
-		stroke-width: 2;
-	}
-	.stamptext {
-		fill: var(--color-grass);
-		font-size: 11px;
-		font-weight: 800;
-	}
-	.pop {
-		animation: pop 0.4s ease both;
-	}
-	@keyframes pop {
+	@keyframes rise {
 		from {
 			opacity: 0;
-			transform: translateY(4px);
-		}
-		to {
-			opacity: 1;
-			transform: none;
+			transform: translateY(5px);
 		}
 	}
-	@media (max-width: 767px) {
-		.stage {
-			padding-bottom: 7rem;
-		}
+
+	/* documents */
+	.doc {
+		display: flex;
+		width: min(94vw, 440px);
+		flex-direction: column;
+		gap: 5px;
+		border-radius: 14px;
+		border: 1px solid var(--color-line);
+		background: var(--color-card);
+		padding: 10px 12px;
+		font-size: 12px;
+		line-height: 1.45;
+		color: var(--color-ink);
 	}
+	.dtitle {
+		font-size: 10.5px;
+		font-weight: 700;
+		color: var(--color-faint);
+	}
+	.file .dtitle {
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	}
+	.source ul {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		padding-left: 16px;
+		list-style: disc;
+	}
+	.source li.hit {
+		font-weight: 700;
+		color: var(--color-danger);
+	}
+	/* white text on a white page, invisible until revealed */
+	.hidden {
+		font-size: 8px;
+		line-height: 1.3;
+		color: var(--color-card);
+		user-select: all;
+	}
+	.hidden.shown {
+		border-radius: 8px;
+		background: var(--color-danger-soft);
+		padding: 6px 8px;
+		font-size: 11.5px;
+		color: var(--color-danger);
+	}
+	.hidden.stripped {
+		text-decoration: line-through;
+		opacity: 0.6;
+	}
+	.htag {
+		display: inline-block;
+		margin-right: 6px;
+		border-radius: 999px;
+		padding: 0 7px;
+		font-size: 9.5px;
+		font-weight: 700;
+		color: #fff;
+		background: var(--color-danger);
+		text-decoration: none;
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.bub,
-		.doc,
-		.hiddentext,
-		.shield {
+		.msg,
+		.dots i {
+			animation: none;
+		}
+		.tab,
+		.def,
+		.claim {
 			transition: none;
 		}
-		.pop,
-		.dot,
-		.bub.bot.warn,
-		.shield.on .shieldbody {
-			animation: none;
+	}
+
+	@media (min-width: 768px) {
+		.chat,
+		.doc,
+		.actions {
+			width: min(94vw, 500px);
+		}
+		.msg,
+		.claim {
+			font-size: 13.5px;
 		}
 	}
 </style>
