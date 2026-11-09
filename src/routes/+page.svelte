@@ -20,11 +20,15 @@
 		reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 		const mq = window.matchMedia('(max-width: 767px)');
 		small = mq.matches;
-		const onChange = (e: MediaQueryListEvent) => (small = e.matches);
+		const onChange = (e: MediaQueryListEvent) => {
+			const picking = isLast;
+			small = e.matches;
+			if (picking) beat = $t.welcome.length - 1 + (small ? 1 : 0);
+		};
 		mq.addEventListener('change', onChange);
 		return () => mq.removeEventListener('change', onChange);
 	});
-	// The last welcome line asks where to start, and the track picker appears under it. On a phone
+	// The last welcome line introduces the track picker. On a phone
 	// the "bigger screen" note slots in just before that question.
 	const lines = $derived(
 		small ? [...$t.welcome.slice(0, -1), $t.welcomeMobile, ...$t.welcome.slice(-1)] : $t.welcome
@@ -46,7 +50,10 @@
 		if (r) goto(resolve('/[chapter]/[lesson]', { chapter: r.chapterId, lesson: r.lessonId }));
 	}
 	function onKey(e: KeyboardEvent) {
-		if (e.code === 'Space' && !isLast) {
+		const control =
+			e.target instanceof Element &&
+			e.target.closest('button, a, input, textarea, select, [contenteditable]');
+		if (e.code === 'Space' && !isLast && !control && !e.repeat) {
 			e.preventDefault();
 			next();
 		}
@@ -163,14 +170,15 @@
 		class="relative z-10 flex flex-1 flex-col items-center px-4 pb-12 md:px-6"
 		class:justify-center={!isLast}
 		class:pt-6={isLast}
+		class:choosing={isLast}
 	>
-		<!-- Nim and the speech bubble, side by side on a big screen, stacked on a phone -->
+		<!-- The welcome becomes a companion column when the track picker opens. -->
 		<section class="hero" class:compact={isLast}>
 			<div class="nim" style="view-transition-name: nim">
 				<Nim
 					mood={isLast ? 'excited' : beat === 0 ? 'happy' : 'wink'}
 					{talking}
-					size={isLast ? (small ? 84 : 112) : small ? 128 : 176}
+					size={isLast ? (small ? 84 : 160) : small ? 128 : 176}
 				/>
 			</div>
 
@@ -218,10 +226,13 @@
 		{#if !isLast}
 			<p class="hint" in:fade>{small ? $t.hintTap : $t.hintSpace}</p>
 		{:else}
-			<section class="pick" in:fly={{ y: 16, duration: 420, easing: cubicOut }}>
+			<section
+				class="pick"
+				in:fly={{ y: reduced ? 0 : 16, duration: reduced ? 0 : 420, easing: cubicOut }}
+			>
 				<h1>{$t.pickTitle}</h1>
 				<p class="sub">{$t.pickSub}</p>
-				<TrackPicker onpick={pick} current={path.chosen ? path.track.id : undefined} />
+				<TrackPicker landing onpick={pick} current={path.chosen ? path.track.id : undefined} />
 			</section>
 		{/if}
 	</main>
@@ -414,12 +425,65 @@
 		font-family: var(--font-display);
 		font-size: clamp(1.5rem, 3vw, 2rem);
 		font-weight: 600;
+		line-height: 1.2;
 		color: var(--color-ink);
 	}
 	.pick .sub {
 		margin: 6px 0 20px;
 		font-size: 14px;
 		color: var(--color-muted);
+	}
+
+	@media (min-width: 1024px) {
+		main.choosing {
+			display: grid;
+			width: min(100%, 1440px);
+			grid-template-columns: minmax(220px, 0.3fr) minmax(0, 1fr);
+			align-content: center;
+			align-items: center;
+			gap: clamp(28px, 3.5vw, 56px);
+			margin-inline: auto;
+			padding: 20px 32px 24px;
+		}
+		.choosing .hero {
+			width: 100%;
+			flex-direction: column-reverse;
+			align-items: center;
+			gap: 24px;
+		}
+		.choosing .bubble {
+			width: 100%;
+			flex: none;
+			padding: 20px;
+		}
+		.choosing .tail {
+			left: calc(50% - 9px);
+			bottom: -9px;
+			transform: rotate(-45deg);
+		}
+		.choosing .nim {
+			margin-bottom: 0;
+		}
+		.choosing .pick {
+			width: 100%;
+			min-width: 0;
+			margin-top: 0;
+			text-align: left;
+		}
+		.choosing .pick .sub {
+			margin-bottom: 18px;
+		}
+	}
+	@media (min-width: 1024px) and (max-height: 700px) {
+		main.choosing {
+			padding-block: 12px 20px;
+		}
+		.choosing .pick .sub {
+			margin-bottom: 12px;
+		}
+		.choosing .hero {
+			gap: 12px;
+		}
 	}
 
 	@media (max-width: 767px) {
@@ -461,6 +525,10 @@
 		}
 	}
 	@media (prefers-reduced-motion: reduce) {
+		.hero,
+		.dots i {
+			transition: none;
+		}
 		.drift {
 			animation: none;
 			left: auto;

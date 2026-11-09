@@ -142,7 +142,7 @@
 		</div>
 
 		{#if picking}
-			<div class="min-h-0 flex-1 overflow-y-auto px-4 pb-6">
+			<div class="min-h-0 flex-1 scroll-py-3 overflow-y-auto px-4 pt-3 pb-6">
 				<TrackPicker compact onpick={switchTrack} current={track.id} />
 			</div>
 		{:else}

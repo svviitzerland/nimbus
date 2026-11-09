@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { MediaQuery } from 'svelte/reactivity';
 	import { fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import { lang, t } from '$lib/i18n';
@@ -12,7 +13,8 @@
 		current,
 		selected,
 		topicsOnly = false,
-		compact = false
+		compact = false,
+		landing = false
 	}: {
 		onpick: (track: Track) => void;
 		/** The learner's current track, marked so a returning visitor can just continue. */
@@ -23,8 +25,11 @@
 		topicsOnly?: boolean;
 		/** Smaller cards for the side menu. */
 		compact?: boolean;
+		/** A wide, space-efficient layout for the welcome screen. */
+		landing?: boolean;
 	} = $props();
 
+	const reduced = new MediaQuery('(prefers-reduced-motion: reduce)');
 	const general = $derived(tracks[0]);
 	// stops along the Dari Nol road (computer first, then each topic track's colour)
 	const STOPS = [
@@ -100,7 +105,12 @@
 		disabled={track.soon}
 		style="--tc:{track.color}"
 		onclick={() => onpick(track)}
-		in:fly={{ y: 12, duration: 320, delay: 60 * i, easing: cubicOut }}
+		in:fly={{
+			y: reduced.current ? 0 : 12,
+			duration: reduced.current ? 0 : 320,
+			delay: reduced.current ? 0 : 60 * i,
+			easing: cubicOut
+		}}
 	>
 		<span class="badge">{@render icon(track.id)}</span>
 		<span class="body">
@@ -182,9 +192,9 @@
 	</button>
 {/snippet}
 
-<div class="picker" class:compact>
+<div class="picker" class:compact class:landing={landing && !compact && !topicsOnly}>
 	{#if !topicsOnly}
-		{#if !compact}<h2 class="route-label">{lessonUi[$lang].foundation}</h2>{/if}
+		{#if !compact && !landing}<h2 class="route-label">{lessonUi[$lang].foundation}</h2>{/if}
 		{@render card(general, !compact, 0)}
 	{/if}
 	{#if !compact && !topicsOnly}<div class="specialist-heading">
@@ -259,6 +269,10 @@
 	.track.current {
 		border-color: var(--tc);
 	}
+	.track:focus-visible {
+		outline: 3px solid var(--tc);
+		outline-offset: 4px;
+	}
 	.track:disabled {
 		cursor: not-allowed;
 		opacity: 0.62;
@@ -267,10 +281,19 @@
 		padding: 16px 18px;
 	}
 	.track.compact {
+		position: relative;
 		align-items: center;
 		border-radius: 14px;
 		padding: 9px 11px;
+		scroll-margin-block: 12px;
 		box-shadow: none;
+	}
+	.track.compact:not(:disabled):hover {
+		box-shadow: 0 4px 10px rgba(22, 40, 60, 0.08);
+	}
+	.track.compact:hover,
+	.track.compact:focus-visible {
+		z-index: 1;
 	}
 	.badge {
 		display: flex;
@@ -511,9 +534,96 @@
 			grid-template-columns: 1fr;
 		}
 	}
+	@media (min-width: 1024px) {
+		.landing {
+			gap: 12px;
+		}
+		.landing .specialist-heading {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: baseline;
+			justify-content: space-between;
+			gap: 4px 16px;
+			margin-top: 8px;
+		}
+		.landing .specialist-heading p {
+			margin: 0;
+		}
+		.landing .grid {
+			gap: 12px;
+		}
+		.landing .track.big {
+			gap: 14px;
+			padding: 20px;
+		}
+		.landing .big .body {
+			display: grid;
+			grid-template-columns: minmax(0, 1fr) auto;
+			align-items: center;
+			gap: 8px 16px;
+		}
+		.landing .big .head,
+		.landing .big .tagline {
+			grid-column: 1 / -1;
+		}
+		.landing .big .meta {
+			flex-wrap: wrap;
+			margin-top: 0;
+		}
+		.landing .cta {
+			margin-top: 2px;
+		}
+		.landing .route {
+			width: clamp(200px, 18vw, 250px);
+		}
+		.landing .track:not(.big) {
+			display: grid;
+			grid-template-columns: 36px minmax(0, 1fr);
+			grid-template-rows: auto 1fr auto;
+			align-items: center;
+			gap: 10px;
+			padding: 18px;
+		}
+		.landing .track:not(.big) .badge {
+			height: 36px;
+			width: 36px;
+			border-radius: 11px;
+		}
+		.landing .track:not(.big) .body {
+			display: contents;
+		}
+		.landing .track:not(.big) .head {
+			padding-right: 20px;
+		}
+		.landing .track:not(.big) .tagline,
+		.landing .track:not(.big) .meta {
+			grid-column: 1 / -1;
+		}
+		.landing .track:not(.big) .tagline {
+			align-self: start;
+		}
+		.landing .track:not(.big) .meta {
+			padding-top: 0;
+			margin-top: 0;
+		}
+		.landing .go {
+			top: 22px;
+			right: 14px;
+			height: 24px;
+			width: 24px;
+			background: none;
+		}
+	}
 	@media (prefers-reduced-motion: reduce) {
-		.track {
+		.track,
+		.go,
+		.cta svg {
 			transition: none;
+		}
+		.track:not(:disabled):hover,
+		.track:not(:disabled):hover .go,
+		.track:not(:disabled):hover .cta svg {
+			transform: none;
 		}
 	}
 </style>

@@ -404,8 +404,8 @@ const general: Track = {
 	color: '#2e6fe0',
 	title: { id: 'Dari Nol', en: 'From Zero' },
 	tagline: {
-		id: 'Belum tahu mau mulai dari mana? Ikuti aku, semua topik kita pelajari satu per satu dari dasar banget.',
-		en: 'Not sure where to start? Follow me and we cover every topic one by one, from the very basics.'
+		id: 'Dasar komputer, jaringan, web, cloud, keamanan, dan AI secara bertahap.',
+		en: 'The basics of computers, networks, the web, cloud, security, and AI, step by step.'
 	},
 	modules: [],
 	groups: GENERAL.map((g, i) => ({
@@ -427,8 +427,8 @@ const topicTracks: TrackDef[] = [
 		color: '#3a9c64',
 		title: { id: 'Jaringan', en: 'Network' },
 		tagline: {
-			id: 'Cara data berpindah dari HP kamu ke server di ujung dunia, sampai ngatur router sendiri.',
-			en: 'How data travels from your phone to a server across the world, up to running your own router.'
+			id: 'Koneksi internet, cara data dikirim, dan pengaturan jaringan.',
+			en: 'Internet connections, data transfer, and network configuration.'
 		},
 		modules: [
 			'internet',
@@ -449,8 +449,8 @@ const topicTracks: TrackDef[] = [
 		color: '#e27a36',
 		title: { id: 'Web', en: 'Web' },
 		tagline: {
-			id: 'Dari halaman yang kamu lihat sampai server dan database di belakangnya.',
-			en: 'From the page you see to the server and database behind it.'
+			id: 'Pembuatan web, mulai dari tampilan, server, hingga database.',
+			en: 'Building websites, from the interface to servers and databases.'
 		},
 		modules: [
 			'code',
@@ -473,8 +473,8 @@ const topicTracks: TrackDef[] = [
 		color: '#2a9fb0',
 		title: { id: 'Cloud & DevOps', en: 'Cloud & DevOps' },
 		tagline: {
-			id: 'Sewa server, sebar ke seluruh dunia, otomatiskan rilisnya, dan tetap hemat.',
-			en: 'Rent servers, spread them worldwide, automate every release, and stay on budget.'
+			id: 'Pengelolaan server cloud, deployment aplikasi, dan otomatisasi.',
+			en: 'Cloud servers, application deployment, and automation.'
 		},
 		modules: [
 			'internet',
@@ -498,8 +498,8 @@ const topicTracks: TrackDef[] = [
 		color: '#d3584a',
 		title: { id: 'Keamanan', en: 'Security' },
 		tagline: {
-			id: 'Cara penyerang berpikir, cara data dikunci, dan cara menjaga sistem tetap aman.',
-			en: 'How attackers think, how data gets locked, and how to keep a system safe.'
+			id: 'Ancaman keamanan serta cara melindungi data dan sistem.',
+			en: 'Security threats and ways to protect data and systems.'
 		},
 		modules: [
 			'code',
@@ -522,8 +522,8 @@ const topicTracks: TrackDef[] = [
 		color: '#cf5a92',
 		title: { id: 'AI & ML', en: 'AI & ML' },
 		tagline: {
-			id: 'Dari machine learning sampai chatbot, cara mesin belajar dari contoh.',
-			en: 'From machine learning to chatbots, how a machine learns from examples.'
+			id: 'Dasar machine learning, model AI, dan cara menggunakannya.',
+			en: 'Machine learning, AI models, and how to use them.'
 		},
 		modules: ['internet', 'ai-intro', 'ml', 'deep-learning', 'genai', 'ai-real']
 	}
