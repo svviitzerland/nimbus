@@ -5,6 +5,13 @@ All notable changes to Nimbus are documented here. The format is based on
 [Semantic Versioning](https://semver.org), and entries below this point are generated
 automatically from [Conventional Commits](https://www.conventionalcommits.org).
 
+## [0.0.5](https://github.com/svviitzerland/nimbus/compare/v0.0.4...v0.0.5) (2026-11-09)
+
+
+### Bug Fixes
+
+* fit track selection on desktop and prevent clipped menu hover ([47ec5fe](https://github.com/svviitzerland/nimbus/commit/47ec5feb70b9ef89aebd4bc0f5e8f28c8a76a02c))
+
 ## [0.0.4](https://github.com/svviitzerland/nimbus/compare/v0.0.3...v0.0.4) (2026-11-08)
 
 
